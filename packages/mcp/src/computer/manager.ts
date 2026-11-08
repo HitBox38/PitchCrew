@@ -12,6 +12,7 @@ import {
   type ComputerApproval,
   type RoleId,
   publicText,
+  userDeclinedError,
 } from '@pitchcrew/core';
 import { assertReviewedContext, digestPacket, digestArtifacts } from '@pitchcrew/board';
 import { digestBytes, verifiedArtifact } from '@pitchcrew/packet';
@@ -479,6 +480,7 @@ export class ComputerManager {
         message:
           'Awaiting user approval. Call execute again to wait; do not finish the run while waiting.',
       };
+    if (approval.status === 'rejected' && !approval.error) throw new Error(userDeclinedError);
     if (approval.status !== 'approved')
       throw new Error(
         `Browser action is ${approval.status}.${approval.error ? ` ${browserErrorText(approval.error)}` : ''}`,

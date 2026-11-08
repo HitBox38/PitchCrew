@@ -18,3 +18,13 @@ export const isUserControlError = (message: string) =>
 
 export const isUserControlPause = (entry: { status: string; label: string }) =>
   entry.status === 'interrupted' && entry.label === userControlPauseLabel;
+
+/**
+ * The user rejected a browser request (an expired or invalidated one carries its own reason).
+ * The agent is told plainly so it neither blames the browser nor retries unasked, and chat shows
+ * the decision ("You declined to …") instead of a failed step.
+ */
+export const userDeclinedError =
+  'The user declined this browser action. Do not retry it unless they ask; ask them what to do instead.';
+
+export const isUserDeclinedError = (message: string) => message.includes(userDeclinedError);

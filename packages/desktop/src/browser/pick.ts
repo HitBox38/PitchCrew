@@ -102,6 +102,19 @@ export const pickedBox = (quad: number[], viewport: { width: number; height: num
 };
 
 /**
+ * The screenshot clip for a box in CSS pixels. The box model reads CSS pixels, but a screenshot
+ * clip is in device-independent pixels, which page zoom scales: at 125% a CSS pixel is 1.25 DIPs,
+ * and an unscaled clip would crop whatever sits above and left of the element.
+ */
+export const pickedClip = (box: Box, zoom: number) => ({
+  x: box.x * zoom,
+  y: box.y * zoom,
+  width: box.width * zoom,
+  height: box.height * zoom,
+  scale: 1,
+});
+
+/**
  * User-only element picking on the selected page, like DevTools' inspect: Chromium highlights
  * what the pointer is over, a click picks it, and the element comes back as a cropped PNG with
  * its tag and visible name for the user to review before attaching. It needs held control,
@@ -202,7 +215,7 @@ export const installBrowserPickIpc = (
         if (!box) throw new Error('That element isn’t visible on the page.');
         const shot = await send<{ data: string }>('Page.captureScreenshot', {
           format: 'png',
-          clip: { ...box, scale: 1 },
+          clip: pickedClip(box, contents.getZoomFactor()),
         });
         if (group.manualUntil <= Date.now() || group.pages.get(group.active) !== page)
           throw new Error('The browser page changed while picking.');

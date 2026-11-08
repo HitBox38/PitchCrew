@@ -5,6 +5,7 @@ import {
   cancelPick,
   installBrowserPickIpc,
   pickedBox,
+  pickedClip,
   pickedName,
   pickedText,
 } from '../src/browser/pick.ts';
@@ -34,6 +35,7 @@ const fixture = () => {
     id: 7,
     debugger: debug,
     isDestroyed: () => false,
+    getZoomFactor: () => 1,
     getURL: () => 'https://jobs.example/apply',
     getTitle: () => 'Apply',
   });
@@ -133,6 +135,15 @@ it('names, measures and reads picked elements conservatively', () => {
   expect(
     pickedBox([500, 500, 600, 500, 600, 600, 500, 600], { width: 100, height: 100 }),
   ).toBeNull();
+  // A screenshot clip is in DIPs: page zoom scales the CSS-pixel box, or the crop shows
+  // whatever sits above and left of the element.
+  expect(pickedClip({ x: 12, y: 22, width: 136, height: 56 }, 1.25)).toEqual({
+    x: 15,
+    y: 27.5,
+    width: 170,
+    height: 70,
+    scale: 1,
+  });
   expect(
     pickedText({
       nodeType: 1,

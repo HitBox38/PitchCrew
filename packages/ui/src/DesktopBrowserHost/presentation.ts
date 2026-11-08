@@ -83,6 +83,10 @@ export const browserViewStyle = (
     visibility: inactive && !keepPaintableWhenInactive ? 'hidden' : 'visible',
     display: 'flex',
     border: 0,
+    // A guest is transparent where a page paints no background; like any browser, show white
+    // there, never the app's paper (black text on dark paper in the dark theme). Pages that
+    // declare a dark colour scheme paint their own canvas over it.
+    background: '#fff',
     // An entirely off-window guest stops compositing in Electron. Fit background
     // surfaces on screen without changing the page's layout viewport or evidence.
     transform: view.bounds && scale === 1 ? 'none' : `scale(${scale})`,

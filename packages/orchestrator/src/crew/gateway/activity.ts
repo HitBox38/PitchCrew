@@ -1,5 +1,6 @@
 import {
   isUserControlError,
+  isUserDeclinedError,
   userControlPauseLabel,
   type ComputerApproval,
   type Run,
@@ -44,6 +45,8 @@ const browserStep = (
       row?: string;
       /** Called with the result and row once the call succeeds. */
       settled?: (result: unknown, row: string) => void;
+      /** The step's label when the user declined the request it carries out. */
+      declined?: string;
     }
   | undefined => {
   if (action === 'computer_inspect')
@@ -80,6 +83,7 @@ const browserStep = (
       if ((result as { status?: string } | undefined)?.status === 'pending')
         rows.set(approval.id, id);
     },
+    declined: `You declined to ${plain.charAt(0).toLowerCase()}${plain.slice(1)}`,
     done: (result) =>
       (result as { status?: string } | undefined)?.status === 'pending'
         ? `Waited for your OK to ${plain.charAt(0).toLowerCase()}${plain.slice(1)}`
@@ -121,13 +125,21 @@ export const observeChatTool = (
         const paused =
           (failed && error instanceof Error && isUserControlError(error.message)) ||
           (!failed && (result as { status?: string } | undefined)?.status === 'manual');
+        // The user's own decision, not a broken browser: shown as what they chose.
+        const declined =
+          failed &&
+          !!step?.declined &&
+          error instanceof Error &&
+          isUserDeclinedError(error.message);
         recordChatActivity(context, capability.runId, {
           id,
           kind: 'tool',
           label: paused
             ? userControlPauseLabel
-            : ((!failed && step?.done(result)) || label).slice(0, 160),
-          status: paused ? 'interrupted' : failed ? 'failed' : 'completed',
+            : declined
+              ? step!.declined!.slice(0, 160)
+              : ((!failed && step?.done(result)) || label).slice(0, 160),
+          status: paused ? 'interrupted' : failed && !declined ? 'failed' : 'completed',
         });
         if (!failed && !paused) step?.settled?.(result, id);
       } catch {

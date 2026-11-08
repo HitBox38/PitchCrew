@@ -28,6 +28,8 @@ it('keeps the selected page live within renderer stacking across paint activity'
     opacity: 1,
   });
   expect(shown.zIndex).toBeLessThan(50);
+  // A page without its own background reads on white, never on the app's (dark) paper.
+  expect(shown.background).toBe('#fff');
   expect(browserViewStyle({ ...view, painting: true })).toEqual(shown);
   expect(browserViewStyle({ ...view, manual: false })).toMatchObject({
     visibility: 'visible',

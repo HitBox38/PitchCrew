@@ -224,4 +224,28 @@ it('keeps each browser action in one latest row through intervening calls and du
     ['Clicked “Submit”', 'completed'],
     ['Click “Submit”', 'failed'],
   ]);
+  // A request the user rejects is their decision, told plainly to the agent and shown as such.
+  vi.mocked(service.computer.execute).mockRestore();
+  // The mocked execution never consumed the first approval; settle it as carried out.
+  service.board.record(
+    'computer_approval',
+    {
+      ...service.board.get<import('@pitchcrew/core').ComputerApproval>(
+        'computer_approval',
+        approval.id,
+      ),
+      status: 'consumed',
+    },
+    'user',
+    'Fixture consumed approval',
+  );
+  const { approval: declined } = (await service.agentCall('rows-token', 'computer_request', {
+    input: { kind: 'click', selector: '#submit' },
+    reason: 'Submit fixture again',
+  })) as { approval: import('@pitchcrew/core').ComputerApproval };
+  service.computer.decide(declined.id, false);
+  await expect(
+    service.agentCall('rows-token', 'computer_execute', { approvalId: declined.id }),
+  ).rejects.toThrow('The user declined this browser action.');
+  expect(rows().at(-1)).toEqual(['You declined to click “Submit”', 'completed']);
 });

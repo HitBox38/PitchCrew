@@ -348,11 +348,50 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
       before,
       'Picking pressed the element instead of selecting it',
     );
+    const cropAt100 = await dialog
+      .locator('canvas')
+      .evaluate((canvas: HTMLCanvasElement) => [canvas.width, canvas.height]);
     await app.page.keyboard.press('Escape');
     await dialog.waitFor({ state: 'hidden' });
     const settings = app.page.getByRole('button', { name: 'Browser page settings', exact: true });
     if ((await settings.getAttribute('aria-expanded')) === 'true')
       await app.page.keyboard.press('Escape');
+    // At 125% page zoom the crop is the same element, scaled: CSS-pixel boxes become DIP clips.
+    const zoom = (factor: number) =>
+      app.electron.evaluate(
+        ({ webContents }, [id, value]) => webContents.fromId(id)?.setZoomFactor(value),
+        [guest.id, factor] as const,
+      );
+    await zoom(1.25);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    await app.page.getByRole('button', { name: 'Pick an element to attach', exact: true }).click();
+    await app.page
+      .locator('.browser-approvals')
+      .getByText('Click an element on the page to attach it.', { exact: false })
+      .waitFor();
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const zoomed = await guestPoint(app, '#continue');
+    await app.page.mouse.move(zoomed.x, zoomed.y, { steps: 4 });
+    await app.page.mouse.click(zoomed.x, zoomed.y);
+    await dialog.waitFor();
+    assert.match(await dialog.innerText(), /Button “Continue”/);
+    const cropAt125 = await dialog
+      .locator('canvas')
+      .evaluate((canvas: HTMLCanvasElement) => [canvas.width, canvas.height]);
+    for (const axis of [0, 1])
+      assert.ok(
+        Math.abs(cropAt125[axis]! / cropAt100[axis]! - 1.25) < 0.08,
+        `The 125% crop was ${cropAt125.join('×')} against ${cropAt100.join('×')} at 100%`,
+      );
+    await until(
+      () => dialog.evaluate((element) => element.contains(document.activeElement)),
+      'The zoomed picked-element review never took focus from the page',
+    );
+    await app.page.keyboard.press('Escape');
+    await dialog.waitFor({ state: 'hidden' });
+    if ((await settings.getAttribute('aria-expanded')) === 'true')
+      await app.page.keyboard.press('Escape');
+    await zoom(1);
   });
   it(
     'runs a real scoped MCP action only after an exact decision in the production UI',

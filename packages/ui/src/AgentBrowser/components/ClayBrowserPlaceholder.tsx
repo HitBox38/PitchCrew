@@ -43,7 +43,7 @@ export const ClayBrowserPlaceholder = ({
             ? 'Type an address or a search above.'
             : opened
               ? `Ask ${agent} to open a page, or take control and browse yourself. Sign-ins in this browser are kept.`
-              : `Ask ${agent} to browse, or open the browser to sign in. Sign-ins in this browser are kept.`}
+              : `Ask ${agent} to browse, or open the browser and browse yourself. Sign-ins in this browser are kept.`}
       </p>
       {/* A usable blank tab needs no button: the address field above is the action. */}
       {!loading && !(opened && manual) ? (

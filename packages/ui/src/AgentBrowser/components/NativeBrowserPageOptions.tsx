@@ -8,7 +8,10 @@ const appearances = [
   { value: 'dark', label: 'Dark' },
 ] as const;
 
-/** Per-page options as menu rows, and the website's appearance as a three-way segment. */
+/**
+ * Per-page options as menu rows, and the website's appearance as a three-way segment. A pending
+ * command disables them but keeps their focus, so Escape still closes only this menu.
+ */
 export const NativeBrowserPageOptions = ({
   model,
   manual,
@@ -25,6 +28,7 @@ export const NativeBrowserPageOptions = ({
           className="browser-menu-row"
           size="sm"
           variant="ghost"
+          focusableWhenDisabled
           disabled={!manual}
           onClick={() => void model.command({ kind: 'mute', muted: !tab?.muted })}
         >
@@ -35,6 +39,7 @@ export const NativeBrowserPageOptions = ({
           className="browser-menu-row"
           size="sm"
           variant="ghost"
+          focusableWhenDisabled
           disabled={!manual}
           onClick={() => void model.command({ kind: 'devtools' })}
         >
@@ -51,6 +56,7 @@ export const NativeBrowserPageOptions = ({
               size="sm"
               variant="ghost"
               aria-pressed={current === item.value}
+              focusableWhenDisabled
               disabled={!manual}
               onClick={() => void model.command({ kind: 'appearance', colorScheme: item.value })}
             >

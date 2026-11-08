@@ -193,6 +193,8 @@ export {
   browserErrorText,
   isUserControlError,
   isUserControlPause,
+  isUserDeclinedError,
   userControlPauseLabel,
+  userDeclinedError,
 } from './browser-errors.ts';
 export * from './runtime-model-preferences.ts';

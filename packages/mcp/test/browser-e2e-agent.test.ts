@@ -49,7 +49,11 @@ it('waits for the previous run resize before inspecting and requesting a rejecta
     .mockResolvedValueOnce(failure('A browser action is still finishing.'))
     .mockResolvedValueOnce(success({ page: { digest: 'current-page' } }))
     .mockResolvedValueOnce(success({ approval: { id: 'reviewed-action' } }))
-    .mockResolvedValueOnce(failure('Browser action is rejected.'));
+    .mockResolvedValueOnce(
+      failure(
+        'The user declined this browser action. Do not retry it unless they ask; ask them what to do instead.',
+      ),
+    );
 
   await expect(browserE2EChat(context())).resolves.toEqual({
     reply: 'I did not perform the rejected E2E action.',

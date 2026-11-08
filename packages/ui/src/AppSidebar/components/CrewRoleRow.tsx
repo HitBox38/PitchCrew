@@ -80,7 +80,7 @@ export const CrewRoleRow = ({ role, status, running, asking, ...actions }: CrewR
             </DropdownMenuItem>
             <DropdownMenuItem disabled={actions.working || running} onClick={actions.onToggle}>
               {role.enabled ? <Pause /> : <Play />}
-              {role.enabled ? 'Pause role' : 'Resume role'}
+              {role.enabled ? `Pause ${role.name}` : `Resume ${role.name}`}
             </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
