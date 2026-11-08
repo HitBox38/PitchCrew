@@ -191,9 +191,10 @@ const settled = async () => {
     { timeout: 5000 },
   );
 };
+/** The control action lives at the end of the reserved tray, never in the header. */
 const headerControl = (name: string) =>
-  page.locator('.browser-panel-heading').getByRole('button', { name, exact: true });
-/** Header Take control while a run works; while idle, explicit control is in Browser options. */
+  page.locator('.browser-approvals').getByRole('button', { name, exact: true });
+/** Tray Take control while a run works; while idle, explicit control is in Browser options. */
 const takeControl = async () => {
   if (await headerControl('Take control').isVisible()) await headerControl('Take control').click();
   else {
@@ -379,14 +380,17 @@ test('shows private control over the page and in the reserved tray without resiz
   await settled();
   const trayHeight = await height(tray());
   await takeControl();
-  // One state chip says who has the page; the tray says the agent waits, with no second button.
+  // One state chip says who has the page; the tray says the agent waits and offers the return.
   const chip = page.locator('.browser-state-chip[data-tone="control"]');
   await chip.waitFor();
   expect(await chip.textContent()).toContain('You have control');
   await tray().getByText('waits until you return it', { exact: false }).waitFor();
-  expect(await tray().getByRole('button', { name: 'Return to agent', exact: true }).count()).toBe(
-    0,
-  );
+  expect(
+    await page
+      .locator('.browser-panel-heading')
+      .getByRole('button', { name: 'Return to agent', exact: true })
+      .count(),
+  ).toBe(0);
   await expect.poll(() => height(tray())).toBe(trayHeight);
   expect(setManual).toHaveBeenLastCalledWith(true);
   await headerControl('Return to agent').click();

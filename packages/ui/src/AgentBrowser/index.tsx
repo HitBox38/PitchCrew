@@ -53,7 +53,7 @@ export const AgentBrowser = (props: AgentBrowserProps) => {
   const stream = useBrowserFrame(roleId, thread, live);
   if (!browserPanel.available || !browserPanel.role) return null;
   const error = control.error || viewport.error || stream.error || browserPanel.error;
-  const approvals = <BrowserApprovals {...props} control={control} view={view} />;
+  const approvals = <BrowserApprovals {...props} control={control} view={view} nudged={nudged} />;
   return (
     <BrowserSurface
       modal={modal}

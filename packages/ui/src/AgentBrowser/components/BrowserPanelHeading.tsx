@@ -4,14 +4,16 @@ import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import { browserState, type BrowserPanelView } from '../layout.ts';
 import { BrowserAgentPicker } from './BrowserAgentPicker.tsx';
 import { BrowserTaskDetails } from './BrowserTaskDetails.tsx';
-import { BrowserControls } from './BrowserControls.tsx';
 import { BrowserMaintenance } from './BrowserMaintenance.tsx';
 import { BrowserExpandButton } from './BrowserExpandButton.tsx';
 import { BrowserViewSwitch } from './BrowserViewSwitch.tsx';
 import { NativeBrowserTabs } from './NativeBrowserTabs.tsx';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
 
-/** One header row: who and which state, the page's tabs, then the panel's actions. */
+/**
+ * One header row: who and which state, the page's tabs, then the panel's actions. The control
+ * action lives in the tray, so nothing here changes width when control changes hands.
+ */
 export const BrowserPanelHeading = (
   props: Pick<AgentBrowserProps, 'browserPanel' | 'thread' | 'data' | 'onThread' | 'onOpenCard'> & {
     control: BrowserControl;
@@ -58,7 +60,6 @@ export const BrowserPanelHeading = (
         </div>
       ) : null}
       <div className="browser-heading-actions">
-        <BrowserControls browserPanel={browserPanel} thread={thread} control={control} />
         <BrowserMaintenance browserPanel={browserPanel} thread={thread} control={control} />
         {!narrow ? <BrowserExpandButton expanded={expanded} toggle={toggleExpanded} /> : null}
         {!expanded || narrow ? (

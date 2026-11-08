@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import type { BrowserSessionInfo, RunActivity } from '@pitchcrew/core';
-import { browserState, runActivitySummary, shownPanelView } from '../layout.ts';
+import type { BrowserSessionInfo, Run, RunActivity } from '@pitchcrew/core';
+import {
+  browserState,
+  browserTrayLine,
+  runActivitySummary,
+  shownBrowserRun,
+  shownPanelView,
+} from '../layout.ts';
 
 const session = (patch: Partial<BrowserSessionInfo> = {}): BrowserSessionInfo => ({
   roleId: 'submitter',
@@ -56,7 +62,7 @@ describe('browser state chip', () => {
     expect(state({ session: session({ mode: 'autonomous' }) }).detail).toContain(
       'Autonomous preparation',
     );
-    expect(state({ elsewhere: true }).label).toBe('Idle elsewhere');
+    expect(state({ elsewhere: true }).label).toBe('In another chat');
     expect(state({ session: undefined, opening: true })).toMatchObject({ tone: 'opening' });
     expect(state({ session: undefined })).toMatchObject({ tone: 'closed' });
   });
@@ -82,5 +88,39 @@ describe('expanded activity summary', () => {
     ]);
     expect(summary.steps.map((step) => step.id)).toEqual(['b', 'd']);
     expect(summary.commentary?.id).toBe('c');
+  });
+});
+
+describe('tray line', () => {
+  it('says who has the page in the chip’s words, with an empty socket when idle', () => {
+    const line = (overrides: Partial<Parameters<typeof browserTrayLine>[0]>) =>
+      browserTrayLine({
+        name: 'Scout',
+        held: false,
+        implicit: false,
+        manual: false,
+        working: false,
+        ...overrides,
+      });
+    expect(line({}).tone).toBeNull();
+    expect(line({ working: true })).toMatchObject({ tone: 'plum' });
+    expect(line({ held: true, implicit: true }).text).toMatch(/^You’re browsing\./);
+    expect(line({ held: true, implicit: true, working: true }).text).toMatch(/^You have control\./);
+    expect(line({ manual: true })).toMatchObject({ tone: 'ochre' });
+  });
+});
+
+describe('shown run', () => {
+  it('keeps the latest run in this conversation after the browser run ends', () => {
+    const run = (id: string, startedAt: string, threadId = 'chat') =>
+      ({ id, roleId: 'scout', threadId, mode: 'chat', startedAt }) as Run;
+    const runs = [
+      run('a', '2026-11-08T01:00:00Z'),
+      run('b', '2026-11-08T02:00:00Z'),
+      run('c', '2026-11-08T03:00:00Z', 'other'),
+    ];
+    expect(shownBrowserRun(runs, 'scout', 'chat', null)?.id).toBe('b');
+    expect(shownBrowserRun(runs, 'scout', 'chat', 'a')?.id).toBe('a');
+    expect(shownBrowserRun(runs, 'writer', 'chat', null)).toBeUndefined();
   });
 });

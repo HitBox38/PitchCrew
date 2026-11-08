@@ -4,12 +4,14 @@ import { ClayApprovalIdle } from './ClayApprovalIdle.tsx';
 export const BrowserApprovals = (
   props: Pick<AgentBrowserProps, 'browserPanel' | 'data' | 'thread' | 'action' | 'working'> & {
     control: BrowserControl;
-    /** The panel's shown view; a native run on the browser view reserves the tray. */
+    /** The panel's shown view; an open browser on the browser view reserves the tray. */
     view: 'browser' | 'packet';
+    nudged: boolean;
   },
 ) => {
   const session = props.browserPanel.session;
-  const reserveSpace = props.view === 'browser' && !!session?.native && !!session.runId;
+  // Reserved for the whole open session, so a run starting or ending never resizes the page.
+  const reserveSpace = props.view === 'browser' && session?.status === 'open';
   const approvals = props.data.computerApprovals.filter(
     (approval) =>
       approval.roleId === props.browserPanel.role?.id &&
@@ -32,6 +34,7 @@ export const BrowserApprovals = (
           action={props.action}
           working={props.working}
           control={props.control}
+          nudged={props.nudged}
         />
       ) : null}
       {approvals.map((approval) => (

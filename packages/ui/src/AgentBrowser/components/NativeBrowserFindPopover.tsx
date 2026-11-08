@@ -25,7 +25,11 @@ export const NativeBrowserFindPopover = ({
             size="icon-sm"
             variant="ghost"
             aria-label="Find on page"
-            title={`Find on page (${browserShortcut('f')})`}
+            title={
+              manual
+                ? `Find on page (${browserShortcut('f')})`
+                : 'Searching moves the page, so it waits until you have control'
+            }
             disabled={!manual}
           />
         }

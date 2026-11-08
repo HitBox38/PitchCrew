@@ -85,8 +85,11 @@ export const useBrowserPanel = (
     width: state.width,
     /** Whether the shared right panel shows the browser or the packet. */
     view: state.view,
-    /** An agent run is using a browser (plum); the user's own browsing is not activity. */
-    activity: status.sessions.some((item) => !!item.runId),
+    /**
+     * An agent run is using a browser (plum). The user's own browsing is not activity, and nor
+     * is a run paused while the user holds its page.
+     */
+    activity: status.sessions.some((item) => !!item.runId && !item.manual),
     /** An agent run waits for the user's decision on a browser action (ochre). */
     waiting: data.computerApprovals.some(
       (approval) =>

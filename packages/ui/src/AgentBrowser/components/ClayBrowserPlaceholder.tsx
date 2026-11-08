@@ -32,7 +32,9 @@ export const ClayBrowserPlaceholder = ({
           ? opened
             ? 'Connecting to the browser…'
             : 'Opening the browser…'
-          : 'No page open'}
+          : opened
+            ? 'New tab'
+            : 'Browser not open'}
       </h3>
       <p>
         {loading

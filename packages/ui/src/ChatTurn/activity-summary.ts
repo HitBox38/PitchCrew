@@ -1,4 +1,5 @@
 import type { Run, RunActivity } from '@pitchcrew/core';
+import { isUserControlPause } from '@pitchcrew/core/browser-errors';
 
 /** Keep live context bounded across alternating commentary and tool batches. */
 export const activityPreview = (run: Run): RunActivity[] => {
@@ -6,7 +7,7 @@ export const activityPreview = (run: Run): RunActivity[] => {
   if (run.status !== 'running') {
     const issue =
       entries.findLast((entry) => entry.status === 'failed') ??
-      entries.findLast((entry) => entry.status === 'interrupted');
+      entries.findLast((entry) => entry.status === 'interrupted' && !isUserControlPause(entry));
     return issue ? [issue] : [];
   }
   const commentary = entries.findLast((entry) => entry.kind === 'commentary' && entry.text?.trim());
@@ -23,12 +24,16 @@ export const activitySummary = (entries: RunActivity[]) => {
     (entry) => entry.kind === 'commentary' && entry.text?.trim(),
   ).length;
   const failed = entries.filter((entry) => entry.status === 'failed').length;
-  const interrupted = entries.filter((entry) => entry.status === 'interrupted').length;
+  const interrupted = entries.filter(
+    (entry) => entry.status === 'interrupted' && !isUserControlPause(entry),
+  ).length;
+  const paused = entries.filter(isUserControlPause).length;
   return [
     steps ? `${steps} ${steps === 1 ? 'step' : 'steps'}` : '',
     updates ? `${updates} ${updates === 1 ? 'update' : 'updates'}` : '',
     failed ? `${failed} failed` : '',
     interrupted ? `${interrupted} interrupted` : '',
+    paused ? 'paused for you' : '',
   ]
     .filter(Boolean)
     .join(' · ');

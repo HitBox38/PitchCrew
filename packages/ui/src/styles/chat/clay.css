@@ -331,9 +331,6 @@
   background: var(--clay-fill);
   box-shadow: var(--clay);
 }
-[data-interface='clay'] .browser-approval-empty {
-  color: var(--muted);
-}
 [data-interface='clay'] .browser-placeholder-icon {
   border-radius: 999px;
   box-shadow: var(--clay);

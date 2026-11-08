@@ -188,5 +188,10 @@ export {
 export type { ChatFileCitation } from './chat-citations.ts';
 
 export * from './browser-tabs.ts';
-export { browserErrorText } from './browser-errors.ts';
+export {
+  browserErrorText,
+  isUserControlError,
+  isUserControlPause,
+  userControlPauseLabel,
+} from './browser-errors.ts';
 export * from './runtime-model-preferences.ts';

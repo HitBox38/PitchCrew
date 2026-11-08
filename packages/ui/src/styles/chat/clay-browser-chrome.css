@@ -138,11 +138,14 @@
   }
 }
 
-/* The state chip: who has the page, as a bead and a label. Opens task details. */
+/* The state chip: who has the page, as a bead and a label. Opens task details. One pill shape
+ * and a fixed minimum width in every state, so a state change never moves the tabs beside it. */
 [data-interface='clay'] .browser-state-chip {
   position: relative;
+  justify-content: flex-start;
   gap: 6px;
   height: 28px;
+  min-width: 8.75rem;
   max-width: 13rem;
   padding: 0 10px 0 8px;
   border-radius: 999px;
@@ -166,7 +169,7 @@
     [data-tone='browsing']
   ):not([data-nudged]) {
   background: transparent;
-  padding-inline: 4px 6px;
+  box-shadow: inset 0 0 0 1px var(--border);
 }
 [data-interface='clay'] .browser-state-chip[data-tone='browsing']:not([data-nudged]) {
   color: var(--primary-deep);
@@ -175,7 +178,7 @@
   background: var(--plum-soft);
   color: var(--plum);
 }
-[data-interface='clay'] .browser-state-chip:is([data-tone='browsing'], [data-tone='control']) {
+[data-interface='clay'] .browser-state-chip[data-tone='control'] {
   background: var(--primary-soft);
   color: var(--primary-deep);
 }
@@ -198,12 +201,27 @@
   border-width: 1.5px;
 }
 @media (prefers-reduced-motion: reduce) {
-  [data-interface='clay'] .browser-state-chip[data-nudged] {
+  [data-interface='clay'] .browser-state-chip[data-nudged],
+  [data-interface='clay'] .browser-handoff[data-nudged] {
     animation: none;
   }
 }
-[data-interface='clay'] .browser-handoff {
+/* The tray's control action ends its line; a press on a page the agent is using points at it. */
+[data-interface='clay'] .clay-tray-line > .browser-handoff,
+[data-interface='clay'] .browser-pending-action > .browser-handoff {
+  flex-shrink: 0;
   height: 30px;
+  padding-inline: 10px;
+  font-size: var(--text-caption);
+}
+[data-interface='clay'] .clay-tray-line > .browser-handoff {
+  margin-left: auto;
+}
+[data-interface='clay'] .browser-handoff[data-nudged] {
+  box-shadow:
+    var(--clay),
+    0 0 0 3px color-mix(in oklab, var(--ochre) 35%, transparent);
+  animation: browser-chip-nudge 600ms ease-out 2;
 }
 
 /* Row 2: the toolbar on the same paper, with the only hairline in the chrome. */
@@ -220,31 +238,17 @@
   box-shadow: none;
 }
 
-/* In the split view the page runs flush under the toolbar's hairline: one frame, not three.
- * The 1px border stays (transparent) so the page box and its viewport keep their sizing. The
- * expanded view keeps the page as a card beside its activity column. */
-[data-interface='clay']
-  .agent-browser-panel:not(:has(> .browser-expanded-side))
-  .browser-panel-body {
+/* The page runs flush under the toolbar's hairline in both the split and expanded views: one
+ * frame, not three. The 1px border stays (transparent) so the page box and its viewport keep
+ * their sizing. */
+[data-interface='clay'] .agent-browser-panel .browser-panel-body {
   padding: 0;
   background: var(--paper);
 }
-[data-interface='clay']
-  .agent-browser-panel:not(:has(> .browser-expanded-side))
-  .browser-page-region
-  .browser-live-view {
+[data-interface='clay'] .agent-browser-panel .browser-page-region .browser-live-view {
   border-color: transparent;
   border-radius: 0;
   box-shadow: none;
-}
-[data-interface='clay'] .agent-browser-panel:has(> .browser-expanded-side) .browser-panel-body {
-  padding: 6px;
-}
-[data-interface='clay']
-  .agent-browser-panel:has(> .browser-expanded-side)
-  .browser-page-region
-  .browser-live-view {
-  border-radius: 10px;
 }
 
 /* Approval tray: a 56px reservation. A waiting request reads as two short lines (what will
@@ -335,7 +339,7 @@
   height: 100%;
   min-width: 0;
   margin: 0;
-  padding: 0 14px;
+  padding: 0 10px 0 14px;
   color: var(--muted);
   font-size: var(--text-caption);
 }
@@ -423,16 +427,6 @@
 }
 [data-interface='clay'] .browser-find-count[data-empty] {
   color: var(--rose);
-}
-
-/* The control action keeps its label by panel width, not window width. */
-[data-interface='clay'] .browser-control-label {
-  display: inline;
-}
-@container browser-panel (max-width: 34rem) {
-  [data-interface='clay'] .browser-control-label {
-    display: none;
-  }
 }
 
 /* A menu row can end with its current value and a chevron (Profile · Default ›). */
@@ -541,4 +535,11 @@
 }
 [data-interface='clay'] .browser-history-clear-confirm {
   color: var(--rose);
+}
+
+/* Narrow panels keep the agent's face and drop its name, leaving the row to the chip and tabs. */
+@container browser-panel (max-width: 40rem) {
+  [data-interface='clay'] :is(.browser-agent-name, .browser-agent-picker) > .truncate {
+    display: none;
+  }
 }

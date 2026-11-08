@@ -57,6 +57,18 @@ A second design review scored 6.5/10 and found the tray's text clipped by leakin
 - Replaces the idle "Return to agent" (control taken by browsing hands back on its own) with "Keep control until I return it", which marks the existing lease explicit without another takeover.
 - Puts the page flush under the toolbar in the split view, polishes Find ("3 of 12", "No matches", disabled arrows), history rows and a confirmed clear, makes website appearance a segment, and gives the chat header's Browser button a pressed state and an ochre dot for waiting approvals.
 
+### Fourth pass
+
+The third design review scored 7/10. Its blockers were approvals that hid the typed value and gave no target on the page, a cursor that never faded for reduced-motion users, a header that shifted tabs on every control change, a page that reflowed 73px at every run start and end, an ochre tint that was invalid CSS, and a takeover that chat counted as a failed step. A Codex code review (7/10) separately found a stale target name, a renewal that could release a newer explicit takeover, a handback that never retried and an Escape that left an emptied address. The fourth pass:
+
+- Writes the tray title in Pitchcrew's words with the exact value ("Type “jane@…” into “Email”", "Choose “Israel” in “Country”", "Upload resume.pdf to “Resume”"), falls back to "Click an element on host" instead of the agent's reason, and reads the element's name at request time with fresh credential redaction.
+- Rings the target on the live page: a still dashed ochre box whose bounds stay in daemon memory (never in the approval event or digest) and are served to the user only.
+- Times the cursor in script (full, resting, fading, hidden) so it settles under reduced motion, clips it to the page and clears it when automation lets go.
+- Moves Take control, Return to agent and Recover control to the end of the tray line and keeps the chip a fixed-width pill, so control changes never move the header; the selected tab scrolls into view, and narrow panels keep the avatar without the name.
+- Reserves the tray for the whole open session, keeps the agent's latest run readable in the expanded column after it ends, narrows that column before any run and makes the expanded page flush.
+- Records a browser call stopped by a takeover as "Paused while you had control" (an existing interrupted status), shown as "paused for you" rather than a failure.
+- Adds tab reordering by drag, Control+Shift+Page Up/Down and the tab menu, keeps a recovered crashed tab in place, and fixes smaller copy: "New tab" and "Browser not open" placeholders, "In another chat", "Edit address" first for addresses that can't be found, a role's real name in Details and numeric hours.
+
 ## Still behind T3
 
 - **Element pick and annotate into the composer.** T3's best browser feature: select an element, region or drawing and attach it with a cropped screenshot. Pitchcrew only annotates whole screenshots.

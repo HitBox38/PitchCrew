@@ -53,6 +53,16 @@ it('keeps the latest failed or interrupted step visible after settlement', () =>
   expect(activitySummary(entries)).toBe('3 steps · 1 failed · 1 interrupted');
 });
 
+it('treats a pause for a user takeover as neither a failure nor a settled issue', () => {
+  const paused = {
+    ...entry('paused', 'tool', 'interrupted'),
+    label: 'Paused while you had control',
+  };
+  const entries = [entry('inspect', 'tool'), paused, entry('click', 'tool')];
+  expect(activityPreview(run('completed', entries))).toEqual([]);
+  expect(activitySummary(entries)).toBe('3 steps · paused for you');
+});
+
 it('keeps an ongoing parallel tool visible when a later quick tool finishes first', () => {
   const entries = [
     entry('ongoing', 'tool', 'running'),

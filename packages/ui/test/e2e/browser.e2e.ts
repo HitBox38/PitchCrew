@@ -321,7 +321,7 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
       );
       assert.equal(
         await app.page
-          .locator('.browser-panel-heading')
+          .locator('.browser-approvals')
           .getByRole('button', { name: 'Take control', exact: true })
           .isVisible(),
         true,
@@ -370,7 +370,7 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
         .getByRole('menuitem', { name: 'Keep control until I return it', exact: true })
         .click();
       await app.page
-        .locator('.browser-panel-heading')
+        .locator('.browser-approvals')
         .getByRole('button', { name: 'Return to agent', exact: true })
         .waitFor();
       const crashed = await activeGuest(app);

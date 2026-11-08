@@ -322,12 +322,12 @@ const closePageSettings = async () => {
   await pageSettings().waitFor({ state: 'hidden' });
 };
 /**
- * Explicit takeover: the header offers Take control while an agent works; while it is idle the
+ * Explicit takeover: the tray offers Take control while an agent works; while it is idle the
  * page is already usable and explicit control lives under Browser options.
  */
 const takeControl = async () => {
   const header = page
-    .locator('.browser-panel-heading')
+    .locator('.browser-approvals')
     .getByRole('button', { name: 'Take control', exact: true });
   if (await header.isVisible()) return header.click();
   await page.getByRole('button', { name: 'Browser options', exact: true }).click();
@@ -1137,7 +1137,7 @@ test('keeps a failed blank tab address and explanation across switches, retries 
     const error = page.locator('.browser-page-error');
     await error.waitFor();
     expect(await address.inputValue()).toBe(failedUrl);
-    expect(await page.getByRole('heading', { name: 'No page open', exact: true }).count()).toBe(0);
+    expect(await page.getByRole('heading', { name: 'New tab', exact: true }).count()).toBe(0);
     await error.getByText('Technical details', { exact: true }).click();
     await error
       .getByText('getaddrinfo ENOTFOUND pitchcrew-browser-test.invalid', { exact: true })
@@ -1207,7 +1207,7 @@ test('guides blank tabs without a guest overlay and keeps loading in the toolbar
       tab.id === state.activeTab ? { ...tab, url: 'about:blank', title: '' } : tab,
     ),
   };
-  await page.getByRole('heading', { name: 'No page open', exact: true }).waitFor();
+  await page.getByRole('heading', { name: 'New tab', exact: true }).waitFor();
   await vi.waitFor(async () => expect(await lastMount()).toBeNull());
   // The address field above is the blank tab's action; the page adds no button for it.
   expect(
@@ -1381,13 +1381,13 @@ test('keeps native approval evidence stable while requests appear, expand and re
 }, 30000);
 test('keeps the live page mounted under app overlays across native state polls in split and sheet views', async () => {
   await page
-    .locator('.browser-panel-heading')
+    .locator('.browser-approvals')
     .getByRole('button', { name: 'Return to agent', exact: true })
     .waitFor();
   await vi.waitFor(async () =>
     expect(
       await page
-        .locator('.browser-panel-heading')
+        .locator('.browser-approvals')
         .getByRole('button', { name: 'Return to agent', exact: true })
         .isEnabled(),
     ).toBe(true),

@@ -83,11 +83,6 @@
   align-items: center;
   gap: 2px;
 }
-.browser-handoff {
-  height: 30px;
-  padding-inline: 6px;
-  font-size: var(--text-caption);
-}
 .browser-task-details .browser-sites {
   padding-inline: 0;
   margin-top: 8px;
@@ -445,13 +440,6 @@
   }
 }
 @container (max-width: 460px) {
-  .browser-control-label {
-    display: none;
-  }
-  .browser-handoff {
-    min-width: 32px;
-    padding: 0;
-  }
   .browser-panel-heading {
     padding-inline: 8px;
   }
@@ -467,10 +455,7 @@
   background: var(--surface);
   overscroll-behavior: contain;
 }
-/* Approval presentation must not reflow the native page whose evidence it reviews. */
-.browser-approvals[data-reserved] {
-  height: min(18rem, calc(var(--browser-viewport-height, 100dvh) * 0.4));
-}
+/* Approval presentation must not reflow the page it reviews; the clay chrome sets the height. */
 .browser-approvals[data-reserved] .browser-pending-action {
   height: 100%;
 }
@@ -482,14 +467,6 @@
 .browser-approvals[data-reserved] .approval-footer {
   flex-shrink: 0;
 }
-.browser-approval-empty {
-  display: grid;
-  place-items: center;
-  height: 100%;
-  margin: 0;
-  padding: 12px;
-  text-align: center;
-}
 .browser-pending-action {
   display: flex;
   flex-direction: column;
@@ -499,10 +476,6 @@
   overflow-y: auto;
   max-height: min(32dvh, calc(var(--browser-viewport-height, 100dvh) * 0.32));
   overscroll-behavior: contain;
-}
-.browser-pending-action h3 {
-  margin: 0 0 4px;
-  font-size: 16px;
 }
 .browser-approval-reason {
   margin: 0 0 6px;
@@ -604,13 +577,8 @@
     min-width: 36px;
     min-height: 36px;
   }
-  .browser-control-label {
-    display: none;
-  }
   .browser-handoff {
-    min-width: 36px;
     min-height: 36px;
-    padding: 0;
   }
   .browser-agent-picker,
   .browser-agent-name {

@@ -59,12 +59,16 @@ export const agentCall = async (
   }
   const finishActivity = observeChatTool(context, token, action);
   let isError = true;
+  let failure: unknown;
   try {
     const result = await dispatchAgentCall(context, token, action, data);
     isError = false;
     return result;
+  } catch (error) {
+    failure = error;
+    throw error;
   } finally {
-    finishActivity(isError);
+    finishActivity(isError, failure);
     finish(isError);
   }
 };

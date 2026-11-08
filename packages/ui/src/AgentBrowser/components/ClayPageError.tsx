@@ -1,8 +1,19 @@
-import { Hand, RotateCw, TriangleAlert } from 'lucide-react';
+import { Hand, PencilLine, RotateCw, TriangleAlert } from 'lucide-react';
 import { Button } from '@pitchcrew/design-system/button';
 import { AccordionSection } from '@pitchcrew/design-system/accordion';
 
-/** A failed or crashed tab, with the existing reload and take-control actions. */
+const editAddress = () => {
+  const address = document.querySelector<HTMLInputElement>(
+    '#agent-browser-panel [aria-label="Browser address"]',
+  );
+  address?.focus();
+  address?.select();
+};
+
+/**
+ * A failed or crashed tab, with the existing reload and take-control actions. An address that
+ * couldn't be found is most likely a typo, so editing it leads and Retry follows.
+ */
 export const ClayPageError = ({
   error,
   details,
@@ -47,6 +58,17 @@ export const ClayPageError = ({
           <Hand size={14} />
           Take control
         </Button>
+      ) : !crashed && error.includes('couldn’t be found') ? (
+        <>
+          <Button size="sm" disabled={!manual} onClick={editAddress}>
+            <PencilLine size={14} />
+            Edit address
+          </Button>
+          <Button size="sm" variant="ghost" disabled={!manual} onClick={reload}>
+            <RotateCw size={14} />
+            Retry page
+          </Button>
+        </>
       ) : (
         <Button size="sm" disabled={!manual} onClick={reload}>
           <RotateCw size={14} />

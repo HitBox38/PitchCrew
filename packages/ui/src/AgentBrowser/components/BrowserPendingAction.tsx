@@ -7,6 +7,7 @@ import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import { BrowserSiteRequest } from './BrowserSiteRequest.tsx';
 import { BrowserApprovalEvidence } from './BrowserApprovalEvidence.tsx';
 import { useApprovalTarget } from '../hooks/useApprovalTarget.ts';
+import { BrowserControls } from './BrowserControls.tsx';
 
 /**
  * One waiting request in two short lines: what will happen, written by Pitchcrew with the exact
@@ -50,6 +51,9 @@ export const BrowserPendingAction = ({
         </p>
         <BrowserApprovalError approval={approval} />
       </div>
+      {paused ? (
+        <BrowserControls browserPanel={browserPanel} thread={thread} control={control} />
+      ) : null}
       <BrowserSiteRequest
         approval={approval}
         browserPanel={browserPanel}

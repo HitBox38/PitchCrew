@@ -6,31 +6,34 @@ import { noRemoteImages } from '@/components/ai-elements/message/constants.tsx';
 import { ClaySteps } from '@/ChatTurn/components/ClaySteps.tsx';
 import { TurnDuration } from '@/ChatTurn/components/TurnDuration.tsx';
 import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
-import { runActivitySummary } from '../layout.ts';
+import { runActivitySummary, shownBrowserRun } from '../layout.ts';
 import type { AgentBrowserProps } from '../types.ts';
 
-/** Clay expanded browser: the browsing agent's public activity for the current run, with the
- * existing run cancellation. Private reasoning and tool inputs stay excluded as in chat. */
 /** Run states in the panel's words; the chip says Idle for no run. */
 const runStateLabels: Record<string, string> = {
   running: 'Working',
   completed: 'Done',
   failed: 'Failed',
   cancelled: 'Stopped',
-  waiting: 'Waiting for you',
+  waiting: 'Waiting for your answer',
   interrupted: 'Interrupted',
   queued: 'Queued',
 };
 
+/**
+ * Clay expanded browser: the browsing agent's public activity for the run using the browser, or
+ * its latest run here once that ends, with the existing run cancellation. Private reasoning and
+ * tool inputs stay excluded as in chat.
+ */
 export const BrowserRunActivity = ({
   browserPanel,
   data,
+  thread,
   action,
   working,
-}: Pick<AgentBrowserProps, 'browserPanel' | 'data' | 'action' | 'working'>) => {
+}: Pick<AgentBrowserProps, 'browserPanel' | 'data' | 'thread' | 'action' | 'working'>) => {
   const role = browserPanel.role!;
-  const runId = browserPanel.session?.runId;
-  const run = runId ? data.runs.find((item) => item.id === runId) : undefined;
+  const run = shownBrowserRun(data.runs, role.id, thread, browserPanel.session?.runId);
   const active = run?.status === 'running';
   const { steps, commentary } = runActivitySummary(run?.activity ?? []);
   return (

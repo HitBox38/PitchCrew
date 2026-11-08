@@ -3,6 +3,7 @@ import { DragDropProvider } from '@dnd-kit/react';
 import { isSortableOperation } from '@dnd-kit/react/sortable';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
 import { useBrowserTabOrder } from '../hooks/useBrowserTabOrder.ts';
+import { useRevealActiveTab } from '../hooks/useRevealActiveTab.ts';
 import { browserTabLabel, moveTabFocus } from '../helpers.ts';
 import { browserTabModifiers, browserTabPlugins, browserTabSensors } from '../tab-drag.ts';
 import { NativeBrowserNewTab } from './NativeBrowserNewTab.tsx';
@@ -18,6 +19,7 @@ export const NativeBrowserTabs = ({
   const order = useBrowserTabOrder(model);
   const [announcement, setAnnouncement] = useState('');
   const count = order.tabs.length;
+  const strip = useRevealActiveTab(model.state?.activeTab, count);
   return (
     <div className="browser-tab-strip">
       <DragDropProvider
@@ -30,6 +32,7 @@ export const NativeBrowserTabs = ({
         }}
       >
         <div
+          ref={strip}
           className="browser-tabs"
           role="tablist"
           aria-label="Browser tabs"

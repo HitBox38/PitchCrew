@@ -153,7 +153,7 @@ test('suspends viewing while the app document is hidden without releasing privat
 
 test('shows blank-page guidance over an empty streamed tab', async () => {
   await website.goto('about:blank');
-  await page.getByRole('heading', { name: 'No page open', exact: true }).waitFor();
+  await page.getByRole('heading', { name: 'New tab', exact: true }).waitFor();
   expect(await page.locator('.browser-screen').count()).toBe(0);
   const placeholder = page.locator('.browser-placeholder');
   // The agent is idle, so the address works without a separate takeover step.

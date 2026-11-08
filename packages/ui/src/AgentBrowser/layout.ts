@@ -1,4 +1,4 @@
-import type { BrowserSessionInfo, RunActivity } from '@pitchcrew/core';
+import type { BrowserSessionInfo, Run, RunActivity } from '@pitchcrew/core';
 
 /** The chat's right panel shows the job's packet or the agent's browser. */
 export type BrowserPanelView = 'browser' | 'packet';
@@ -72,7 +72,11 @@ export const browserState = ({
     if (session?.status !== 'open')
       return opening
         ? { tone: 'opening', label: 'Opening', detail: `Opening ${name}’s browser.` }
-        : { tone: 'closed', label: 'Closed', detail: 'Browser closed.' };
+        : {
+            tone: 'closed',
+            label: 'Not open',
+            detail: `${name}’s browser opens when you visit a page or ${name} starts using it.`,
+          };
     if (leaseId && implicit)
       return {
         tone: 'browsing',
@@ -107,7 +111,59 @@ export const browserState = ({
   })();
   return {
     ...state,
-    label: elsewhere ? `${state.label} elsewhere` : state.label,
+    label: elsewhere ? 'In another chat' : state.label,
     detail: `${state.detail}${where}`,
   };
 };
+
+/**
+ * The reserved tray's quiet line while nothing waits for a decision: who has the page, in the
+ * same words as the header chip. The tone is a bead colour; null is an empty (idle) socket.
+ */
+export const browserTrayLine = ({
+  name,
+  held,
+  implicit,
+  manual,
+  working,
+}: {
+  name: string;
+  held: boolean;
+  implicit: boolean;
+  manual: boolean;
+  working: boolean;
+}): { tone: 'primary' | 'plum' | 'ochre' | null; text: string } => {
+  if (held && implicit && !working)
+    return { tone: 'primary', text: `You’re browsing. ${name} gets the page back when it starts.` };
+  if (held)
+    return { tone: 'primary', text: `You have control. ${name} waits until you return it.` };
+  if (manual) return { tone: 'ochre', text: `${name} is paused until you recover control.` };
+  if (working)
+    return {
+      tone: 'plum',
+      text: `${name} is working. Its clicks, typing and submissions appear here.`,
+    };
+  return {
+    tone: null,
+    text: `${name} is idle. Browse freely; it takes the page back when it starts.`,
+  };
+};
+
+/**
+ * The run the expanded activity column shows: the one using the browser, or else this agent's
+ * latest run in this conversation, so its outcome stays readable after it finishes.
+ */
+export const shownBrowserRun = (
+  runs: Run[],
+  roleId: string,
+  thread: string,
+  runId: string | null | undefined,
+) =>
+  runId
+    ? runs.find((run) => run.id === runId)
+    : runs
+        .filter((run) => run.roleId === roleId && run.threadId === thread && run.mode === 'chat')
+        .reduce<Run | undefined>(
+          (latest, run) => (!latest || run.startedAt > latest.startedAt ? run : latest),
+          undefined,
+        );

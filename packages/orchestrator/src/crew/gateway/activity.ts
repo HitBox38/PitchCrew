@@ -1,4 +1,4 @@
-import type { Run } from '@pitchcrew/core';
+import { isUserControlError, userControlPauseLabel, type Run } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
 import { recordChatActivity } from '../chat-activity.ts';
 import type { CrewContext } from '../types.ts';
@@ -19,13 +19,15 @@ export const observeChatTool = (context: CrewContext, token: string, action: str
     const label = labels[action] ?? 'Using a crew tool';
     const id = `tool-${randomUUID()}`;
     recordChatActivity(context, capability.runId, { id, kind: 'tool', label, status: 'running' });
-    return (failed: boolean) => {
+    return (failed: boolean, error?: unknown) => {
       try {
+        // A takeover stops the agent's browser call: it paused for the user, it did not fail.
+        const paused = failed && error instanceof Error && isUserControlError(error.message);
         recordChatActivity(context, capability.runId, {
           id,
           kind: 'tool',
-          label,
-          status: failed ? 'failed' : 'completed',
+          label: paused ? userControlPauseLabel : label,
+          status: paused ? 'interrupted' : failed ? 'failed' : 'completed',
         });
       } catch {
         /* Activity must never change a tool's result or error. */

@@ -1,4 +1,4 @@
-import { Volume2, VolumeX, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { Button } from '@pitchcrew/design-system/button';
 import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
@@ -7,6 +7,7 @@ import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
 import { browserTabLabel } from '../helpers.ts';
 import { BrowserTabIcon } from './BrowserTabIcon.tsx';
 import { NativeBrowserTabMenu } from './NativeBrowserTabMenu.tsx';
+import { BrowserTabAudio } from './BrowserTabAudio.tsx';
 
 /** One tab: select, drag or Control+Shift+Page Up/Down to move, mute and close. */
 export const NativeBrowserTab = ({
@@ -54,13 +55,16 @@ export const NativeBrowserTab = ({
           size="sm"
           variant={active ? 'secondary' : 'ghost'}
           className="browser-tab-select"
-          disabled={!manual}
+          // Full-contrast labels while an agent works: the tab is unavailable, not dimmed away.
+          aria-disabled={!manual || undefined}
           title={tab.url && tab.url !== 'about:blank' ? `${label}\n${tab.url}` : label}
           role="tab"
           aria-selected={active}
           aria-keyshortcuts="Control+Shift+PageUp Control+Shift+PageDown"
           tabIndex={active ? 0 : -1}
-          onClick={() => void model.command({ kind: 'select-tab', tabId: tab.id })}
+          onClick={() => {
+            if (manual) void model.command({ kind: 'select-tab', tabId: tab.id });
+          }}
           onKeyDown={(event) => {
             if (!event.ctrlKey || !event.shiftKey || !/^Page(Up|Down)$/.test(event.key)) return;
             event.preventDefault();
@@ -71,22 +75,13 @@ export const NativeBrowserTab = ({
           <BrowserTabIcon loading={tab.loading} favicon={tab.favicon} failed={!!tab.error} />
           <span className="truncate">{label}</span>
         </Button>
-        {tab.audible || tab.muted ? (
-          <Button
-            size="icon-sm"
-            variant="ghost"
-            className="browser-tab-audio"
-            aria-label={`${tab.muted ? 'Unmute' : 'Mute'} ${label}`}
-            disabled={!manual}
-            onClick={() => void model.command({ kind: 'mute', muted: !tab.muted, tabId: tab.id })}
-          >
-            {tab.muted ? <VolumeX size={12} /> : <Volume2 size={12} />}
-          </Button>
-        ) : null}
+        <BrowserTabAudio model={model} tab={tab} label={label} manual={manual} />
         <Button
           size="icon-sm"
           variant="ghost"
           className="browser-tab-close"
+          // Out of the Tab order: Control+W, middle-click and the tab menu close tabs too.
+          tabIndex={-1}
           aria-label={`Close ${label}`}
           disabled={!manual || isDragging}
           onClick={close}
