@@ -103,6 +103,19 @@ Design reviews (Claude Opus 5.5, real Codex runs, light and dark captures) score
 - Put blank, failed and crashed pages flush on paper like live pages, show the agent's full reason on hover, give tray buttons 32px targets and ask agents for one short user-facing reason.
 - Fix test realism gaps found along the way: a request made while a reloaded panel still settles its size is voided by design, so tests wait for the panel to settle; E2E reaches an inactive tab's close button by hovering as a person would.
 
+### Computer-use pass
+
+Codex then used the production desktop app on Windows as a first-time user for about 45 minutes, with a real Codex runtime, isolated data and public pages only (computer-use screenshots, clicks and typing; no source, scripts or HTTP). Three short real agent runs completed; approvals, rejection, takeover and handback, tabs, Find, history, DNS errors, the narrow sheet and navigation all worked. Fixed from its report:
+
+- **Unreadable pages in dark mode.** Guests were transparent, so pages without their own background (httpbin and many plain forms) showed black text on the dark theme's paper, and Page appearance could not help. Guests now sit on a white base like any browser.
+- **Wrong element at 125% zoom.** The picker clipped the screenshot with the element's CSS-pixel box, but a screenshot clip is in device-independent pixels, so at 125% it cropped the listing above the picked one while naming the right element. The clip is now scaled by the page zoom, with an Electron E2E pick at 125%.
+- **Escape closing the narrow browser.** Appearance and page-option buttons lost focus while their command was pending, so Escape reached the sheet instead of the menu; they now keep focus, like the zoom buttons.
+- **Rejections shown as failures.** A request the user rejected read "Tool failed", and the agent said "the browser rejected" it. It now reads "You declined to …", and the agent is told the user declined.
+- **First-run wording.** Crew menus say Pause/Resume and the agent's name instead of "role"; the unopened browser no longer frames itself as a sign-in step.
+- **An invisible window.** `bun run desktop` spawned Electron with `windowsHide`, which on Windows hides the window's first show; found while preparing the pass.
+
+Not confirmed: tab dragging did not reorder under the computer-use driver's synthetic drags (the tab menu and keyboard moves worked, and Playwright drags pass), and Escape once failed to leave the expanded view right after a run (not reproduced).
+
 ## Still behind T3
 
 - **Region and drawing picks.** Pitchcrew now picks single elements into the composer (DevTools-style highlight, padded crop, tag and visible name, reviewed before attaching), but T3 also picks free regions and drawings in one step.
