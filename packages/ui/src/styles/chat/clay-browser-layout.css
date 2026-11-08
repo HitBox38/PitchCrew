@@ -229,8 +229,13 @@
   background: var(--clay-fill);
   box-shadow: var(--clay);
 }
+/* Beside the page the tray cannot resize it, so it is as tall as its content. */
 [data-interface='clay'] .browser-expanded-side > .browser-approvals[data-reserved] {
-  height: min(15rem, calc(var(--browser-viewport-height, 100dvh) * 0.4));
+  height: auto;
+  min-height: 3.5rem;
+}
+[data-interface='clay'] .browser-expanded-side .clay-tray-line {
+  min-height: 3.5rem;
 }
 [data-interface='clay'] .browser-expanded-side .browser-pending-action {
   flex-direction: column;
