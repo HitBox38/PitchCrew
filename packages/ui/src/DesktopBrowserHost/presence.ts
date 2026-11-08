@@ -48,3 +48,13 @@ export const useBrowserPresence = () =>
     },
     () => presence,
   );
+
+/** One field of the presence, so a subscriber re-renders only when that field changes. */
+export const useBrowserPresenceField = <K extends keyof BrowserPresence>(key: K) =>
+  useSyncExternalStore(
+    (listener) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    () => presence[key],
+  );

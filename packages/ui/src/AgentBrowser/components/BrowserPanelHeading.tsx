@@ -9,7 +9,7 @@ import { BrowserExpandButton } from './BrowserExpandButton.tsx';
 import { BrowserViewSwitch } from './BrowserViewSwitch.tsx';
 import { NativeBrowserTabs } from './NativeBrowserTabs.tsx';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
-import { useBrowserPresence } from '@/DesktopBrowserHost/presence.ts';
+import { useBrowserPresenceField } from '@/DesktopBrowserHost/presence.ts';
 
 /**
  * One header row: who and which state, the page's tabs, then the panel's actions. The control
@@ -36,7 +36,7 @@ export const BrowserPanelHeading = (
       approval.runId === session?.runId &&
       approval.status === 'pending',
   );
-  const { picking } = useBrowserPresence();
+  const picking = useBrowserPresenceField('picking');
   const current = browserState({
     session,
     leaseId: control.leaseId,

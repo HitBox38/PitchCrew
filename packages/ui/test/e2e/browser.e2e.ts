@@ -145,6 +145,9 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
         await app.page
           .getByRole('separator', { name: 'Resize browser panel', exact: true })
           .press('ArrowLeft');
+      // Let the resized page settle first: its late viewport change would otherwise close
+      // the menu while it is being checked.
+      await readyViewport(app);
       // The header's empty edge: tabs in its middle open their own Tab actions menu.
       await app.page
         .locator('.browser-panel-heading')

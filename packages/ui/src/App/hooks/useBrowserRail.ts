@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { useBrowserPresence } from '@/DesktopBrowserHost/presence.ts';
+import { useBrowserPresenceField } from '@/DesktopBrowserHost/presence.ts';
 import type { View } from '@/navigation.ts';
 
 const query = '(width < 61.25rem)';
@@ -19,6 +19,7 @@ export const useBrowserRail = (view: View | undefined) => {
     () => window.matchMedia(query).matches,
     () => false,
   );
-  const { panelOpen } = useBrowserPresence();
+  // Only this field: the shell must not re-render on cursor or target updates.
+  const panelOpen = useBrowserPresenceField('panelOpen');
   return view === 'chat' && panelOpen && tight;
 };

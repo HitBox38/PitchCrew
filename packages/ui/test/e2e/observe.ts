@@ -26,8 +26,10 @@ export const assertLiveGuest = async (app: DesktopE2E, overlay?: Locator) => {
     'Number(document.querySelector("#pulse").getAnimations()[0].currentTime)',
   );
   if (overlay) {
-    // Base UI sheets translate during entry; visibility alone includes that interval.
-    await overlay.click({ trial: true });
+    // Base UI sheets translate during entry; visibility alone includes that interval. A trial
+    // hover waits for a stable, hit-testable overlay without pressing: a trial click still
+    // sends a real press, which in a hidden window can land beneath and dismiss a menu.
+    await overlay.hover({ trial: true });
     const box = await overlay.boundingBox();
     assert.ok(box, 'The actual application overlay is not open');
     const top = await app.page.evaluate(
@@ -37,7 +39,23 @@ export const assertLiveGuest = async (app: DesktopE2E, overlay?: Locator) => {
           '[data-slot="popover-content"], [data-slot="context-menu-content"], [role="dialog"]',
         )
           ? ''
-          : (element?.outerHTML.slice(0, 160) ?? 'nothing');
+          : `${[element, element?.parentElement, element?.parentElement?.parentElement]
+              .map((item) =>
+                item
+                  ? `${item.tagName}.${String(item.getAttribute('class') ?? '').slice(0, 60)}`
+                  : '',
+              )
+              .join(' < ')} at ${Math.round(x)},${Math.round(y)}; overlays: ${[
+              ...document.querySelectorAll(
+                '[data-slot="popover-content"], [data-slot="context-menu-content"], [role="dialog"]',
+              ),
+            ]
+              .map((item) => {
+                const box = item.getBoundingClientRect();
+                const style = getComputedStyle(item);
+                return `${item.getAttribute('data-slot') ?? item.getAttribute('role')} ${Math.round(box.x)},${Math.round(box.y)} ${Math.round(box.width)}x${Math.round(box.height)} pe=${style.pointerEvents} op=${style.opacity} ${item.hasAttribute('data-ending-style') ? 'ending' : ''}`;
+              })
+              .join(' | ')}`;
       },
       { x: box.x + box.width / 2, y: box.y + Math.min(20, box.height / 2) },
     );

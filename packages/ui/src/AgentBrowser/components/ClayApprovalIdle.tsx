@@ -2,7 +2,7 @@ import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import { ClayAutomaticSteps } from './ClayAutomaticSteps.tsx';
 import { BrowserControls } from './BrowserControls.tsx';
 import { browserTrayLine } from '../layout.ts';
-import { useBrowserPresence } from '@/DesktopBrowserHost/presence.ts';
+import { useBrowserPresenceField } from '@/DesktopBrowserHost/presence.ts';
 import { ClayPickingLine } from './ClayPickingLine.tsx';
 
 /**
@@ -21,7 +21,7 @@ export const ClayApprovalIdle = ({
   const { browserPanel } = props;
   const name = browserPanel.role?.name ?? 'Your agent';
   const session = browserPanel.session;
-  const { picking } = useBrowserPresence();
+  const picking = useBrowserPresenceField('picking');
   if (picking) return <ClayPickingLine picking={picking} />;
   if (!control.leaseId && !session?.manual && session?.mode === 'autonomous' && session.runId)
     return <ClayAutomaticSteps {...props} name={name} control={control} nudged={nudged} />;
