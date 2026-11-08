@@ -652,9 +652,10 @@
 }
 
 /* A steady slot for the state chip while a run can change its state on its own, wide enough for
- * every run state ("You have control" is the widest), so Working, Needs your OK and a takeover
- * never move the tabs. Narrow panels, whose tabs have their own row, give the room back; at rest
- * the chip hugs its label. */
+ * every run state ("You have control" is the widest) plus the hairline inside it, so Working,
+ * Needs your OK and a takeover never move the tabs. The tabs shift once when a run starts or ends;
+ * at rest the chip hugs its label. Narrow panels, whose tabs have their own row, give the room
+ * back. */
 [data-interface='clay'] .browser-state-slot {
   display: inline-flex;
   flex: none;
@@ -662,7 +663,7 @@
 }
 @container browser-panel (width > 30rem) {
   [data-interface='clay'] .browser-state-slot[data-reserve] {
-    min-width: 7.5rem;
+    min-width: calc(7.5rem + 12px);
   }
   /* The hairline follows the chip itself, so the reserved width reads as the tabs' indent. */
   [data-interface='clay'] .browser-state-slot::after {

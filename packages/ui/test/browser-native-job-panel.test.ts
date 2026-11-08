@@ -429,12 +429,16 @@ test('shows private control over the page and in the reserved tray without resiz
   await bindRun();
   await settled();
   const trayHeight = await height(tray());
+  const slot = page.locator('.browser-state-slot');
+  const working = (await slot.boundingBox())!.width;
   await takeControl();
   // One state chip says who has the page (ochre: the run waits on you); the tray says the agent
   // waits and offers the return.
   const chip = page.locator('.browser-state-chip[data-tone="held"]');
   await chip.waitFor();
   expect(await chip.textContent()).toContain('You have control');
+  // The widest run state fits the reserved slot, so a takeover never moves the tabs.
+  expect((await slot.boundingBox())!.width).toBe(working);
   await tray().getByText('waits until you return the page', { exact: false }).waitFor();
   expect(
     await page
