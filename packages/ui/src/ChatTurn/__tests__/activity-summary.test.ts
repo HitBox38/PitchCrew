@@ -60,7 +60,7 @@ it('treats a pause for a user takeover as neither a failure nor a settled issue'
   };
   const entries = [entry('inspect', 'tool'), paused, entry('click', 'tool')];
   expect(activityPreview(run('completed', entries))).toEqual([]);
-  expect(activitySummary(entries)).toBe('3 steps · you took over once');
+  expect(activitySummary(entries)).toBe('3 steps · paused while you had control');
 });
 
 it('keeps an ongoing parallel tool visible when a later quick tool finishes first', () => {
@@ -93,12 +93,15 @@ it('shows the last finished step while the run waits on the user, not the blocke
   expect(activityPreview(run('running', entries), true).map((item) => item.id)).toEqual(['asked']);
 });
 
-it('counts one takeover once even when the agent waited for the user several times', () => {
+it('says a takeover happened without claiming a count it cannot know', () => {
   const pause = (id: string) => ({
     ...entry(id, 'tool', 'interrupted'),
     label: 'Paused while you had control',
   });
   const entries = [entry('read', 'tool'), pause('wait-1'), pause('wait-2'), entry('click', 'tool')];
-  expect(activitySummary(entries)).toBe('4 steps · you took over once');
-  expect(activitySummary([...entries, pause('later')])).toBe('5 steps · you took over 2 times');
+  expect(activitySummary(entries)).toBe('4 steps · paused while you had control');
+  // Interleaved work between waits, or a second takeover, never inflates or deflates a number.
+  expect(activitySummary([...entries, pause('later')])).toBe(
+    '5 steps · paused while you had control',
+  );
 });

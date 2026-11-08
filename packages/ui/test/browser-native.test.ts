@@ -1305,6 +1305,22 @@ test('keeps popup ownership visible and can bring its separate window forward', 
     .getByRole('heading', { name: 'Page open in a separate window' })
     .waitFor({ state: 'hidden' });
 });
+/** Which title parts are clipped, and the gap from the title's last glyph to its chevron. */
+const approvalTitleLayout = (review: import('playwright').Locator) =>
+  review.evaluate((element) => {
+    const parts = [...element.querySelectorAll<HTMLElement>('.browser-approval-text')];
+    const object = element.querySelector('.browser-approval-object')!;
+    const end = (object.lastElementChild ?? object).getBoundingClientRect();
+    const more = element.querySelector('.browser-approval-more')!.getBoundingClientRect();
+    const value = element.querySelector('.browser-approval-value')?.getBoundingClientRect();
+    return {
+      clipped: parts
+        .filter((part) => part.scrollWidth > part.clientWidth)
+        .map((part) => (part.closest('.browser-approval-value') ? 'value' : 'target')),
+      gap: more.left - end.right,
+      overlap: value ? value.right > object.getBoundingClientRect().left : false,
+    };
+  });
 const publishGuest = (bounds: DesktopBrowserView['bounds']) =>
   page.evaluate((bounds) => {
     (
@@ -1355,18 +1371,10 @@ test('keeps native approval evidence stable while requests appear, expand and re
       const review = page.getByRole('region', { name: 'Pending browser action', exact: true });
       await review.waitFor();
       // A short title is never shortened while the line has room, and its chevron follows it.
-      const title = await review.evaluate((element) => {
-        const parts = [...element.querySelectorAll<HTMLElement>('.browser-approval-text')];
-        const text = element.querySelector('.browser-approval-title')!.getBoundingClientRect();
-        const last = parts.at(-1)!.getBoundingClientRect();
-        const more = element.querySelector('.browser-approval-more')!.getBoundingClientRect();
-        return {
-          clipped: parts.some((part) => part.scrollWidth > part.clientWidth),
-          gap: more.left - Math.max(last.right, text.right - 16),
-        };
-      });
-      expect(title.clipped).toBe(false);
-      expect(title.gap).toBeLessThanOrEqual(24);
+      const title = await approvalTitleLayout(review);
+      expect(title.clipped).toEqual([]);
+      expect(title.gap).toBeGreaterThanOrEqual(0);
+      expect(title.gap).toBeLessThanOrEqual(16);
       if (!index) {
         // Present the guest at the page's place so the overlay can ring the element on it.
         const box = (await body.boundingBox())!;
@@ -1426,6 +1434,37 @@ test('keeps native approval evidence stable while requests appear, expand and re
   await page.locator('.browser-state-chip[data-tone="idle"]').waitFor();
   await takeControl();
 }, 30000);
+test('shortens a long typed value before the target at the default panel width', async () => {
+  // The previous journey ends holding control; the agent can only ask once it is returned.
+  await returnControl();
+  const service = host.daemon.service;
+  const scope = { runId: 'native-title-layout', roleId: 'writer', cardId: null };
+  service.computer.bindBrowser({ ...scope, threadId: 'writer' });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.getByLabel('Native browser page', { exact: true }).waitFor();
+  const approval = await service.computer.request(
+    scope,
+    {
+      kind: 'fill',
+      selector: '#cover',
+      value: 'A fictional cover letter answer that runs far longer than the tray line can hold',
+    },
+    'Answer the fictional cover letter question',
+  );
+  const review = page.getByRole('region', { name: 'Pending browser action', exact: true });
+  await review.waitFor();
+  const title = await approvalTitleLayout(review);
+  // The value may give way; the target never, and the parts never overlap.
+  expect(title.clipped).not.toContain('target');
+  expect(title.overlap).toBe(false);
+  expect(title.gap).toBeGreaterThanOrEqual(0);
+  expect(title.gap).toBeLessThanOrEqual(16);
+  service.computer.decide(approval.id, false);
+  await review.waitFor({ state: 'hidden' });
+  await service.computer.stop(scope.runId);
+  await page.locator('.browser-state-chip[data-tone="idle"]').waitFor();
+  await takeControl();
+});
 test('keeps the live page mounted under app overlays across native state polls in split and sheet views', async () => {
   await page
     .locator('.browser-approvals')

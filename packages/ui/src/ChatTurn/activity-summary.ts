@@ -31,17 +31,15 @@ export const activitySummary = (entries: RunActivity[]) => {
   const interrupted = entries.filter(
     (entry) => entry.status === 'interrupted' && !isUserControlPause(entry),
   ).length;
-  // One takeover can span several waits for the user; count takeovers, not waits.
-  const tools = entries.filter((entry) => entry.kind !== 'commentary');
-  const paused = tools.filter(
-    (entry, index) => isUserControlPause(entry) && !(index && isUserControlPause(tools[index - 1])),
-  ).length;
+  // Waits for the user's control can repeat or interleave with other steps within one takeover,
+  // so the summary says it happened rather than claiming a count it cannot know.
+  const paused = entries.some(isUserControlPause);
   return [
     steps ? `${steps} ${steps === 1 ? 'step' : 'steps'}` : '',
     updates ? `${updates} ${updates === 1 ? 'update' : 'updates'}` : '',
     failed ? `${failed} failed` : '',
     interrupted ? `${interrupted} interrupted` : '',
-    paused === 1 ? 'you took over once' : paused > 1 ? `you took over ${paused} times` : '',
+    paused ? 'paused while you had control' : '',
   ]
     .filter(Boolean)
     .join(' · ');

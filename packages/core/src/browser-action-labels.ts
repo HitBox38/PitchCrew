@@ -41,15 +41,29 @@ const where = (url: string | undefined, path: boolean) => {
  * URLs shrink to their hostname (no userinfo, path, query or fragment) and long token-like runs
  * are dropped, before anything is shortened, so a secret can never survive as a kept part.
  */
+const hostOf = (url: string) => {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return '…';
+  }
+};
+
 export const publicText = (value: string) =>
   flat(value)
-    .replace(/\bhttps?:\/\/\S+/gi, (url) => {
-      try {
-        return new URL(url).hostname;
-      } catch {
-        return '…';
-      }
-    })
+    // Full URLs, any scheme case: hostname only.
+    .replace(/\b[a-z][a-z0-9+.-]*:\/\/\S+/gi, hostOf)
+    // Protocol-relative URLs.
+    .replace(
+      /(^|\s)\/\/\S+/g,
+      (_match, lead: string) => `${lead}${hostOf(`https:${_match.trim()}`)}`,
+    )
+    // Emails and user:password@host forms: nothing of them is needed in a label.
+    .replace(/[^\s@]+@[^\s@]+/g, '…')
+    // IP addresses with a port, path or query: the address alone.
+    .replace(/\b(\d{1,3}(?:\.\d{1,3}){3})(?::\d+|[/?#])\S*/g, '$1')
+    // Bare hosts (www.example.com, jobs.example.org) followed by a port, path or query: the host.
+    .replace(/\b((?:[a-z0-9-]+\.)+[a-z]{2,})(?::\d+|[/?#])\S*/gi, '$1')
     .replace(/[A-Za-z0-9+/_=-]{24,}/g, '…');
 
 /**

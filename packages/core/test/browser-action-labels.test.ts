@@ -103,3 +103,27 @@ it('reduces URLs in public text to their hostname, dropping userinfo, paths and 
   );
   expect(publicText(`Code ${'a'.repeat(70)}abcdefghij`)).toBe('Code …');
 });
+
+it('reduces scheme-less addresses too: protocol-relative URLs, bare hosts, IPs and emails', () => {
+  for (const [input, output] of [
+    ['//alice:pw123@example.com/reset/abc123', 'example.com'],
+    ['www.example.com/reset?token=short', 'www.example.com'],
+    ['Open jobs.example.org:8443/apply/123', 'Open jobs.example.org'],
+    ['127.0.0.1:8080/reset/abc123?token=short', '127.0.0.1'],
+    ['Write to alice@example.com today', 'Write to … today'],
+    ['alice:pw123@example.com/reset', '…'],
+    ['HTTPS://Example.com/x?y=1', 'example.com'],
+    ['Learn more', 'Learn more'],
+    ['Version 1.2 notes', 'Version 1.2 notes'],
+  ])
+    expect(publicText(input)).toBe(output);
+  expect(
+    browserActionAsked(
+      { kind: 'click', selector: 'a' },
+      {
+        ...page,
+        elements: [{ ref: 'target', tag: 'a', name: 'www.example.com/reset?token=short' }],
+      },
+    ),
+  ).toBe('Asked to click “www.example.com”');
+});
