@@ -24,6 +24,7 @@ export const useBrowserHandback = (
     latest.current = control;
   });
   const [nudged, setNudged] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const working = !!session?.runId;
   useEffect(() => setBrowserPresence({ name, working }), [name, working]);
   useEffect(() => () => setBrowserPresence({ name: '', working: false }), []);
@@ -40,8 +41,17 @@ export const useBrowserHandback = (
     )
       return;
     handedBack.current = leaseId;
-    void latest.current.release();
-  }, [runId, leaseId, implicit, control.working]);
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    void latest.current.release().then(() => {
+      // release() reports failures itself; a lease still held means it did not go through.
+      if (latest.current.currentLease() !== leaseId) return;
+      retry = setTimeout(() => {
+        handedBack.current = undefined;
+        setAttempt((count) => count + 1);
+      }, 2000);
+    });
+    return () => clearTimeout(retry);
+  }, [runId, leaseId, implicit, control.working, attempt]);
   useEffect(() => {
     if (!nudged) return;
     const timer = setTimeout(() => setNudged(false), 4000);

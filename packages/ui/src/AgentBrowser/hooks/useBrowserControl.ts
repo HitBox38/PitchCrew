@@ -117,6 +117,8 @@ export const useBrowserControl = (
     take,
     keep,
     ensure,
+    /** The scope's lease id as stored right now, independent of this render. */
+    currentLease: () => readBrowserControlLease(key)?.id,
     release,
     input,
     resize,

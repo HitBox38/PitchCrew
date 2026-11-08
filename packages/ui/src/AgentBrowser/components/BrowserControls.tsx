@@ -15,7 +15,7 @@ export const BrowserControls = ({
   if (session?.status !== 'open') return null;
   const name = browserPanel.role?.name ?? 'the agent';
   const label = control.leaseId
-    ? control.implicit
+    ? control.implicit && !session.runId
       ? null
       : 'Return to agent'
     : session.manual

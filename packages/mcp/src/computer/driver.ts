@@ -297,7 +297,7 @@ const contextDriver = async (
         })),
       );
     },
-    describeTarget: async (selector) => references.describe(selector),
+    describeTarget: async (selector) => references.describe(page, selector),
     resolveAction: async (action) => {
       if (action.tabId) await targetTab(action.tabId);
       return { ...(await references.resolve(page, action)), tabId: tabIds.get(page)! };

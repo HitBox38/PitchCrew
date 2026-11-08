@@ -68,6 +68,9 @@ export const createBrowserControlLeases = (
                 !(result as { agentRun?: boolean } | undefined)?.agentRun
               )
                 return;
+              // Re-read the live lease: Keep control may have made it explicit meanwhile.
+              const live = snapshot.leases[key];
+              if (closed || live?.id !== lease.id || !live.implicit) return;
               // Keep the token unless the daemon confirmed the release; renewal retries.
               const released = await handBack(lease).then(
                 () => true,

@@ -28,7 +28,8 @@ export const BrowserAddress = ({
   const { input, ...model } = useBrowserAddress(address, control.leaseId, contextId);
   // The field shows the saved address as host and path until the field is edited.
   const parts = model.value === address ? addressParts(address) : null;
-  const editing = model.value !== address && !!model.value.trim();
+  const dirty = model.value !== address;
+  const editing = dirty && !!model.value.trim();
   const usable = control.available && !control.working;
   return (
     <form
@@ -75,8 +76,8 @@ export const BrowserAddress = ({
         onKeyDown={(event) => {
           if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault();
           if (event.key !== 'Escape') return;
-          // Unedited: leave the field and let the surface's Escape (Back to chat) run.
-          if (!editing) return model.reset();
+          // Unchanged: leave the field and let the surface's Escape (Back to chat) run.
+          if (!dirty) return model.reset();
           event.preventDefault();
           event.stopPropagation();
           model.reset();

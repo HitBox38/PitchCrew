@@ -81,10 +81,32 @@ export const browserReferences = () => {
     clear,
     capture,
     target,
-    /** The tag and redacted visible name of a referenced element, for the approval summary. */
-    describe: (value: string) => {
+    /**
+     * The tag and redacted visible name of a referenced element as it is now, for the approval
+     * summary. Read at request time: the element may have been relabelled since inspection.
+     */
+    describe: async (page: Page, value: string) => {
       const entry = value.startsWith('ref:') ? entries.get(value) : undefined;
-      return entry?.name ? { tag: entry.tag, name: entry.name } : undefined;
+      if (!entry) return undefined;
+      try {
+        const frame = entry.frame ? page.frameLocator(entry.frame) : page;
+        const secrets = await frame
+          .locator(credentialSelector)
+          .evaluateAll((fields) => fields.map((field) => (field as HTMLInputElement).value));
+        const current = await entry.handle.evaluate((node) => {
+          const el = node as Element;
+          return {
+            tag: el.tagName.toLowerCase(),
+            name: (el.getAttribute('aria-label') || el.textContent || el.getAttribute('name') || '')
+              .trim()
+              .slice(0, 120),
+          };
+        });
+        const name = redactCredentials(current.name, secrets);
+        return name ? { tag: current.tag, name } : undefined;
+      } catch {
+        return undefined;
+      }
     },
     resolve: async (page: Page, action: BrowserAction): Promise<BrowserAction> => {
       if (!('selector' in action)) return action;
