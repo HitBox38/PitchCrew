@@ -5,8 +5,6 @@ import type { useBrowserDevice } from '@/BrowserDeviceToolbar/useBrowserDevice.t
 import { useCallback } from 'react';
 import { BrowserDialog } from './BrowserDialog.tsx';
 import { NativeBrowserToolbar } from './NativeBrowserToolbar.tsx';
-import { NativeBrowserTabs } from './NativeBrowserTabs.tsx';
-import { NativeBrowserFind } from './NativeBrowserFind.tsx';
 import { useNativeMount } from '../hooks/useNativeMount.ts';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
 import type { BrowserControl } from '../types.ts';
@@ -14,7 +12,6 @@ import type { useBrowserSize } from '../hooks/useBrowserSize.ts';
 import { isBlankBrowserPage } from '../page-state.ts';
 import { NativeBrowserBody } from './NativeBrowserBody.tsx';
 import { BrowserWarning } from './BrowserWarning.tsx';
-import { BrowserControlHint } from './BrowserControlHint.tsx';
 export const NativeBrowser = ({
   model,
   control,
@@ -22,7 +19,6 @@ export const NativeBrowser = ({
   device,
   onAttachBrowserFile,
   name,
-  nudged = false,
 }: {
   model: NativeBrowserModel;
   control: BrowserControl;
@@ -31,8 +27,6 @@ export const NativeBrowser = ({
   onAttachBrowserFile?: (file: File) => void;
   /** The agent's name for the control hint and empty page. */
   name?: string;
-  /** The user pressed the page while the agent works; point them at Take control. */
-  nudged?: boolean;
 }) => {
   const id = model.identity!.id;
   const tab = model.state?.tabs.find((item) => item.id === model.state?.activeTab);
@@ -55,7 +49,6 @@ export const NativeBrowser = ({
   const tools = useNativeBrowserTools(model, control);
   return (
     <>
-      <NativeBrowserTabs model={model} manual={usable} />
       {/* Toolbar and tools share one row; Page settings holds the page tools. */}
       <div className="browser-chrome">
         <NativeBrowserToolbar model={model} control={control} tools={tools} device={device} />
@@ -73,10 +66,6 @@ export const NativeBrowser = ({
           disabled={!usable}
         />
       ) : null}
-      {model.findOpen ? (
-        <NativeBrowserFind key={id} id={id} close={() => model.setFindOpen(false)} />
-      ) : null}
-      {!control.available ? <BrowserControlHint name={name} nudged={nudged} /> : null}
       <BrowserWarning warning={model.state?.warning} control={control} />
       {model.state?.dialog ? (
         <BrowserDialog

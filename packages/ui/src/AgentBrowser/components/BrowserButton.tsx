@@ -10,7 +10,7 @@ export const BrowserButton = ({ browserPanel }: Pick<ChatViewModel, 'browserPane
       variant="outline"
       size="sm"
       className="chat-browser"
-      aria-label={browserPanel.activity ? 'Browser, active' : 'Browser'}
+      aria-label={browserPanel.activity ? 'Browser, agent working' : 'Browser'}
       aria-expanded={showing}
       aria-controls="agent-browser-panel"
       onClick={showing ? browserPanel.hide : browserPanel.show}
@@ -18,7 +18,7 @@ export const BrowserButton = ({ browserPanel }: Pick<ChatViewModel, 'browserPane
       <Monitor size={14} />
       <span>Browser</span>
       {browserPanel.activity ? (
-        <span className="chat-role-dot working" aria-label="Browser active" />
+        <span className="clay-bead" data-size="sm" data-tone="plum" aria-hidden="true" />
       ) : null}
     </Button>
   );

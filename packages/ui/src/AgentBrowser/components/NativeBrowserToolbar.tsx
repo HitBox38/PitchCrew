@@ -1,13 +1,15 @@
 import { NativeBrowserSettings } from './NativeBrowserSettings.tsx';
-import { ArrowLeft, ArrowRight, RotateCw, Search, Square } from 'lucide-react';
+import { ArrowLeft, ArrowRight, RotateCw, Square } from 'lucide-react';
 import { Button } from '@pitchcrew/design-system/button';
 import { BrowserAddress } from './BrowserAddress.tsx';
 import { BrowserLoadingProgress } from './BrowserLoadingProgress.tsx';
 import { NativeBrowserHistory } from './NativeBrowserHistory.tsx';
+import { NativeBrowserFindPopover } from './NativeBrowserFindPopover.tsx';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
 import type { BrowserControl } from '../types.ts';
 import type { useNativeBrowserTools } from '@/NativeBrowserTools/hooks/useNativeBrowserTools.ts';
 import type { useBrowserDevice } from '@/BrowserDeviceToolbar/useBrowserDevice.ts';
+import { browserShortcut } from '../helpers.ts';
 export const NativeBrowserToolbar = ({
   model,
   control,
@@ -28,6 +30,7 @@ export const NativeBrowserToolbar = ({
         size="icon-sm"
         variant="ghost"
         aria-label="Back"
+        title="Back (Alt+←)"
         disabled={!manual || !tab?.canGoBack}
         onClick={() => void model.command({ kind: 'back' })}
       >
@@ -37,6 +40,7 @@ export const NativeBrowserToolbar = ({
         size="icon-sm"
         variant="ghost"
         aria-label="Forward"
+        title="Forward (Alt+→)"
         disabled={!manual || !tab?.canGoForward}
         onClick={() => void model.command({ kind: 'forward' })}
       >
@@ -46,6 +50,7 @@ export const NativeBrowserToolbar = ({
         size="icon-sm"
         variant="ghost"
         aria-label={tab?.loading ? 'Stop loading' : 'Reload page'}
+        title={tab?.loading ? 'Stop loading' : `Reload (${browserShortcut('r')})`}
         disabled={!manual}
         onClick={() => void model.command({ kind: tab?.loading ? 'stop' : 'reload' })}
       >
@@ -56,20 +61,14 @@ export const NativeBrowserToolbar = ({
         control={control}
         url={tab?.navigationUrl ?? tab?.url ?? ''}
         contextId={tab?.id}
+        // Only a committed HTTPS page that loaded earns the lock.
+        secure={!!tab?.url.startsWith('https:') && !tab.error && !tab.navigationUrl}
         onNavigate={() => {
           void window.pitchcrewBrowser?.focusPage(model.identity!.id).catch(() => {});
         }}
         onOpenExternal={() => void model.command({ kind: 'open-external' })}
       />
-      <Button
-        size="icon-sm"
-        variant="ghost"
-        aria-label="Find on page"
-        disabled={!manual}
-        onClick={() => model.setFindOpen(!model.findOpen)}
-      >
-        <Search size={15} />
-      </Button>
+      <NativeBrowserFindPopover model={model} manual={manual} />
       <NativeBrowserHistory model={model} manual={manual} />
       <NativeBrowserSettings model={model} manual={manual} tools={tools} device={device} />
       {tab?.loading ? <BrowserLoadingProgress /> : null}

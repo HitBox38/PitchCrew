@@ -58,3 +58,47 @@ export const browserStatusLabels: Record<ComputerApproval['status'], string> = {
   consumed: 'Executed',
   failed: 'Failed',
 };
+
+const approveVerbs: Record<BrowserAction['kind'], string> = {
+  dialog: 'Approve answer',
+  navigate: 'Approve opening',
+  click: 'Approve click',
+  hover: 'Approve hover',
+  scroll: 'Approve scroll',
+  drag: 'Approve drag',
+  fill: 'Approve typing',
+  select: 'Approve choice',
+  press: 'Approve key press',
+  upload: 'Approve upload',
+};
+
+/** The decision button names what will happen; a final submission says so. */
+export const approveLabel = (action: BrowserAction) =>
+  'purpose' in action && action.purpose === 'submission'
+    ? 'Approve submission'
+    : approveVerbs[action.kind];
+
+/** A one-line summary of the request for the compact tray, e.g. "Open example.com". */
+export const approvalSummary = (action: BrowserAction, page?: BrowserSnapshot) => {
+  if (action.kind === 'navigate') {
+    try {
+      return `Open ${new URL(action.url).host}`;
+    } catch {
+      return browserActionTitles.navigate;
+    }
+  }
+  if (action.kind === 'dialog')
+    return action.decision === 'accept'
+      ? 'Accept the website dialog'
+      : 'Dismiss the website dialog';
+  // Name the element by its inspected label; otherwise the agent's reason names it.
+  const element =
+    'selector' in action
+      ? page?.controls?.find((item) => item.selector === action.selector)?.label.trim()
+      : '';
+  if (!element) return browserActionTitles[action.kind];
+  const verb = { fill: 'Type into', select: 'Choose in', upload: 'Upload to', click: 'Click' }[
+    action.kind as 'fill' | 'select' | 'upload' | 'click'
+  ];
+  return verb ? `${verb} ${element}` : browserActionTitles[action.kind];
+};

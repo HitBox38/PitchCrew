@@ -55,9 +55,9 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
       const { page } = app;
       await page.locator('button[aria-controls="agent-browser-panel"]').click();
       await page.getByRole('button', { name: 'Open browser', exact: true }).last().click();
+      // Opening is browsing: control is taken implicitly and the chip says so.
       await page
-        .locator('.browser-panel-heading')
-        .getByRole('button', { name: 'Return to agent', exact: true })
+        .locator('.browser-state-chip:is([data-tone="browsing"], [data-tone="control"])')
         .waitFor();
       await page.getByRole('textbox', { name: 'Browser address' }).fill(`${siteOrigin}/form`);
       await page.getByRole('button', { name: 'Go to address', exact: true }).click();
@@ -203,8 +203,7 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
     await app.page.getByRole('heading', { name: 'Settings', exact: true }).waitFor();
     await app.page.locator('a[href="/chat/writer"]').first().click();
     await app.page
-      .locator('.browser-panel-heading')
-      .getByRole('button', { name: 'Return to agent', exact: true })
+      .locator('.browser-state-chip:is([data-tone="browsing"], [data-tone="control"])')
       .waitFor();
     assert.equal(
       (await until(() => activeGuest(app), 'Browser guest did not return after route navigation'))
@@ -234,8 +233,8 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
       'UI Forward did not reach the next document',
     );
     // The guest navigates before its new title reaches the React tab strip.
-    await app.page.getByRole('button', { name: 'Fictional E2E next page', exact: true }).waitFor();
-    await app.page.getByRole('button', { name: 'Fictional E2E application', exact: true }).click();
+    await app.page.getByRole('tab', { name: 'Fictional E2E next page', exact: true }).waitFor();
+    await app.page.getByRole('tab', { name: 'Fictional E2E application', exact: true }).click();
     await until(
       async () => (await activeGuest(app)).id === original.id,
       'UI tab selection did not restore the original guest',
@@ -309,10 +308,10 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
     { timeout: 45000 },
     async () => {
       const guest = await activeGuest(app);
-      await app.page
-        .locator('.browser-panel-heading')
-        .getByRole('button', { name: 'Return to agent', exact: true })
-        .click();
+      // Control taken by browsing is returned from Browser options.
+      await app.page.getByRole('button', { name: 'Browser options', exact: true }).click();
+      await app.page.getByRole('menuitem', { name: 'Return to agent', exact: true }).click();
+      await app.page.locator('.browser-state-chip[data-tone="idle"]').waitFor();
       await send(app, 'E2E: fill the application');
       const pending = await readyApproval(app);
       assert.equal(
@@ -335,7 +334,7 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
         result,
         'Read-only viewing allowed a human click without takeover',
       );
-      await pending.getByRole('button', { name: 'Approve interaction', exact: true }).click();
+      await pending.getByRole('button', { name: 'Approve typing', exact: true }).click();
       await until(
         async () => (await guest.read('document.querySelector("#name").value')) === 'Agent E2E',
         'Approved MCP action never reached the actual guest',
@@ -364,10 +363,10 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
     'recovers an actual crashed guest through Reload page with a fresh generation',
     { timeout: 30000 },
     async () => {
-      await app.page
-        .locator('.browser-panel-heading')
-        .getByRole('button', { name: 'Take control', exact: true })
-        .click();
+      // The agent is idle again: explicit control comes from Browser options.
+      await app.page.locator('.browser-state-chip[data-tone="idle"]').waitFor();
+      await app.page.getByRole('button', { name: 'Browser options', exact: true }).click();
+      await app.page.getByRole('menuitem', { name: 'Take control', exact: true }).click();
       await app.page
         .locator('.browser-panel-heading')
         .getByRole('button', { name: 'Return to agent', exact: true })
@@ -438,8 +437,7 @@ describe('Failed navigation in the production Electron browser', { concurrency: 
     await page.locator('button[aria-controls="agent-browser-panel"]').click();
     await page.getByRole('button', { name: 'Open browser', exact: true }).last().click();
     await page
-      .locator('.browser-panel-heading')
-      .getByRole('button', { name: 'Return to agent', exact: true })
+      .locator('.browser-state-chip:is([data-tone="browsing"], [data-tone="control"])')
       .waitFor();
     await navigate(app, `${siteOrigin}/form`, 'Fictional E2E application');
     await readyViewport(app);

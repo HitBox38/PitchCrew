@@ -311,8 +311,28 @@ export const installNativeBrowserIpc = (
       const page = group?.pages.get(group.active)?.contents;
       if (!group || !page || (query && group.manualUntil <= Date.now()))
         throw new Error('Take control first.');
-      if (query) page.findInPage(query, { forward: z.boolean().parse(forward), findNext: true });
-      else page.stopFindInPage('clearSelection');
+      if (!query) {
+        page.stopFindInPage('clearSelection');
+        return null;
+      }
+      const requestId = page.findInPage(query, {
+        forward: z.boolean().parse(forward),
+        findNext: true,
+      });
+      // Resolve with Chromium's match count so the find bar can say "3 of 12".
+      return new Promise<{ active: number; total: number } | null>((resolve) => {
+        const timer = setTimeout(() => {
+          page.removeListener('found-in-page', found);
+          resolve(null);
+        }, 1500);
+        const found = (_event: Electron.Event, result: Electron.Result) => {
+          if (result.requestId !== requestId || !result.finalUpdate) return;
+          clearTimeout(timer);
+          page.removeListener('found-in-page', found);
+          resolve({ active: result.activeMatchOrdinal, total: result.matches });
+        };
+        page.on('found-in-page', found);
+      });
     },
   );
 };

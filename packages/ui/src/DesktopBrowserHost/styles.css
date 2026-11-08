@@ -33,8 +33,24 @@
 .agent-browser-cursor-body {
   position: relative;
   display: block;
-  /* Rests faintly after a move, then fades away; the next move re-keys it into view. */
+  /* After the run ends the cursor fades away; the next move re-keys it into view. */
   animation: agent-cursor-rest 4.5s ease-out 0.7s forwards;
+}
+/* While the run lasts it rests visible, so the user can see where the agent last acted. */
+.agent-browser-cursor[data-working] .agent-browser-cursor-body {
+  animation: agent-cursor-idle 700ms ease-out 700ms forwards;
+}
+.agent-browser-cursor-name {
+  position: absolute;
+  top: 16px;
+  left: 12px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--plum);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+  color: #fff;
+  font: 600 12px / 18px var(--font-sans);
+  white-space: nowrap;
 }
 .agent-browser-cursor svg {
   display: block;
@@ -47,10 +63,10 @@
 }
 .agent-browser-cursor-ping {
   position: absolute;
-  top: -12px;
-  left: -12px;
-  width: 24px;
-  height: 24px;
+  top: -16px;
+  left: -16px;
+  width: 32px;
+  height: 32px;
   border-radius: 999px;
   border: 2px solid var(--plum);
   animation: agent-cursor-ping 520ms ease-out forwards;
@@ -64,6 +80,11 @@
   }
   to {
     opacity: 0;
+  }
+}
+@keyframes agent-cursor-idle {
+  to {
+    opacity: 0.7;
   }
 }
 @keyframes agent-cursor-ping {

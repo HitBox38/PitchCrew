@@ -92,8 +92,7 @@ it(
       await page.locator('button[aria-controls="agent-browser-panel"]').click();
       await page.getByRole('button', { name: 'Open browser', exact: true }).last().click();
       await page
-        .locator('.browser-panel-heading')
-        .getByRole('button', { name: 'Return to agent', exact: true })
+        .locator('.browser-state-chip:is([data-tone="browsing"], [data-tone="control"])')
         .waitFor();
       const original = await navigate(app, `${siteOrigin}/form`, 'Fictional E2E application');
       await readyViewport(app);
@@ -149,7 +148,7 @@ it(
       // Unlike the DNS preflight above, this reaches Chromium and emits did-fail-load.
       await failNavigation(`${siteOrigin}/unavailable`);
       for (let frame = 0; frame < 8; frame++) await capture(app, `native-failed-${frame}`);
-      await page.getByRole('button', { name: 'Fictional E2E next page', exact: true }).click();
+      await page.getByRole('tab', { name: 'Fictional E2E next page', exact: true }).click();
       await until(
         async () => (await activeGuest(app)).id === second.id,
         'The second tab did not return',
@@ -172,7 +171,7 @@ it(
       await page.locator('button[aria-controls="agent-browser-panel"]').click();
       assert.equal(await capture(app, 'hidden'), 0);
       await page.locator('button[aria-controls="agent-browser-panel"]').click();
-      await page.getByRole('button', { name: 'Fictional E2E application', exact: true }).click();
+      await page.getByRole('tab', { name: 'Fictional E2E application', exact: true }).click();
       await until(
         async () => (await activeGuest(app)).id === original.id,
         'The original guest was replaced',

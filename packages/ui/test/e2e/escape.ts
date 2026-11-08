@@ -169,8 +169,7 @@ export const checkExpandedEscape = async (app: DesktopE2E) => {
     assert.equal(await guest.read('document.querySelector("#name").value'), draft);
     assert.equal(
       await page
-        .locator('.browser-panel-heading')
-        .getByRole('button', { name: 'Return to agent', exact: true })
+        .locator('.browser-state-chip:is([data-tone="browsing"], [data-tone="control"])')
         .isVisible(),
       true,
     );

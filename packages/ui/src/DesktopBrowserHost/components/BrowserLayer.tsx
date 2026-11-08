@@ -23,10 +23,12 @@ export const BrowserLayer = ({
         data-expanded={surface ? '' : undefined}
         className="desktop-browser-layer"
         render={(props) => <div {...props} hidden={false} role={surface ? 'dialog' : undefined} />}
+        // The address field, never Take control: a stray Space must not pause the agent.
         initialFocus={() =>
-          document.querySelector<HTMLButtonElement>(
-            '#agent-browser-panel [data-browser-controls] button',
-          )
+          document.querySelector<HTMLElement>(
+            '#agent-browser-panel [aria-label="Browser address"]',
+          ) ??
+          document.querySelector<HTMLElement>('#agent-browser-panel [data-browser-controls] button')
         }
         finalFocus={() =>
           document.querySelector<HTMLButtonElement>('button[aria-controls="agent-browser-panel"]')

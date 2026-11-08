@@ -34,7 +34,12 @@ export const AgentBrowser = (props: AgentBrowserProps) => {
   const { packet, view, switchable, sideColumn, modal, toggleExpanded } = layout;
   const enabled = browserPanel.open && browserPanel.session?.status === 'open';
   const native = useNativeBrowser(roleId, thread, browserPanel.session?.native, enabled, control);
-  const { nudged } = useBrowserHandback(control, session, native.identity?.id);
+  const { nudged } = useBrowserHandback(
+    control,
+    session,
+    native.identity?.id,
+    browserPanel.role?.name,
+  );
   const selectedTab = native.state?.tabs.find((tab) => tab.id === native.state?.activeTab);
   const device = useBrowserDevice(
     `${native.identity?.id}:${selectedTab?.logicalId ?? native.state?.activeTab}`,
@@ -48,15 +53,7 @@ export const AgentBrowser = (props: AgentBrowserProps) => {
   const stream = useBrowserFrame(roleId, thread, live);
   if (!browserPanel.available || !browserPanel.role) return null;
   const error = control.error || viewport.error || stream.error || browserPanel.error;
-  const approvals = (
-    <BrowserApprovals
-      {...props}
-      control={control}
-      reserveSpace={
-        view === 'browser' && !!browserPanel.session?.native && !!browserPanel.session.runId
-      }
-    />
-  );
+  const approvals = <BrowserApprovals {...props} control={control} view={view} />;
   return (
     <BrowserSurface
       modal={modal}
@@ -72,6 +69,8 @@ export const AgentBrowser = (props: AgentBrowserProps) => {
         expanded={presentation.expanded}
         view={switchable ? view : undefined}
         toggleExpanded={toggleExpanded}
+        nudged={nudged}
+        native={native.active && native.state && view === 'browser' ? native : undefined}
       />
       {error ? (
         <p className="form-error px-4" role="alert">
@@ -88,7 +87,6 @@ export const AgentBrowser = (props: AgentBrowserProps) => {
         device={device}
         frame={stream.frame}
         presentation={presentation}
-        nudged={nudged}
       />
       {view === 'packet' && packet ? <BrowserPacketView {...packet} /> : null}
       {sideColumn ? <BrowserExpandedSide {...props} approvals={approvals} /> : approvals}

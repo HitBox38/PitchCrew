@@ -1,0 +1,352 @@
+/* Clay browser chrome (v2). Imported after the other browser sheets and wins over them.
+ * Two rows on one paper: [agent · state chip · tabs · actions] and [navigation · address ·
+ * tools], one hairline under the toolbar, no sunken tab well and no extra status strips. */
+
+[data-interface='clay'] .agent-browser-panel {
+  background: var(--paper);
+  box-shadow: none;
+}
+/* The resize handle is an invisible hit area; the panel's own border is the hairline. */
+[data-interface='clay'] .browser-resizer {
+  background: transparent;
+}
+[data-interface='clay'] .browser-resizer:hover,
+[data-interface='clay'] .browser-resizer:focus-visible {
+  background: color-mix(in oklab, var(--primary) 18%, transparent);
+  outline: 0;
+}
+
+/* Row 1: identity, the state chip, inline tabs and the panel's actions. */
+[data-interface='clay'] .browser-panel-heading {
+  flex-wrap: nowrap;
+  gap: 6px;
+  min-height: 44px;
+  padding: 6px 8px 2px 10px;
+  border-bottom: 0;
+  background: var(--paper);
+  box-shadow: none;
+}
+[data-interface='clay'] .browser-heading-identity {
+  flex: none;
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+[data-interface='clay'] .browser-heading-tabs {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+[data-interface='clay'] .browser-heading-actions {
+  flex: none;
+  margin-left: auto;
+}
+[data-interface='clay'] .browser-heading-tabs > .browser-tabs {
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+  padding: 0;
+  overflow-x: auto;
+  background: none;
+  box-shadow: none;
+  scrollbar-width: none;
+}
+[data-interface='clay'] .browser-heading-tabs > .browser-tabs::-webkit-scrollbar {
+  display: none;
+}
+/* One tab needs no pill: the address says where the page is. New tab stays available. */
+[data-interface='clay'] .browser-heading-tabs .browser-tab:only-of-type {
+  display: none;
+}
+[data-interface='clay'] .browser-heading-tabs .browser-tab {
+  max-width: 180px;
+  border-radius: 9px;
+}
+[data-interface='clay'] .browser-heading-tabs .browser-tab[data-active='true'] {
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+[data-interface='clay'] .browser-heading-tabs .browser-tab-select {
+  height: 30px;
+  font-weight: 500;
+}
+[data-interface='clay'] .browser-heading-tabs .browser-tab[data-active='true'] .browser-tab-select {
+  font-weight: 600;
+}
+/* Narrow panels give the tabs their own line under the identity and actions. */
+@container browser-panel (max-width: 30rem) {
+  [data-interface='clay'] .browser-panel-heading {
+    flex-wrap: wrap;
+  }
+  [data-interface='clay'] .browser-heading-tabs {
+    order: 3;
+    flex-basis: 100%;
+  }
+}
+
+/* The state chip: who has the page, as a bead and a label. Opens task details. */
+[data-interface='clay'] .browser-state-chip {
+  position: relative;
+  gap: 6px;
+  height: 28px;
+  max-width: 13rem;
+  padding: 0 10px 0 8px;
+  border-radius: 999px;
+  background: var(--sunken-fill);
+  box-shadow: none;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+/* A 32px hit area around the 28px chip. */
+[data-interface='clay'] .browser-state-chip::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+}
+[data-interface='clay'] .browser-state-chip[data-tone='working'] {
+  background: var(--plum-soft);
+  color: var(--plum);
+}
+[data-interface='clay'] .browser-state-chip:is([data-tone='browsing'], [data-tone='control']) {
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+}
+[data-interface='clay'] .browser-state-chip:is([data-tone='waiting'], [data-tone='paused']),
+[data-interface='clay'] .browser-state-chip[data-nudged] {
+  background: var(--ochre-soft);
+  color: var(--ochre);
+}
+[data-interface='clay'] .browser-state-chip[data-nudged] {
+  animation: browser-chip-nudge 600ms ease-out 2;
+}
+@keyframes browser-chip-nudge {
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--ochre) 30%, transparent);
+  }
+}
+[data-interface='clay'] .browser-state-chip > .clay-job-spinner {
+  width: 10px;
+  height: 10px;
+  border-width: 1.5px;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-interface='clay'] .browser-state-chip[data-nudged] {
+    animation: none;
+  }
+}
+[data-interface='clay'] .browser-handoff {
+  height: 30px;
+}
+
+/* Row 2: the toolbar on the same paper, with the only hairline in the chrome. */
+[data-interface='clay'] .browser-chrome {
+  border-bottom: 1px solid var(--border);
+  background: var(--paper);
+  box-shadow: none;
+}
+[data-interface='clay'] .browser-chrome > .browser-toolbar {
+  min-height: 40px;
+  padding: 2px 4px 4px 6px;
+}
+[data-interface='clay'] .browser-toolbar > [data-slot='button'] {
+  box-shadow: none;
+}
+
+/* The page sits closer to the chrome; the frame keeps one hairline. */
+[data-interface='clay'] .browser-panel-body {
+  padding: 6px;
+}
+[data-interface='clay'] .browser-page-region .browser-live-view {
+  border-radius: 10px;
+}
+
+/* Approval tray: one line and a small fixed reservation. Autonomous preparation lists steps. */
+[data-interface='clay'] .browser-approvals[data-reserved] {
+  height: 3.5rem;
+}
+[data-interface='clay'] .browser-approvals[data-reserved][data-mode='autonomous'] {
+  height: min(6.75rem, calc(var(--browser-viewport-height, 100dvh) * 0.3));
+}
+[data-interface='clay'] .browser-approvals[data-reserved] .browser-pending-action,
+[data-interface='clay'] .browser-pending-action {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  padding: 0 10px 0 14px;
+}
+[data-interface='clay'] .browser-pending-action .browser-approval-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  overflow: hidden;
+}
+[data-interface='clay'] .browser-approval-line {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  white-space: nowrap;
+}
+[data-interface='clay'] .browser-approval-line > strong {
+  flex: none;
+  max-width: 60%;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: var(--text-label);
+  font-weight: 600;
+  text-overflow: ellipsis;
+}
+[data-interface='clay'] .browser-approval-line > .browser-approval-reason {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+[data-interface='clay'] .browser-approval-lock {
+  flex: none;
+  color: var(--ochre);
+}
+[data-interface='clay'] .browser-pending-action > .browser-evidence-trigger {
+  flex: none;
+}
+[data-interface='clay'] .browser-pending-action .approval-footer {
+  flex: none;
+  gap: 6px;
+}
+[data-interface='clay'] .browser-pending-action .approval-footer > .primary {
+  order: 0;
+}
+[data-interface='clay'] .browser-pending-action .approval-footer > [data-slot='button'] {
+  height: 32px;
+}
+[data-interface='clay'] .clay-tray-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0 14px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+@container browser-panel (max-width: 34rem) {
+  [data-interface='clay'] .browser-approvals[data-reserved] {
+    height: 5.75rem;
+  }
+  [data-interface='clay'] .browser-pending-action {
+    flex-wrap: wrap;
+    align-content: center;
+    row-gap: 6px;
+  }
+  [data-interface='clay'] .browser-pending-action .browser-approval-body {
+    flex-basis: 100%;
+  }
+}
+
+/* Failure orbs are round like every other state orb. */
+[data-interface='clay'] .clay-browser-orb[data-tone='rose'] {
+  border-radius: 999px;
+}
+/* The expanded activity column uses the app's sans heading type. */
+[data-interface='clay'] .browser-run-heading > strong {
+  font-family: var(--font-sans);
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+
+/* Find: a pill under the Find button, over the page's top-right corner. */
+[data-interface='clay'] .browser-find-popover {
+  width: min(20rem, calc(100vw - 24px));
+  border-radius: 999px;
+}
+[data-interface='clay'] .browser-find {
+  gap: 2px;
+  height: 36px;
+  padding: 0 2px 0 10px;
+  border-bottom: 0;
+  background: none;
+}
+[data-interface='clay'] .browser-find > svg {
+  flex: none;
+  color: var(--muted);
+}
+[data-interface='clay'] .browser-find > input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 0 6px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-label);
+  outline: none;
+}
+[data-interface='clay'] .browser-find > input::placeholder {
+  color: var(--muted);
+}
+[data-interface='clay'] .browser-find-count {
+  flex: none;
+  min-width: 2.5rem;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+[data-interface='clay'] .browser-find > [data-slot='button'] {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+}
+[data-interface='clay'] .browser-find:focus-within {
+  outline: 0;
+}
+[data-interface='clay'] .browser-find-popover:has(input:focus-visible) {
+  box-shadow:
+    var(--pop, 0 8px 24px rgb(0 0 0 / 0.18)),
+    0 0 0 2px var(--primary);
+}
+
+/* The control action keeps its label by panel width, not window width. */
+[data-interface='clay'] .browser-control-label {
+  display: inline;
+}
+@container browser-panel (max-width: 34rem) {
+  [data-interface='clay'] .browser-control-label {
+    display: none;
+  }
+}
+
+/* A menu row can end with its current value and a chevron (Profile · Default ›). */
+[data-interface='clay'] .browser-menu-row-value {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+[data-interface='clay'] .browser-menu-row > svg:last-child:not(:first-child) {
+  color: var(--muted);
+}
+
+/* Small visual close buttons keep a 32px target. */
+[data-interface='clay'] .browser-tab .browser-tab-close {
+  position: relative;
+}
+[data-interface='clay'] .browser-tab .browser-tab-close::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+}
+
+/* Tabs that overflow fade out at the edge instead of running under the actions. */
+[data-interface='clay'] .browser-heading-tabs > .browser-tabs {
+  padding-inline-end: 16px;
+  mask-image: linear-gradient(to right, #000 calc(100% - 16px), transparent);
+}

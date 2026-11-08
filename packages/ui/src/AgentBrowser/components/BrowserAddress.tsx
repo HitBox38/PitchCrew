@@ -12,7 +12,10 @@ export const BrowserAddress = ({
   contextId,
   onNavigate,
   onOpenExternal,
+  secure,
 }: {
+  /** Defaults to the address scheme; native pages pass whether the HTTPS page committed. */
+  secure?: boolean;
   frame: BrowserFrame | null;
   control: BrowserControl;
   url: string;
@@ -45,7 +48,7 @@ export const BrowserAddress = ({
         });
       }}
     >
-      {parts && address.startsWith('https:') ? (
+      {parts && (secure ?? address.startsWith('https:')) ? (
         <Lock size={13} aria-label="Secure connection" />
       ) : (
         <Globe size={14} aria-hidden="true" />

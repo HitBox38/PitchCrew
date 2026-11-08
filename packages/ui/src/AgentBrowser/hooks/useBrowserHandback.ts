@@ -3,6 +3,7 @@ import type { BrowserSessionInfo } from '@pitchcrew/core';
 import { browserGuardPressEvent } from '@/DesktopBrowserHost/presentation.ts';
 import type { BrowserControl } from '../types.ts';
 import { shouldHandBack } from '../control-leases.ts';
+import { setBrowserPresence } from '@/DesktopBrowserHost/presence.ts';
 
 /**
  * Idle browsing without a separate takeover step:
@@ -15,24 +16,32 @@ export const useBrowserHandback = (
   control: BrowserControl,
   session: BrowserSessionInfo | undefined,
   pageId: string | undefined,
+  /** The agent's name, published for the page overlay's cursor tag. */
+  name = '',
 ) => {
   const latest = useRef(control);
   useLayoutEffect(() => {
     latest.current = control;
   });
   const [nudged, setNudged] = useState(false);
+  const working = !!session?.runId;
+  useEffect(() => setBrowserPresence({ name, working }), [name, working]);
+  useEffect(() => () => setBrowserPresence({ name: '', working: false }), []);
   const runId = session?.runId ?? null;
-  const { leaseId, implicit, working } = control;
+  const { leaseId, implicit } = control;
   const handedBack = useRef<string>(undefined);
   // Reconcile rather than react to a transition: a lease acquired after the run started, or a
   // panel mounted mid-run, still hands back. Wait for in-flight page commands (a restored tab's
   // create-then-navigate) so the handback never revokes the lease underneath them.
   useEffect(() => {
-    if (!shouldHandBack({ runId, leaseId, implicit, working, handedBack: handedBack.current }))
+    const busy = control.working;
+    if (
+      !shouldHandBack({ runId, leaseId, implicit, working: busy, handedBack: handedBack.current })
+    )
       return;
     handedBack.current = leaseId;
     void latest.current.release();
-  }, [runId, leaseId, implicit, working]);
+  }, [runId, leaseId, implicit, control.working]);
   useEffect(() => {
     if (!nudged) return;
     const timer = setTimeout(() => setNudged(false), 4000);

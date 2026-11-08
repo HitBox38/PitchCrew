@@ -29,7 +29,7 @@ export const BrowserRunActivity = ({
         <strong className="truncate">{role.name}</strong>
         {run ? <StatusBead status={run.status} /> : null}
         <span className="browser-run-state">
-          {active ? 'working' : run ? run.status : 'No active turn'}
+          {active ? 'Working' : run ? run.status : 'Not working right now'}
         </span>
         {run ? (
           <TurnDuration
@@ -62,7 +62,10 @@ export const BrowserRunActivity = ({
           </MessageResponse>
         ) : null}
         {!run ? (
-          <p className="quiet">The agent’s steps appear here while it uses this browser.</p>
+          <p className="quiet">
+            {role.name}’s steps appear here while it uses this browser. Send a message below to give
+            it a task.
+          </p>
         ) : null}
       </div>
     </section>

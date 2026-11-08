@@ -11,7 +11,7 @@ export const NativeBrowserTabs = ({
   model: NativeBrowserModel;
   manual: boolean;
 }) => (
-  <div className="browser-tabs" aria-label="Browser tabs">
+  <div className="browser-tabs" role="tablist" aria-label="Browser tabs">
     {model.state?.tabs.map((item) => {
       const label = browserTabLabel(item);
       const close = () => void model.command({ kind: 'close-tab', tabId: item.id });
@@ -32,7 +32,8 @@ export const NativeBrowserTabs = ({
               className="browser-tab-select"
               disabled={!manual}
               title={item.url && item.url !== 'about:blank' ? `${label}\n${item.url}` : label}
-              aria-current={item.id === model.state?.activeTab ? 'page' : undefined}
+              role="tab"
+              aria-selected={item.id === model.state?.activeTab}
               onClick={() => void model.command({ kind: 'select-tab', tabId: item.id })}
             >
               <BrowserTabIcon loading={item.loading} favicon={item.favicon} failed={!!item.error} />

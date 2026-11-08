@@ -1,6 +1,6 @@
 import { Button } from '@pitchcrew/design-system/button';
 import { useId } from 'react';
-import { Code2, ExternalLink, Volume2, VolumeX } from 'lucide-react';
+import { Code2, Volume2, VolumeX } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -37,16 +37,6 @@ export const NativeBrowserPageOptions = ({
         >
           {tab?.muted ? <Volume2 size={14} /> : <VolumeX size={14} />}
           {tab?.muted ? 'Unmute page' : 'Mute page'}
-        </Button>
-        <Button
-          className="browser-menu-row"
-          size="sm"
-          variant="ghost"
-          disabled={!manual || !/^https?:\/\//i.test(tab?.url ?? '')}
-          onClick={() => void model.command({ kind: 'open-external' })}
-        >
-          <ExternalLink size={14} />
-          Open in system browser
         </Button>
         <Button
           className="browser-menu-row"

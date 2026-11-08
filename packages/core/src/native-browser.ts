@@ -102,7 +102,12 @@ export interface DesktopBrowserBridge {
   focusPage(id: string): Promise<void>;
   focusControls(id: string, focused: boolean): Promise<void>;
   mount(id: string, bounds: NativeBrowserBounds | null): Promise<void>;
-  find(id: string, text: string, forward: boolean): Promise<void>;
+  /** Resolves with the match position and count, or null when cleared or unknown. */
+  find(
+    id: string,
+    text: string,
+    forward: boolean,
+  ): Promise<{ active: number; total: number } | null | void>;
   subscribeShortcuts(
     receive: (shortcut: { id: string; key: string; shift: boolean }) => void,
   ): () => void;

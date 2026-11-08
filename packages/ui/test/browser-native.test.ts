@@ -315,6 +315,30 @@ const closePageSettings = async () => {
     await page.keyboard.press('Escape');
   await pageSettings().waitFor({ state: 'hidden' });
 };
+/**
+ * Explicit takeover: the header offers Take control while an agent works; while it is idle the
+ * page is already usable and explicit control lives under Browser options.
+ */
+const takeControl = async () => {
+  const header = page
+    .locator('.browser-panel-heading')
+    .getByRole('button', { name: 'Take control', exact: true });
+  if (await header.isVisible()) return header.click();
+  await page.getByRole('button', { name: 'Browser options', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Take control', exact: true }).click();
+};
+/** Control is held, explicitly (Return to agent) or by browsing (the chip says so). */
+const controlHeld = () =>
+  page.locator('.browser-state-chip:is([data-tone="browsing"], [data-tone="control"])').waitFor();
+/** Returns any held control: the header's Return to agent, or Browser options when implicit. */
+const returnControl = async () => {
+  const header = page.getByRole('button', { name: 'Return to agent', exact: true });
+  if (await header.isVisible()) return header.click();
+  await page.getByRole('button', { name: 'Browser options', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Return to agent', exact: true }).click();
+};
+const controlReleased = () =>
+  page.locator('.browser-state-chip:is([data-tone="idle"], [data-tone="working"])').waitFor();
 /** The toolbar keeps only a running recording's stop control. */
 const stopRecording = () =>
   page
@@ -330,7 +354,7 @@ test('uses the native surface and browser controls without screenshot or private
   );
   expect(await page.locator('.browser-screen').count()).toBe(0);
   expect(subscribeFrames).not.toHaveBeenCalled();
-  await page.getByRole('button', { name: 'Take control', exact: true }).click();
+  await takeControl();
   await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
   expect(setManual).toHaveBeenCalledWith(true);
   await page.getByRole('button', { name: 'New browser tab', exact: true }).click();
@@ -394,8 +418,8 @@ test('restores address drafts, searches on Enter and switches the focused addres
 });
 test('preserves a typed address when the first native tab hydrates under the same control lease', async () => {
   const original = structuredClone(state);
-  const take = page.getByRole('button', { name: 'Take control', exact: true });
-  if (await take.isVisible()) await take.click();
+  if (!(await page.getByRole('button', { name: 'Return to agent', exact: true }).isVisible()))
+    await takeControl();
   await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
   let held = false;
   let release = () => {};
@@ -538,11 +562,12 @@ test('keeps newer native events when a delayed command response arrives', async 
         window as unknown as { publishBrowserState: (next: NativeBrowserState) => void }
       ).publishBrowserState(next);
     }, state);
-    const title = page.getByRole('button', { name: 'Newer native page', exact: true });
-    await title.waitFor();
+    // A lone tab has no pill, so read the tab's label rather than its visibility.
+    const title = page.locator('.browser-tab-select', { hasText: 'Newer native page' });
+    await title.waitFor({ state: 'attached' });
     release();
     await page.getByText(stale.warning, { exact: true }).waitFor();
-    expect(await title.isVisible()).toBe(true);
+    expect(await title.count()).toBe(1);
   } finally {
     release();
     state = before;
@@ -611,11 +636,12 @@ test('uses native appearance, per-tab audio and external-browser developer contr
   await vi.waitFor(() =>
     expect(nativeCommand).toHaveBeenCalledWith({ kind: 'appearance', colorScheme: 'dark' }),
   );
-  await page.getByRole('button', { name: 'Open in system browser', exact: true }).click();
-  await vi.waitFor(() => expect(nativeCommand).toHaveBeenCalledWith({ kind: 'open-external' }));
   await page.getByRole('button', { name: 'Open developer tools', exact: true }).click();
   await vi.waitFor(() => expect(nativeCommand).toHaveBeenCalledWith({ kind: 'devtools' }));
   await page.keyboard.press('Escape');
+  // The address bar offers Open in system browser beside an unedited web address.
+  await page.getByRole('button', { name: 'Open page in system browser', exact: true }).click();
+  await vi.waitFor(() => expect(nativeCommand).toHaveBeenCalledWith({ kind: 'open-external' }));
 });
 test('captures, annotates and saves the page and adds the reviewed PNG to the current message draft', async () => {
   const before = await lastMount();
@@ -793,8 +819,8 @@ test('changes the actual browser viewport with device presets, rotation and fill
   });
 });
 test('blocks human clicks on the painting readonly guest, takes control from that press while idle, keeps app menus usable and admits private input', async () => {
-  await page.getByRole('button', { name: 'Return to agent', exact: true }).click();
-  await page.getByRole('button', { name: 'Take control', exact: true }).waitFor();
+  await returnControl();
+  await controlReleased();
   const bounds = await page
     .getByLabel('Native browser page', { exact: true })
     .evaluate((element) => {
@@ -845,7 +871,7 @@ test('blocks human clicks on the painting readonly guest, takes control from tha
     await page.mouse.click(point.x, point.y);
     expect(await clicks()).toEqual({ guest: before.guest, guarded: before.guarded + 1 });
     // The agent is idle: the press starts browsing by taking control, never by clicking the page.
-    await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
+    await controlHeld();
     await page.getByRole('button', { name: 'Browser history', exact: true }).click();
     const search = page.getByRole('textbox', { name: 'Search browser history', exact: true });
     await search.fill('Human menu remains interactive');
@@ -859,7 +885,7 @@ test('blocks human clicks on the painting readonly guest, takes control from tha
       }),
     ).toBe(true);
     await page.keyboard.press('Escape');
-    await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
+    await controlHeld();
     const manualBounds = await page
       .getByLabel('Native browser page', { exact: true })
       .evaluate((element) => {
@@ -950,7 +976,7 @@ test('preserves a fixed device viewport while visiting Settings and returning to
     page.off('request', observe);
     await page.unroute('**/api/browser/writer/native?*');
   }
-  await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
+  await controlHeld();
   const commands = nativeCommand.mock.calls.length;
   await page.getByRole('button', { name: 'Reload page', exact: true }).click();
   await vi.waitFor(() => {
@@ -973,7 +999,7 @@ test('stops capturing browser frames when private control is returned to the age
   await pageTool('Record browser page');
   await closePageSettings();
   await stopRecording().waitFor();
-  await page.getByRole('button', { name: 'Return to agent', exact: true }).click();
+  await returnControl();
   const review = page.getByRole('dialog', { name: 'Browser recording', exact: true });
   await review.waitFor();
   const counts = await page.evaluate(() => {
@@ -986,7 +1012,7 @@ test('stops capturing browser frames when private control is returned to the age
   expect(counts[0]).toBe(counts[1]);
   await review.getByRole('button', { name: 'Discard recording' }).click();
   await review.waitFor({ state: 'hidden' });
-  await page.getByRole('button', { name: 'Take control', exact: true }).click();
+  await takeControl();
   await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
 });
 test('shows website dialogs in native mode and sends the manual decision', async () => {
@@ -1219,13 +1245,15 @@ test('keeps native approval evidence stable while requests appear, expand and re
       expect((await service.snapshot({ workspace: true })).computerApprovals).toContainEqual(
         approval,
       );
-      await review.getByRole('button', { name: 'Approve interaction', exact: true }).click();
+      await review.getByRole('button', { name: 'Approve opening', exact: true }).click();
       await review.waitFor({ state: 'hidden' });
-      const confirmation = page.locator('[data-slot="toast"][data-kind="action"]').filter({
-        hasText: 'Browser action approved for this run',
-      });
-      await confirmation.locator('[data-slot="toast-close"]').click();
-      await confirmation.waitFor({ state: 'hidden' });
+      // The tray shows the outcome; no toast covers the next request's decision.
+      expect(
+        await page
+          .locator('[data-slot="toast"]')
+          .filter({ hasText: 'Browser action approved for this run' })
+          .count(),
+      ).toBe(0);
       await service.computer.execute(
         scope.runId,
         approval.id,
@@ -1237,7 +1265,9 @@ test('keeps native approval evidence stable while requests appear, expand and re
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
   await service.computer.stop(scope.runId);
-  await page.getByRole('button', { name: 'Take control', exact: true }).click();
+  // Let the header settle on Idle so explicit control comes from Browser options.
+  await page.locator('.browser-state-chip[data-tone="idle"]').waitFor();
+  await takeControl();
 }, 30000);
 test('keeps the live page mounted under app overlays across native state polls in split and sheet views', async () => {
   await page

@@ -1,3 +1,4 @@
+import { ChevronRight, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@pitchcrew/design-system/button';
 import {
@@ -14,10 +15,13 @@ export const NativeBrowserProfiles = ({
   id,
   disabled,
   prepare,
+  profile = 'Default',
 }: {
   id: string;
   disabled: boolean;
   prepare?: () => Promise<unknown>;
+  /** The current profile's name, shown at the row's end. */
+  profile?: string;
 }) => {
   const [open, setOpen] = useState(false);
   const model = useNativeProfiles(id, prepare);
@@ -30,16 +34,21 @@ export const NativeBrowserProfiles = ({
   return (
     <>
       <Button
-        className="mt-2 w-full"
+        className="browser-menu-row"
         size="sm"
-        variant="outline"
+        variant="ghost"
         disabled={disabled}
         onClick={() => {
           setOpen(true);
           void model.run({ kind: 'list' });
         }}
       >
+        <UserRound size={14} aria-hidden="true" />
         Manage browser profiles
+        <span className="browser-menu-row-value" aria-hidden="true">
+          {profile}
+        </span>
+        <ChevronRight size={14} aria-hidden="true" />
       </Button>
       <Dialog open={open} onOpenChange={close}>
         <DialogContent className="modal max-h-[80vh] overflow-y-auto">

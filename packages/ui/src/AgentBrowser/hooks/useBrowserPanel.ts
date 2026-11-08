@@ -85,7 +85,8 @@ export const useBrowserPanel = (
     width: state.width,
     /** Whether the shared right panel shows the browser or the packet. */
     view: state.view,
-    activity: status.sessions.some((item) => item.runId || item.manual),
+    /** An agent run is using a browser (plum); the user's own browsing is not activity. */
+    activity: status.sessions.some((item) => !!item.runId),
     show: () =>
       setPreference({
         ...state,

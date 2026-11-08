@@ -72,12 +72,12 @@ export const NativeBrowserSettings = ({
       </fieldset>
       <NativeBrowserPageOptions model={model} manual={manual} />
       <fieldset className="browser-menu-group" aria-label="Browser profile">
-        <p className="browser-menu-label">Profile: {model.state?.profile?.name ?? 'Default'}</p>
         <NativeBrowserProfiles
           key={model.identity!.id}
           id={model.identity!.id}
           disabled={!manual}
           prepare={model.ensure}
+          profile={model.state?.profile?.name}
         />
       </fieldset>
     </PopoverContent>
