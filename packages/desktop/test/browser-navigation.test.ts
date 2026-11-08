@@ -268,3 +268,15 @@ test('keeps the specific Chromium failure when loadURL rejects after did-fail-lo
   expect(tab().error).toMatch(/certificate/);
   expect(tab().errorDetails).toBe('ERR_CERT_AUTHORITY_INVALID (-202)');
 });
+
+test('names a DNS preflight failure as an address that could not be found', async () => {
+  const { group, tab } = await fixture();
+  vi.mocked(assertPublicUrl).mockRejectedValue(
+    Object.assign(new Error('getaddrinfo ENOTFOUND missing.example'), {
+      errno: -3008,
+      code: 'ENOTFOUND',
+    }),
+  );
+  await runNativeBrowserCommand(group, { kind: 'navigate', url: 'https://missing.example/' });
+  expect(tab().error).toBe('The address couldn’t be found. Check it for typos.');
+});

@@ -187,7 +187,7 @@
 }
 [data-interface='clay'] .browser-approval-line {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 7px;
   min-width: 0;
   margin: 0;
@@ -209,8 +209,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+[data-interface='clay'] .browser-approval-line > .clay-bead {
+  align-self: center;
+}
 [data-interface='clay'] .browser-approval-lock {
   flex: none;
+  align-self: center;
   color: var(--ochre);
 }
 [data-interface='clay'] .browser-pending-action > .browser-evidence-trigger {

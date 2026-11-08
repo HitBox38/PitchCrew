@@ -580,8 +580,15 @@ export const createNativeGroup = (
         const message = error instanceof Error ? error.message : 'Navigation failed.';
         // Electron rejects loadURL with the Chromium code; keep its specific sentence (the same
         // failure's did-fail-load already recorded it) rather than a generic one.
+        // Only Chromium's ERR_* codes are navigation codes; Node DNS errors carry their own errno.
         const errno =
-          error && typeof error === 'object' && 'errno' in error && typeof error.errno === 'number'
+          error &&
+          typeof error === 'object' &&
+          'errno' in error &&
+          typeof error.errno === 'number' &&
+          'code' in error &&
+          typeof error.code === 'string' &&
+          error.code.startsWith('ERR_')
             ? error.errno
             : undefined;
         errors.set(
