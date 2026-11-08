@@ -321,6 +321,23 @@ const lastPresentation = () =>
       }
     ).nativeFixture.mounts.at(-1),
   );
+/** Resolves once the panel has sent no page resize for a second. */
+const viewportSettled = async (service: typeof host.daemon.service) => {
+  let last = Date.now();
+  const resize = service.computer.resizeBrowser;
+  const spy = vi.spyOn(service.computer, 'resizeBrowser').mockImplementation((...args) => {
+    last = Date.now();
+    return resize(...args);
+  });
+  try {
+    await vi.waitFor(() => expect(Date.now() - last).toBeGreaterThanOrEqual(1000), {
+      timeout: 10000,
+      interval: 100,
+    });
+  } finally {
+    spy.mockRestore();
+  }
+};
 const lastMount = async () => {
   const presentation = await lastPresentation();
   return presentation?.bounds;
@@ -645,7 +662,7 @@ test('reopens visited and closed pages through the same leased native browser', 
   // Clearing asks once, in a quiet row, before removing both lists.
   await page.getByRole('button', { name: 'Clear browser history…', exact: true }).click();
   await page.getByRole('button', { name: 'Clear', exact: true }).click();
-  expect(await history.getByRole('button').count()).toBe(0);
+  await expect.poll(() => history.getByRole('button').count()).toBe(0);
   expect(
     await page.evaluate(() => {
       const key = 'pitchcrew:browser-history:v1:writer:default';
@@ -1442,6 +1459,10 @@ test('shortens a long typed value before the target at the default panel width',
   service.computer.bindBrowser({ ...scope, threadId: 'writer' });
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.getByLabel('Native browser page', { exact: true }).waitFor();
+  // The reloaded panel must know the run before its request can appear in the tray, and must
+  // have settled its size: a resize voids a pending request.
+  await page.locator('.browser-state-chip[data-tone="working"]').waitFor({ timeout: 10000 });
+  await viewportSettled(service);
   const approval = await service.computer.request(
     scope,
     {
