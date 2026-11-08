@@ -148,7 +148,7 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
       // The header's empty edge: tabs in its middle open their own Tab actions menu.
       await app.page
         .locator('.browser-panel-heading')
-        .click({ button: 'right', position: { x: 4, y: 8 } });
+        .click({ button: 'right', position: { x: 14, y: 40 } });
       const menu = app.page.getByRole('menu', { name: 'Workspace actions', exact: true });
       await menu.waitFor();
       await assertLiveGuest(app, menu);
@@ -306,6 +306,46 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
       app.page.off('request', observe);
     }
   });
+  it('picks a real page element through inspect mode without pressing it', async () => {
+    const guest = await activeGuest(app);
+    const before = await guest.read('document.querySelector("#result").textContent');
+    await app.page.getByRole('button', { name: 'Browser page settings', exact: true }).click();
+    await app.page
+      .locator('.browser-settings-tools')
+      .getByRole('button', { name: 'Pick an element to attach', exact: true })
+      .click();
+    // Inspect mode starts after control and focus settle; the toast is shown just before it.
+    await app.page
+      .getByText('Click an element on the page to attach it.', { exact: false })
+      .waitFor();
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const point = await guestPoint(app, '#continue');
+    await app.page.mouse.move(point.x, point.y, { steps: 4 });
+    await app.page.mouse.click(point.x, point.y);
+    const dialog = app.page.getByRole('dialog', { name: 'Picked element', exact: true });
+    await dialog.waitFor();
+    assert.match(await dialog.innerText(), /<button> “Continue”/);
+    assert.equal(
+      await app.page.locator('.browser-settings-menu').count(),
+      0,
+      'Page settings stayed open over the page while picking',
+    );
+    // Escape reaches the review once it has taken focus back from the page.
+    await until(
+      () => dialog.evaluate((element) => element.contains(document.activeElement)),
+      'The picked-element review never took focus from the page',
+    );
+    assert.equal(
+      await guest.read('document.querySelector("#result").textContent'),
+      before,
+      'Picking pressed the element instead of selecting it',
+    );
+    await app.page.keyboard.press('Escape');
+    await dialog.waitFor({ state: 'hidden' });
+    const settings = app.page.getByRole('button', { name: 'Browser page settings', exact: true });
+    if ((await settings.getAttribute('aria-expanded')) === 'true')
+      await app.page.keyboard.press('Escape');
+  });
   it(
     'runs a real scoped MCP action only after an exact decision in the production UI',
     { timeout: 45000 },
@@ -446,7 +486,7 @@ describe('Failed navigation in the production Electron browser', { concurrency: 
     const firstGuest = (await activeGuest(app)).id;
     await page.getByRole('button', { name: 'New browser tab', exact: true }).click();
     try {
-      await page.getByRole('heading', { name: 'No page open', exact: true }).waitFor();
+      await page.getByRole('heading', { name: 'New tab', exact: true }).waitFor();
       const address = page.getByRole('textbox', { name: 'Browser address' });
       const failedUrl = 'https://pitchcrew-browser-test.invalid/';
       await address.fill(failedUrl);
@@ -454,10 +494,7 @@ describe('Failed navigation in the production Electron browser', { concurrency: 
       const error = page.locator('.browser-page-error');
       await error.waitFor();
       assert.equal(await address.inputValue(), failedUrl);
-      assert.equal(
-        await page.getByRole('heading', { name: 'No page open', exact: true }).count(),
-        0,
-      );
+      assert.equal(await page.getByRole('heading', { name: 'New tab', exact: true }).count(), 0);
       assert.match((await error.textContent()) ?? '', /ENOTFOUND pitchcrew-browser-test.invalid/);
       await page.screenshot({ path: `${app.directory}/failed-navigation.png` });
       await page.locator('.browser-tab-select').nth(0).click();

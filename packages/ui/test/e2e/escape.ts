@@ -176,7 +176,7 @@ export const checkExpandedEscape = async (app: DesktopE2E) => {
 
     // The original renderer path still works with focus in the activity panel.
     await expand.click();
-    await page.locator('.browser-run-heading').click();
+    await page.locator('.browser-expanded-side .clay-tray-line').click();
     await page.keyboard.press('Escape');
     await expand.waitFor();
     await until(

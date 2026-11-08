@@ -217,6 +217,11 @@
 [data-interface='clay'] .clay-tray-line > .browser-handoff {
   margin-left: auto;
 }
+[data-interface='clay'] .browser-pending-action > .browser-handoff[data-size='icon-sm'] {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+}
 [data-interface='clay'] .browser-handoff[data-nudged] {
   box-shadow:
     var(--clay),

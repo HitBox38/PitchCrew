@@ -237,6 +237,7 @@ test('lists the page tools in Page settings and keeps only a running recording o
   const tools = [
     'Toggle browser device toolbar',
     'Capture browser screenshot',
+    'Pick an element to attach',
     'Record browser page',
     'Open separate browser window',
   ];

@@ -22,7 +22,7 @@ export const ScreenshotDialog = ({
 }) => {
   const [note, setNote] = useState('');
   const { canvas, ...editor } = useScreenshotCanvas(capture, note);
-  const actions = useScreenshotActions(canvas, close, onAttachBrowserFile);
+  const actions = useScreenshotActions(canvas, close, onAttachBrowserFile, capture.label);
   return (
     <Dialog
       open
@@ -31,9 +31,10 @@ export const ScreenshotDialog = ({
       }}
     >
       <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-3xl">
-        <DialogTitle>Browser screenshot</DialogTitle>
+        <DialogTitle>{capture.label ? 'Picked element' : 'Browser screenshot'}</DialogTitle>
         <DialogDescription>
-          Draw on the page or add a note, then save it or attach it to your message draft.
+          {capture.label ? `${capture.label} on ${capture.title || capture.url}. ` : ''}
+          Draw on it or add a note, then save it or attach it to your message draft.
         </DialogDescription>
         <div className="browser-screenshot-editor">
           <canvas

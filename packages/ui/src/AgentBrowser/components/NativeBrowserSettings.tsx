@@ -27,7 +27,7 @@ export const NativeBrowserSettings = ({
   tools: ReturnType<typeof useNativeBrowserTools>;
   device: ReturnType<typeof useBrowserDevice>;
 }) => (
-  <Popover>
+  <Popover open={tools.settingsOpen} onOpenChange={tools.setSettingsOpen}>
     <PopoverTrigger
       render={
         <Button
@@ -40,7 +40,7 @@ export const NativeBrowserSettings = ({
     >
       <Settings2 size={15} />
     </PopoverTrigger>
-    <PopoverContent className="browser-settings-menu max-h-[min(80dvh,42rem)] w-72 overflow-y-auto p-1.5 font-sans text-sm">
+    <PopoverContent className="browser-settings-menu max-h-[min(80dvh,42rem)] w-80 overflow-y-auto p-1.5 font-sans text-sm">
       <PopoverTitle className="browser-menu-label">Page settings</PopoverTitle>
       <div className="browser-settings-tools">
         <BrowserToolsActions model={tools} device={device} />

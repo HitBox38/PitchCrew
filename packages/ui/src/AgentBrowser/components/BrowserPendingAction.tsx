@@ -51,9 +51,13 @@ export const BrowserPendingAction = ({
         </p>
         <BrowserApprovalError approval={approval} />
       </div>
-      {paused ? (
-        <BrowserControls browserPanel={browserPanel} thread={thread} control={control} />
-      ) : null}
+      {/* Return control before deciding, or take the page instead of approving it. */}
+      <BrowserControls
+        browserPanel={browserPanel}
+        thread={thread}
+        control={control}
+        compact={!paused}
+      />
       <BrowserSiteRequest
         approval={approval}
         browserPanel={browserPanel}

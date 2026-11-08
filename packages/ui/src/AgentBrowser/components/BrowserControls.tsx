@@ -11,10 +11,13 @@ export const BrowserControls = ({
   browserPanel,
   control,
   nudged = false,
+  compact = false,
 }: Pick<AgentBrowserProps, 'browserPanel' | 'thread'> & {
   control: BrowserControl;
   /** The user pressed the page while the agent works: point at Take control. */
   nudged?: boolean;
+  /** Icon only, beside a waiting request's own decision buttons. */
+  compact?: boolean;
 }) => {
   const session = browserPanel.session;
   if (session?.status !== 'open') return null;
@@ -32,7 +35,7 @@ export const BrowserControls = ({
   const Icon = control.leaseId ? Bot : Hand;
   return (
     <Button
-      size="sm"
+      size={compact ? 'icon-sm' : 'sm'}
       variant={label === 'Take control' ? 'outline' : 'secondary'}
       className="browser-handoff"
       data-nudged={nudged || undefined}
@@ -51,7 +54,7 @@ export const BrowserControls = ({
       }}
     >
       <Icon size={15} aria-hidden="true" />
-      {label}
+      {compact ? null : label}
     </Button>
   );
 };

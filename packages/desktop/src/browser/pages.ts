@@ -1,3 +1,4 @@
+import { cancelPick } from './pick.ts';
 import { guestAutomation } from './automation.ts';
 import { browserWindowOpenAction } from './window-open.ts';
 import { browserFavicon } from './favicon.ts';
@@ -289,6 +290,8 @@ export const createNativeGroup = (
             return;
           }
           if (!canUse() || input.type !== 'keyDown' || input.isComposing) return;
+          // Escape on the page ends a pending element pick, as in DevTools' inspect mode.
+          if (input.key === 'Escape') cancelPick(contents.id);
           const key = input.key.toLowerCase();
           const primary =
             process.platform === 'darwin'

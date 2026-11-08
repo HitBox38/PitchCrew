@@ -104,6 +104,12 @@ export interface DesktopBrowserView {
 }
 export interface DesktopBrowserBridge {
   capture(id: string): Promise<DesktopBrowserCapture>;
+  /**
+   * Waits for the user to click an element on the selected page (DevTools-style highlight) and
+   * returns it cropped with a short label, or null when cancelled. Requires held control.
+   */
+  pickElement?(id: string): Promise<(DesktopBrowserCapture & { label: string }) | null>;
+  cancelPick?(id: string): Promise<void>;
   saveArtifact(kind: 'png' | 'webm', data: string): Promise<string | null>;
   copyCapture(data: string): Promise<void>;
   revealArtifact(path: string): Promise<void>;
@@ -133,6 +139,8 @@ export interface DesktopBrowserCapture {
   height: number;
   url: string;
   title: string;
+  /** A picked element's tag and visible name, for the review dialog and file name. */
+  label?: string;
 }
 export const desktopBrowserHostSchema = z
   .object({

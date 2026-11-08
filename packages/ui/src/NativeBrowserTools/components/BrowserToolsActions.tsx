@@ -2,6 +2,7 @@ import { Camera, PictureInPicture2, Smartphone, Square, Video } from 'lucide-rea
 import { Button } from '@pitchcrew/design-system/button';
 import type { useBrowserDevice } from '@/BrowserDeviceToolbar/useBrowserDevice.ts';
 import type { useNativeBrowserTools } from '../hooks/useNativeBrowserTools.ts';
+import { BrowserPickTool } from './BrowserPickTool.tsx';
 
 export const BrowserToolsActions = ({
   model,
@@ -36,6 +37,7 @@ export const BrowserToolsActions = ({
         <Camera size={14} />
         <span className="browser-tool-label">Screenshot</span>
       </Button>
+      <BrowserPickTool model={model} />
       <Button
         variant="ghost"
         size="sm"

@@ -30,19 +30,18 @@ export const assertLiveGuest = async (app: DesktopE2E, overlay?: Locator) => {
     await overlay.click({ trial: true });
     const box = await overlay.boundingBox();
     assert.ok(box, 'The actual application overlay is not open');
-    assert.equal(
-      await app.page.evaluate(
-        ({ x, y }) =>
-          !!document
-            .elementFromPoint(x, y)
-            ?.closest(
-              '[data-slot="popover-content"], [data-slot="context-menu-content"], [role="dialog"]',
-            ),
-        { x: box.x + box.width / 2, y: box.y + Math.min(20, box.height / 2) },
-      ),
-      true,
-      'The web page covered the app overlay',
+    const top = await app.page.evaluate(
+      ({ x, y }) => {
+        const element = document.elementFromPoint(x, y);
+        return element?.closest(
+          '[data-slot="popover-content"], [data-slot="context-menu-content"], [role="dialog"]',
+        )
+          ? ''
+          : (element?.outerHTML.slice(0, 160) ?? 'nothing');
+      },
+      { x: box.x + box.width / 2, y: box.y + Math.min(20, box.height / 2) },
     );
+    assert.equal(top, '', `Something covered the app overlay at its centre: ${top}`);
   }
   const point = await guestPoint(app, '#pulse', 0.1);
   const colors = new Set<string>();

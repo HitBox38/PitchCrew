@@ -13,6 +13,7 @@ import { createNativeGroup, type NativeGroup } from './pages.ts';
 import { connectBrowserRelay } from './cdp.ts';
 import { runNativeBrowserCommand } from './commands.ts';
 import { installBrowserArtifactIpc } from './artifacts.ts';
+import { installBrowserPickIpc } from './pick.ts';
 import { installFloatingBrowserIpc } from './floating.ts';
 import { createDomBrowserHost } from './dom-host.ts';
 
@@ -280,6 +281,7 @@ export const installNativeBrowserIpc = (
   };
   installNativeProfileIpc(host, authorize, getWindow);
   installBrowserArtifactIpc(host.groups, authorize, getWindow);
+  installBrowserPickIpc(host.groups, authorize, getWindow);
   installFloatingBrowserIpc(host.groups, authorize, getWindow);
   ipcMain.handle('pitchcrew:browser:identity', (event) => {
     authorize(event);

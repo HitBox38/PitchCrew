@@ -166,6 +166,7 @@ beforeAll(async () => {
       mounts: [] as unknown[],
       finds: [] as unknown[],
       captures: 0,
+      picks: 0,
       artifacts: [] as { kind: 'png' | 'webm'; data: string }[],
       copied: [] as string[],
       revealed: [] as string[],
@@ -212,6 +213,23 @@ beforeAll(async () => {
             height: canvas.height,
             url: 'https://example.com/apply',
             title: 'Fictional application',
+          };
+        },
+        pickElement: async () => {
+          records.picks++;
+          const canvas = document.createElement('canvas');
+          canvas.width = 136;
+          canvas.height = 56;
+          const context = canvas.getContext('2d')!;
+          context.fillStyle = '#6fa8dc';
+          context.fillRect(0, 0, canvas.width, canvas.height);
+          return {
+            data: canvas.toDataURL('image/png').split(',')[1],
+            width: canvas.width,
+            height: canvas.height,
+            url: 'https://example.com/apply',
+            title: 'Fictional application',
+            label: '<button> “Apply now”',
           };
         },
         saveArtifact: async (kind: 'png' | 'webm', data: string) => {
@@ -794,6 +812,22 @@ test('captures, annotates and saves the page and adds the reviewed PNG to the cu
   expect(host.daemon.service.board.list('message')).toHaveLength(messages);
   await closePageSettings();
   await page.getByRole('button', { name: /^Remove browser-screenshot-/ }).click();
+});
+test('picks an element into a labelled review and attaches it to the draft by name', async () => {
+  const messages = host.daemon.service.board.list('message').length;
+  await pageTool('Pick an element to attach');
+  const dialog = page.getByRole('dialog', { name: 'Picked element', exact: true });
+  await dialog.waitFor();
+  expect(await dialog.innerText()).toContain('<button> “Apply now” on Fictional application.');
+  await vi.waitFor(async () =>
+    expect(await dialog.getByRole('button', { name: 'Attach to message' }).isEnabled()).toBe(true),
+  );
+  await dialog.getByRole('button', { name: 'Attach to message', exact: true }).click();
+  await dialog.waitFor({ state: 'hidden' });
+  await page.getByText(/^browser-element-button-apply-now-\d+\.png$/).waitFor();
+  expect(host.daemon.service.board.list('message')).toHaveLength(messages);
+  await closePageSettings();
+  await page.getByRole('button', { name: /^Remove browser-element-/ }).click();
 });
 test('records changing browser frames into playable WebM, saves it and opens the owned floating window', async () => {
   const before = await lastMount();

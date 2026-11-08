@@ -67,11 +67,12 @@ The third design review scored 7/10. Its blockers were approvals that hid the ty
 - Moves Take control, Return to agent and Recover control to the end of the tray line and keeps the chip a fixed-width pill, so control changes never move the header; the selected tab scrolls into view, and narrow panels keep the avatar without the name.
 - Reserves the tray for the whole open session, keeps the agent's latest run readable in the expanded column after it ends, narrows that column before any run and makes the expanded page flush.
 - Records a browser call stopped by a takeover as "Paused while you had control" (an existing interrupted status), shown as "paused for you" rather than a failure.
+- Adds element picking under Page settings: Chromium's inspect highlight follows the pointer, a click returns the element as a padded crop with its tag and visible name, and the user reviews it in the screenshot dialog before attaching it to the draft. Picking needs held control and never presses the element.
 - Adds tab reordering by drag, Control+Shift+Page Up/Down and the tab menu, keeps a recovered crashed tab in place, and fixes smaller copy: "New tab" and "Browser not open" placeholders, "In another chat", "Edit address" first for addresses that can't be found, a role's real name in Details and numeric hours.
 
 ## Still behind T3
 
-- **Element pick and annotate into the composer.** T3's best browser feature: select an element, region or drawing and attach it with a cropped screenshot. Pitchcrew only annotates whole screenshots.
+- **Region and drawing picks.** Pitchcrew now picks single elements into the composer (DevTools-style highlight, padded crop, tag and visible name, reviewed before attaching), but T3 also picks free regions and drawings in one step.
 - **In-app floating player.** T3 floats the page over the chat and auto-shows it when an agent opens a browser; Pitchcrew's float is a separate OS window.
 - **Request round trips.** Every native request is checked twice: once by the main-process `webRequest` DNS check and again by the daemon's Playwright route over the relay. T3 does neither for desktop tabs. Heavy pages pay a WebSocket round trip and a DNS lookup per subresource.
 - **Web streaming.** Base64 JPEG over HTTP versus T3's binary WebSocket frames with client acknowledgements, half-resolution motion mode and a settle still.

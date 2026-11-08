@@ -3,10 +3,14 @@ import type { NativeBrowserModel } from '@/AgentBrowser/hooks/useNativeBrowser.t
 import type { BrowserControl } from '@/AgentBrowser/types.ts';
 import type { DesktopBrowserCapture } from '../../../../core/src/native-browser.ts';
 import { useBrowserRecording } from './useBrowserRecording.ts';
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
 export const useNativeBrowserTools = (model: NativeBrowserModel, control: BrowserControl) => {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [picking, setPicking] = useState(false);
+  // Page settings, which holds these tools; picking closes it so the whole page is clickable.
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [snapshot, setSnapshot] = useState<{
     owner: string;
     capture: DesktopBrowserCapture;
@@ -38,6 +42,30 @@ export const useNativeBrowserTools = (model: NativeBrowserModel, control: Browse
       setBusy(false);
     }
   };
+  // Pick one element on the page (DevTools-style highlight), then review it like a screenshot.
+  const pick = async () => {
+    const bridge = window.pitchcrewBrowser;
+    if (!bridge?.pickElement || !model.identity) return;
+    const requested = owner;
+    setSettingsOpen(false);
+    setBusy(true);
+    setPicking(true);
+    setError('');
+    try {
+      if (!(await control.ensure())) return;
+      useWorkspaceStore
+        .getState()
+        .setToast('Click an element on the page to attach it. Press Escape to cancel.');
+      await bridge.focusPage(model.identity.id).catch(() => {});
+      const next = await bridge.pickElement(model.identity.id);
+      if (next && current.current === requested) setSnapshot({ owner: requested, capture: next });
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not pick an element.');
+    } finally {
+      setBusy(false);
+      setPicking(false);
+    }
+  };
   const floating = async () => {
     try {
       if (!tab?.floating && !(await control.ensure())) return;
@@ -57,6 +85,11 @@ export const useNativeBrowserTools = (model: NativeBrowserModel, control: Browse
     disabled,
     recordable: !!control.leaseId,
     screenshot,
+    pick,
+    picking,
+    settingsOpen,
+    setSettingsOpen,
+    cancelPick: () => void window.pitchcrewBrowser?.cancelPick?.(model.identity!.id),
     floating,
   };
 };
