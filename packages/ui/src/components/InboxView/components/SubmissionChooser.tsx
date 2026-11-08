@@ -51,7 +51,7 @@ export const SubmissionChooser = ({ model, data }: Props) => {
           </Button>
         ) : null}
         <Button variant="outline" disabled={model.busy} onClick={() => void model.start('manual')}>
-          Submit myself
+          Export to apply myself
         </Button>
         <Button variant="ghost" onClick={() => model.setChooser(false)}>
           Cancel

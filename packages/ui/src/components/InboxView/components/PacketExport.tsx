@@ -25,9 +25,6 @@ export const PacketExport = ({ approval }: { approval: Approval }) => {
             <li>{layout}</li>
           </ul>
         ) : null}
-        {approval.exportDirectory ? (
-          <span className="packet-export-path">Saved to {approval.exportDirectory}</span>
-        ) : null}
       </div>
     </section>
   );

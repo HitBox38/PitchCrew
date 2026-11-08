@@ -1,16 +1,31 @@
 import { api } from '@/api.ts';
-import type { BoardEvent, Card, Snapshot } from '@pitchcrew/core';
+import type { BoardEvent, Card, Run, Snapshot } from '@pitchcrew/core';
 import { useEffect, useState } from 'react';
 
-export type JobHistoryEvent = Pick<BoardEvent, 'id' | 'kind' | 'actor' | 'message' | 'createdAt'>;
+export type JobHistoryEvent = Pick<
+  BoardEvent,
+  'id' | 'kind' | 'actor' | 'message' | 'createdAt'
+> & {
+  /** The run's status when this run event was saved; only snapshot events carry it. */
+  runStatus?: Run['status'];
+};
 
 const recentEvents = (data: Snapshot, card: Card): JobHistoryEvent[] =>
-  data.events.filter(
-    (e) =>
-      e.entityId === card.id ||
-      (['run', 'deep_review'].includes(e.kind) &&
-        (e.data as { cardId?: string }).cardId === card.id),
-  );
+  data.events
+    .filter(
+      (e) =>
+        e.entityId === card.id ||
+        (['run', 'deep_review'].includes(e.kind) &&
+          (e.data as { cardId?: string }).cardId === card.id),
+    )
+    .map(({ id, kind, actor, message, createdAt, data: saved }) => ({
+      id,
+      kind,
+      actor,
+      message,
+      createdAt,
+      runStatus: kind === 'run' ? (saved as Partial<Run>).status : undefined,
+    }));
 
 /** Saved job history plus recent run events, which the card's own history does not include. */
 export const useJobHistory = (data: Snapshot, card: Card) => {

@@ -1,4 +1,5 @@
 import type { ApprovalRequest } from '@/components/InboxView/types.ts';
+import { readableWordCount } from '@/lib/packet-labels.ts';
 import type { ViewerFile } from './types.ts';
 const sourceNames = {
   resume: 'resume.md',
@@ -110,14 +111,13 @@ export const downloadFile = (file: ViewerFile) => {
 };
 export const fileFormat = (file: Pick<ViewerFile, 'kind'>) =>
   file.kind === 'markdown' ? 'Markdown' : file.kind === 'text' ? 'Text' : file.kind.toUpperCase();
-const words = (text: string) => (text.match(/[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu) ?? []).length;
 /** Pages (estimated for Word), words in the source text and size, for an attachment tile. */
 export const fileFacts = (file: ViewerFile) =>
   [
     file.pages
       ? `${file.kind === 'docx' ? 'about ' : ''}${file.pages} page${file.pages === 1 ? '' : 's'}`
       : '',
-    file.text && file.kind !== 'image' ? `${words(file.text)} words` : '',
+    file.text && file.kind !== 'image' ? `${readableWordCount(file.text)} words` : '',
     fileSize(file),
   ]
     .filter(Boolean)

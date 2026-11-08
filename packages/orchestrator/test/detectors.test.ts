@@ -42,7 +42,8 @@ it('saves a key on this device only, runs a user-authorized check and binds the 
   });
   expect(saved.response.status).toBe(200);
   const file = join(directory, 'detectors', 'keys.json');
-  expect((await stat(file)).mode & 0o777).toBe(0o600);
+  // Windows chmod does not expose POSIX owner/group mode bits; persistence checks still run.
+  if (process.platform !== 'win32') expect((await stat(file)).mode & 0o777).toBe(0o600);
   expect(await readFile(file, 'utf8')).toContain('sk-fixture-secret-key');
   const snapshot = (await request<Snapshot>('/snapshot')).result;
   expect(snapshot.quality!.detectors.find((s) => s.provider === 'sapling')).toMatchObject({

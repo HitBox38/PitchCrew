@@ -1,6 +1,7 @@
 import type { Card, Run, Snapshot } from '@pitchcrew/core';
 import { workflowSeat } from '@pitchcrew/core/states';
 import type { ApplicationSection, JobAgent } from './types.ts';
+import { packetNeedsReview } from '@/lib/job-step.ts';
 
 /** Stream activity overrides persisted activity without losing run identity. */
 export const jobAgents = (cardId: string, data: Snapshot): JobAgent[] => {
@@ -92,12 +93,7 @@ export const launchBlocker = (data: Snapshot, roleId: string | undefined) => {
     return 'Add your profile notes before starting the crew.';
   return null;
 };
-export const packetNeedsReview = (card: Card) => {
-  return Boolean(
-    card.packet &&
-    (!card.packetReview || card.packetReview.contextRevision !== card.applicationContext?.revision),
-  );
-};
+export { packetNeedsReview };
 
 /** A later successful run clears an earlier failure from the persistent footer. */
 export const latestJobFailure = (cardId: string, runs: Run[]) => {
@@ -136,7 +132,8 @@ export const applicationRows = (
     {
       id: 'documents',
       title: 'Documents',
-      status: card.packet ? 'Draft available' : 'Not drafted',
+      // `exported` means these exact saved documents were exported; a later edit reads as a draft.
+      status: !card.packet ? 'Not drafted' : exported ? 'Exported version' : 'Draft available',
       done: Boolean(card.packet),
       yours: false,
     },

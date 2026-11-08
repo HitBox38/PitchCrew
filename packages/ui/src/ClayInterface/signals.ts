@@ -2,6 +2,13 @@ import type { Card, Run, Snapshot } from '@pitchcrew/core';
 import { closedStateSet } from '../board-stages.ts';
 import { packetNeedsAction } from '../lib/inbox.ts';
 import { executingRuns } from '../lib/work-queue.ts';
+import {
+  packetDetails,
+  packetStage,
+  packetStatus,
+  packetWaitsOnUser,
+  type PacketStage,
+} from './packet-guidance.ts';
 
 export type Decision = {
   id: string;
@@ -12,13 +19,20 @@ export type Decision = {
   threadId: string | null;
   detail: string;
   createdAt: string;
+  /** Packets only: where the approved or pending packet stands, and its short card/sidebar status. */
+  stage?: PacketStage;
+  status?: string;
 };
 
-/** An extracted brief stays unconfirmed until the user confirms its current revision. */
+/**
+ * An extracted brief stays unconfirmed until the user confirms its current revision. Leads defer
+ * it: fit and shortlisting lead there, and confirmation gates drafting once the job is shortlisted.
+ */
 const needsBrief = (card: Card) => {
   const context = card.applicationContext;
   return (
     !!context &&
+    card.state !== 'lead' &&
     !closedStateSet.has(card.state) &&
     (!context.confirmedAt || context.confirmedRevision !== context.revision)
   );
@@ -29,15 +43,21 @@ export const decisions = (data: Snapshot): Decision[] =>
   [
     ...data.approvals
       .filter((approval) => packetNeedsAction(approval, data.cards))
-      .map((approval) => ({
-        id: approval.id,
-        kind: 'packet' as const,
-        cardId: approval.cardId,
-        roleId: null,
-        threadId: null,
-        detail: 'Approve the packet',
-        createdAt: approval.createdAt,
-      })),
+      .map((approval) => {
+        const card = data.cards.find((item) => item.id === approval.cardId);
+        const stage = packetStage(approval, card);
+        return {
+          id: approval.id,
+          kind: 'packet' as const,
+          cardId: approval.cardId,
+          roleId: null,
+          threadId: null,
+          detail: packetDetails[stage],
+          createdAt: approval.createdAt,
+          stage,
+          status: packetStatus(approval, card, data),
+        };
+      }),
     ...data.computerApprovals
       .filter((approval) => ['pending', 'approved'].includes(approval.status))
       .map((approval) => ({
@@ -71,7 +91,22 @@ export const decisions = (data: Snapshot): Decision[] =>
     })),
   ].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 
-export type JobSignal = { run?: Run; decision?: Decision };
+/** A decision is the user's move, except an agent's packet preparation that is still going. */
+export const decisionWaits = (decision: Decision, data: Snapshot) => {
+  if (decision.kind !== 'packet') return true;
+  const approval = data.approvals.find((item) => item.id === decision.id);
+  const card = data.cards.find((item) => item.id === decision.cardId);
+  return !approval || packetWaitsOnUser(approval, card, data);
+};
+
+/** Whether anything on this job waits on the user, for its stage track's current bead. */
+export const jobAsks = (cardId: string, data: Snapshot) =>
+  decisions(data).some((decision) => decision.cardId === cardId && decisionWaits(decision, data));
+
+export type JobSignal = { run?: Run; decision?: Decision; asks?: boolean };
+
+/** Presentation attention, distinct from a packet that is still listed while an agent prepares. */
+export const signalAsks = (signal: JobSignal) => signal.asks ?? !!signal.decision;
 
 export const jobSignals = (data: Snapshot) => {
   const signals = new Map<string, JobSignal>();
@@ -79,8 +114,12 @@ export const jobSignals = (data: Snapshot) => {
     if (run.cardId) signals.set(run.cardId, { ...signals.get(run.cardId), run });
   }
   for (const decision of decisions(data)) {
-    if (!decision.cardId || signals.get(decision.cardId)?.decision) continue;
-    signals.set(decision.cardId, { ...signals.get(decision.cardId), decision });
+    if (!decision.cardId) continue;
+    const prior = signals.get(decision.cardId);
+    const asks = decisionWaits(decision, data);
+    // A real browser approval or question takes precedence over informational preparation.
+    if (prior?.decision && (signalAsks(prior) || !asks)) continue;
+    signals.set(decision.cardId, { ...prior, decision, asks });
   }
   return signals;
 };

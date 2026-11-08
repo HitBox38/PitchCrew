@@ -4,7 +4,7 @@ import type { InstructionUpdate, Role, Snapshot } from '@pitchcrew/core';
 import { currentEventVersion } from '@pitchcrew/core';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { InstructionUpdatePreferences } from '../src/instruction-updates.ts';
 import { createDaemon } from '../src/server.ts';
 import { cleanup, finish, resources, setup } from './helpers/daemon.ts';
@@ -12,7 +12,7 @@ import { cleanup, finish, resources, setup } from './helpers/daemon.ts';
 /** Closes running daemons for this directory and starts a new one, as a restart does. */
 const restart = async (directory: string, port: number) => {
   for (const entry of resources.splice(0)) await entry.daemon.close();
-  const daemon = await createDaemon({ directory, port, seedSkills: false, dev: true });
+  const daemon = await createDaemon({ directory, port, seedSkills: false, dev: true, ui: false });
   resources.push({ daemon, directory });
   await new Promise<void>((resolve) => daemon.http.listen(port, '127.0.0.1', resolve));
   return daemon;
@@ -30,9 +30,23 @@ const fixture = async (port: number) => {
   return { ...context, seedOld, updates };
 };
 
+beforeEach(() => {
+  // Instruction fixtures use Demo; installed provider CLIs are unrelated.
+  for (const adapter of Object.values(adapters).filter((adapter) => adapter.id !== 'demo'))
+    vi.spyOn(adapter, 'detect').mockResolvedValue({
+      id: adapter.id,
+      available: false,
+      version: '',
+      detail: 'Native runtime detection is outside this instruction fixture.',
+    });
+});
 afterEach(async () => {
-  for (const { daemon } of resources) daemon.service.capabilities.delete('update-token');
-  await cleanup();
+  try {
+    for (const { daemon } of resources) daemon.service.capabilities.delete('update-token');
+    await cleanup();
+  } finally {
+    vi.restoreAllMocks();
+  }
 });
 
 const firstScout =

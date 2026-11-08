@@ -25,7 +25,7 @@ export const JobSummary = ({
           {setEditing ? (
             <Button
               variant="ghost"
-              className="icon-button"
+              size="icon-sm"
               aria-label="Edit job"
               title={editBlocker || 'Edit job'}
               disabled={!!editBlocker}
@@ -38,7 +38,7 @@ export const JobSummary = ({
             <Button
               variant="ghost"
               nativeButton={false}
-              className="icon-button"
+              size="icon-sm"
               render={
                 <a aria-label="Open job posting" href={card.url} target="_blank" rel="noreferrer" />
               }
@@ -47,12 +47,7 @@ export const JobSummary = ({
               <ExternalLink size={16} />
             </Button>
           ) : null}
-          <Button
-            variant="ghost"
-            className="icon-button"
-            onClick={onClose}
-            aria-label="Close dialog"
-          >
+          <Button variant="ghost" size="icon-sm" onClick={onClose} aria-label="Close dialog">
             <X size={20} />
           </Button>
         </div>

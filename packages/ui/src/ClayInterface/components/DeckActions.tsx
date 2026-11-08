@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { Button } from '@pitchcrew/design-system/button';
+import { packetAction } from '../packet-guidance.ts';
 import type { Decision } from '../signals.ts';
 
 type DeckActionsProps = {
@@ -23,6 +24,7 @@ export const DeckActions = ({ decision, count, later, openCard }: DeckActionsPro
       <Button
         size="sm"
         variant="outline"
+        nativeButton={false}
         render={<Link to="/chat/$thread" params={{ thread: decision.threadId }} />}
       >
         Answer
@@ -31,9 +33,10 @@ export const DeckActions = ({ decision, count, later, openCard }: DeckActionsPro
       <Button
         size="sm"
         variant="outline"
+        nativeButton={false}
         render={<Link to="/inbox" search={{ decision: decision.id }} />}
       >
-        Review
+        {packetAction(decision.stage)}
       </Button>
     )}
     {count > 1 ? (

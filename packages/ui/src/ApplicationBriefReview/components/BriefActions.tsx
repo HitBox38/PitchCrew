@@ -1,11 +1,12 @@
-import { useJobWork } from '@/components/JobWorkStatus/hooks/useJobWork.ts';
-import { LoaderCircle } from 'lucide-react';
-import { Button } from '@pitchcrew/design-system/button';
-import { FormSelect } from '@/FormSelect/index.tsx';
 import { AccordionSection } from '@pitchcrew/design-system/accordion';
+import { ExtractionControls } from './ExtractionControls.tsx';
 import type { useApplicationBrief } from '../hooks/useApplicationBrief.ts';
 import type { Card } from '@pitchcrew/core';
 
+const purpose =
+  'An agent reads the saved posting and prepares a brief for your review. Review and confirm it before drafting.';
+
+/** Extraction leads while no brief exists; afterwards re-extraction is an advanced option. */
 export const BriefActions = ({
   model,
   card,
@@ -13,46 +14,28 @@ export const BriefActions = ({
   model: ReturnType<typeof useApplicationBrief>;
   card: Card;
 }) => {
-  const { pending } = useJobWork(card);
-  const extracting = pending?.path.endsWith('/application-context/extract');
+  const first = !model.loaded?.context;
   if (!model.available.length)
     return (
       <p className="quiet">
-        Enable Codex, Claude Code or OpenCode in Crew to extract or draft. You can prepare a brief
-        manually.
+        {first ? 'Automatic extraction needs an agent. ' : ''}Enable Codex, Claude Code or OpenCode
+        in Crew to extract or draft. You can prepare a brief manually.
       </p>
     );
+  if (first)
+    return (
+      <section className="grid gap-2" aria-label="Extract brief from posting">
+        <h4>Extract the brief from the posting</h4>
+        <p className="quiet">{purpose} Or prepare it yourself below.</p>
+        <ExtractionControls model={model} card={card} label="Extract from source" />
+      </section>
+    );
   return (
-    <AccordionSection heading="Agent and source extraction">
-      <div className="flex flex-wrap items-end gap-2 py-3">
-        <FormSelect
-          label="Application agent"
-          value={model.roleId}
-          onValueChange={model.setRoleId}
-          options={model.available.map((role) => ({ value: role.id, label: role.name }))}
-        />
-        <Button
-          aria-busy={!!extracting}
-          variant="outline"
-          disabled={model.disabled || !model.roleId || model.editing}
-          onClick={() => {
-            void model.extract();
-          }}
-        >
-          {extracting ? (
-            <LoaderCircle
-              size={14}
-              className="spin motion-reduce:animate-none"
-              aria-hidden="true"
-            />
-          ) : null}
-          {extracting ? 'Starting extraction…' : 'Extract from source'}
-        </Button>
+    <AccordionSection heading="Extract again from source">
+      <div className="grid gap-2 py-3">
+        <p className="quiet">Runs extraction again on the saved posting. {purpose}</p>
+        <ExtractionControls model={model} card={card} label="Extract again" />
       </div>
-      <p className="quiet">
-        Extraction prepares a brief for your review. It does not confirm the brief or start
-        drafting.
-      </p>
     </AccordionSection>
   );
 };

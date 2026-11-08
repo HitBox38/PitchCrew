@@ -26,13 +26,31 @@ export const scoutJobTarget = (data: Pick<Snapshot, 'roles' | 'runtimes'>) => {
   );
   const role = available.find((role) => role.capabilities?.computerUse) ?? available[0];
   const blocker = !enabled.length
-    ? 'Enable a Scout agent in Crew to add jobs from other links.'
+    ? 'To ask Scout later, enable a Scout agent in Crew.'
     : !permitted.length
-      ? 'Enable “Scan saved job sources and add or update jobs from links” for Scout in Crew.'
+      ? 'To ask Scout later, turn on “Scan saved job sources and add or update jobs from links” in Scout’s settings in Crew.'
       : !role
-        ? 'Install Scout’s runtime in Settings to ask Scout to add this job.'
+        ? 'To ask Scout later, install Scout’s runtime in Settings > Runtimes.'
         : '';
   return { role, blocker };
+};
+
+/** Fallback text below the link field: manual entry always stays available. */
+export const jobLinkHint = ({
+  askScout,
+  external,
+  blocker,
+}: {
+  askScout: boolean;
+  external: boolean;
+  blocker: string;
+}) => {
+  if (!askScout) return 'Nothing is saved until you add it.';
+  if (external)
+    return 'Fill in this application yourself, or clear “Already applied” to ask Scout to add a lead.';
+  if (blocker)
+    return `Pitchcrew can’t import this posting automatically, but you can still enter the job details below and add it. ${blocker}`;
+  return 'Scout opens this link in a new conversation and adds the job. Or fill in the form.';
 };
 
 export const scoutJobPrompt = (url: string) =>

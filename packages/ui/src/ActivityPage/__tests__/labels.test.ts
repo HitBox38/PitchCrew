@@ -11,6 +11,10 @@ it('rewrites stored event wording into product language', () => {
   expect(say('message', 'You messaged writer')).toBe('You messaged Writer');
   expect(say('card', 'Moved to agreed')).toBe('Moved to Reviewed');
   expect(say('card', 'Moved to in review')).toBe('Moved to In review');
+  expect(say('card', 'User changed status to awaiting approval')).toBe(
+    'Moved to Awaiting approval',
+  );
+  expect(say('card', 'User changed status to agreed')).toBe('Moved to Reviewed');
   expect(say('card', 'Released application')).toBe('Released the job for the next step');
   expect(
     say(
@@ -30,6 +34,9 @@ it('rewrites stored event wording into product language', () => {
 
 it('passes unknown wording through unchanged', () => {
   expect(say('card', 'Moved to somewhere new')).toBe('Moved to somewhere new');
+  expect(say('card', 'User changed status to somewhere new')).toBe(
+    'User changed status to somewhere new',
+  );
   expect(say('run', 'Writer completed its work')).toBe('Writer completed its work');
 });
 

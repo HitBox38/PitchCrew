@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Role, Snapshot } from '@pitchcrew/core';
 import { capabilityDefaults } from '../../../agent-capabilities.ts';
-import { jobLinkAction, scoutJobTarget } from '../link-actions.ts';
+import { jobLinkAction, jobLinkHint, scoutJobTarget } from '../link-actions.ts';
 
 const scout = {
   id: 'researcher',
@@ -81,12 +81,14 @@ describe('Add job link actions', () => {
   });
 
   it('explains paused, permission and runtime blockers without enabling anything', () => {
-    expect(scoutJobTarget({ ...data, roles: [] }).blocker).toContain('Enable a Scout');
+    expect(scoutJobTarget({ ...data, roles: [] }).blocker).toContain(
+      'enable a Scout agent in Crew',
+    );
     expect(scoutJobTarget({ ...data, roles: [{ ...scout, enabled: false }] }).role).toBeUndefined();
     expect(
       scoutJobTarget({ ...data, roles: [{ ...scout, capabilities: undefined }] }).blocker,
     ).toContain('Scan saved job sources');
-    expect(scoutJobTarget({ ...data, runtimes: [] }).blocker).toContain('Install Scout');
+    expect(scoutJobTarget({ ...data, runtimes: [] }).blocker).toContain('install Scout’s runtime');
   });
 
   it('prefers a Scout with browser permission when handing off a posting link', () => {
@@ -96,5 +98,24 @@ describe('Add job link actions', () => {
       capabilities: { ...capabilityDefaults, ...scout.capabilities, computerUse: true },
     };
     expect(scoutJobTarget({ ...data, roles: [scout, browserScout] }).role).toBe(browserScout);
+  });
+
+  it('keeps manual entry visible beside every unavailable Scout path', () => {
+    const blocker = scoutJobTarget({
+      ...data,
+      roles: [{ ...scout, capabilities: undefined }],
+    }).blocker;
+    const hint = jobLinkHint({ askScout: true, external: false, blocker });
+    expect(hint).toContain('you can still enter the job details below and add it');
+    expect(hint).toContain('in Scout’s settings in Crew');
+    expect(jobLinkHint({ askScout: true, external: true, blocker })).toContain(
+      'Fill in this application yourself',
+    );
+    expect(jobLinkHint({ askScout: true, external: false, blocker: '' })).toContain(
+      'Or fill in the form',
+    );
+    expect(jobLinkHint({ askScout: false, external: false, blocker })).toBe(
+      'Nothing is saved until you add it.',
+    );
   });
 });

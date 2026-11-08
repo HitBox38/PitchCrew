@@ -1,8 +1,11 @@
 import { beforeEach, expect, it, vi } from 'vitest';
 import { mkdir, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import type { Role, Skill } from '@pitchcrew/core';
 import type { CrewContext } from '../src/crew/types.ts';
 import { writeRunInstructions } from '../src/crew/roles.ts';
+
+const runDirectory = join('/fictional', 'run');
 
 vi.mock('node:fs/promises', async (original) => ({
   ...(await original<typeof import('node:fs/promises')>()),
@@ -23,14 +26,12 @@ it('prepares independent skill and instruction files together and awaits every w
     (id) => ({ id, name: id, description: `Use ${id}`, content: `# ${id}` }) as Skill,
   );
   let finished = false;
-  const writing = writeRunInstructions({} as CrewContext, '/fictional/run', role, skills).then(
-    () => {
-      finished = true;
-    },
-  );
+  const writing = writeRunInstructions({} as CrewContext, runDirectory, role, skills).then(() => {
+    finished = true;
+  });
   await vi.waitFor(() => expect(writeFile).toHaveBeenCalledTimes(5), { timeout: 200 });
   expect(finished).toBe(false);
-  expect(writeFile).toHaveBeenCalledWith('/fictional/run/CLAUDE.md', '@AGENTS.md\n', 'utf8');
+  expect(writeFile).toHaveBeenCalledWith(join(runDirectory, 'CLAUDE.md'), '@AGENTS.md\n', 'utf8');
   for (const done of completions.slice(1)) done();
   await Promise.resolve();
   expect(finished).toBe(false);
@@ -50,7 +51,7 @@ it('settles the other writes before reporting a failure so retries cannot race t
   let finished = false;
   const result = writeRunInstructions(
     {} as CrewContext,
-    '/fictional/run',
+    runDirectory,
     { instructions: 'Fixture' } as Role,
     [],
   ).catch((error: Error) => {
@@ -75,11 +76,11 @@ it('keeps deferred bodies out of native instructions while retaining exact skill
         ...(id === 'historical' ? {} : { includeInEveryRun: false }),
       }) as Skill,
   );
-  await writeRunInstructions({} as CrewContext, '/fictional/run', role, skills, [skills[1]!]);
+  await writeRunInstructions({} as CrewContext, runDirectory, role, skills, [skills[1]!]);
 
   const instructions = vi
     .mocked(writeFile)
-    .mock.calls.find(([path]) => path === '/fictional/run/AGENTS.md')![1] as string;
+    .mock.calls.find(([path]) => path === join(runDirectory, 'AGENTS.md'))![1] as string;
   expect(instructions).toContain(role.instructions);
   expect(instructions).toContain(skills[0]!.content);
   expect(instructions).toContain(skills[1]!.content);
@@ -92,7 +93,7 @@ it('keeps deferred bodies out of native instructions while retaining exact skill
   );
   for (const item of skills)
     expect(writeFile).toHaveBeenCalledWith(
-      `/fictional/run/skills/${item.id}/SKILL.md`,
+      join(runDirectory, 'skills', item.id, 'SKILL.md'),
       `---\nname: ${JSON.stringify(item.name)}\ndescription: ${JSON.stringify(item.description)}\n---\n\n${item.content}\n`,
       'utf8',
     );

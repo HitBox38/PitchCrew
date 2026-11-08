@@ -640,7 +640,41 @@
   font-size: var(--text-caption);
   font-weight: 600;
 }
-.packet-export-path {
+/* After a local export: a recessed success line with the folder path and its copy action. */
+.packet-export-handoff {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+.packet-export-handoff > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--moss);
+}
+.packet-export-handoff > div {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 6px;
+}
+.packet-export-handoff h3 {
+  font-size: var(--text-body);
+  font-weight: 600;
+}
+.packet-export-folder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.packet-export-folder code {
+  min-width: 0;
+  flex: 1 1 14rem;
   color: var(--muted);
   font-size: var(--text-caption);
   overflow-wrap: anywhere;
@@ -893,8 +927,8 @@
   .decide-sheet-scroll {
     padding: 16px 14px 20px;
   }
-  /* One 44px action row with its consequence beneath: about 106px in all. The footer is the
-   * sheet's last row, never laid over its content; a soft lip shows the files continue beneath. */
+  /* The actions reflow with their consequence beneath. The footer is the sheet's last row, never
+   * laid over its content; a soft lip shows the files continue beneath. */
   .decide-footer {
     position: relative;
     z-index: 1;
@@ -910,16 +944,26 @@
     align-items: stretch;
     gap: 6px;
   }
+  /* Actions wrap instead of scrolling sideways: the first (glazed) action takes a full row, the
+   * rest share the next rows at no less than their natural width, and icon-only More stays square. */
   .decide-actions {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 8px;
   }
   .decide-actions > :is(button, a),
   .decide-actions .approval-footer > button {
     min-height: 44px;
+    flex: 1 0 auto;
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
   }
-  .decide-actions > button:first-child {
-    flex: 1 1 auto;
+  .decide-actions > :first-child,
+  .decide-actions > .decide-footer-note {
+    flex-basis: 100%;
+  }
+  .decide-actions > .decide-more {
+    flex: none;
   }
   .decide-actions .decide-more-label {
     display: none;

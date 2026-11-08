@@ -173,6 +173,42 @@
     display: none;
   }
 }
+/* A narrowed desktop lane (for example beside the browser): the job or conversation keeps a
+ * readable title. First the header controls become icons (their labels stay as accessible names),
+ * then the identity takes its own row with the labelled controls below it. */
+@container chat-desk (40rem <= width < 48rem) {
+  .chat-heading:not(:has(.chat-mobile-view))
+    > .chat-heading-actions
+    > [data-slot='button']
+    > span:not(.chat-role-dot, .clay-bead) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+@container chat-desk (width < 40rem) {
+  .chat-heading:not(:has(.chat-mobile-view)) {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .chat-heading:not(:has(.chat-mobile-view)) > .chat-heading-identity {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+  .chat-heading:not(:has(.chat-mobile-view)) > .chat-view-switch {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .chat-heading:not(:has(.chat-mobile-view)) > .chat-heading-actions {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .chat-heading:not(:has(.chat-mobile-view)) > .clay-chat-stage {
+    grid-row: 3;
+  }
+}
 /* Job, Packet and Browser are labelled buttons: 14/20 labels, 32px targets. */
 .chat-heading-actions > [data-slot='button'] {
   min-height: 32px;

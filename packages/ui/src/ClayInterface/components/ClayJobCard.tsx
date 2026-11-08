@@ -3,7 +3,8 @@ import { useId, type Ref } from 'react';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { useJobWork } from '@/components/JobWorkStatus/hooks/useJobWork.ts';
 import { trackIndex } from '../helpers.ts';
-import type { JobSignal } from '../signals.ts';
+import { cardPacketStage } from '../packet-guidance.ts';
+import { signalAsks, type JobSignal } from '../signals.ts';
 import { cardLine } from '../jobs.ts';
 import { StageTrack } from './StageTrack.tsx';
 
@@ -22,14 +23,16 @@ type ClayJobCardProps = {
 export const ClayJobCard = ({ card, signal, data, onOpen, buttonRef }: ClayJobCardProps) => {
   const fitId = useId();
   const index = trackIndex(card.state);
-  const working = !!signal.run && !signal.decision;
+  const asks = signalAsks(signal);
+  const working = !!signal.run && !asks;
   // Requested, queued or held work that has no run yet, shown before the request completes.
   const work = useJobWork(card);
-  const waiting = !signal.decision && !signal.run && work.label ? work : null;
+  const waiting = !asks && !signal.run && work.label ? work : null;
   const agent = signal.decision?.roleId ?? signal.run?.roleId;
   const line = cardLine(card, signal, data);
   const progress = index !== null && index >= 2 && index <= 4;
   const spinning = working || !!waiting?.spinning;
+  // An agent preparing an approved application is not a wait on the user, and its run is live.
   return (
     <button
       ref={buttonRef}
@@ -37,7 +40,7 @@ export const ClayJobCard = ({ card, signal, data, onOpen, buttonRef }: ClayJobCa
       className="clay-job-card"
       aria-label={`Open ${card.title} at ${card.company}`}
       aria-describedby={fitId}
-      data-asks={signal.decision ? '' : undefined}
+      data-asks={asks ? '' : undefined}
       data-working={spinning ? '' : undefined}
       onClick={() => onOpen(card.id)}
     >
@@ -71,8 +74,9 @@ export const ClayJobCard = ({ card, signal, data, onOpen, buttonRef }: ClayJobCa
       {progress ? (
         <StageTrack
           state={card.state}
-          live={working}
-          tone={signal.decision || index === 4 ? 'ochre' : working ? 'plum' : undefined}
+          live={!!signal.run && !asks}
+          tone={asks ? 'ochre' : undefined}
+          stage={cardPacketStage(card, data.approvals)}
         />
       ) : null}
     </button>

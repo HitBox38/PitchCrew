@@ -187,6 +187,11 @@ test('continues to add new jobs with the shared form', async () => {
     .click();
   await page.getByRole('button', { name: 'Add job', exact: true }).click();
   const form = page.getByRole('dialog', { name: 'Add job', exact: true });
+  // A new job opens in its first field rather than on the dialog's Close button.
+  const link = form.getByRole('textbox', { name: /^Job post URL/ });
+  await expect
+    .poll(() => link.evaluate((element) => element === document.activeElement))
+    .toBe(true);
   expect(await form.getByRole('textbox', { name: 'Company', exact: true }).inputValue()).toBe('');
   expect(await form.getByRole('textbox', { name: 'Location', exact: true }).inputValue()).toBe(
     'Remote',

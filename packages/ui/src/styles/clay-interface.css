@@ -144,12 +144,20 @@
 .clay-job-row {
   gap: 0.5rem;
 }
+/* The company yields first so a short status stays readable; a long status is capped and clips
+ * last. The row's accessible name keeps both in full. */
 .clay-job-company {
-  flex: none;
+  flex: 0 1 auto;
+  min-width: 2.5rem;
+  overflow: hidden;
   font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .clay-job-status {
+  flex: 0 0 auto;
   min-width: 0;
+  max-width: 55%;
   overflow: hidden;
   color: var(--muted);
   text-overflow: ellipsis;
@@ -617,6 +625,9 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 5;
 }
+.clay-deck-handoff {
+  display: none;
+}
 .clay-deck-evidence {
   display: grid;
   gap: 10px;
@@ -772,6 +783,13 @@
   }
   .clay-deck-card h3 {
     font-size: 0.9375rem;
+  }
+  .clay-deck-card .clay-deck-handoff {
+    display: block;
+    flex-basis: 100%;
+    margin: 2px 0;
+    color: var(--muted);
+    font-size: var(--text-caption);
   }
   .clay-deck-actions {
     margin-inline-start: auto;

@@ -9,6 +9,7 @@ export const SetupItem = ({
   label,
   action,
   disabled,
+  status,
 }: {
   title: string;
   description: string;
@@ -17,6 +18,8 @@ export const SetupItem = ({
   label: string;
   action: () => void;
   disabled: boolean;
+  /** Replaces the announced Complete/To do status. */
+  status?: string;
 }) => (
   <li className="onboarding-item" data-done={done || undefined}>
     <span
@@ -28,7 +31,7 @@ export const SetupItem = ({
     <div className="min-w-0">
       <h3>
         {title}
-        <span className="sr-only">{done ? ': Complete' : ': To do'}</span>
+        <span className="sr-only">{`: ${status ?? (done ? 'Complete' : 'To do')}`}</span>
       </h3>
       <p>{description}</p>
     </div>

@@ -550,7 +550,8 @@
   inset: -5px;
 }
 
-/* The chat header's Browser button reads as pressed while the panel shows the page. */
+/* The chat header's Browser button rests flat like Job and Packet beside it and reads as pressed
+ * only while the panel shows the page. */
 [data-interface='clay'] .chat-browser[data-open] {
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);

@@ -8,10 +8,12 @@ type DemoDelay = (milliseconds: number, signal: AbortSignal) => Promise<void>;
 const defaultDelay: DemoDelay = (milliseconds, signal) =>
   setTimeout(milliseconds, undefined, { signal });
 
+const profileLines = (count: number) =>
+  `${count} source-backed Profile ${count === 1 ? 'line' : 'lines'}`;
 const demoReviewSummary = (card: Card, packet: Packet) => ({
   assessment: `Demo review: the ${card.company} packet passes your packet rules and every registered claim quotes your Profile. This is a fictional check, not a hiring judgment.`,
   highlights: [
-    `The resume lists ${packet.claims.length} source-backed Profile line(s) for ${card.title}.`,
+    `The resume lists ${profileLines(packet.claims.length)} for ${card.title}.`,
     `The cover letter is addressed to the ${card.company} team.`,
   ],
   limitations: [

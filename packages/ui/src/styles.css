@@ -41,6 +41,7 @@
 @import './styles/clay-interface.css' layer(components);
 @import './styles/system.css' layer(components);
 @import './styles/decisions.css' layer(components);
+@import './styles/load-recovery.css' layer(components);
 /* Question cards also appear in Decisions, outside the chat route that loads chat.css. */
 @import './styles/chat/questions.css' layer(components);
 

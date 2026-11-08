@@ -52,6 +52,8 @@ beforeEach(async () => {
     },
     false,
   );
+  // Confirmation becomes a decision after shortlisting; leads can check fit first.
+  host.daemon.service.moveCard(card.id, 'shortlisted');
   await page.goto(`${host.daemon.url}/inbox?decision=brief-${card.id}`);
   await page.getByRole('heading', { name: 'Confirm the JOIN brief', exact: true }).waitFor();
   await page.getByRole('button', { name: 'Review and confirm', exact: true }).click();

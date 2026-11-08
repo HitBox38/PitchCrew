@@ -1,0 +1,65 @@
+/* Recovery card for a page or panel that failed to load: plain words, explicit actions and the
+ * technical detail behind a disclosure. Pages keep the workspace shell around it. */
+.load-failure-page {
+  display: grid;
+  place-items: start center;
+  padding: 32px 16px;
+}
+.load-failure {
+  display: grid;
+  gap: 12px;
+  width: min(100%, 520px);
+}
+.load-failure-modal .load-failure {
+  width: 100%;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+.load-failure-title {
+  color: var(--ink);
+  font: 600 var(--text-section) / var(--text-section--line-height) var(--font-sans);
+}
+.load-failure-body,
+.load-failure-confirm > p {
+  color: var(--ink-soft, var(--ink));
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+}
+.load-failure-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+}
+.load-failure-confirm {
+  display: grid;
+  flex-basis: 100%;
+  gap: 8px;
+}
+.load-failure-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  font-weight: 600;
+}
+.load-failure-trigger svg {
+  transition: transform 150ms ease;
+}
+.load-failure-trigger[data-panel-open] svg {
+  transform: rotate(90deg);
+}
+@media (width < 48rem), (pointer: coarse) {
+  .load-failure-trigger {
+    min-height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .load-failure-trigger svg {
+    transition: none;
+  }
+}

@@ -22,11 +22,12 @@ export const ApprovalIntroduction = () => (
       ))}
     </ol>
     <p>
-      The crew works when you ask. Nothing is exported, and no browser button is pressed, until you
-      approve that exact packet or action.
+      You approve the exact files before export. Browser actions follow the permissions you choose,
+      and an agent asks before the final application submission.
     </p>
     <p className="onboarding-local">
-      Your profile, board and drafts stay on this device. Agents run on the AI runtimes you choose.
+      Your profile, board and drafts are saved on this device. AI runs share the context they need
+      with your chosen runtime and AI provider.
     </p>
   </div>
 );

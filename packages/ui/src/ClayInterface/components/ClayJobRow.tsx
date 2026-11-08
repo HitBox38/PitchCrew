@@ -12,7 +12,8 @@ import {
 } from '@pitchcrew/design-system/sidebar';
 import type { ConversationMenuActions } from '@/ConversationNavigation/components/ConversationMenu.tsx';
 import type { ConversationNavigationRow } from '@/ConversationNavigation/types.ts';
-import { stateTone } from '../helpers.ts';
+import { jobBeadTone } from '../helpers.ts';
+import { signalAsks } from '../signals.ts';
 import type { SidebarJob } from '../jobs.ts';
 import { ClayJobConversation } from './ClayJobConversation.tsx';
 import { JobBead } from './JobBead.tsx';
@@ -33,6 +34,7 @@ export type ClayJobRowProps = {
 /** A live job; its conversations fold out beneath it as a sub-list. */
 export const ClayJobRow = ({ job, rows, open, setOpen, onOpenCard, ...rest }: ClayJobRowProps) => {
   const { card, signal, status } = job;
+  const asks = signalAsks(signal);
   const count = `${rows.length} ${rows.length === 1 ? 'conversation' : 'conversations'}`;
   return (
     <Collapsible
@@ -47,9 +49,16 @@ export const ClayJobRow = ({ job, rows, open, setOpen, onOpenCard, ...rest }: Cl
           onOpenCard(card.id);
         }}
         className="clay-job-row"
-        data-asks={signal.decision ? '' : undefined}
+        data-asks={asks ? '' : undefined}
       >
-        <JobBead tone={stateTone(card.state)} signal={signal} />
+        <JobBead
+          tone={jobBeadTone(card.state, {
+            asks,
+            working: !!signal.run && !asks,
+            preparing: signal.decision?.stage === 'preparing',
+          })}
+          signal={signal}
+        />
         <span className="clay-job-company">{card.company}</span>
         <span className="clay-job-status">{status}</span>
       </SidebarMenuButton>

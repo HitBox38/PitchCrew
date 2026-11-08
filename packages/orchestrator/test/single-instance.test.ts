@@ -54,16 +54,22 @@ describe('single daemon per data folder', () => {
   it('refuses a second daemon on the same data folder until the first closes', async () => {
     const { daemon, directory } = await setup(15371);
     await expect(
-      createDaemon({ directory, port: 15372, seedSkills: false, dev: true }),
+      createDaemon({ directory, port: 15372, seedSkills: false, dev: true, ui: false }),
     ).rejects.toBeInstanceOf(DaemonRunningError);
     await expect(
-      createDaemon({ directory, port: 15372, seedSkills: false, dev: true }),
+      createDaemon({ directory, port: 15372, seedSkills: false, dev: true, ui: false }),
     ).rejects.toThrow('already running for this data folder at http://127.0.0.1:15371');
     // The refused daemon never opened the board, so the first one keeps working.
     expect(daemon.service.board.list('role').length).toBeGreaterThan(0);
     await daemon.close();
     resources.pop();
-    const next = await createDaemon({ directory, port: 15372, seedSkills: false, dev: true });
+    const next = await createDaemon({
+      directory,
+      port: 15372,
+      seedSkills: false,
+      dev: true,
+      ui: false,
+    });
     resources.push({ daemon: next, directory });
     const recorded = JSON.parse(await readFile(join(directory, 'daemon.lock'), 'utf8'));
     expect(recorded).toMatchObject({ pid: process.pid, port: 15372, service: false });

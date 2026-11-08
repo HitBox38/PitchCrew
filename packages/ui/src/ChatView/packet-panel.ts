@@ -1,4 +1,5 @@
 import type { Card, Packet } from '@pitchcrew/core';
+import { readableWordCount } from '@/lib/packet-labels.ts';
 
 export type PacketTab = { id: 'resume' | 'cover' | 'answers'; label: string; text: string };
 
@@ -10,7 +11,8 @@ export const packetTabs = (packet: Packet): PacketTab[] =>
     { id: 'answers' as const, label: 'Answers', text: packet.formAnswers },
   ].filter((tab) => tab.text.trim());
 
-export const wordCount = (text: string) => text.split(/\s+/).filter(Boolean).length;
+/** Counted like the Decisions file tiles, so one document never shows two word counts. */
+export const wordCount = readableWordCount;
 
 /** Whether the current packet passed review, from the review bound to its digest. */
 export const packetReviewLabel = (card: Card) =>
