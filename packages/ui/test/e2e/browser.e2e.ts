@@ -246,6 +246,8 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
       'UI tab selection did not restore the original guest',
     );
     assert.equal(await original.read('document.querySelector("#name").value'), 'Human E2E');
+    // An inactive tab shows its close button on hover, as a person reaches for it.
+    await app.page.getByRole('tab', { name: 'Fictional E2E next page', exact: true }).hover();
     await app.page
       .getByRole('button', { name: 'Close Fictional E2E next page', exact: true })
       .click();
