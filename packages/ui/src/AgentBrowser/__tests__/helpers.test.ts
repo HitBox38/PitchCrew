@@ -6,6 +6,7 @@ import {
   remotePoint,
   touchScroll,
 } from '../helpers.ts';
+import { movedTabOrder } from '../tab-drag.ts';
 
 describe('manual browser coordinates', () => {
   const frame = { width: 1280, height: 800 };
@@ -74,4 +75,11 @@ describe('browser chrome labels', () => {
       'https://www.google.com/search?q=fictional%20co%20careers',
     );
   });
+});
+
+it('moves a tab to a clamped position and ignores unknown tabs', () => {
+  expect(movedTabOrder(['a', 'b', 'c'], 'c', 0)).toEqual(['c', 'a', 'b']);
+  expect(movedTabOrder(['a', 'b', 'c'], 'a', 5)).toEqual(['b', 'c', 'a']);
+  expect(movedTabOrder(['a', 'b', 'c'], 'b', -1)).toEqual(['b', 'a', 'c']);
+  expect(movedTabOrder(['a', 'b'], 'x', 0)).toEqual(['a', 'b']);
 });

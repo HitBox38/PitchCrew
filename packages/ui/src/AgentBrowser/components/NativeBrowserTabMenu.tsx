@@ -1,5 +1,14 @@
 import type { ReactElement } from 'react';
-import { ArrowRightToLine, Copy, Volume2, VolumeX, X, XSquare } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowRightToLine,
+  Copy,
+  Volume2,
+  VolumeX,
+  X,
+  XSquare,
+} from 'lucide-react';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -14,20 +23,24 @@ import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
 
 type NativeBrowserTab = NativeBrowserState['tabs'][number];
 
-/** A tab's right-click menu: close it, the others or those to its right, mute, copy address. */
+/** A tab's right-click menu: close tabs, move it, mute and copy its address. */
 export const NativeBrowserTabMenu = ({
   model,
   tab,
+  index,
   manual,
+  move,
   children,
 }: {
   model: NativeBrowserModel;
   tab: NativeBrowserTab;
+  /** Position in the strip as shown, which can lead the native order during a move. */
+  index: number;
   manual: boolean;
+  move: (index: number) => void;
   children: ReactElement;
 }) => {
   const tabs = model.state?.tabs ?? [];
-  const index = tabs.findIndex((item) => item.id === tab.id);
   const close = async (ids: string[]) => {
     // One at a time: each close settles its native capture before the next selection.
     for (const id of ids) await model.command({ kind: 'close-tab', tabId: id });
@@ -51,6 +64,20 @@ export const NativeBrowserTabMenu = ({
           <ContextMenuItem disabled={!manual || !right.length} onClick={() => void close(right)}>
             <ArrowRightToLine />
             Close tabs to the right
+          </ContextMenuItem>
+        </ContextMenuGroup>
+        <ContextMenuSeparator />
+        <ContextMenuGroup>
+          <ContextMenuItem disabled={!manual || index === 0} onClick={() => move(index - 1)}>
+            <ArrowLeft />
+            Move tab left
+          </ContextMenuItem>
+          <ContextMenuItem
+            disabled={!manual || index >= tabs.length - 1}
+            onClick={() => move(index + 1)}
+          >
+            <ArrowRight />
+            Move tab right
           </ContextMenuItem>
         </ContextMenuGroup>
         <ContextMenuSeparator />

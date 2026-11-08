@@ -93,6 +93,12 @@ const nativeCommand = vi.fn(async (command: NativeBrowserCommand) => {
     };
   }
   if (command.kind === 'select-tab') state = { ...state, activeTab: command.tabId };
+  if (command.kind === 'move-tab') {
+    const moved = state.tabs.find((tab) => tab.id === command.tabId)!;
+    const tabs = state.tabs.filter((tab) => tab.id !== command.tabId);
+    tabs.splice(command.index, 0, moved);
+    state = { ...state, tabs };
+  }
   if (command.kind === 'close-tab') {
     const tabs = state.tabs.filter((tab) => tab.id !== command.tabId);
     state = {
@@ -655,6 +661,62 @@ test('uses native appearance, per-tab audio and external-browser developer contr
   await page.getByRole('button', { name: 'Open page in system browser', exact: true }).click();
   await vi.waitFor(() => expect(nativeCommand).toHaveBeenCalledWith({ kind: 'open-external' }));
 });
+test('moves tabs by drag, keyboard and the tab menu without selecting them', async () => {
+  if (state.tabs.length < 2) {
+    await page.getByRole('button', { name: 'New tab', exact: true }).click();
+    await vi.waitFor(() => expect(state.tabs.length).toBeGreaterThan(1));
+  }
+  const strip = page.getByRole('tablist', { name: 'Browser tabs' });
+  const order = async () =>
+    (await strip
+      .locator('.browser-tab')
+      .evaluateAll((tabs) =>
+        tabs.map((tab) => tab.querySelector('[role="tab"]')!.getAttribute('title')),
+      )) as string[];
+  const ids = () => state.tabs.map((tab) => tab.id);
+  const [first, second] = ids();
+  const active = state.activeTab;
+  // The tab menu moves the right-clicked tab, never selecting it.
+  await strip.locator('.browser-tab').nth(1).click({ button: 'right' });
+  await page.getByRole('menuitem', { name: 'Move tab left', exact: true }).click();
+  await vi.waitFor(() =>
+    expect(nativeCommand).toHaveBeenLastCalledWith({ kind: 'move-tab', tabId: second, index: 0 }),
+  );
+  await vi.waitFor(async () => expect((await order()).length).toBe(state.tabs.length));
+  expect(ids().slice(0, 2)).toEqual([second, first]);
+  expect(state.activeTab).toBe(active);
+  // Control+Shift+Page Down moves the focused tab right.
+  await strip.locator('.browser-tab[data-active="true"] [role="tab"]').focus();
+  const focusedId = state.activeTab;
+  const from = ids().indexOf(focusedId);
+  const to = from === state.tabs.length - 1 ? from - 1 : from + 1;
+  await page.keyboard.press(
+    from === state.tabs.length - 1 ? 'Control+Shift+PageUp' : 'Control+Shift+PageDown',
+  );
+  await vi.waitFor(() =>
+    expect(nativeCommand).toHaveBeenLastCalledWith({
+      kind: 'move-tab',
+      tabId: focusedId,
+      index: to,
+    }),
+  );
+  await expect
+    .poll(() => page.locator('output[aria-live="polite"]').filter({ hasText: 'Position' }).count())
+    .toBeGreaterThan(0);
+  // Whole-tab dragging past its neighbour moves it there.
+  const before = ids();
+  const source = (await strip.locator('.browser-tab').nth(0).boundingBox())!;
+  const target = (await strip.locator('.browser-tab').nth(1).boundingBox())!;
+  await page.mouse.move(source.x + source.width / 3, source.y + source.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(source.x + source.width / 3 + 12, source.y + source.height / 2, {
+    steps: 4,
+  });
+  await page.mouse.move(target.x + target.width - 4, target.y + target.height / 2, { steps: 12 });
+  await page.mouse.up();
+  await vi.waitFor(() => expect(ids().slice(0, 2)).toEqual([before[1], before[0]]));
+  expect(nativeCommand).toHaveBeenLastCalledWith({ kind: 'move-tab', tabId: before[0], index: 1 });
+}, 30000);
 test('captures, annotates and saves the page and adds the reviewed PNG to the current message draft', async () => {
   const before = await lastMount();
   const messages = host.daemon.service.board.list('message').length;

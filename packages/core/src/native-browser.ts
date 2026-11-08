@@ -33,6 +33,14 @@ export const nativeBrowserCommandSchema = z.discriminatedUnion('kind', [
   z
     .object({ kind: z.enum(['select-tab', 'close-tab']), tabId: z.string().min(1).max(100) })
     .strict(),
+  // A user drag or keyboard move: the tab's new position among the visible tabs.
+  z
+    .object({
+      kind: z.literal('move-tab'),
+      tabId: z.string().min(1).max(100),
+      index: z.number().int().min(0).max(100),
+    })
+    .strict(),
 ]);
 export type NativeBrowserCommand = z.infer<typeof nativeBrowserCommandSchema>;
 export interface NativeBrowserIdentity {

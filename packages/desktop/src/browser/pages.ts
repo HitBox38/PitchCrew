@@ -82,6 +82,7 @@ export interface NativeGroup extends RelayGroup {
   relays: Set<{ announce(page: RelayPage): void; closed(id: string): void; disconnect(): void }>;
   mount(bounds: Electron.Rectangle | null): void;
   select(id: string): void;
+  move(id: string, index: number): void;
   state(): NativeBrowserState;
   destroy(): Promise<void>;
 }
@@ -626,11 +627,14 @@ export const createNativeGroup = (
       if (url !== 'about:blank') await assertPublicUrl(url);
       const selected = group.active === id;
       const logicalId = logicalTabs.get(id) ?? id;
+      const position = group.state().tabs.findIndex((tab) => tab.id === id);
       // A crashed Playwright Page and its OOPIF sessions are terminal. Follow
       // T3's guest generation recovery instead of reviving that debugger state.
       await group.close(id);
       const replacement = await group.create(undefined, selected);
       logicalTabs.set(replacement.id, logicalId);
+      // The recovered page keeps the crashed tab's place in the strip.
+      if (position >= 0) group.move(replacement.id, position);
       if (url !== 'about:blank') await replacement.contents.loadURL(url);
       group.changed();
       return true;
@@ -643,6 +647,17 @@ export const createNativeGroup = (
       const popup = group.popupWindows.get(group.pages.get(id)!.contents.id);
       if (group.manualUntil > Date.now() && getWindow()?.isVisible() && popup?.isVisible())
         popup.focus();
+    },
+    move: (id, index) => {
+      const page = group.pages.get(id);
+      if (!page || page.ready === false) throw new Error('Browser tab is closed.');
+      // Order among visible tabs; tabs still being created stay at the end, where they appear.
+      const entries = [...group.pages].filter(([key, item]) => key !== id && item.ready !== false);
+      const pending = [...group.pages].filter(([, item]) => item.ready === false);
+      entries.splice(Math.min(index, entries.length), 0, [id, page]);
+      group.pages.clear();
+      for (const [key, item] of [...entries, ...pending]) group.pages.set(key, item);
+      group.changed();
     },
     paint: (id, active) => {
       if (disposed) return;

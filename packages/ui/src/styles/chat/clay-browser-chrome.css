@@ -85,6 +85,13 @@
   height: 30px;
   font-weight: 500;
 }
+/* A tab being moved lifts as a raised pebble while its neighbours make room. */
+[data-interface='clay'] .browser-heading-tabs .browser-tab[data-dragging] {
+  z-index: 1;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  cursor: grabbing;
+}
 [data-interface='clay'] .browser-heading-tabs .browser-tab[data-active='true'] .browser-tab-select {
   font-weight: 600;
 }

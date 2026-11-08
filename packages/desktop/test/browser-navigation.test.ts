@@ -280,3 +280,29 @@ test('names a DNS preflight failure as an address that could not be found', asyn
   await runNativeBrowserCommand(group, { kind: 'navigate', url: 'https://missing.example/' });
   expect(tab().error).toBe('The address couldn’t be found. Check it for typos.');
 });
+
+test('moves a tab among visible tabs without changing the selection or tab identities', async () => {
+  const { group } = await fixture();
+  const first = group.active;
+  await runNativeBrowserCommand(group, { kind: 'new-tab' });
+  const second = group.active;
+  await runNativeBrowserCommand(group, { kind: 'new-tab' });
+  const third = group.active;
+  const order = () => group.state().tabs.map((tab) => tab.id);
+  expect(order()).toEqual([first, second, third]);
+  await runNativeBrowserCommand(group, { kind: 'move-tab', tabId: third, index: 0 });
+  expect(order()).toEqual([third, first, second]);
+  expect(group.active).toBe(third);
+  // Past the end clamps to the last position.
+  await runNativeBrowserCommand(group, { kind: 'move-tab', tabId: third, index: 99 });
+  expect(order()).toEqual([first, second, third]);
+  await expect(
+    runNativeBrowserCommand(group, { kind: 'move-tab', tabId: 'gone', index: 0 }),
+  ).rejects.toThrow('Browser tab is closed.');
+  // Moving is a user command: an agent holding the browser cannot reorder through it.
+  group.manualUntil = 0;
+  await expect(
+    runNativeBrowserCommand(group, { kind: 'move-tab', tabId: first, index: 2 }),
+  ).rejects.toThrow('Browser control changed.');
+  expect(order()).toEqual([first, second, third]);
+});
