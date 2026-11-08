@@ -1,5 +1,4 @@
-import { useBrowserDevice } from '@/BrowserDeviceToolbar/useBrowserDevice.ts';
-import { useBrowserSize } from './hooks/useBrowserSize.ts';
+import { useBrowserPageSize } from './hooks/useBrowserPageSize.ts';
 import { BrowserPanelHeading } from './components/BrowserPanelHeading.tsx';
 import { BrowserApprovals } from './components/BrowserApprovals.tsx';
 import { BrowserResizer } from './components/BrowserResizer.tsx';
@@ -43,15 +42,7 @@ export const AgentBrowser = (props: AgentBrowserProps) => {
     native.identity?.id,
     browserPanel.role?.name,
   );
-  const selectedTab = native.state?.tabs.find((tab) => tab.id === native.state?.activeTab);
-  const device = useBrowserDevice(
-    `${native.identity?.id}:${selectedTab?.logicalId ?? native.state?.activeTab}`,
-  );
-  const viewport = useBrowserSize(
-    enabled && !control.working && !native.pending && (!native.active || !!native.state),
-    control.resize,
-    device.setting,
-  );
+  const { device, viewport } = useBrowserPageSize(props, control, native, enabled);
   const live = enabled && !native.active && !native.pending && view === 'browser';
   const stream = useBrowserFrame(roleId, thread, live);
   if (!browserPanel.available || !browserPanel.role) return null;

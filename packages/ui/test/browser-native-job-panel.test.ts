@@ -326,6 +326,18 @@ test('keeps the compact approval tray and page box fixed while requests appear, 
     const review = tray().getByRole('region', { name: 'Pending browser action', exact: true });
     await review.waitFor();
     await steady();
+    if (size.width > 1000) {
+      // Expanding to look closer keeps the inspected page size, so the request stays valid.
+      const inspected = { ...viewport };
+      await page.getByRole('button', { name: 'Expand browser', exact: true }).click();
+      await page.getByRole('button', { name: 'Back to chat', exact: true }).waitFor();
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      expect(viewport).toEqual(inspected);
+      expect(approvalStatus(approval.id)).toBe('pending');
+      await page.getByRole('button', { name: 'Back to chat', exact: true }).click();
+      await review.waitFor();
+      await steady();
+    }
     expect(
       await review
         .locator('.browser-approval-body')
