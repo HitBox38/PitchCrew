@@ -11,6 +11,8 @@ export interface BrowserPresence {
   picking: string | null;
   /** The browser panel is open beside the chat (not as a sheet). */
   panelOpen: boolean;
+  /** The agent run paused because the user holds its page, so chat can say so. */
+  heldRun: string | null;
 }
 
 let presence: BrowserPresence = {
@@ -19,6 +21,7 @@ let presence: BrowserPresence = {
   target: null,
   picking: null,
   panelOpen: false,
+  heldRun: null,
 };
 const listeners = new Set<() => void>();
 
@@ -33,6 +36,7 @@ export const setBrowserPresence = (next: Partial<BrowserPresence>) => {
     merged.working === presence.working &&
     merged.picking === presence.picking &&
     merged.panelOpen === presence.panelOpen &&
+    merged.heldRun === presence.heldRun &&
     sameTarget(merged.target, presence.target)
   )
     return;

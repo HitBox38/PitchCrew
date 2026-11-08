@@ -50,6 +50,30 @@
   border-radius: 6px;
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--ochre) 22%, transparent);
 }
+/* A page held at its inspected size while a request waits: a hairline frame and why. */
+.browser-held-page {
+  position: fixed;
+  z-index: 3;
+  outline: 1px solid var(--border-strong, var(--border));
+  pointer-events: none;
+}
+.browser-held-caption {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  color: var(--muted);
+  font: 500 12px / 18px var(--font-sans);
+  white-space: nowrap;
+}
+/* No room under the page: the caption sits inside its bottom edge on the paper. */
+.browser-held-caption[data-inside] {
+  top: auto;
+  bottom: 6px;
+  left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--paper);
+}
 /* Points past the page edge at a request's element that is mostly out of view. */
 .browser-approval-target-edge {
   position: absolute;

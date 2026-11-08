@@ -90,6 +90,8 @@ export const useBrowserPanel = (
      * is a run paused while the user holds its page.
      */
     activity: status.sessions.some((item) => !!item.runId && !item.manual),
+    /** A run is paused because the user holds its page: it waits on them (ochre). */
+    held: status.sessions.some((item) => !!item.runId && item.manual),
     /** An agent run waits for the user's decision on a browser action (ochre). */
     waiting: data.computerApprovals.some(
       (approval) =>

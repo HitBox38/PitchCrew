@@ -14,9 +14,11 @@ export const BrowserButton = ({ browserPanel }: Pick<ChatViewModel, 'browserPane
       aria-label={
         browserPanel.waiting
           ? 'Browser, waiting for your approval'
-          : browserPanel.activity
-            ? 'Browser, agent working'
-            : 'Browser'
+          : browserPanel.held
+            ? 'Browser, agent paused while you have control'
+            : browserPanel.activity
+              ? 'Browser, agent working'
+              : 'Browser'
       }
       aria-expanded={showing}
       aria-controls="agent-browser-panel"
@@ -24,11 +26,11 @@ export const BrowserButton = ({ browserPanel }: Pick<ChatViewModel, 'browserPane
     >
       <Monitor size={14} />
       <span>Browser</span>
-      {browserPanel.waiting || browserPanel.activity ? (
+      {browserPanel.waiting || browserPanel.held || browserPanel.activity ? (
         <span
           className="clay-bead"
           data-size="sm"
-          data-tone={browserPanel.waiting ? 'ochre' : 'plum'}
+          data-tone={browserPanel.waiting || browserPanel.held ? 'ochre' : 'plum'}
           aria-hidden="true"
         />
       ) : null}

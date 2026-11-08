@@ -176,7 +176,8 @@ export const installBrowserPickIpc = (
           highlightConfig: {
             showInfo: false,
             showAccessibilityInfo: false,
-            contentColor: { r: 87, g: 106, b: 139, a: 0.16 },
+            contentColor: { r: 87, g: 106, b: 139, a: 0.3 },
+            paddingColor: { r: 87, g: 106, b: 139, a: 0.18 },
             borderColor: { r: 87, g: 106, b: 139, a: 0.95 },
           },
         });

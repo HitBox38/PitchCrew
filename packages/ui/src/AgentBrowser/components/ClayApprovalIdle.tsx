@@ -31,6 +31,9 @@ export const ClayApprovalIdle = ({
     implicit: control.implicit,
     manual: !!session?.manual,
     working: !!session?.runId,
+    step: props.data.runs
+      .find((run) => run.id === session?.runId)
+      ?.activity?.findLast((entry) => entry.kind === 'tool')?.label,
   });
   return (
     <p className="clay-tray-line">
@@ -41,7 +44,7 @@ export const ClayApprovalIdle = ({
         data-empty={line.tone ? undefined : ''}
         aria-hidden="true"
       />
-      <span className="truncate">{line.text}</span>
+      <span className="line-clamp-2">{line.text}</span>
       <BrowserControls
         browserPanel={browserPanel}
         thread={props.thread}

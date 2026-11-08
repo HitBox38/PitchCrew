@@ -14,7 +14,10 @@ export const BrowserTaskDetails = (
   const session = props.browserPanel.session;
   return (
     <Popover>
-      <BrowserTaskTrigger state={props.state} nudged={props.nudged} />
+      {/* The slot keeps the width steady across states; the chip itself hugs its label. */}
+      <span className="browser-state-slot">
+        <BrowserTaskTrigger state={props.state} nudged={props.nudged} />
+      </span>
       <PopoverContent className="browser-task-details w-72 max-w-[calc(100vw-24px)] p-3 font-sans text-sm leading-5">
         <div className="flex items-start justify-between gap-3">
           <PopoverTitle className="m-0 min-w-0 font-sans text-sm leading-5 font-semibold break-words">

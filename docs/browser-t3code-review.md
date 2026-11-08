@@ -81,6 +81,16 @@ The fourth design review scored 7.6/10. Inside the panel most v3 blockers were f
 - Keeps the split view down to 900px (the sidebar folds to its rail below 980px while the browser is open) and gives the narrow sheet a message box.
 - Redacts target names before cutting them, adds Take control to automatic preparation, serializes picks with owned cleanup, names label-wrapped fields ("Customer name") for any selector, recesses the resting tray, sets tabs and the address at 14px, lets Details decide, adds Control/Command+Enter to approve and labels Take control in wide panels.
 
+### Sixth pass
+
+The fifth design review scored 8.1/10. It asked for one story when the user holds a running agent's page (chat still said "Working"), a panel that stays usable between 980 and 1150px, approval text readable at the default width, chips that hug their labels, aligned rules beside the chat, a styled sheet message box, a tray that narrates the work, and a framed held page. A Codex review (6/10) found secrets reachable through public labels, a keystroke that could send and approve at once, a request described from the wrong tab, values in the chat's waiting summary, pick start-up races, Details missing the takeover guard and manual waits recorded as completed steps. The sixth pass:
+
+- Publishes which run the user holds, so the turn, header, participant bead and Browser button all say "Paused · you have control" in ochre, and a waiting turn previews its last finished step.
+- Folds the sidebar to its rail up to 1152px while the browser is open, keeps a minimum address width in panels of 30rem and up, lets chips hug their labels inside a steady slot, drops the chat header's rule beside the browser and gives the sheet's message box a gutter.
+- Makes the request's two lines the Details trigger, keeps quotes outside the shortening text and only shortens the target when it alone would fill most of the line.
+- Narrates the agent's latest step in the working tray, stops repeating the chip at rest, wraps tray text to two lines, frames and captions a held page with the ring and edge pill clipped to it, strengthens the pick highlight and writes "Show N earlier steps ›".
+- Sanitizes every public label, approves only from non-field controls on unused keystrokes, describes a target after switching to its tab, shares one decision guard, records manual waits as pauses and serializes picks with owned state.
+
 ## Still behind T3
 
 - **Region and drawing picks.** Pitchcrew now picks single elements into the composer (DevTools-style highlight, padded crop, tag and visible name, reviewed before attaching), but T3 also picks free regions and drawings in one step.

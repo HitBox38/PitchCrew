@@ -4,14 +4,16 @@ import { Collapsible, CollapsibleContent } from '@pitchcrew/design-system/collap
 import { ActivityEntries } from './ActivityEntries.tsx';
 import { activityPreview, activitySummary } from '../activity-summary.ts';
 import { TurnActivityTrigger } from './TurnActivityTrigger.tsx';
+import { useRunWait } from '../hooks/useRunWait.ts';
 
 /** One disclosure per turn; completed operational chatter yields to the answer. */
 export const TurnActivity = ({ run }: { run: Run }) => {
   const [open, setOpen] = useState(false);
+  const { waiting } = useRunWait(run);
   const entries = run.activity ?? [];
   const summary = activitySummary(entries);
   if (!summary && !run.activityTruncated) return null;
-  const preview = activityPreview(run);
+  const preview = activityPreview(run, waiting);
   return (
     <div className="chat-turn-body ml-7.5" data-active={run.status === 'running' || undefined}>
       <Collapsible open={open} onOpenChange={setOpen} className="chat-turn-activity">

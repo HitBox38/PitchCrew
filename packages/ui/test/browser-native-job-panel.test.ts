@@ -343,7 +343,7 @@ test('keeps the compact approval tray and page box fixed while requests appear, 
         .locator('.browser-approval-body')
         .evaluate((element) => element.scrollHeight <= element.clientHeight),
     ).toBe(true);
-    const details = review.getByRole('button', { name: 'Details', exact: true });
+    const details = review.getByRole('button', { name: /^Details: / });
     await details.click();
     const evidence = page.locator('.browser-evidence-popover');
     await evidence.waitFor();
@@ -381,7 +381,7 @@ test('approves on Control/Command+Enter from the panel, never from a field that 
   await box.fill('');
   await page.getByRole('button', { name: 'Back to chat', exact: true }).click();
   // From a non-field control in the panel, it approves the waiting request.
-  await review.getByRole('button', { name: 'Details', exact: true }).focus();
+  await review.getByRole('button', { name: /^Details: / }).focus();
   await page.keyboard.press(shortcut);
   await vi.waitFor(() => expect(approvalStatus(first.id)).toBe('approved'));
   await consume(first.id);
@@ -424,7 +424,7 @@ test('shows private control over the page and in the reserved tray without resiz
   const chip = page.locator('.browser-state-chip[data-tone="control"]');
   await chip.waitFor();
   expect(await chip.textContent()).toContain('You have control');
-  await tray().getByText('waits until you return it', { exact: false }).waitFor();
+  await tray().getByText('waits until you return the page', { exact: false }).waitFor();
   expect(
     await page
       .locator('.browser-panel-heading')

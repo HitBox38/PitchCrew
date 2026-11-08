@@ -17,6 +17,8 @@ export const chatRoleState = (
   busy: boolean,
   /** A run here waits for the user's decision on a browser action. */
   approving = false,
+  /** A run here is paused because the user holds its browser page. */
+  held = false,
 ) => {
   const roleState = role.retiredAt
     ? 'Retired'
@@ -28,8 +30,10 @@ export const chatRoleState = (
           ? 'Waiting for you'
           : approving
             ? 'Waiting for your OK'
-            : busy
-              ? 'Working'
-              : 'Ready';
+            : held
+              ? 'Paused · you have control'
+              : busy
+                ? 'Working'
+                : 'Ready';
   return roleState;
 };

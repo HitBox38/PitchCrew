@@ -86,3 +86,9 @@ it('counts only nonempty public updates and accurately labels singular work', ()
   expect(activityPreview(run('running', []))).toEqual([]);
   expect(activitySummary([])).toBe('');
 });
+
+it('shows the last finished step while the run waits on the user, not the blocked call', () => {
+  const entries = [entry('asked', 'tool'), entry('blocked', 'tool', 'running')];
+  expect(activityPreview(run('running', entries)).map((item) => item.id)).toEqual(['blocked']);
+  expect(activityPreview(run('running', entries), true).map((item) => item.id)).toEqual(['asked']);
+});

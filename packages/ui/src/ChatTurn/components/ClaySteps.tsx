@@ -15,7 +15,7 @@ export const ClaySteps = ({ entries }: { entries: RunActivity[] }) => {
     <Trace className="clay-steps">
       {hidden ? (
         <Button variant="ghost" size="xs" className="clay-steps-more" onClick={() => setAll(true)}>
-          {hidden} earlier {hidden === 1 ? 'step' : 'steps'}
+          Show {hidden} earlier {hidden === 1 ? 'step' : 'steps'} ›
         </Button>
       ) : null}
       {entries.slice(hidden).map((entry) => (

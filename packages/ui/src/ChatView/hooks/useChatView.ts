@@ -1,3 +1,4 @@
+import { useBrowserPresenceField } from '@/DesktopBrowserHost/presence.ts';
 import { chatRole, chatRoleState } from '../model.ts';
 import { queuedChatRequests } from '../helpers.ts';
 import { useBrowserPanel } from '@/AgentBrowser/hooks/useBrowserPanel.ts';
@@ -154,7 +155,9 @@ export const useChatView = (props: ChatViewProps) => {
   const approving = data.computerApprovals.some(
     (approval) => approval.status === 'pending' && running.some((run) => run.id === approval.runId),
   );
-  const roleState = chatRoleState(data, role, questions, busy, approving);
+  const heldRun = useBrowserPresenceField('heldRun');
+  const held = running.some((run) => run.id === heldRun);
+  const roleState = chatRoleState(data, role, questions, busy, approving, held);
   const name = (id: ChatMessage['from'] | ChatMessage['to']) =>
     id === 'user'
       ? 'You'

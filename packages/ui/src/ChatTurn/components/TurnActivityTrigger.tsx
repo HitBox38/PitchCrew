@@ -6,6 +6,7 @@ import { TurnDuration } from './TurnDuration.tsx';
 import { activitySummary } from '../activity-summary.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { browserActionPublic } from '@pitchcrew/core/browser-action-labels';
+import { useRunWait } from '../hooks/useRunWait.ts';
 
 const outcomes = {
   completed: 'Worked',
@@ -22,29 +23,28 @@ export const TurnActivityTrigger = ({ run, open }: { run: Run; open: boolean }) 
     ),
   );
   const handedOff = run.status === 'waiting' && answered;
-  // A browser action waiting on the user: the turn says so in the tray's words, not "Working".
-  const approval = useWorkspaceStore((state) =>
-    run.status === 'running'
-      ? state.data?.computerApprovals.find(
-          (item) => item.runId === run.id && item.status === 'pending',
-        )
-      : undefined,
-  );
-  const status = handedOff ? 'queued' : approval ? 'waiting' : run.status;
+  // Waiting on the user (a browser request, or a page they hold): the turn says so, not "Working".
+  const { approval, held, waiting } = useRunWait(run);
+  const status = handedOff ? 'queued' : waiting ? 'waiting' : run.status;
   const entries = run.activity ?? [];
   const failed = entries.some((entry) => entry.status === 'failed');
+  const label = handedOff
+    ? 'Answer saved'
+    : approval
+      ? 'Waiting for your OK'
+      : held
+        ? 'Paused · you have control'
+        : outcomes[run.status];
   return (
     <CollapsibleTrigger className="chat-turn-disclosure" data-status={status}>
       <ChevronRight size={14} aria-hidden="true" />
       <StatusBead status={status} />
-      <span>
-        {handedOff ? 'Answer saved' : approval ? 'Waiting for your OK' : outcomes[run.status]}
-      </span>
+      <span>{label}</span>
       {approval ? (
         <span className="chat-turn-wait truncate">
           {browserActionPublic(approval.action, approval.page)}
         </span>
-      ) : (
+      ) : held ? null : (
         <TurnDuration
           runId={run.id}
           startedAt={run.startedAt}

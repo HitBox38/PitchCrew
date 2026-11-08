@@ -126,32 +126,33 @@ export const browserTrayLine = ({
   implicit,
   manual,
   working,
+  step,
 }: {
   name: string;
   held: boolean;
   implicit: boolean;
   manual: boolean;
   working: boolean;
+  /** The run's latest public step, so the tray narrates the work instead of a placeholder. */
+  step?: string;
 }): { tone: 'primary' | 'plum' | 'ochre' | null; text: string } => {
+  // The chip already says who has the page; the line adds what that means or what is happening.
   if (held && implicit && !working)
-    return { tone: 'primary', text: `You’re browsing. ${name} gets the page back when it starts.` };
+    return { tone: 'primary', text: `${name} gets the page back when it starts working.` };
   if (held)
     return {
       tone: 'primary',
       text: working
-        ? `You have control. ${name} waits until you return it.`
-        : `You have control. ${name} can’t use this page until you return it.`,
+        ? `${name} waits until you return the page.`
+        : `${name} can’t use this page until you return it.`,
     };
   if (manual) return { tone: 'ochre', text: `${name} is paused until you recover control.` };
   if (working)
     return {
       tone: 'plum',
-      text: `${name} is working. Its clicks, typing and submissions appear here.`,
+      text: step ? `${name}: ${step}` : `${name}’s clicks, typing and submissions appear here.`,
     };
-  return {
-    tone: null,
-    text: `${name} is idle. Browse freely; it takes the page back when it starts.`,
-  };
+  return { tone: null, text: `Browse freely. ${name} takes the page back when it starts.` };
 };
 
 /**

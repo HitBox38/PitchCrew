@@ -1373,7 +1373,7 @@ test('keeps native approval evidence stable while requests appear, expand and re
           .count(),
       ).toBe(0);
       expect((await body.boundingBox())?.height).toBe(before?.height);
-      await review.getByRole('button', { name: 'Details', exact: true }).click();
+      await review.getByRole('button', { name: /^Details: / }).click();
       await page.locator('.browser-evidence-popover').waitFor();
       if (!index)
         await page.screenshot({ path: `/tmp/pitchcrew-browser-approval-${size.width}.png` });

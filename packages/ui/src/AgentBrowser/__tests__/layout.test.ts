@@ -104,8 +104,16 @@ describe('tray line', () => {
       });
     expect(line({}).tone).toBeNull();
     expect(line({ working: true })).toMatchObject({ tone: 'plum' });
-    expect(line({ held: true, implicit: true }).text).toMatch(/^You’re browsing\./);
-    expect(line({ held: true, implicit: true, working: true }).text).toMatch(/^You have control\./);
+    expect(line({ held: true, implicit: true }).text).toBe(
+      'Scout gets the page back when it starts working.',
+    );
+    expect(line({ held: true, implicit: true, working: true }).text).toBe(
+      'Scout waits until you return the page.',
+    );
+    // While working, the line narrates the latest step instead of a placeholder.
+    expect(line({ working: true, step: 'Clicked “Learn more”' }).text).toBe(
+      'Scout: Clicked “Learn more”',
+    );
     expect(line({ manual: true })).toMatchObject({ tone: 'ochre' });
   });
 });

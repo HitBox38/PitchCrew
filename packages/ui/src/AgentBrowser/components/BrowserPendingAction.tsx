@@ -1,4 +1,4 @@
-import { LockKeyhole } from 'lucide-react';
+import { ChevronRight, LockKeyhole } from 'lucide-react';
 import { BrowserApprovalActions } from '@/ComputerApprovals/components/BrowserApprovalActions.tsx';
 import { BrowserApprovalError } from '@/ComputerApprovals/components/BrowserApprovalError.tsx';
 import { approvalSummary } from '@/ComputerApprovals/helpers.ts';
@@ -41,17 +41,24 @@ export const BrowserPendingAction = ({
       data-submission={submission || undefined}
     >
       <div className="browser-approval-body">
-        <p className="browser-approval-line">
-          {submission ? (
-            <LockKeyhole size={13} className="browser-approval-lock" aria-label="Submission" />
-          ) : (
-            <span className="clay-bead" data-size="sm" data-tone="ochre" aria-hidden="true" />
-          )}
-          <BrowserApprovalTitle approval={approval} summary={summary} />
-        </p>
-        <p className="browser-approval-reason" title={reason}>
-          {reason}
-        </p>
+        {/* The two lines are the Details trigger: the evidence is one click on the request. */}
+        <BrowserApprovalEvidence
+          approval={approval}
+          action={action}
+          working={blocked}
+          summary={summary}
+        >
+          <span className="browser-approval-line">
+            {submission ? (
+              <LockKeyhole size={13} className="browser-approval-lock" aria-label="Submission" />
+            ) : (
+              <span className="clay-bead" data-size="sm" data-tone="ochre" aria-hidden="true" />
+            )}
+            <BrowserApprovalTitle approval={approval} summary={summary} />
+            <ChevronRight size={14} className="browser-approval-more" aria-hidden="true" />
+          </span>
+          <span className="browser-approval-reason">{reason}</span>
+        </BrowserApprovalEvidence>
         <BrowserApprovalError approval={approval} />
       </div>
       {/* Return control before deciding, or take the page instead of approving it. */}
@@ -67,7 +74,6 @@ export const BrowserPendingAction = ({
         thread={thread}
         control={control}
       />
-      <BrowserApprovalEvidence approval={approval} action={action} working={blocked} />
       <BrowserApprovalActions
         approval={approval}
         action={action}

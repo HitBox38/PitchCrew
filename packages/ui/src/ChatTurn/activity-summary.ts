@@ -1,8 +1,11 @@
 import type { Run, RunActivity } from '@pitchcrew/core';
 import { isUserControlPause } from '@pitchcrew/core/browser-errors';
 
-/** Keep live context bounded across alternating commentary and tool batches. */
-export const activityPreview = (run: Run): RunActivity[] => {
+/**
+ * Keep live context bounded across alternating commentary and tool batches. While the run waits
+ * on the user, the step shown is the last one that finished: the call blocked on them is not work.
+ */
+export const activityPreview = (run: Run, waiting = false): RunActivity[] => {
   const entries = run.activity ?? [];
   if (run.status !== 'running') {
     const issue =
@@ -11,9 +14,10 @@ export const activityPreview = (run: Run): RunActivity[] => {
     return issue ? [issue] : [];
   }
   const commentary = entries.findLast((entry) => entry.kind === 'commentary' && entry.text?.trim());
-  const step =
-    entries.findLast((entry) => entry.kind !== 'commentary' && entry.status === 'running') ??
-    entries.findLast((entry) => entry.kind !== 'commentary');
+  const step = waiting
+    ? entries.findLast((entry) => entry.kind !== 'commentary' && entry.status !== 'running')
+    : (entries.findLast((entry) => entry.kind !== 'commentary' && entry.status === 'running') ??
+      entries.findLast((entry) => entry.kind !== 'commentary'));
   const ids = new Set([commentary?.id, step?.id]);
   return entries.filter((entry) => ids.has(entry.id));
 };

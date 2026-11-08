@@ -122,7 +122,7 @@
     flex: 1 1 0;
     min-width: 0;
   }
-  [data-interface='clay'] .browser-heading-identity > .browser-state-chip {
+  [data-interface='clay'] .browser-heading-identity > .browser-state-slot {
     flex-shrink: 1;
     min-width: 0;
   }
@@ -145,7 +145,6 @@
   justify-content: flex-start;
   gap: 6px;
   height: 28px;
-  min-width: 8.75rem;
   max-width: 13rem;
   padding: 0 10px 0 8px;
   border-radius: 999px;
@@ -329,19 +328,54 @@
 [data-interface='clay'] .browser-approval-title > span {
   flex: none;
 }
-[data-interface='clay'] .browser-approval-title > .browser-approval-value {
-  /* Gives way first: the target only shortens once the value is down to a few letters. */
-  flex: 0 100 auto;
-  min-width: 2.5em;
+[data-interface='clay']
+  .browser-approval-title
+  > :is(.browser-approval-value, .browser-approval-object) {
+  display: inline-flex;
+  min-width: 0;
+}
+[data-interface='clay'] .browser-approval-title .browser-approval-text {
+  min-width: 1.5em;
   overflow: hidden;
-  font-weight: 500;
   text-overflow: ellipsis;
 }
-[data-interface='clay'] .browser-approval-title > .browser-approval-object {
+/* The value gives way first, down to a few letters inside its quotes. */
+[data-interface='clay'] .browser-approval-title > .browser-approval-value {
   flex: 0 1 auto;
+  font-weight: 500;
+}
+/* The target keeps its whole name unless it alone would fill most of the line. */
+[data-interface='clay'] .browser-approval-title > .browser-approval-object {
+  flex: 0 0 auto;
+  max-width: 60%;
+}
+/* The request's two lines open its Details: a quiet row, not a button shape. */
+[data-interface='clay'] .browser-evidence-trigger {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin: 0;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+[data-interface='clay'] .browser-evidence-trigger:hover {
+  background: color-mix(in oklab, var(--ochre) 8%, transparent);
+}
+[data-interface='clay'] .browser-evidence-trigger:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+[data-interface='clay'] .browser-approval-more {
+  flex: none;
+  color: var(--muted);
 }
 [data-interface='clay'] .browser-pending-action .browser-approval-reason {
   overflow: hidden;
@@ -586,4 +620,31 @@
 [data-interface='clay'] .browser-approvals[data-idle] {
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
+}
+
+/* A steady slot for the state chip: states change its label, never the tabs beside it. */
+[data-interface='clay'] .browser-state-slot {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  min-width: 8.75rem;
+}
+/* The address keeps room for a host however many tools share the row (in panels wide enough
+ * for both; a phone sheet shares the row more evenly). */
+@container browser-panel (min-width: 30rem) {
+  [data-interface='clay'] .browser-toolbar > .browser-address {
+    min-width: 9rem;
+  }
+}
+/* Beside the browser the chat header's rule would sit 21px above the toolbar's: one rule only. */
+[data-interface='clay']
+  .chat-page
+  .chat-workspace[data-browser-open='true']:has(> .agent-browser-panel)
+  .chat-heading {
+  border-bottom-color: transparent;
+}
+/* The narrow sheet's own message box, with the expanded column's gutter and recessed field. */
+[data-interface='clay'] .agent-browser-panel > .browser-reply {
+  padding: 8px 12px 4px;
+  border-top: 1px solid var(--border);
 }
