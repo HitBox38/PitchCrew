@@ -26,6 +26,7 @@ export type BrowserStateTone =
   | 'idle'
   | 'browsing'
   | 'control'
+  | 'held'
   | 'paused'
   | 'waiting'
   | 'working';
@@ -37,6 +38,7 @@ export const browserStateBead: Record<BrowserStateTone, 'primary' | 'plum' | 'oc
   idle: null,
   browsing: 'primary',
   control: 'primary',
+  held: 'ochre',
   paused: 'ochre',
   waiting: 'ochre',
   working: 'plum',
@@ -82,6 +84,13 @@ export const browserState = ({
         tone: 'browsing',
         label: 'You’re browsing',
         detail: `Private: ${name} doesn’t see what you type. It gets the page back when it starts working.`,
+      };
+    // A run waits while you hold its page: the chip turns ochre with the tray and the chat.
+    if (leaseId && session.runId)
+      return {
+        tone: 'held',
+        label: 'You have control',
+        detail: `${name} is paused until you return control and doesn’t see what you type.`,
       };
     if (leaseId)
       return {

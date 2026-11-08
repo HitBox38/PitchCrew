@@ -54,6 +54,10 @@ describe('browser state chip', () => {
       tone: 'control',
       label: 'You have control',
     });
+    expect(state({ session: session(), leaseId: 'lease' })).toMatchObject({
+      tone: 'held',
+      label: 'You have control',
+    });
     expect(state({ session: session() })).toMatchObject({ tone: 'working', label: 'Working' });
     expect(state({ session: session(), waiting: true })).toMatchObject({ tone: 'waiting' });
     expect(state({ session: session({ manual: true }) })).toMatchObject({ tone: 'paused' });

@@ -198,7 +198,8 @@
   background: var(--primary-soft);
   color: var(--primary-deep);
 }
-[data-interface='clay'] .browser-state-chip:is([data-tone='waiting'], [data-tone='paused']),
+[data-interface='clay']
+  .browser-state-chip:is([data-tone='waiting'], [data-tone='held'], [data-tone='paused']),
 [data-interface='clay'] .browser-state-chip[data-nudged] {
   background: var(--ochre-soft);
   color: var(--ochre);
@@ -650,16 +651,18 @@
   box-shadow: var(--clay-sunken);
 }
 
-/* A steady slot for the state chip while a run can change its state on its own (narrow panels give
- * that room back to the address and tabs); at rest the chip hugs its label. */
+/* A steady slot for the state chip while a run can change its state on its own, wide enough for
+ * every run state ("You have control" is the widest), so Working, Needs your OK and a takeover
+ * never move the tabs. Narrow panels, whose tabs have their own row, give the room back; at rest
+ * the chip hugs its label. */
 [data-interface='clay'] .browser-state-slot {
   display: inline-flex;
   flex: none;
   align-items: center;
 }
-@container browser-panel (min-width: 40rem) {
+@container browser-panel (width > 30rem) {
   [data-interface='clay'] .browser-state-slot[data-reserve] {
-    min-width: 8.75rem;
+    min-width: 7.5rem;
   }
   /* The hairline follows the chip itself, so the reserved width reads as the tabs' indent. */
   [data-interface='clay'] .browser-state-slot::after {

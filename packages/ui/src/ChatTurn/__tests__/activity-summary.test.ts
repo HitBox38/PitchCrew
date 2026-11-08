@@ -115,6 +115,16 @@ it('finds the call blocked on the user by its exact label, leaving parallel call
   expect([...blockedSteps([browser, connector], ['Click “Learn more”'])]).toEqual(['browser']);
   expect(blockedSteps([browser, connector], undefined).size).toBe(0);
   expect(blockedSteps([connector], ['Click “Learn more”']).size).toBe(0);
+  // Asked but not yet carried out, the request waits whatever the agent does next; only its
+  // latest row, since an earlier identical request may have lapsed.
+  const lapsed = { ...entry('lapsed', 'tool'), label: 'Asked to click “Learn more”' };
+  const asked = { ...entry('asked', 'tool'), label: 'Asked to click “Learn more”' };
+  expect([
+    ...blockedSteps(
+      [lapsed, asked, connector],
+      ['Click “Learn more”', 'Asked to click “Learn more”'],
+    ),
+  ]).toEqual(['asked']);
   // While the user holds the page, every browser call waits (a page read included).
   const read = { ...entry('read', 'tool', 'running'), label: 'Reading the page' };
   expect([...blockedSteps([read, connector], ['Reading the page', 'Click “Learn more”'])]).toEqual([

@@ -1463,6 +1463,8 @@ test('shortens a long typed value before the target at the default panel width',
   // have settled its size: a resize voids a pending request.
   await page.locator('.browser-state-chip[data-tone="working"]').waitFor({ timeout: 10000 });
   await viewportSettled(service);
+  const slot = page.locator('.browser-state-slot');
+  const working = (await slot.boundingBox())!.width;
   const approval = await service.computer.request(
     scope,
     {
@@ -1474,6 +1476,8 @@ test('shortens a long typed value before the target at the default panel width',
   );
   const review = page.getByRole('region', { name: 'Pending browser action', exact: true });
   await review.waitFor();
+  // The chip's slot holds its width from Working to Needs your OK, so the tabs never move.
+  expect((await slot.boundingBox())!.width).toBe(working);
   const title = await approvalTitleLayout(review);
   // The value may give way; the target never, and the parts never overlap.
   expect(title.clipped).not.toContain('target');
