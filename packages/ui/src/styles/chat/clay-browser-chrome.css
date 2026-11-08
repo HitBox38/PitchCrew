@@ -31,34 +31,49 @@
   flex-wrap: nowrap;
   gap: 4px;
 }
+/* A hairline after the state chip keeps it from reading as a tab. */
 [data-interface='clay'] .browser-heading-tabs {
   display: flex;
   flex: 1 1 auto;
+  align-items: center;
+  gap: 6px;
   min-width: 0;
   overflow: hidden;
 }
-[data-interface='clay'] .browser-heading-actions {
+[data-interface='clay'] .browser-heading-tabs::before {
+  content: '';
   flex: none;
-  margin-left: auto;
+  width: 1px;
+  height: 16px;
+  background: var(--border);
 }
-[data-interface='clay'] .browser-heading-tabs > .browser-tabs {
+[data-interface='clay'] .browser-tab-strip {
+  display: flex;
   flex: 1;
+  align-items: center;
   gap: 2px;
   min-width: 0;
-  padding: 0;
+}
+[data-interface='clay'] .browser-tab-strip > .browser-tabs {
+  flex: 0 1 auto;
+  gap: 2px;
+  min-width: 0;
+  padding: 0 16px 0 0;
   overflow-x: auto;
   background: none;
   box-shadow: none;
   scrollbar-width: none;
+  /* Tabs that overflow fade out at the edge; New tab sits outside, always visible. */
+  mask-image: linear-gradient(to right, #000 calc(100% - 16px), transparent);
 }
-[data-interface='clay'] .browser-heading-tabs > .browser-tabs::-webkit-scrollbar {
+[data-interface='clay'] .browser-tab-strip > .browser-tabs::-webkit-scrollbar {
   display: none;
 }
-/* One tab needs no pill: the address says where the page is. New tab stays available. */
-[data-interface='clay'] .browser-heading-tabs .browser-tab:only-of-type {
-  display: none;
+[data-interface='clay'] .browser-tab-strip > .browser-tab-new {
+  flex: none;
 }
 [data-interface='clay'] .browser-heading-tabs .browser-tab {
+  min-width: 96px;
   max-width: 180px;
   border-radius: 9px;
 }
@@ -73,14 +88,46 @@
 [data-interface='clay'] .browser-heading-tabs .browser-tab[data-active='true'] .browser-tab-select {
   font-weight: 600;
 }
+/* A lone tab is the page's title as plain muted text: no pill, no close. */
+[data-interface='clay'] .browser-heading-tabs .browser-tab:only-of-type {
+  min-width: 0;
+  background: none;
+  box-shadow: none;
+}
+[data-interface='clay'] .browser-heading-tabs .browser-tab:only-of-type .browser-tab-select {
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  cursor: default;
+}
+[data-interface='clay'] .browser-heading-tabs .browser-tab:only-of-type .browser-tab-close {
+  display: none;
+}
 /* Narrow panels give the tabs their own line under the identity and actions. */
+/* Narrow panels keep one fixed shape so a state change never reflows the page under review:
+ * identity (the chip truncates) and actions on row one, the tabs always on row two. */
 @container browser-panel (max-width: 30rem) {
   [data-interface='clay'] .browser-panel-heading {
     flex-wrap: wrap;
+    row-gap: 2px;
+  }
+  [data-interface='clay'] .browser-heading-identity {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  [data-interface='clay'] .browser-heading-identity > .browser-state-chip {
+    flex-shrink: 1;
+    min-width: 0;
+  }
+  [data-interface='clay'] .browser-heading-actions {
+    flex-wrap: nowrap;
   }
   [data-interface='clay'] .browser-heading-tabs {
     order: 3;
     flex-basis: 100%;
+  }
+  [data-interface='clay'] .browser-heading-tabs::before {
+    display: none;
   }
 }
 
@@ -103,6 +150,19 @@
   content: '';
   position: absolute;
   inset: -2px;
+}
+[data-interface='clay']
+  .browser-state-chip:is(
+    [data-tone='idle'],
+    [data-tone='closed'],
+    [data-tone='opening'],
+    [data-tone='browsing']
+  ):not([data-nudged]) {
+  background: transparent;
+  padding-inline: 4px 6px;
+}
+[data-interface='clay'] .browser-state-chip[data-tone='browsing']:not([data-nudged]) {
+  color: var(--primary-deep);
 }
 [data-interface='clay'] .browser-state-chip[data-tone='working'] {
   background: var(--plum-soft);
@@ -153,79 +213,108 @@
   box-shadow: none;
 }
 
-/* The page sits closer to the chrome; the frame keeps one hairline. */
-[data-interface='clay'] .browser-panel-body {
+/* In the split view the page runs flush under the toolbar's hairline: one frame, not three.
+ * The 1px border stays (transparent) so the page box and its viewport keep their sizing. The
+ * expanded view keeps the page as a card beside its activity column. */
+[data-interface='clay']
+  .agent-browser-panel:not(:has(> .browser-expanded-side))
+  .browser-panel-body {
+  padding: 0;
+  background: var(--paper);
+}
+[data-interface='clay']
+  .agent-browser-panel:not(:has(> .browser-expanded-side))
+  .browser-page-region
+  .browser-live-view {
+  border-color: transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+[data-interface='clay'] .agent-browser-panel:has(> .browser-expanded-side) .browser-panel-body {
   padding: 6px;
 }
-[data-interface='clay'] .browser-page-region .browser-live-view {
+[data-interface='clay']
+  .agent-browser-panel:has(> .browser-expanded-side)
+  .browser-page-region
+  .browser-live-view {
   border-radius: 10px;
 }
 
-/* Approval tray: one line and a small fixed reservation. Autonomous preparation lists steps. */
+/* Approval tray: a 56px reservation. A waiting request reads as two short lines (what will
+ * happen, then the agent's reason) on an ochre tint; the working tray is one plain line.
+ * Autonomous preparation keeps its taller step list. */
 [data-interface='clay'] .browser-approvals[data-reserved] {
   height: 3.5rem;
 }
 [data-interface='clay'] .browser-approvals[data-reserved][data-mode='autonomous'] {
   height: min(6.75rem, calc(var(--browser-viewport-height, 100dvh) * 0.3));
 }
-[data-interface='clay'] .browser-approvals[data-reserved] .browser-pending-action,
 [data-interface='clay'] .browser-pending-action {
+  display: flex;
   flex-direction: row;
   align-items: center;
   gap: 8px;
   height: 100%;
   padding: 0 10px 0 14px;
+  background: color-mix(in oklab, var(--ochre-soft) 55%, var(--clay-fill));
 }
 [data-interface='clay'] .browser-pending-action .browser-approval-body {
   display: flex;
   flex: 1;
   flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
   justify-content: center;
-  gap: 2px;
+  gap: 0;
   min-width: 0;
+  max-height: none;
+  padding: 0;
   overflow: hidden;
+}
+[data-interface='clay'] .browser-pending-action .browser-approval-body > * {
+  flex: 0 0 auto;
+  min-width: 0;
+  margin: 0;
 }
 [data-interface='clay'] .browser-approval-line {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 7px;
   min-width: 0;
-  margin: 0;
-  color: var(--muted);
-  font-size: var(--text-caption);
-  white-space: nowrap;
 }
 [data-interface='clay'] .browser-approval-line > strong {
-  flex: none;
-  max-width: 60%;
+  min-width: 0;
   overflow: hidden;
   color: var(--ink);
   font-size: var(--text-label);
   font-weight: 600;
+  line-height: 20px;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
-[data-interface='clay'] .browser-approval-line > .browser-approval-reason {
-  min-width: 0;
+[data-interface='clay'] .browser-pending-action .browser-approval-reason {
   overflow: hidden;
+  padding-left: 15px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: 18px;
   text-overflow: ellipsis;
-}
-[data-interface='clay'] .browser-approval-line > .clay-bead {
-  align-self: center;
+  white-space: nowrap;
 }
 [data-interface='clay'] .browser-approval-lock {
   flex: none;
-  align-self: center;
   color: var(--ochre);
 }
-[data-interface='clay'] .browser-pending-action > .browser-evidence-trigger {
+[data-interface='clay'] .browser-pending-action > :not(.browser-approval-body) {
   flex: none;
 }
 [data-interface='clay'] .browser-pending-action .approval-footer {
-  flex: none;
+  position: static;
   gap: 6px;
-}
-[data-interface='clay'] .browser-pending-action .approval-footer > .primary {
-  order: 0;
+  margin: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
 }
 [data-interface='clay'] .browser-pending-action .approval-footer > [data-slot='button'] {
   height: 32px;
@@ -243,15 +332,19 @@
 }
 @container browser-panel (max-width: 34rem) {
   [data-interface='clay'] .browser-approvals[data-reserved] {
-    height: 5.75rem;
+    height: 6rem;
   }
   [data-interface='clay'] .browser-pending-action {
     flex-wrap: wrap;
     align-content: center;
     row-gap: 6px;
+    padding-block: 6px;
   }
   [data-interface='clay'] .browser-pending-action .browser-approval-body {
     flex-basis: 100%;
+  }
+  [data-interface='clay'] .browser-pending-action .approval-footer {
+    margin-left: auto;
   }
 }
 
@@ -299,7 +392,8 @@
 }
 [data-interface='clay'] .browser-find-count {
   flex: none;
-  min-width: 2.5rem;
+  min-width: 0;
+  white-space: nowrap;
   color: var(--muted);
   font-size: var(--text-caption);
   font-variant-numeric: tabular-nums;
@@ -316,7 +410,10 @@
 [data-interface='clay'] .browser-find-popover:has(input:focus-visible) {
   box-shadow:
     var(--pop, 0 8px 24px rgb(0 0 0 / 0.18)),
-    0 0 0 2px var(--primary);
+    0 0 0 1px color-mix(in oklab, var(--primary) 40%, transparent);
+}
+[data-interface='clay'] .browser-find-count[data-empty] {
+  color: var(--rose);
 }
 
 /* The control action keeps its label by panel width, not window width. */
@@ -349,8 +446,88 @@
   inset: -5px;
 }
 
-/* Tabs that overflow fade out at the edge instead of running under the actions. */
-[data-interface='clay'] .browser-heading-tabs > .browser-tabs {
-  padding-inline-end: 16px;
-  mask-image: linear-gradient(to right, #000 calc(100% - 16px), transparent);
+/* The chat header's Browser button reads as pressed while the panel shows the page. */
+[data-interface='clay'] .chat-browser[data-open] {
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  color: var(--ink);
+}
+
+/* A three-way segment in a menu row (website appearance): recessed track, raised choice. */
+[data-interface='clay'] .browser-menu-segment {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 9px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+[data-interface='clay'] .browser-menu-segment > [data-slot='button'] {
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 7px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: 500;
+}
+[data-interface='clay'] .browser-menu-segment > [aria-pressed='true'] {
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  color: var(--ink);
+  font-weight: 600;
+}
+/* History rows: title, then host and path; a quiet destructive clear that asks first. */
+[data-interface='clay'] .browser-history-heading {
+  margin: 0;
+  padding: 6px 8px 2px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+[data-interface='clay'] .browser-history-entry {
+  display: grid;
+  justify-items: start;
+  gap: 0;
+  width: 100%;
+  height: auto;
+  padding: 6px 8px;
+  font-weight: 400;
+  text-align: left;
+}
+[data-interface='clay'] .browser-history-title {
+  max-width: 100%;
+  color: var(--ink);
+  font-size: var(--text-label);
+  line-height: 20px;
+}
+[data-interface='clay'] .browser-history-where {
+  max-width: 100%;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: 18px;
+}
+[data-interface='clay'] .browser-history-empty {
+  margin: 8px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+[data-interface='clay'] .browser-history-clear-start {
+  margin-top: 4px;
+  color: var(--rose);
+  font-weight: 500;
+}
+[data-interface='clay'] .browser-history-clear {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  padding-left: 8px;
+  color: var(--ink);
+  font-size: var(--text-caption);
+}
+[data-interface='clay'] .browser-history-clear > span {
+  flex: 1;
+}
+[data-interface='clay'] .browser-history-clear-confirm {
+  color: var(--rose);
 }

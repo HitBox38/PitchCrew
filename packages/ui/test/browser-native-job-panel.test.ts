@@ -198,7 +198,9 @@ const takeControl = async () => {
   if (await headerControl('Take control').isVisible()) await headerControl('Take control').click();
   else {
     await page.getByRole('button', { name: 'Browser options', exact: true }).click();
-    await page.getByRole('menuitem', { name: 'Take control', exact: true }).click();
+    await page
+      .getByRole('menuitem', { name: 'Keep control until I return it', exact: true })
+      .click();
   }
   await headerControl('Return to agent').waitFor();
   await vi.waitFor(async () =>

@@ -29,6 +29,7 @@ export const BrowserMaintenance = ({
               size="icon-sm"
               variant="ghost"
               aria-label="Browser options"
+              title="Browser options"
               disabled={control.working}
             />
           }

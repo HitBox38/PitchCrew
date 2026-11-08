@@ -5,7 +5,10 @@ import { credentialSelector, redactCredentials } from './credentials.ts';
 
 const candidates = 'body,a,button,input,textarea,select,[role],[tabindex]';
 export const browserReferences = () => {
-  const entries = new Map<string, { selector: string; frame?: string; handle: ElementHandle }>();
+  const entries = new Map<
+    string,
+    { selector: string; frame?: string; handle: ElementHandle; tag: string; name: string }
+  >();
   const clear = () => {
     for (const entry of entries.values()) void entry.handle.dispose().catch(() => {});
     entries.clear();
@@ -42,11 +45,12 @@ export const browserReferences = () => {
             .slice(0, 120),
         }));
         const ref = `ref:${generation}:${result.length + 1}`;
-        entries.set(ref, { selector, frame: frameSelector, handle });
+        const name = redactCredentials(element.name, secrets);
+        entries.set(ref, { selector, frame: frameSelector, handle, tag: element.tag, name });
         result.push({
           ref,
           ...element,
-          name: redactCredentials(element.name, secrets),
+          name,
           ...(frameSelector ? { frame: frameSelector } : {}),
         });
       }
@@ -77,6 +81,11 @@ export const browserReferences = () => {
     clear,
     capture,
     target,
+    /** The tag and redacted visible name of a referenced element, for the approval summary. */
+    describe: (value: string) => {
+      const entry = value.startsWith('ref:') ? entries.get(value) : undefined;
+      return entry?.name ? { tag: entry.tag, name: entry.name } : undefined;
+    },
     resolve: async (page: Page, action: BrowserAction): Promise<BrowserAction> => {
       if (!('selector' in action)) return action;
       const resolved = await target(page, action.selector, action.frame);

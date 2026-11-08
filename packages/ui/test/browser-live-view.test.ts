@@ -73,7 +73,7 @@ const marker = () =>
 /** Explicit takeover while the agent is idle lives under Browser options. */
 const takeControl = async () => {
   await page.getByRole('button', { name: 'Browser options', exact: true }).click();
-  await page.getByRole('menuitem', { name: 'Take control', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Keep control until I return it', exact: true }).click();
 };
 const controlReleased = () => page.locator('.browser-state-chip[data-tone="idle"]').waitFor();
 
@@ -160,11 +160,10 @@ test('shows blank-page guidance over an empty streamed tab', async () => {
   expect(await placeholder.getByRole('button', { name: 'Take control', exact: true }).count()).toBe(
     0,
   );
-  await placeholder.getByRole('button', { name: 'Enter an address', exact: true }).click();
+  // The address field above is the action; no button repeats it.
+  expect(await placeholder.getByRole('button').count()).toBe(0);
   expect(
-    await page
-      .getByRole('textbox', { name: 'Browser address' })
-      .evaluate((element) => document.activeElement === element),
-  ).toBe(true);
+    await page.getByRole('textbox', { name: 'Browser address' }).getAttribute('readonly'),
+  ).toBeNull();
   expect(errors).toEqual([]);
 });

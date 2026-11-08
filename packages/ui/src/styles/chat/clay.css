@@ -288,9 +288,6 @@
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
 }
-[data-interface='clay'] .browser-panel-heading .browser-owner-manual {
-  background: var(--teal-soft);
-}
 .browser-address-display {
   display: none;
 }
@@ -327,35 +324,12 @@
 [data-interface='clay'] .browser-address[data-display]:not(:focus-within) input {
   color: transparent;
 }
-.browser-approval-kind {
-  display: none;
-}
 [data-interface='clay'] .browser-approvals {
   margin: 8px;
   border-top: 0;
   border-radius: 14px;
   background: var(--clay-fill);
   box-shadow: var(--clay);
-}
-[data-interface='clay'] .browser-approval-kind {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
-  margin: 0;
-  color: var(--muted);
-  font-size: var(--text-caption);
-}
-.browser-approval-kind > span {
-  padding: 2px 9px;
-  border-radius: 999px;
-  background: var(--ochre-soft);
-  color: var(--ochre);
-  font-weight: 600;
-}
-.browser-approval-kind[data-tone='rose'] > span {
-  background: var(--rose-soft);
-  color: var(--rose);
 }
 [data-interface='clay'] .browser-approval-empty {
   color: var(--muted);
@@ -567,135 +541,9 @@
 [data-interface='clay'] .browser-menu-group .browser-profiles {
   padding: 0 4px 4px;
 }
-/* Shown only while an agent run is using the page; a press on the page flashes it ochre. */
-[data-interface='clay'] .browser-control-hint {
-  flex-shrink: 0;
-  margin: 6px 10px 0;
-  padding: 4px 10px;
-  border-radius: 8px;
-  background: var(--sunken-fill);
-  color: var(--muted);
-  font-size: var(--text-caption);
-  line-height: 1.4;
-  transition:
-    background-color 160ms ease,
-    color 160ms ease;
-}
-[data-interface='clay'] .browser-control-hint[data-nudged] {
-  background: var(--ochre-soft);
-  color: var(--ochre);
-}
-
-/* Compact approval tray: title and status on one line, the reason under it, the action's target
- * with a Details popover, and the decision buttons beside the text. Narrow panels stack the
- * buttons underneath and reserve more. */
+/* The panel is the container for browser layout queries. */
 [data-interface='clay'] .agent-browser-panel {
   container: browser-panel / inline-size;
-}
-[data-interface='clay'] .browser-approvals[data-reserved] {
-  height: min(6.75rem, calc(var(--browser-viewport-height, 100dvh) * 0.3));
-}
-[data-interface='clay'] .browser-pending-action {
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-}
-/* Four short rows (title, status, reason, target with Site access and Details) fit the reserve. */
-[data-interface='clay'] .browser-approvals[data-reserved] .browser-pending-action {
-  padding-block: 6px;
-}
-[data-interface='clay'] .browser-approval-body {
-  display: flex;
-  flex: 1;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 2px 10px;
-  min-width: 0;
-  max-height: none;
-  padding: 0;
-}
-[data-interface='clay'] .browser-approval-body > * {
-  flex-basis: 100%;
-  margin: 0;
-}
-[data-interface='clay'] .browser-pending-action h3 {
-  flex: 0 1 auto;
-  min-width: 0;
-  margin: 0;
-  overflow: hidden;
-  font-size: 15px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-[data-interface='clay'] .browser-approval-body > .browser-approval-kind {
-  flex: 1 1 auto;
-  order: 1;
-}
-[data-interface='clay'] .browser-approval-body > .browser-approval-reason {
-  order: 2;
-  overflow: hidden;
-  color: var(--ink-soft);
-  font-size: var(--text-label);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-[data-interface='clay'] .browser-approval-body > .browser-action-brief {
-  display: flex;
-  flex: 0 1 auto;
-  gap: 10px;
-  min-width: 0;
-  order: 3;
-  overflow: hidden;
-  white-space: nowrap;
-}
-[data-interface='clay'] .browser-action-brief dd {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-[data-interface='clay'] .browser-approval-body > .browser-evidence-trigger {
-  flex: none;
-  order: 4;
-  height: 24px;
-  padding-inline: 6px;
-  color: var(--primary);
-}
-[data-interface='clay']
-  .browser-approval-body
-  > :not(
-    h3,
-    .browser-approval-kind,
-    .browser-approval-reason,
-    .browser-action-brief,
-    .browser-evidence-trigger,
-    .clay-site-trigger
-  ) {
-  order: 5;
-}
-[data-interface='clay'] .browser-pending-action .approval-footer {
-  position: static;
-  flex: none;
-  justify-content: flex-start;
-  margin: 0;
-  padding: 0;
-  background: none;
-}
-[data-interface='clay'] .browser-pending-action .approval-footer > .primary {
-  order: -1;
-}
-[data-interface='clay'] .browser-approval-empty {
-  font-size: var(--text-caption);
-}
-@container browser-panel (max-width: 34rem) {
-  /* Tall enough for the stacked request with 44px touch-floor Details and decision buttons. */
-  [data-interface='clay'] .browser-approvals[data-reserved] {
-    height: min(10rem, calc(var(--browser-viewport-height, 100dvh) * 0.36));
-  }
-  [data-interface='clay'] .browser-pending-action {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
 }
 
 /* The address bar's lock marks HTTPS; its system-browser action appears on hover or focus. */

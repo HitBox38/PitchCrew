@@ -34,6 +34,8 @@ export interface BrowserDriver {
   tabs?(command: BrowserTabsCommand): Promise<BrowserTab[]>;
   targetTab?(id: string): Promise<void>;
   resolveAction?(action: BrowserAction): Promise<BrowserAction>;
+  /** The visible name of an inspected element reference, before the action resolves it. */
+  describeTarget?(selector: string): Promise<{ tag: string; name: string } | undefined>;
   matches?(condition: BrowserWait): Promise<boolean>;
   snapshot(options?: { includeImage?: boolean; references?: boolean }): Promise<BrowserSnapshot>;
   getViewport?(): BrowserViewport;

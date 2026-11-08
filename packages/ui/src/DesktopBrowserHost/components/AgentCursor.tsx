@@ -4,20 +4,25 @@ import { useBrowserPresence } from '../presence.ts';
 
 /**
  * Where the agent is acting on a page it drives: a plum pointer with the agent's name that glides
- * between moves and pings on a press. It rests visible while the run lasts and fades after it
- * ends. Hidden during private control.
+ * between moves and pings on a press. It rests faintly during the run, fades soon after the page
+ * navigates or the run ends, and hides during private control. Its name stays inside the page.
  */
 export const AgentCursor = ({ view }: { view: DesktopBrowserView }) => {
   const presence = useBrowserPresence();
   const pointer = view.agentPointer;
-  if (!pointer || view.manual) return null;
+  if (!pointer || view.manual || !view.bounds) return null;
   const point = browserPagePoint(view, pointer);
   if (!point) return null;
+  const right = view.bounds.x + view.bounds.width - point.x < 96;
+  const bottom = view.bounds.y + view.bounds.height - point.y < 40;
   return (
     <div
       className="agent-browser-cursor"
       data-browser-cursor={view.token}
       data-working={presence.working || undefined}
+      data-navigated={pointer.navigated || undefined}
+      data-flip-x={right || undefined}
+      data-flip-y={bottom || undefined}
       aria-hidden="true"
       style={{ transform: `translate3d(${point.x}px, ${point.y}px, 0)` }}
     >

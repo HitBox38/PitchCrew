@@ -9,6 +9,7 @@ import {
   PopoverTrigger,
 } from '@pitchcrew/design-system/popover';
 import { BrowserHistoryEntries } from './BrowserHistoryEntries.tsx';
+import { BrowserHistoryClear } from './BrowserHistoryClear.tsx';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
 
 export const NativeBrowserHistory = ({
@@ -20,6 +21,11 @@ export const NativeBrowserHistory = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const empty = !model.history.visits.length && !model.history.closedTabs.length;
+  const clear = () => {
+    model.history.clearVisits();
+    model.history.clearClosed();
+  };
   const search = query.trim().toLowerCase();
   const filter = (entry: { url: string; title: string }) =>
     `${entry.title} ${entry.url}`.toLowerCase().includes(search);
@@ -32,7 +38,9 @@ export const NativeBrowserHistory = ({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
-        render={<Button size="icon-sm" variant="ghost" aria-label="Browser history" />}
+        render={
+          <Button size="icon-sm" variant="ghost" aria-label="Browser history" title="History" />
+        }
       >
         <History size={15} />
       </PopoverTrigger>
@@ -59,18 +67,8 @@ export const NativeBrowserHistory = ({
             open={navigate}
           />
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          className="mt-2 w-full"
-          disabled={!model.history.visits.length && !model.history.closedTabs.length}
-          onClick={() => {
-            model.history.clearVisits();
-            model.history.clearClosed();
-          }}
-        >
-          Clear browser history
-        </Button>
+        {empty ? <p className="browser-history-empty">No pages yet.</p> : null}
+        {!empty ? <BrowserHistoryClear clear={clear} /> : null}
         {!manual ? <p className="quiet mt-2 text-xs">Take control to reopen a page.</p> : null}
       </PopoverContent>
     </Popover>

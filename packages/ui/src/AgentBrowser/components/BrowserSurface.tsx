@@ -54,8 +54,12 @@ export const BrowserSurface = ({
           } as CSSProperties
         }
         showCloseButton={false}
-        // The address field, never Take control: a stray Space must not pause the agent.
+        // Expanded: Back to chat. The narrow sheet: the address field, never Take control, so a
+        // stray Space cannot pause the agent.
         initialFocus={() =>
+          document.querySelector<HTMLElement>(
+            '#agent-browser-panel .browser-expand[aria-label="Back to chat"]',
+          ) ??
           document.querySelector<HTMLElement>(
             '#agent-browser-panel [aria-label="Browser address"]',
           ) ??

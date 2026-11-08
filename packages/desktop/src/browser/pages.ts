@@ -460,6 +460,7 @@ export const createNativeGroup = (
           if (mainFrame) {
             navigationUrls.set(pageId, nativeBrowserPageUrl(url));
             if (!inPlace) {
+              dom.pointer(contents.id, 'navigated');
               favicons.delete(pageId);
               iconRequests.get(pageId)?.abort();
             }

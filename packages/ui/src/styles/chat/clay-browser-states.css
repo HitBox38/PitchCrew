@@ -27,34 +27,6 @@
   color: var(--rose);
 }
 
-/* Private control: a quiet primary-tinted strip over the page and a hairline ring around it.
- * The header already says Private and offers Return to agent, so this stays one calm line. */
-[data-interface='clay'] .clay-control-bar {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 7px;
-  min-height: 26px;
-  margin-bottom: 6px;
-  padding: 0 10px;
-  border-radius: 8px;
-  background: var(--primary-soft);
-  color: var(--primary-deep);
-  font-size: var(--text-caption);
-  font-weight: 600;
-}
-[data-interface='clay'] .clay-control-bar > span {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-[data-interface='clay'] .browser-panel-body:has(> .clay-control-bar) > .browser-live-view {
-  border-color: color-mix(in oklab, var(--primary) 55%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--primary) 30%, transparent);
-}
-
 /* Opening, empty, failed and popup pages: one orb, a short heading and a sentence. */
 [data-interface='clay'] .browser-placeholder {
   align-content: center;

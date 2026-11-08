@@ -61,7 +61,7 @@ export const BrowserPanelHeading = (
         <BrowserControls browserPanel={browserPanel} thread={thread} control={control} />
         <BrowserMaintenance browserPanel={browserPanel} thread={thread} control={control} />
         {!narrow ? <BrowserExpandButton expanded={expanded} toggle={toggleExpanded} /> : null}
-        {!expanded ? (
+        {!expanded || narrow ? (
           <Button
             size="icon-sm"
             variant="ghost"

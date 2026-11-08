@@ -325,17 +325,25 @@ const takeControl = async () => {
     .getByRole('button', { name: 'Take control', exact: true });
   if (await header.isVisible()) return header.click();
   await page.getByRole('button', { name: 'Browser options', exact: true }).click();
-  await page.getByRole('menuitem', { name: 'Take control', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Keep control until I return it', exact: true }).click();
 };
 /** Control is held, explicitly (Return to agent) or by browsing (the chip says so). */
 const controlHeld = () =>
   page.locator('.browser-state-chip:is([data-tone="browsing"], [data-tone="control"])').waitFor();
-/** Returns any held control: the header's Return to agent, or Browser options when implicit. */
+/**
+ * Returns any held control. Control taken by browsing hands back when a run starts; a test
+ * releases it now by keeping it explicitly, then using the header's Return to agent.
+ */
 const returnControl = async () => {
   const header = page.getByRole('button', { name: 'Return to agent', exact: true });
-  if (await header.isVisible()) return header.click();
-  await page.getByRole('button', { name: 'Browser options', exact: true }).click();
-  await page.getByRole('menuitem', { name: 'Return to agent', exact: true }).click();
+  if (!(await header.isVisible())) {
+    await page.getByRole('button', { name: 'Browser options', exact: true }).click();
+    await page
+      .getByRole('menuitem', { name: 'Keep control until I return it', exact: true })
+      .click();
+    await header.waitFor();
+  }
+  await header.click();
 };
 const controlReleased = () =>
   page.locator('.browser-state-chip:is([data-tone="idle"], [data-tone="working"])').waitFor();
@@ -595,7 +603,7 @@ test('reopens visited and closed pages through the same leased native browser', 
   await page
     .getByRole('region', { name: 'Recently closed in this conversation' })
     .getByRole('button')
-    .filter({ hasText: 'https://example.com/live-events' })
+    .filter({ hasText: 'example.com/live-events' })
     .click();
   await vi.waitFor(() => expect(nativeCommand).toHaveBeenLastCalledWith({ kind: 'new-tab' }));
   await vi.waitFor(() =>
@@ -610,7 +618,9 @@ test('reopens visited and closed pages through the same leased native browser', 
       .getByRole('button')
       .count(),
   ).toBe(0);
-  await page.getByRole('button', { name: 'Clear browser history', exact: true }).click();
+  // Clearing asks once, in a quiet row, before removing both lists.
+  await page.getByRole('button', { name: 'Clear browser history…', exact: true }).click();
+  await page.getByRole('button', { name: 'Clear', exact: true }).click();
   expect(await history.getByRole('button').count()).toBe(0);
   expect(
     await page.evaluate(() => {
@@ -631,8 +641,10 @@ test('uses native appearance, per-tab audio and external-browser developer contr
     expect(nativeCommand).toHaveBeenCalledWith({ kind: 'mute', muted: true, tabId: mutedId }),
   );
   await page.getByRole('button', { name: 'Browser page settings' }).click();
-  await page.getByRole('combobox', { name: 'Website appearance' }).click();
-  await page.getByRole('option', { name: 'Dark', exact: true }).click();
+  await page
+    .getByRole('group', { name: 'Website appearance' })
+    .getByRole('button', { name: 'Dark', exact: true })
+    .click();
   await vi.waitFor(() =>
     expect(nativeCommand).toHaveBeenCalledWith({ kind: 'appearance', colorScheme: 'dark' }),
   );
@@ -1135,12 +1147,16 @@ test('guides blank tabs without a guest overlay and keeps loading in the toolbar
   };
   await page.getByRole('heading', { name: 'No page open', exact: true }).waitFor();
   await vi.waitFor(async () => expect(await lastMount()).toBeNull());
-  await page.getByRole('button', { name: 'Enter an address', exact: true }).click();
+  // The address field above is the blank tab's action; the page adds no button for it.
   expect(
     await page
-      .getByRole('textbox', { name: 'Browser address' })
-      .evaluate((element) => document.activeElement === element),
-  ).toBe(true);
+      .locator('.browser-placeholder')
+      .getByRole('button', { name: 'Enter an address', exact: true })
+      .count(),
+  ).toBe(0);
+  const address = page.getByRole('textbox', { name: 'Browser address' });
+  expect(await address.getAttribute('readonly')).toBeNull();
+  await address.focus();
   const before = await page.getByLabel('Native browser page', { exact: true }).boundingBox();
   await page.screenshot({ path: '/tmp/pitchcrew-browser-empty.png' });
   await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });

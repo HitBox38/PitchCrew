@@ -75,6 +75,8 @@ export const BrowserAddress = ({
         onKeyDown={(event) => {
           if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault();
           if (event.key !== 'Escape') return;
+          // Unedited: leave the field and let the surface's Escape (Back to chat) run.
+          if (!editing) return model.reset();
           event.preventDefault();
           event.stopPropagation();
           model.reset();

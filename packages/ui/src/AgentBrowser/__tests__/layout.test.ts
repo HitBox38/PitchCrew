@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { BrowserSessionInfo, RunActivity } from '@pitchcrew/core';
-import { browserModeChip, runActivitySummary, shownPanelView } from '../layout.ts';
+import { browserState, runActivitySummary, shownPanelView } from '../layout.ts';
 
 const session = (patch: Partial<BrowserSessionInfo> = {}): BrowserSessionInfo => ({
   roleId: 'submitter',
@@ -27,21 +27,38 @@ describe('browser panel view', () => {
   });
 });
 
-describe('browser mode chip', () => {
-  it('names the captured task permission while an agent turn runs', () => {
-    expect(browserModeChip(session(), false)?.label).toBe('Supervised');
-    expect(browserModeChip(session({ mode: 'autonomous' }), false)).toMatchObject({
-      tone: 'autonomous',
-      label: 'Autonomous preparation',
+describe('browser state chip', () => {
+  const state = (patch: Partial<Parameters<typeof browserState>[0]> = {}) =>
+    browserState({
+      session: session({ runId: null }),
+      implicit: false,
+      waiting: false,
+      opening: false,
+      name: 'Scout',
+      elsewhere: false,
+      ...patch,
     });
+  it('names who has the page with one label and bead tone', () => {
+    expect(state()).toMatchObject({ tone: 'idle', label: 'Idle' });
+    expect(state({ leaseId: 'lease', implicit: true })).toMatchObject({
+      tone: 'browsing',
+      label: 'You’re browsing',
+    });
+    expect(state({ leaseId: 'lease' })).toMatchObject({
+      tone: 'control',
+      label: 'You have control',
+    });
+    expect(state({ session: session() })).toMatchObject({ tone: 'working', label: 'Working' });
+    expect(state({ session: session(), waiting: true })).toMatchObject({ tone: 'waiting' });
+    expect(state({ session: session({ manual: true }) })).toMatchObject({ tone: 'paused' });
   });
-  it('shows Private whenever the user holds or has kept control', () => {
-    expect(browserModeChip(session({ mode: 'autonomous' }), true)?.tone).toBe('private');
-    expect(browserModeChip(session({ manual: true, runId: null }), false)?.label).toBe('Private');
-  });
-  it('has no chip without an active turn or takeover', () => {
-    expect(browserModeChip(session({ runId: null }), false)).toBeNull();
-    expect(browserModeChip(undefined, false)).toBeNull();
+  it('keeps the permission mode as detail and marks another conversation', () => {
+    expect(state({ session: session({ mode: 'autonomous' }) }).detail).toContain(
+      'Autonomous preparation',
+    );
+    expect(state({ elsewhere: true }).label).toBe('Idle elsewhere');
+    expect(state({ session: undefined, opening: true })).toMatchObject({ tone: 'opening' });
+    expect(state({ session: undefined })).toMatchObject({ tone: 'closed' });
   });
 });
 

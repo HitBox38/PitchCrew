@@ -81,11 +81,18 @@ export interface DesktopBrowserView {
   painting: boolean;
   manual: boolean;
   /**
-   * Where automation last moved or pressed the pointer, in page CSS pixels. It outlives a
-   * navigation the click started, so the user sees where the agent acted; the app fades it.
+   * Where automation last moved or pressed the pointer, in page CSS pixels. A navigation marks
+   * it stale so the app fades it once the click's ping has shown.
    * Presentation only; never approval evidence.
    */
-  agentPointer?: { x: number; y: number; pressed: boolean; sequence: number };
+  agentPointer?: {
+    x: number;
+    y: number;
+    pressed: boolean;
+    sequence: number;
+    /** The main frame navigated since: the point no longer matches the page. */
+    navigated?: boolean;
+  };
 }
 export interface DesktopBrowserBridge {
   capture(id: string): Promise<DesktopBrowserCapture>;

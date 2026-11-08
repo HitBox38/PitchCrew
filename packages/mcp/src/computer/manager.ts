@@ -323,11 +323,23 @@ export class ComputerManager {
     try {
       this.browsers.assertAgent(scope.runId);
       const driver = await this.session(scope.runId);
+      // Name the referenced element for the user's summary ("Click “Learn more”"). It is
+      // presentation: the digest binds the resolved action and page, not this name.
+      const target =
+        'selector' in action
+          ? await driver.describeTarget?.(action.selector).catch(() => undefined)
+          : undefined;
       action = (await driver.resolveAction?.(action)) ?? action;
-      const { diagnostics: _diagnostics, ...page } = await this.inspect(scope.runId, {
+      const { diagnostics: _diagnostics, ...inspected } = await this.inspect(scope.runId, {
         includeImage: true,
         references: false,
       });
+      const page = target
+        ? {
+            ...inspected,
+            elements: [{ ref: 'target', tag: target.tag, name: target.name.slice(0, 80) }],
+          }
+        : inspected;
       if (action.kind === 'dialog' && action.submissionAttemptId && !page.dialog)
         throw new Error('Submission continuation requires an inspected browser dialog.');
       if (this.stopped.has(scope.runId)) throw new Error('Browser session has ended.');

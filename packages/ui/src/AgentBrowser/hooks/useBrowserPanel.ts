@@ -87,6 +87,12 @@ export const useBrowserPanel = (
     view: state.view,
     /** An agent run is using a browser (plum); the user's own browsing is not activity. */
     activity: status.sessions.some((item) => !!item.runId),
+    /** An agent run waits for the user's decision on a browser action (ochre). */
+    waiting: data.computerApprovals.some(
+      (approval) =>
+        approval.status === 'pending' &&
+        status.sessions.some((item) => item.runId && item.runId === approval.runId),
+    ),
     show: () =>
       setPreference({
         ...state,

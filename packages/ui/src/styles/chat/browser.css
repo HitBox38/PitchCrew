@@ -74,19 +74,8 @@
   font-size: var(--text-caption);
   white-space: nowrap;
 }
-.browser-state-dot {
-  width: 5px;
-  height: 5px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: var(--faint);
-}
-.browser-panel-heading .browser-owner-manual,
 .browser-task-elsewhere {
   color: var(--teal);
-}
-.browser-owner-manual .browser-state-dot {
-  background: var(--teal);
 }
 .browser-heading-actions {
   display: flex;
@@ -374,14 +363,6 @@
 .browser-history-entry span {
   width: 100%;
 }
-.browser-control-hint {
-  flex-shrink: 0;
-  margin: 0;
-  padding: 7px 12px;
-  color: var(--muted);
-  font-size: var(--text-caption);
-  line-height: 1.5;
-}
 .browser-page-error {
   position: absolute;
   z-index: 2;
@@ -533,23 +514,6 @@
   margin: 0;
   padding: 8px 12px;
   background: var(--surface);
-}
-.browser-action-brief {
-  margin: 6px 0;
-  font-size: var(--text-caption);
-}
-.browser-action-brief div {
-  display: flex;
-  gap: 6px;
-}
-.browser-action-brief dt {
-  flex-shrink: 0;
-  color: var(--muted);
-}
-.browser-action-brief dd {
-  margin: 0;
-  min-width: 0;
-  overflow-wrap: anywhere;
 }
 .browser-evidence {
   margin: 8px 0;

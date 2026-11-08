@@ -308,10 +308,20 @@ export const createDomBrowserHost = (
       publish();
     },
     /** The agent's latest pointer on this guest, for the app's cursor overlay; null clears it. */
-    pointer: (contentsId: number, point: { x: number; y: number; pressed: boolean } | null) => {
+    pointer: (
+      contentsId: number,
+      point: { x: number; y: number; pressed: boolean } | null | 'navigated',
+    ) => {
       const request = [...requests.values()].find((item) => item.guest?.id === contentsId);
       if (!request) return;
-      if (!point) {
+      if (point === 'navigated') {
+        // The point belongs to the previous document: the app fades it after the click's ping.
+        if (!request.view.agentPointer || request.view.agentPointer.navigated) return;
+        request.view = {
+          ...request.view,
+          agentPointer: { ...request.view.agentPointer, navigated: true },
+        };
+      } else if (!point) {
         if (!request.view.agentPointer) return;
         const { agentPointer: _cleared, ...view } = request.view;
         request.view = view;

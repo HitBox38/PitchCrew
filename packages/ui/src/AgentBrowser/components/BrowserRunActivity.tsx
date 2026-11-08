@@ -11,6 +11,17 @@ import type { AgentBrowserProps } from '../types.ts';
 
 /** Clay expanded browser: the browsing agent's public activity for the current run, with the
  * existing run cancellation. Private reasoning and tool inputs stay excluded as in chat. */
+/** Run states in the panel's words; the chip says Idle for no run. */
+const runStateLabels: Record<string, string> = {
+  running: 'Working',
+  completed: 'Done',
+  failed: 'Failed',
+  cancelled: 'Stopped',
+  waiting: 'Waiting for you',
+  interrupted: 'Interrupted',
+  queued: 'Queued',
+};
+
 export const BrowserRunActivity = ({
   browserPanel,
   data,
@@ -29,7 +40,7 @@ export const BrowserRunActivity = ({
         <strong className="truncate">{role.name}</strong>
         {run ? <StatusBead status={run.status} /> : null}
         <span className="browser-run-state">
-          {active ? 'Working' : run ? run.status : 'Not working right now'}
+          {active ? 'Working' : run ? runStateLabels[run.status] : 'Idle'}
         </span>
         {run ? (
           <TurnDuration

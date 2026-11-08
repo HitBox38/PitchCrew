@@ -145,7 +145,10 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
         await app.page
           .getByRole('separator', { name: 'Resize browser panel', exact: true })
           .press('ArrowLeft');
-      await app.page.locator('.browser-panel-heading').click({ button: 'right' });
+      // The header's empty edge: tabs in its middle open their own Tab actions menu.
+      await app.page
+        .locator('.browser-panel-heading')
+        .click({ button: 'right', position: { x: 4, y: 8 } });
       const menu = app.page.getByRole('menu', { name: 'Workspace actions', exact: true });
       await menu.waitFor();
       await assertLiveGuest(app, menu);
@@ -308,10 +311,7 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
     { timeout: 45000 },
     async () => {
       const guest = await activeGuest(app);
-      // Control taken by browsing is returned from Browser options.
-      await app.page.getByRole('button', { name: 'Browser options', exact: true }).click();
-      await app.page.getByRole('menuitem', { name: 'Return to agent', exact: true }).click();
-      await app.page.locator('.browser-state-chip[data-tone="idle"]').waitFor();
+      // Control taken by browsing hands back on its own when the agent's run starts.
       await send(app, 'E2E: fill the application');
       const pending = await readyApproval(app);
       assert.equal(
@@ -366,7 +366,9 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
       // The agent is idle again: explicit control comes from Browser options.
       await app.page.locator('.browser-state-chip[data-tone="idle"]').waitFor();
       await app.page.getByRole('button', { name: 'Browser options', exact: true }).click();
-      await app.page.getByRole('menuitem', { name: 'Take control', exact: true }).click();
+      await app.page
+        .getByRole('menuitem', { name: 'Keep control until I return it', exact: true })
+        .click();
       await app.page
         .locator('.browser-panel-heading')
         .getByRole('button', { name: 'Return to agent', exact: true })

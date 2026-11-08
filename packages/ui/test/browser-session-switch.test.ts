@@ -176,9 +176,10 @@ test('keeps browser presentation and manual control scoped to the selected job a
   await vi.waitFor(async () =>
     expect(await address().inputValue()).toBe('https://example.com/first-job'),
   );
-  // Control taken by browsing is returned from Browser options.
+  // Control taken by browsing hands back when a run starts; release it now explicitly.
   await page.getByRole('button', { name: 'Browser options', exact: true }).click();
-  await page.getByRole('menuitem', { name: 'Return to agent', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Keep control until I return it', exact: true }).click();
+  await page.getByRole('button', { name: 'Return to agent', exact: true }).click();
   await page.locator('.browser-state-chip[data-tone="idle"]').waitFor();
   expect(host.daemon.service.computer.browsers.list().map((session) => session.manual)).toEqual([
     false,

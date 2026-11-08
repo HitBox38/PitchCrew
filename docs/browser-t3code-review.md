@@ -46,6 +46,17 @@ An independent design review scored the first pass 5/10: the control vocabulary 
 - **States.** "Can't reach {host}" with a plain reason, round failure orbs, an Opening chip while the browser starts, address-first focus in the narrow sheet so a stray Space cannot pause the agent, labels that collapse by panel width, toolbar tooltips with shortcuts, and a Browser button dot that is plum only while an agent run uses the browser.
 - **Approval tray names.** Form controls are named by their inspected label; selectors generated from the agent's inspection stay out of the compact tray and remain exact in Details and Decisions.
 
+### Third pass
+
+A second design review scored 6.5/10 and found the tray's text clipped by leaking legacy layout rules, generic "Click a page element" summaries, a New tab button lost inside the fading tab strip, a chip that read as a tab, a cursor left on unrelated links after navigation, no close button in a narrow sheet that had been expanded, focus pulled into the address on expand, and five stylesheets overriding each other. The third pass:
+
+- Gives the tray one source: the legacy tray, hint and mode-chip rules were deleted, and a waiting request is two lines on an ochre tint. Approval requests carry the inspected element's redacted visible name (an existing optional snapshot field, outside the action digest), so the tray says "Click “Learn more”"; without a name the agent's reason leads.
+- Moves New tab outside the tab list, shows a lone tab as its plain title, separates the chip from tabs with a hairline and fills the chip only for states that need attention or show control.
+- Fades the cursor 350ms after a main-frame navigation and within 600ms after the run ends, rests it at 35% during the run, flips its name inside the page near edges and drops the ping under reduced motion.
+- Shows × whenever the panel is narrow, focuses Back to chat on expand and lets Escape in an unedited address reach Back to chat.
+- Replaces the idle "Return to agent" (control taken by browsing hands back on its own) with "Keep control until I return it", which marks the existing lease explicit without another takeover.
+- Puts the page flush under the toolbar in the split view, polishes Find ("3 of 12", "No matches", disabled arrows), history rows and a confirmed clear, makes website appearance a segment, and gives the chat header's Browser button a pressed state and an ochre dot for waiting approvals.
+
 ## Still behind T3
 
 - **Element pick and annotate into the composer.** T3's best browser feature: select an element, region or drawing and attach it with a cropped screenshot. Pitchcrew only annotates whole screenshots.

@@ -46,6 +46,12 @@ export const useBrowserControl = (
     [key, remember, roleId, threadId],
   );
   const take = () => command(() => acquire(false));
+  /** Keep the page until it is returned: mark control taken by browsing as explicit. */
+  const keep = () => {
+    const current = leases.lease;
+    if (current?.implicit) remember(key, { ...current, implicit: false });
+    else void take();
+  };
   /** The current lease, or an implicit one while the agent is idle; undefined otherwise. */
   const ensure = useCallback(async () => {
     // Read the store, not this render: a batch (close other tabs) acquires once, then reuses it.
@@ -109,6 +115,7 @@ export const useBrowserControl = (
     inputPending,
     open,
     take,
+    keep,
     ensure,
     release,
     input,

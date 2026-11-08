@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@pitchcrew/design-system/button';
 import { X, ArrowDown, ArrowUp, Search } from 'lucide-react';
+import { BrowserFindCount } from './BrowserFindCount.tsx';
 
 type Matches = { active: number; total: number } | null;
 
@@ -67,14 +68,13 @@ export const NativeBrowserFind = ({ id, close }: { id: string; close: () => void
           }
         }}
       />
-      <output className="browser-find-count" aria-live="polite">
-        {text && matches ? `${matches.total ? matches.active : 0}/${matches.total}` : ''}
-      </output>
+      <BrowserFindCount text={text} matches={matches} />
       <Button
         size="icon-sm"
         variant="ghost"
         aria-label="Previous match"
         title="Previous match (Shift+Enter)"
+        disabled={!text || !matches?.total}
         onClick={() => find(text, false)}
       >
         <ArrowUp size={14} />
@@ -84,6 +84,7 @@ export const NativeBrowserFind = ({ id, close }: { id: string; close: () => void
         variant="ghost"
         aria-label="Next match"
         title="Next match (Enter)"
+        disabled={!text || !matches?.total}
         type="submit"
       >
         <ArrowDown size={14} />

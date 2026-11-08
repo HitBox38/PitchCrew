@@ -78,7 +78,10 @@ export const approveLabel = (action: BrowserAction) =>
     ? 'Approve submission'
     : approveVerbs[action.kind];
 
-/** A one-line summary of the request for the compact tray, e.g. "Open example.com". */
+/**
+ * What the request will do, in words for the compact tray: "Open example.com", "Click “Learn more”",
+ * "Type into Email". Empty when the page gave no name; the tray then leads with the agent's reason.
+ */
 export const approvalSummary = (action: BrowserAction, page?: BrowserSnapshot) => {
   if (action.kind === 'navigate') {
     try {
@@ -91,14 +94,17 @@ export const approvalSummary = (action: BrowserAction, page?: BrowserSnapshot) =
     return action.decision === 'accept'
       ? 'Accept the website dialog'
       : 'Dismiss the website dialog';
-  // Name the element by its inspected label; otherwise the agent's reason names it.
-  const element =
-    'selector' in action
-      ? page?.controls?.find((item) => item.selector === action.selector)?.label.trim()
-      : '';
-  if (!element) return browserActionTitles[action.kind];
-  const verb = { fill: 'Type into', select: 'Choose in', upload: 'Upload to', click: 'Click' }[
-    action.kind as 'fill' | 'select' | 'upload' | 'click'
-  ];
-  return verb ? `${verb} ${element}` : browserActionTitles[action.kind];
+  if (action.kind === 'scroll') return 'Scroll the page';
+  if (action.kind === 'press') return `Press ${action.key}`;
+  const label =
+    page?.controls?.find((item) => item.selector === action.selector)?.label.trim() ||
+    page?.elements?.find((item) => item.ref === 'target')?.name.trim();
+  if (!label) return '';
+  const quoted = `“${label.length > 48 ? `${label.slice(0, 47)}…` : label}”`;
+  if (action.kind === 'click') return `Click ${quoted}`;
+  if (action.kind === 'hover') return `Hover over ${quoted}`;
+  if (action.kind === 'drag') return `Drag ${quoted}`;
+  if (action.kind === 'fill') return `Type into ${quoted}`;
+  if (action.kind === 'select') return `Choose in ${quoted}`;
+  return `Upload to ${quoted}`;
 };
