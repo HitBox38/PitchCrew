@@ -394,6 +394,7 @@ test('JSON editor completes properties and values and locates daemon validation 
   for (let index = 0; index < '{"version":1,"rules":[{"kind":"'.length; index++)
     await editor.press('ArrowRight');
   await page.keyboard.type('pa');
+  expect(await editor.innerText()).toBe('{"version":1,"rules":[{"kind":"pa"}]}');
   await page.getByRole('option', { name: /"pattern"/ }).waitFor();
   await editor.press('Enter');
   expect(JSON.parse(await editor.innerText()).rules[0].kind).toBe('pattern');
