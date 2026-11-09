@@ -7,7 +7,8 @@ import { NeededFiles } from './NeededFiles.tsx';
 import { HandoffSummary } from './PacketHandoff.tsx';
 import { PacketExport } from './PacketExport.tsx';
 import { packetHandoff } from '../handoff.ts';
-import { resumePageWarning } from '../helpers.ts';
+import { packetNeedsAction, resumePageWarning } from '../helpers.ts';
+import { ExportHandoff } from './ExportHandoff.tsx';
 import { DetectorChecks } from '@/DetectorChecks/index.tsx';
 
 const filesNote = {
@@ -23,6 +24,11 @@ export const PacketDetails = ({ approval, data }: { approval: Approval; data: Sn
   const warning = resumePageWarning(approval.artifacts ?? [], data.artifactPages);
   return (
     <div className="packet-details">
+      <ExportHandoff
+        approval={approval}
+        company={card?.company ?? 'the employer'}
+        current={packetNeedsAction(approval, data.cards)}
+      />
       <HandoffSummary
         handoff={packetHandoff(approval, data)}
         checks={packetChecks(approval, card)}

@@ -191,10 +191,18 @@ const settled = async () => {
     { timeout: 5000 },
   );
 };
+/** The control action lives at the end of the reserved tray, never in the header. */
 const headerControl = (name: string) =>
-  page.locator('.browser-panel-heading').getByRole('button', { name, exact: true });
+  page.locator('.browser-approvals').getByRole('button', { name, exact: true });
+/** Tray Take control while a run works; while idle, explicit control is in Browser options. */
 const takeControl = async () => {
-  await headerControl('Take control').click();
+  if (await headerControl('Take control').isVisible()) await headerControl('Take control').click();
+  else {
+    await page.getByRole('button', { name: 'Browser options', exact: true }).click();
+    await page
+      .getByRole('menuitem', { name: 'Keep control until I return it', exact: true })
+      .click();
+  }
   await headerControl('Return to agent').waitFor();
   await vi.waitFor(async () =>
     expect(await headerControl('Return to agent').isEnabled()).toBe(true),
@@ -202,7 +210,7 @@ const takeControl = async () => {
 };
 const returnControl = async () => {
   await headerControl('Return to agent').click();
-  await headerControl('Take control').waitFor();
+  await page.locator('.browser-state-chip:is([data-tone="idle"], [data-tone="working"])').waitFor();
 };
 /** Binds a fresh agent run to this job's browser and reloads so the panel reserves the tray. */
 const bindRun = async (mode: 'supervised' | 'autonomous' = 'supervised') => {
@@ -234,6 +242,10 @@ test('lists the page tools in Page settings and keeps only a running recording o
   ];
   for (const name of tools)
     expect(await chrome().getByRole('button', { name, exact: true }).count()).toBe(0);
+  // Picking an element is a toolbar toggle beside Find.
+  expect(
+    await chrome().getByRole('button', { name: 'Pick an element to attach', exact: true }).count(),
+  ).toBe(1);
   await takeControl();
   const settings = page.getByRole('button', { name: 'Browser page settings', exact: true });
   const panel = page.locator('.browser-settings-tools');
@@ -309,17 +321,39 @@ test('keeps the compact approval tray and page box fixed while requests appear, 
       await expect.poll(() => height(tray())).toBe(trayHeight);
       expect(await body().boundingBox()).toEqual(pageBox);
     };
-    await tray().getByText('Nothing to approve yet.', { exact: false }).waitFor();
+    await tray().getByText('appear here.', { exact: false }).waitFor();
     const approval = await request();
     const review = tray().getByRole('region', { name: 'Pending browser action', exact: true });
     await review.waitFor();
     await steady();
+    if (size.width > 1000) {
+      // Expanding to look closer keeps the inspected page size, so the request stays valid.
+      const inspected = { ...viewport };
+      await page.getByRole('button', { name: 'Expand browser', exact: true }).click();
+      await page.getByRole('button', { name: 'Back to chat', exact: true }).waitFor();
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      expect(viewport).toEqual(inspected);
+      expect(approvalStatus(approval.id)).toBe('pending');
+      // Approving while expanded keeps that size until the agent carries the action out.
+      await page
+        .locator('.browser-expanded-side')
+        .getByRole('button', { name: 'Approve opening', exact: true })
+        .click();
+      await vi.waitFor(() => expect(approvalStatus(approval.id)).toBe('approved'));
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      expect(viewport).toEqual(inspected);
+      expect(approvalStatus(approval.id)).toBe('approved');
+      await consume(approval.id);
+      await page.getByRole('button', { name: 'Back to chat', exact: true }).click();
+      await steady();
+      continue;
+    }
     expect(
       await review
         .locator('.browser-approval-body')
         .evaluate((element) => element.scrollHeight <= element.clientHeight),
     ).toBe(true);
-    const details = review.getByRole('button', { name: 'Details', exact: true });
+    const details = review.getByRole('button', { name: /^Details: / });
     await details.click();
     const evidence = page.locator('.browser-evidence-popover');
     await evidence.waitFor();
@@ -328,7 +362,7 @@ test('keeps the compact approval tray and page box fixed while requests appear, 
     await evidence.waitFor({ state: 'hidden' });
     await steady();
     expect(approvalStatus(approval.id)).toBe('pending');
-    await review.getByRole('button', { name: 'Approve interaction', exact: true }).click();
+    await review.getByRole('button', { name: 'Approve opening', exact: true }).click();
     await review.waitFor({ state: 'hidden' });
     expect(approvalStatus(approval.id)).toBe('approved');
     await steady();
@@ -338,6 +372,30 @@ test('keeps the compact approval tray and page box fixed while requests appear, 
   await page.setViewportSize({ width: 1440, height: 1000 });
 }, 30000);
 
+test('approves on Control/Command+Enter from the panel, never from a field that used the keystroke', async () => {
+  await bindRun();
+  await settled();
+  const shortcut = (await page.evaluate(() => /Mac|iPhone|iPad/.test(navigator.platform)))
+    ? 'Meta+Enter'
+    : 'Control+Enter';
+  const first = await request();
+  const review = tray().getByRole('region', { name: 'Pending browser action', exact: true });
+  await review.waitFor();
+  // In the expanded view's message box the keystroke is the box's; the request stays waiting.
+  await page.getByRole('button', { name: 'Expand browser', exact: true }).click();
+  const box = page.locator('.browser-expanded-side .browser-reply-input');
+  await box.fill('Fictional note for later');
+  await box.press(shortcut);
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  expect(approvalStatus(first.id)).toBe('pending');
+  await box.fill('');
+  await page.getByRole('button', { name: 'Back to chat', exact: true }).click();
+  // From a non-field control in the panel, it approves the waiting request.
+  await review.getByRole('button', { name: /^Details: / }).focus();
+  await page.keyboard.press(shortcut);
+  await vi.waitFor(() => expect(approvalStatus(first.id)).toBe('approved'));
+  await consume(first.id);
+}, 30000);
 test('offers task site grants from a Site access popover without growing the tray', async () => {
   await bindRun('autonomous');
   await settled();
@@ -371,18 +429,28 @@ test('shows private control over the page and in the reserved tray without resiz
   await bindRun();
   await settled();
   const trayHeight = await height(tray());
+  const slot = page.locator('.browser-state-slot');
+  const working = (await slot.boundingBox())!.width;
   await takeControl();
-  const bar = page.locator('.clay-control-bar');
-  await bar.waitFor();
-  expect(await bar.textContent()).toContain('You’re controlling');
-  const trayReturn = tray().getByRole('button', { name: 'Return to agent', exact: true });
-  await trayReturn.waitFor();
+  // One state chip says who has the page (ochre: the run waits on you); the tray says the agent
+  // waits and offers the return.
+  const chip = page.locator('.browser-state-chip[data-tone="held"]');
+  await chip.waitFor();
+  expect(await chip.textContent()).toContain('You have control');
+  // The widest run state fits the reserved slot, so a takeover never moves the tabs.
+  expect((await slot.boundingBox())!.width).toBe(working);
+  await tray().getByText('waits until you return the page', { exact: false }).waitFor();
+  expect(
+    await page
+      .locator('.browser-panel-heading')
+      .getByRole('button', { name: 'Return to agent', exact: true })
+      .count(),
+  ).toBe(0);
   await expect.poll(() => height(tray())).toBe(trayHeight);
   expect(setManual).toHaveBeenLastCalledWith(true);
-  await trayReturn.click();
+  await headerControl('Return to agent').click();
   await headerControl('Take control').waitFor();
-  await bar.waitFor({ state: 'hidden' });
-  await trayReturn.waitFor({ state: 'hidden' });
+  await chip.waitFor({ state: 'hidden' });
   await expect.poll(() => height(tray())).toBe(trayHeight);
   await vi.waitFor(() => expect(setManual).toHaveBeenLastCalledWith(false));
   expect(host.daemon.service.computer.browsers.list()[0].manual).toBe(false);
@@ -498,8 +566,11 @@ test('expands beside an activity column, mirrors the message draft and steps bac
   await expand.click();
   await side.waitFor();
   await side.locator('.browser-reply-input').fill('');
-  await page.getByRole('button', { name: 'Hide browser', exact: true }).click();
+  // Expanded view offers only Back to chat; hiding the panel happens from the split view.
+  expect(await page.getByRole('button', { name: 'Hide browser', exact: true }).count()).toBe(0);
+  await back.click();
   await side.waitFor({ state: 'hidden' });
+  await page.getByRole('button', { name: 'Hide browser', exact: true }).click();
   await page.locator('#agent-browser-panel').waitFor({ state: 'hidden' });
   await vi.waitFor(async () => expect(await lastMount()).toBeNull());
   expect(await expand.count()).toBe(0);

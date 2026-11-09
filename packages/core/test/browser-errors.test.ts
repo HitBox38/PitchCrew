@@ -1,5 +1,10 @@
 import { expect, it } from 'vitest';
-import { browserErrorText } from '../src/browser-errors.ts';
+import {
+  browserErrorText,
+  isUserControlError,
+  isUserControlPause,
+  userControlPauseLabel,
+} from '../src/browser-errors.ts';
 
 it('removes ANSI styling without losing the timeout, URL, call log or line breaks', () => {
   const plain =
@@ -26,4 +31,19 @@ it.each([
   'Selector [name="resume"] was not found.',
 ])('preserves ordinary diagnostics: %s', (message) => {
   expect(browserErrorText(message)).toBe(message);
+});
+
+it('recognizes the browser errors a user takeover produces, including expired approvals', () => {
+  for (const message of [
+    'Manual control is active. Wait for the user to return browser control.',
+    'Manual control changed. Inspect the browser again.',
+    'Browser action is rejected. Manual control invalidated browser approval.',
+    'Browser control changed. Inspect again.',
+    'Browser is controlled in another view. Return control there first.',
+  ])
+    expect(isUserControlError(message)).toBe(true);
+  expect(isUserControlError('Browser action is rejected.')).toBe(false);
+  expect(isUserControlError('page.goto: Timeout 20000ms exceeded.')).toBe(false);
+  expect(isUserControlPause({ status: 'interrupted', label: userControlPauseLabel })).toBe(true);
+  expect(isUserControlPause({ status: 'failed', label: userControlPauseLabel })).toBe(false);
 });

@@ -565,6 +565,7 @@ describe('profile maintenance', () => {
     await f.daemon.close();
     const restarted = await createDaemon({
       dev: true,
+      ui: false,
       directory: f.directory,
       port: 14604,
       seedSkills: false,

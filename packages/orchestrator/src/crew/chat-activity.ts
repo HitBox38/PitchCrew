@@ -44,6 +44,7 @@ export const recordChatActivity = (
   context: CrewContext,
   runId: string,
   update: RuntimeActivity,
+  { latest = false }: { latest?: boolean } = {},
 ) => {
   const run = context.board.get<Run>('run', runId);
   if (
@@ -83,9 +84,12 @@ export const recordChatActivity = (
     startedAt: existing?.startedAt ?? observedStart ?? now,
     finishedAt: update.status === 'running' ? null : (existing?.finishedAt ?? now),
   };
-  state.entries = existing
-    ? state.entries.map((current) => (current === existing ? entry : current))
-    : [...state.entries, entry];
+  // A row an earlier step started, continued now (an approved browser action carried out after
+  // other calls), moves to the latest position: "latest step" readers follow position.
+  state.entries =
+    existing && !latest
+      ? state.entries.map((current) => (current === existing ? entry : current))
+      : [...state.entries.filter((current) => current !== existing), entry];
   context.runActivities.set(runId, state);
   checkpointActivity(context, runId);
   context.publishChat();

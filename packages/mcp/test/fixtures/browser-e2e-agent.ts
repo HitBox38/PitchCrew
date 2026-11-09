@@ -68,7 +68,7 @@ export const browserE2EChat: RuntimeAdapter['chat'] = async (context) => {
       } catch (error) {
         const detail = error instanceof Error ? error.message : String(error);
         if (/native browser resized|page (?:has )?changed/i.test(detail)) continue;
-        if (/Browser action is rejected/.test(detail))
+        if (/Browser action is rejected|user declined this browser action/.test(detail))
           return { reply: 'I did not perform the rejected E2E action.' };
         throw error;
       }

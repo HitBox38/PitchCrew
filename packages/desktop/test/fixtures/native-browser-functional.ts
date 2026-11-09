@@ -657,7 +657,7 @@ Native input: ${JSON.stringify(await fixture({ kind: 'input-signals', id: state.
     (await recoveryStep('read crash metadata', driver.nativeState!())).tabs.find(
       (tab) => tab.id === state.activeTab,
     )!.error!,
-    /stopped responding/,
+    /Reload to bring the page back/,
   );
   const recoveredState = await recoveryStep(
     'reload and attach the recovered page',

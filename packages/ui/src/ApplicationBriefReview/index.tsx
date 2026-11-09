@@ -1,5 +1,6 @@
 import { Button } from '@pitchcrew/design-system/button';
 import { BriefActions } from './components/BriefActions.tsx';
+import { ConfirmBrief } from './components/ConfirmBrief.tsx';
 import { FlaggedSource } from './components/FlaggedSource.tsx';
 import { BriefFields } from './components/BriefFields.tsx';
 import { BriefSummary } from './components/BriefSummary.tsx';
@@ -16,6 +17,8 @@ export const ApplicationBriefReview = ({
   model: ReturnType<typeof useApplicationBrief>;
 }) => {
   const { draft, setDraft, loaded, editing, confirmed, disabled } = model;
+  // Without a brief, the agent path leads; manual preparation stays one click away.
+  const extractFirst = Boolean(loaded && !loaded.context && !editing);
   return (
     <section className="form grid gap-3" aria-label="Application brief review">
       <h3>Application brief</h3>
@@ -36,6 +39,7 @@ export const ApplicationBriefReview = ({
       )}
       {loaded?.context && !editing && !confirmed ? <BriefSummary value={draft} /> : null}
       <FlaggedSource items={draft.flagged} />
+      {extractFirst ? <BriefActions model={model} card={card} /> : null}
       <FormPreparation model={model} card={card} />
       {editing ? (
         <>
@@ -44,19 +48,7 @@ export const ApplicationBriefReview = ({
             value={draft.requirements}
             change={(requirements) => setDraft({ ...draft, requirements })}
           />
-          <div className="flex flex-wrap gap-2">
-            <Button
-              disabled={disabled || Boolean(card.url && !draft.form)}
-              onClick={() => {
-                void model.confirm();
-              }}
-            >
-              Confirm complete brief and requirements
-            </Button>
-            <Button variant="outline" disabled={disabled} onClick={model.cancelEditing}>
-              Cancel editing
-            </Button>
-          </div>
+          <ConfirmBrief model={model} />
         </>
       ) : (
         <Button
@@ -68,7 +60,7 @@ export const ApplicationBriefReview = ({
           {loaded?.context ? 'Review or edit brief' : 'Prepare brief manually'}
         </Button>
       )}
-      <BriefActions model={model} card={card} />
+      {loaded?.context ? <BriefActions model={model} card={card} /> : null}
     </section>
   );
 };

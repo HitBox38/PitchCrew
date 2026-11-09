@@ -2,22 +2,25 @@ import { useState } from 'react';
 import type { Run } from '@pitchcrew/core';
 import { Collapsible, CollapsibleContent } from '@pitchcrew/design-system/collapsible';
 import { ActivityEntries } from './ActivityEntries.tsx';
-import { activityPreview, activitySummary } from '../activity-summary.ts';
+import { activityPreview, activitySummary, blockedSteps } from '../activity-summary.ts';
 import { TurnActivityTrigger } from './TurnActivityTrigger.tsx';
+import { useRunWait } from '../hooks/useRunWait.ts';
 
 /** One disclosure per turn; completed operational chatter yields to the answer. */
 export const TurnActivity = ({ run }: { run: Run }) => {
   const [open, setOpen] = useState(false);
+  const { approval, waiting, blocked } = useRunWait(run);
   const entries = run.activity ?? [];
   const summary = activitySummary(entries);
   if (!summary && !run.activityTruncated) return null;
-  const preview = activityPreview(run);
+  const waitingSteps = blockedSteps(entries, blocked);
+  const preview = activityPreview(run, waiting, approval ? waitingSteps : undefined);
   return (
     <div className="chat-turn-body ml-7.5" data-active={run.status === 'running' || undefined}>
       <Collapsible open={open} onOpenChange={setOpen} className="chat-turn-activity">
         <TurnActivityTrigger run={run} open={open} />
         <CollapsibleContent className="chat-turn-log">
-          <ActivityEntries entries={entries} />
+          <ActivityEntries entries={entries} waiting={waitingSteps} />
           {run.activityTruncated ? (
             <p className="text-detail text-muted-foreground">
               Activity is limited to 80 entries; some steps are omitted.
@@ -27,7 +30,7 @@ export const TurnActivity = ({ run }: { run: Run }) => {
       </Collapsible>
       {!open && preview.length ? (
         <div className="chat-turn-preview">
-          <ActivityEntries entries={preview} />
+          <ActivityEntries entries={preview} waiting={waitingSteps} />
         </div>
       ) : null}
     </div>

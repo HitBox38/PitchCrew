@@ -29,7 +29,7 @@ Attachment viewing, approval placement and the submission handoff below are unch
 - Browser reading views keep the requested action, target and exact values visible. Frozen screenshots and captured page text appear as separate evidence tiles opening large image/text viewers.
 - Packet reading views offer a separate Ask Writer for changes action that opens the job conversation with the packet referenced. The user writes and sends the instructions there; this handoff does not reject the packet or start Writer automatically. Reject remains a simple decline.
 - Completed requests stay open with their outcome visible and Next request / Back to inbox controls. Exported-file downloads remain available where applicable. Do not automatically open the next request.
-- Approving a packet keeps its reading view open and presents a submission-method choice: Submit myself or Let an agent submit. Choosing either method exports the approved files automatically, replacing the separate Export packet click in this flow.
+- Approving a packet keeps its reading view open and presents a submission-method choice: Export to apply myself or Let an agent submit. Choosing either method exports the approved files automatically, replacing the separate Export packet click in this flow.
 - Provide search across agent, job, subject and attachment filename, an unread filter and mark-read/mark-unread controls. Do not add stars, archiving or deletion as part of this redesign.
 - Attachment dialogs offer Previous / Next controls across the current request's attachments, updating the filename and type-specific toolbar for each file. Escape or Close returns to the reading view and restores focus to the attachment tile.
 - Provide browser-style file viewing controls, including explicit Zoom in / Zoom out and Find in document. File search is separate from Inbox list search.
@@ -37,15 +37,15 @@ Attachment viewing, approval placement and the submission handoff below are unch
 
 ## Post-approval submission handoff
 
-- After packet approval, offer Submit myself and Let an agent submit in the request reading view.
+- After packet approval, offer Export to apply myself and Let an agent submit in the request reading view.
 - Approval alone does not choose a submission method or launch an agent.
 - The manual path should lead to the reviewed files and employer application page. The agent path should lead to a job-scoped application task with visible progress and any required user input.
 - Choosing Let an agent submit starts agent-assisted preparation, not blanket permission to submit. The agent fills the form and attaches the reviewed files under existing browser permissions, then requests user approval of the exact final submission action. After approval, the agent performs that action. Existing supervision of other browser interactions remains in force.
-- Submit myself exports the reviewed files, then presents their downloads and the employer application link. Let an agent submit exports the same reviewed files before queuing agent preparation. Approval alone does not export files.
+- Export to apply myself exports the reviewed files, then presents their downloads and the employer application link. Let an agent submit exports the same reviewed files before queuing agent preparation. Approval alone does not export files.
 - An export failure keeps the user on the request with a visible error and retry. Do not launch agent preparation until export succeeds. Reuse an existing valid export when continuing the same approved packet rather than consuming approval a second time.
 - Let an agent submit opens a small agent chooser with Submitter as the default. Show the selected agent's name and effective browser permissions, allow choosing another eligible agent, and queue preparation only when the user presses Start preparation.
 - Resolve the default by the built-in Submitter identity, retaining its current user-configured display name and settings. Do not substitute Writer based on who drafted the packet.
-- If Submitter is unavailable, keep it selected with a clear blocker and disable Start preparation. Offer Set up Submitter, an explicit choice of another eligible agent, and Submit myself. Do not switch agents, enable roles or grant capabilities automatically.
+- If Submitter is unavailable, keep it selected with a clear blocker and disable Start preparation. Offer Set up Submitter, an explicit choice of another eligible agent, and Export to apply myself. Do not switch agents, enable roles or grant capabilities automatically.
 - Setup and recovery should preserve the approved request and any successful export so the user can return and continue without repeating those steps.
 - After Start preparation successfully queues the task, open its job-attached conversation with the selected agent's browser panel visible. Keep live progress, agent questions, private manual sign-in/CAPTCHA handling and exact-action approval in that conversation's existing browser flow. If queued for capacity, show that waiting state rather than implying the agent has started.
 - Inbox retains an application-progress summary and Continue application link to that exact conversation/task. Returning to Inbox or closing the browser panel does not cancel the work.
@@ -54,7 +54,7 @@ Attachment viewing, approval placement and the submission handoff below are unch
 - Retain job-details verification as another entry point to the same saved submission attempt and decision. Resolving from either location updates both, rather than creating independent confirmations.
 - A user switching from agent preparation to manual completion takes control of the same embedded browser. Pause agent actions and inspection, retain the current form and attached files, and let the user finish there or explicitly return control to the agent.
 - Preserve the existing private takeover behavior: invalidate unused browser approvals, require fresh inspection on return, and keep the agent paused after controller disconnection or lease expiry. Taking control cannot bypass an unresolved submission attempt.
-- After Submit myself exports the packet, keep its submission follow-up in Needs action as Ready for you to submit, with file downloads, the employer application link and I've submitted. Leaving it for later does not mark it submitted or resolve the follow-up.
+- After Export to apply myself exports the packet, keep its submission follow-up in Needs action as Ready for you to submit, with file downloads, the employer application link and I've submitted. Leaving it for later does not mark it submitted or resolve the follow-up.
 - I've submitted records the user's manual submission through the existing bookkeeping path after they have applied. Share the saved outcome with job details; do not create a second independent submission record. An unresolved browser submission attempt must be resolved through verification instead of this manual shortcut.
 - Offer Not applying on an outstanding submission follow-up. After the user confirms, mark the job Withdrawn and move the follow-up to History with its outcome visible. This updates local bookkeeping only and does not communicate with the employer. Withdrawing from the board or job details resolves the same follow-up.
 

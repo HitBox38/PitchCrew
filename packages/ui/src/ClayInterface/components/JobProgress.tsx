@@ -1,7 +1,8 @@
 import type { Card, Snapshot } from '@pitchcrew/core';
 import { executingRuns } from '@/lib/work-queue.ts';
 import { trackIndex } from '../helpers.ts';
-import { decisions } from '../signals.ts';
+import { cardPacketStage } from '../packet-guidance.ts';
+import { jobAsks } from '../signals.ts';
 import { NextUp } from './NextUp.tsx';
 import { StageTrack } from './StageTrack.tsx';
 
@@ -12,7 +13,7 @@ import { StageTrack } from './StageTrack.tsx';
 export const JobProgress = ({ card, data }: { card: Card; data: Snapshot }) => {
   if (trackIndex(card.state) === null) return null;
   const live = executingRuns(data.runs).some((item) => item.cardId === card.id);
-  const asks = decisions(data).some((item) => item.cardId === card.id);
+  const asks = jobAsks(card.id, data);
   return (
     <section className="clay-job-progress" aria-label={`${card.company} progress`}>
       <StageTrack
@@ -21,6 +22,7 @@ export const JobProgress = ({ card, data }: { card: Card; data: Snapshot }) => {
         tone={asks ? 'ochre' : undefined}
         size="md"
         labelled
+        stage={cardPacketStage(card, data.approvals)}
       />
       <NextUp card={card} data={data} />
     </section>

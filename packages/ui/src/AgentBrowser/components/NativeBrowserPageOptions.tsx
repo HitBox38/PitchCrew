@@ -1,12 +1,5 @@
 import { Button } from '@pitchcrew/design-system/button';
-import { useId } from 'react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@pitchcrew/design-system/select';
+import { Code2, Volume2, VolumeX } from 'lucide-react';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
 
 const appearances = [
@@ -15,6 +8,10 @@ const appearances = [
   { value: 'dark', label: 'Dark' },
 ] as const;
 
+/**
+ * Per-page options as menu rows, and the website's appearance as a three-way segment. A pending
+ * command disables them but keeps their focus, so Escape still closes only this menu.
+ */
 export const NativeBrowserPageOptions = ({
   model,
   manual,
@@ -23,55 +20,51 @@ export const NativeBrowserPageOptions = ({
   manual: boolean;
 }) => {
   const tab = model.state?.tabs.find((item) => item.id === model.state?.activeTab);
-  const appearanceId = useId();
+  const current = tab?.colorScheme ?? 'system';
   return (
-    <div className="mt-3 grid gap-2">
-      <label className="grid gap-1 text-xs" htmlFor={appearanceId}>
-        Website appearance
-        <Select
-          items={appearances}
-          value={tab?.colorScheme ?? 'system'}
+    <>
+      <fieldset className="browser-menu-group" aria-label="Page options">
+        <Button
+          className="browser-menu-row"
+          size="sm"
+          variant="ghost"
+          focusableWhenDisabled
           disabled={!manual}
-          onValueChange={(value) => {
-            if (value) void model.command({ kind: 'appearance', colorScheme: value });
-          }}
+          onClick={() => void model.command({ kind: 'mute', muted: !tab?.muted })}
         >
-          <SelectTrigger id={appearanceId} aria-label="Website appearance">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {appearances.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </label>
-      <Button
-        size="sm"
-        variant="outline"
-        disabled={!manual}
-        onClick={() => void model.command({ kind: 'mute', muted: !tab?.muted })}
-      >
-        {tab?.muted ? 'Unmute page' : 'Mute page'}
-      </Button>
-      <Button
-        size="sm"
-        variant="outline"
-        disabled={!manual || !/^https?:\/\//i.test(tab?.url ?? '')}
-        onClick={() => void model.command({ kind: 'open-external' })}
-      >
-        Open in system browser
-      </Button>
-      <Button
-        size="sm"
-        variant="outline"
-        disabled={!manual}
-        onClick={() => void model.command({ kind: 'devtools' })}
-      >
-        Open developer tools
-      </Button>
-    </div>
+          {tab?.muted ? <Volume2 size={14} /> : <VolumeX size={14} />}
+          {tab?.muted ? 'Unmute page' : 'Mute page'}
+        </Button>
+        <Button
+          className="browser-menu-row"
+          size="sm"
+          variant="ghost"
+          focusableWhenDisabled
+          disabled={!manual}
+          onClick={() => void model.command({ kind: 'devtools' })}
+        >
+          <Code2 size={14} />
+          Open developer tools
+        </Button>
+      </fieldset>
+      <fieldset className="browser-menu-zoom" aria-label="Website appearance">
+        <span className="browser-menu-zoom-label">Appearance</span>
+        <div className="browser-menu-segment">
+          {appearances.map((item) => (
+            <Button
+              key={item.value}
+              size="sm"
+              variant="ghost"
+              aria-pressed={current === item.value}
+              focusableWhenDisabled
+              disabled={!manual}
+              onClick={() => void model.command({ kind: 'appearance', colorScheme: item.value })}
+            >
+              {item.label}
+            </Button>
+          ))}
+        </div>
+      </fieldset>
+    </>
   );
 };

@@ -1,5 +1,4 @@
 import { execFile } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { expect, it } from 'vitest';
 
@@ -36,7 +35,7 @@ it('starts and snapshots a workspace without initializing optional document or b
   `;
   const { stdout } = await promisify(execFile)(
     process.execPath,
-    ['--import', fileURLToPath(import.meta.resolve('tsx')), '--input-type=module', '-e', script],
+    ['--import', import.meta.resolve('tsx'), '--input-type=module', '-e', script],
     { timeout: 15000 },
   );
   expect(stdout).toContain('daemon snapshot ready');

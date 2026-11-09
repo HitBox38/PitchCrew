@@ -1,20 +1,19 @@
 import { Component, type ReactNode } from 'react';
-import { Button } from '@pitchcrew/design-system/button';
+import { LoadFailure } from '@/LoadRecovery/index.tsx';
 
 /** A failed optional settings chunk must not take down workspace navigation. */
-export class SettingsErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
-  state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
+export class SettingsErrorBoundary extends Component<{ children: ReactNode }, { error: unknown }> {
+  state = { error: null as unknown };
+  static getDerivedStateFromError(error: unknown) {
+    return { error: error ?? new Error('This settings section could not load.') };
   }
   render() {
-    return this.state.failed ? (
-      <div className="settings-callout" role="alert">
-        <p>This settings section could not load. Reload Pitchcrew to try again.</p>
-        <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
-          Reload Pitchcrew
-        </Button>
-      </div>
+    return this.state.error ? (
+      <LoadFailure
+        subject="This settings section"
+        error={this.state.error}
+        onRetry={() => this.setState({ error: null })}
+      />
     ) : (
       this.props.children
     );

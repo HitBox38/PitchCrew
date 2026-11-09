@@ -1,47 +1,46 @@
-import { CircleDot, EyeOff, Info, ShieldCheck } from 'lucide-react';
 import { Button } from '@pitchcrew/design-system/button';
 import { PopoverTrigger } from '@pitchcrew/design-system/popover';
-import { cn } from '@pitchcrew/design-system/utils';
-import type { BrowserModeChip } from '../layout.ts';
+import { browserStateBead, type browserState } from '../layout.ts';
 
-const icons = { supervised: CircleDot, autonomous: ShieldCheck, private: EyeOff };
-
-/** Opens task details; it is the mode chip (Supervised, Autonomous preparation or Private)
- * whenever a task or takeover is active. */
+/**
+ * The header's one state chip: who has the page right now, as a bead and a short label. It opens
+ * task details (mode, task and site access); its tooltip carries the privacy note.
+ */
 export const BrowserTaskTrigger = ({
-  chip,
-  elsewhere,
+  state,
+  nudged,
 }: {
-  chip: BrowserModeChip | null;
-  elsewhere: boolean;
+  state: ReturnType<typeof browserState>;
+  /** The user pressed the page while the agent works: flash ochre toward Take control. */
+  nudged: boolean;
 }) => {
-  const Icon = chip ? icons[chip.tone] : Info;
-  const where = elsewhere ? ' This browser belongs to another conversation.' : '';
+  const bead = browserStateBead[state.tone];
   return (
     <PopoverTrigger
       render={
         <Button
-          size={chip ? 'sm' : 'icon-sm'}
+          size="sm"
           variant="ghost"
-          className={cn(
-            'browser-task-trigger',
-            chip && 'browser-mode-chip',
-            elsewhere && 'browser-task-elsewhere',
-          )}
-          data-tone={chip?.tone}
-          aria-label={chip ? `Browser task details: ${chip.label}` : 'Browser task details'}
-          title={
-            chip
-              ? `${chip.detail}${where}`
-              : elsewhere
-                ? 'This browser belongs to another conversation'
-                : 'Current task, permissions and site access'
-          }
+          className="browser-state-chip"
+          data-tone={state.tone}
+          data-nudged={nudged || undefined}
+          aria-label={`Browser status: ${state.label}. Task details`}
+          title={state.detail}
         />
       }
     >
-      <Icon size={chip ? 14 : 15} aria-hidden={chip ? true : undefined} />
-      {chip ? <span className="truncate">{chip.label}</span> : null}
+      {state.tone === 'opening' ? (
+        <span className="clay-job-spinner" aria-hidden="true" />
+      ) : (
+        <span
+          className="clay-bead"
+          data-size="sm"
+          data-tone={nudged ? 'ochre' : (bead ?? undefined)}
+          data-empty={nudged || bead ? undefined : ''}
+          aria-hidden="true"
+        />
+      )}
+      <span className="truncate">{state.label}</span>
     </PopoverTrigger>
   );
 };

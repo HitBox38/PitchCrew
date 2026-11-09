@@ -54,10 +54,12 @@ export const BrowserSurface = ({
           } as CSSProperties
         }
         showCloseButton={false}
+        // Expanded: Back to chat. The narrow sheet: the sheet itself, so opening it neither
+        // selects the address (or raises a touch keyboard) nor lets a stray Space pause the agent.
         initialFocus={() =>
-          document.querySelector<HTMLButtonElement>(
-            '#agent-browser-panel [data-browser-controls] button',
-          )
+          document.querySelector<HTMLElement>(
+            '#agent-browser-panel .browser-expand[aria-label="Back to chat"]',
+          ) ?? document.querySelector<HTMLElement>('#agent-browser-panel')
         }
         finalFocus={() =>
           document.querySelector<HTMLButtonElement>('button[aria-controls="agent-browser-panel"]')

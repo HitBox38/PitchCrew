@@ -3,7 +3,7 @@ import { Button } from '@pitchcrew/design-system/button';
 import { recentPageRows } from '../clay-states.ts';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
 
-/** This conversation's recently closed tabs under the empty page. */
+/** Under the empty page: this conversation's closed tabs, or else recently visited pages. */
 export const ClayRecentPages = ({
   model,
   manual,
@@ -11,11 +11,13 @@ export const ClayRecentPages = ({
   model: NativeBrowserModel;
   manual: boolean;
 }) => {
-  const rows = recentPageRows(model.history.closedTabs);
+  const closed = model.history.closedTabs.length > 0;
+  const rows = recentPageRows(closed ? model.history.closedTabs : model.history.visits);
   if (!rows.length) return null;
+  const heading = closed ? 'Recently closed' : 'Recently visited';
   return (
-    <section className="clay-recent-pages" aria-label="Recently closed">
-      <h4>Recently closed</h4>
+    <section className="clay-recent-pages" aria-label={heading}>
+      <h4>{heading}</h4>
       {rows.map((row) => (
         <Button
           key={row.url}
@@ -24,8 +26,8 @@ export const ClayRecentPages = ({
           disabled={!manual}
           title={row.url}
           onClick={() =>
-            void model.navigate(row.url, true).then((succeeded) => {
-              if (succeeded) model.history.forgetClosed(row.url);
+            void model.navigate(row.url, closed).then((succeeded) => {
+              if (succeeded && closed) model.history.forgetClosed(row.url);
             })
           }
         >

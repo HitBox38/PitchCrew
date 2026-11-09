@@ -1,6 +1,11 @@
 import { expect, it } from 'vitest';
 import type { DesktopBrowserView } from '../../../../core/src/native-browser.ts';
-import { browserViewStyle } from '../presentation.ts';
+import {
+  browserPagePoint,
+  browserPageRect,
+  browserViewStyle,
+  targetEdge,
+} from '../presentation.ts';
 
 const view: DesktopBrowserView = {
   token: 'guest',
@@ -23,6 +28,8 @@ it('keeps the selected page live within renderer stacking across paint activity'
     opacity: 1,
   });
   expect(shown.zIndex).toBeLessThan(50);
+  // A page without its own background reads on white, never on the app's (dark) paper.
+  expect(shown.background).toBe('#fff');
   expect(browserViewStyle({ ...view, painting: true })).toEqual(shown);
   expect(browserViewStyle({ ...view, manual: false })).toMatchObject({
     visibility: 'visible',
@@ -116,4 +123,31 @@ it('fits device presentation to the available space while preserving the inspect
   expect(fixed.width).toBe(390);
   expect(fixed.height).toBe(844);
   expect(fixed.transform).toBe(`scale(${500 / 844})`);
+});
+
+it('places the agent cursor on the presented page, including a scaled fixed viewport', () => {
+  expect(browserPagePoint(view, { x: 10, y: 20 })).toEqual({ x: 410, y: 220 });
+  // A 1400x1000 device page fits a 700x500 slot at half scale, centred horizontally.
+  const scaled = { ...view, viewport: { width: 1400, height: 1000 } };
+  expect(browserPagePoint(scaled, { x: 100, y: 100 })).toEqual({ x: 450, y: 250 });
+  expect(browserPagePoint({ ...view, bounds: null }, { x: 1, y: 1 })).toBeNull();
+  expect(browserPagePoint(view, { x: 5000, y: 10 })).toBeNull();
+});
+
+it('maps a waiting request target box onto the presented page at the same scale', () => {
+  const box = { x: 100, y: 100, width: 200, height: 40 };
+  expect(browserPageRect(view, box)).toEqual({ x: 500, y: 300, width: 200, height: 40 });
+  const scaled = { ...view, viewport: { width: 1400, height: 1000 } };
+  expect(browserPageRect(scaled, box)).toEqual({ x: 450, y: 250, width: 100, height: 20 });
+  expect(browserPageRect({ ...view, bounds: null }, box)).toBeNull();
+});
+
+it('points past the page edge only when a target is mostly hidden', () => {
+  const frame = { y: 100, height: 500 };
+  expect(targetEdge(frame, { y: 300, height: 40 })).toBeNull();
+  // Half of a 40px link still shows at the bottom edge: the ring is enough.
+  expect(targetEdge(frame, { y: 580, height: 40 })).toBeNull();
+  expect(targetEdge(frame, { y: 595, height: 40 })).toBe('below');
+  expect(targetEdge(frame, { y: 900, height: 40 })).toBe('below');
+  expect(targetEdge(frame, { y: 20, height: 40 })).toBe('above');
 });

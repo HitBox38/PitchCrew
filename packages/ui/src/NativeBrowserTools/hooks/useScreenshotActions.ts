@@ -2,10 +2,22 @@ import { useState, type RefObject } from 'react';
 import { browserCanvasBlob, browserBlobBase64 } from '../media.ts';
 import { chatAttachmentLimits } from '@pitchcrew/core/chat-attachments';
 
+/** "browser-element-apply-now-….png" for a picked element, "browser-screenshot-….png" otherwise. */
+export const screenshotFileName = (label?: string, now = Date.now()) => {
+  const slug = (label ?? '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40);
+  return label ? `browser-element-${slug || 'pick'}-${now}.png` : `browser-screenshot-${now}.png`;
+};
+
 export const useScreenshotActions = (
   canvas: RefObject<HTMLCanvasElement | null>,
   close: () => void,
   attach?: (file: File) => void,
+  /** A picked element's label; it names the attached file. */
+  label?: string,
 ) => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -44,7 +56,7 @@ export const useScreenshotActions = (
           throw new Error(
             'This screenshot is larger than the 10 MB attachment limit. Save it locally.',
           );
-        attach(new File([blob], `browser-screenshot-${Date.now()}.png`, { type: 'image/png' }));
+        attach(new File([blob], screenshotFileName(label), { type: 'image/png' }));
         close();
       }),
     reveal: () => {

@@ -899,8 +899,9 @@ test('the real VT browser surface serializes input, sends bounded resize and can
   ).toBe(true);
   await capture('native-signin-terminal-desktop');
   await sheet().getByRole('button', { name: 'Cancel sign-in', exact: true }).click();
-  expect(cancel).toHaveBeenCalledWith('codex', 'fixture-flow');
+  // A completed click does not await the cancellation HTTP request.
   await sheet().getByText('Fictional terminal cancelled.', { exact: true }).waitFor();
+  expect(cancel).toHaveBeenCalledWith('codex', 'fixture-flow');
   expect(await terminal.count()).toBe(0);
 });
 

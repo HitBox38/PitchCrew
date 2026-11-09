@@ -9,6 +9,7 @@ import { packetNeedsReview } from '../helpers.ts';
 import { HandoffSummary } from '@/components/InboxView/components/PacketHandoff.tsx';
 import { cardHandoff } from '@/components/InboxView/handoff.ts';
 import { DetectorChecks } from '@/DetectorChecks/index.tsx';
+import { jobNextAction } from '../next-action.ts';
 
 export const ApplicationSectionContent = ({
   model,
@@ -43,18 +44,26 @@ export const ApplicationSectionContent = ({
       </div>
     );
   if (card.state === 'agreed' && !packetNeedsReview(card))
-    return <ExportRequest card={card} act={model.act} working={busy} />;
+    return (
+      <ExportRequest
+        choices={model.exportChoices}
+        working={busy}
+        footer={jobNextAction(model).perform === model.exportChoices.request}
+      />
+    );
   return (
     <>
       <p className="quiet">
         {model.exported
-          ? 'The current packet was exported. Record submission only after you have applied.'
+          ? 'The current packet was exported. Continue in Decisions to apply, then record submission only after you have applied.'
           : card.state === 'awaiting_approval'
             ? 'Your exact documents are waiting for review in Decisions.'
             : 'Complete packet review before requesting export approval.'}
       </p>
       {card.state === 'awaiting_approval' && !model.exported ? (
-        <Button onClick={model.openInbox}>Open in Decisions</Button>
+        <Button variant="outline" onClick={model.openInbox}>
+          Open in Decisions
+        </Button>
       ) : null}
     </>
   );

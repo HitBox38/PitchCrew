@@ -15,6 +15,10 @@ export const chatRoleState = (
   role: Role,
   questions: UserInputRequest[],
   busy: boolean,
+  /** A run here waits for the user's decision on a browser action. */
+  approving = false,
+  /** A run here is paused because the user holds its browser page. */
+  held = false,
 ) => {
   const roleState = role.retiredAt
     ? 'Retired'
@@ -24,8 +28,12 @@ export const chatRoleState = (
         ? 'Unavailable'
         : questions.some((question) => question.roleId === role.id)
           ? 'Waiting for you'
-          : busy
-            ? 'Working'
-            : 'Ready';
+          : approving
+            ? 'Waiting for your OK'
+            : held
+              ? 'Paused · you have control'
+              : busy
+                ? 'Working'
+                : 'Ready';
   return roleState;
 };

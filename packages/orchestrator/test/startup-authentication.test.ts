@@ -28,6 +28,7 @@ it('serves the workspace while authentication is pending, but never launches wor
     port: 15014,
     seedSkills: false,
     dev: true,
+    ui: false,
     runtimeAuthenticationChecks: true,
   });
   try {

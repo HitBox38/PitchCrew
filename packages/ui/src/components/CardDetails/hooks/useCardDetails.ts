@@ -6,7 +6,9 @@ import type { Packet } from '@pitchcrew/core';
 import { workflowSeat } from '@pitchcrew/core/states';
 import { useState } from 'react';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
+import { packetExported } from '@/lib/job-step.ts';
 import { useApplicationBrief } from '@/ApplicationBriefReview/hooks/useApplicationBrief.ts';
+import { useExportChoices } from './useExportChoices.ts';
 
 export const useCardDetails = (props: CardDetailsProps) => {
   const { card, data, action, working } = props;
@@ -21,6 +23,7 @@ export const useCardDetails = (props: CardDetailsProps) => {
     props.initialSection === 'application' ? ['brief'] : [],
   );
   const work = useJobWork(card);
+  const exportChoices = useExportChoices(card, action);
   const agents = jobAgents(card.id, data);
   const run = agents.find(({ run }) => run.status === 'running')?.run;
   const busy =
@@ -57,13 +60,7 @@ export const useCardDetails = (props: CardDetailsProps) => {
     setSections((current) => (current.includes(section) ? current : [...current, section]));
     requestAnimationFrame(() => documentElement(section)?.focus());
   };
-  const exported = data.approvals.some(
-    (approval) =>
-      approval.cardId === card.id &&
-      approval.status === 'consumed' &&
-      approval.exportDirectory &&
-      JSON.stringify(approval.packet) === JSON.stringify(card.packet),
-  );
+  const exported = packetExported(card, data.approvals);
   const seat =
     card.state === 'lead'
       ? 'scout'
@@ -79,6 +76,7 @@ export const useCardDetails = (props: CardDetailsProps) => {
     document,
     setDocument,
     brief,
+    exportChoices,
     sections,
     setSections,
     openApplication,

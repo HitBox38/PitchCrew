@@ -2,6 +2,8 @@
 
 T3 Code is the implementation reference for Pitchcrew's desktop browser. Pitchcrew retains its clay/paper materials and its application-specific approval, scoped-session and private-control rules.
 
+The [2026-11 review](browser-t3code-review.md) re-ran this comparison against real websites and a real runtime. It found that the fixture-only verification below had missed a request-interception deadlock, an overly broad private-address range and several layout handoff bugs, and records the fixes and remaining gaps.
+
 The comparison used the installed T3 Code Nightly `0.1.4-nightly.20261027.3770` (`7c3b3b3605ef`) and the public source at [`c1876b57c9258cc9a5b1a429d76e3f169bfcd9a5`](https://github.com/pingdotgg/t3code/tree/c1876b57c9258cc9a5b1a429d76e3f169bfcd9a5). Source was inspected outside this repository; no user profiles or website credentials were read.
 
 ## Architecture

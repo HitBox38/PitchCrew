@@ -3,7 +3,6 @@ import {
   createRootRouteWithContext,
   createRoute,
   createRouter,
-  lazyRouteComponent,
   notFound,
   redirect,
 } from '@tanstack/react-router';
@@ -11,6 +10,8 @@ import { validateActivitySearch } from './ActivityPage/helpers.ts';
 import { validateInsightsSearch } from './InsightsPage/helpers.ts';
 import { validateSettingsSearch } from './SettingsPage/helpers.ts';
 import { NotFoundPage } from './components/NotFoundPage/index.tsx';
+import { RouteLoadError } from './LoadRecovery/index.tsx';
+import { retryableLazy } from './lib/retryable-lazy.ts';
 import type { Role } from '@pitchcrew/core';
 import type { View } from './navigation.ts';
 import {
@@ -27,7 +28,13 @@ export const createAppRouter = (
   history?: RouterHistory,
   getRoles: () => Role[] | undefined = () => undefined,
 ) => {
-  return createRouter({ routeTree, history, context: { getRoles } });
+  // Failed pages keep the workspace shell and offer explicit recovery instead of the raw default.
+  return createRouter({
+    routeTree,
+    history,
+    context: { getRoles },
+    defaultErrorComponent: RouteLoadError,
+  });
 };
 
 declare module '@tanstack/react-router' {
@@ -40,7 +47,7 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRoute = createRootRouteWithContext<{ getRoles: () => Role[] | undefined }>()({
-  component: lazyRouteComponent(() => import('@/App/index.tsx'), 'App'),
+  component: retryableLazy(() => import('@/App/index.tsx'), 'App'),
   notFoundComponent: NotFoundPage,
 });
 
@@ -48,20 +55,20 @@ const boardRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   staticData: { view: 'board' },
-  component: lazyRouteComponent(() => import('@/BoardPage/index.tsx'), 'BoardPage'),
+  component: retryableLazy(() => import('@/BoardPage/index.tsx'), 'BoardPage'),
 });
 const queueRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/queue',
   staticData: { view: 'queue' },
-  component: lazyRouteComponent(() => import('@/QueuePage/index.tsx'), 'QueuePage'),
+  component: retryableLazy(() => import('@/QueuePage/index.tsx'), 'QueuePage'),
 });
 const crewRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/crew',
   validateSearch: validateUpdateSearch,
   staticData: { view: 'crew' },
-  component: lazyRouteComponent(() => import('@/CrewPage/index.tsx'), 'CrewPage'),
+  component: retryableLazy(() => import('@/CrewPage/index.tsx'), 'CrewPage'),
 });
 const chatIndexRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -94,40 +101,40 @@ const chatRoute = createRoute({
     )
       throw notFound();
   },
-  component: lazyRouteComponent(() => import('@/pages/components/ChatPage.tsx'), 'ChatPage'),
+  component: retryableLazy(() => import('@/pages/components/ChatPage.tsx'), 'ChatPage'),
 });
 const inboxRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/inbox',
   staticData: { view: 'inbox' },
   validateSearch: validateInboxSearch,
-  component: lazyRouteComponent(() => import('@/pages/components/InboxPage.tsx'), 'InboxPage'),
+  component: retryableLazy(() => import('@/pages/components/InboxPage.tsx'), 'InboxPage'),
 });
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/profile',
   staticData: { view: 'profile' },
-  component: lazyRouteComponent(() => import('@/pages/components/ProfilePage.tsx'), 'ProfilePage'),
+  component: retryableLazy(() => import('@/pages/components/ProfilePage.tsx'), 'ProfilePage'),
 });
 const skillsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/skills',
   staticData: { view: 'skills' },
   validateSearch: validateSkillSearch,
-  component: lazyRouteComponent(() => import('@/pages/components/SkillsPage.tsx'), 'SkillsPage'),
+  component: retryableLazy(() => import('@/pages/components/SkillsPage.tsx'), 'SkillsPage'),
 });
 const activityRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/activity',
   staticData: { view: 'activity' },
   validateSearch: validateActivitySearch,
-  component: lazyRouteComponent(() => import('@/ActivityPage/index.tsx'), 'ActivityPage'),
+  component: retryableLazy(() => import('@/ActivityPage/index.tsx'), 'ActivityPage'),
 });
 const routinesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/routines',
   staticData: { view: 'routines' },
-  component: lazyRouteComponent(() => import('@/RoutinesPage/index.tsx'), 'RoutinesPage'),
+  component: retryableLazy(() => import('@/RoutinesPage/index.tsx'), 'RoutinesPage'),
 });
 
 const insightsRoute = createRoute({
@@ -135,7 +142,7 @@ const insightsRoute = createRoute({
   path: '/insights',
   staticData: { view: 'insights' },
   validateSearch: validateInsightsSearch,
-  component: lazyRouteComponent(() => import('@/InsightsPage/index.tsx'), 'InsightsPage'),
+  component: retryableLazy(() => import('@/InsightsPage/index.tsx'), 'InsightsPage'),
 });
 
 const settingsRoute = createRoute({
@@ -143,7 +150,7 @@ const settingsRoute = createRoute({
   path: '/settings',
   staticData: { view: 'settings' },
   validateSearch: validateSettingsSearch,
-  component: lazyRouteComponent(() => import('@/SettingsPage/index.tsx'), 'SettingsPage'),
+  component: retryableLazy(() => import('@/SettingsPage/index.tsx'), 'SettingsPage'),
 });
 
 const routeTree = rootRoute.addChildren([

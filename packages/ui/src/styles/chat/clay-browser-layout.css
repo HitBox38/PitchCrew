@@ -45,9 +45,6 @@
 [data-interface='clay'] .browser-heading-actions {
   gap: 4px;
 }
-[data-interface='clay'] .browser-heading-actions > .browser-task-trigger {
-  order: -1;
-}
 [data-interface='clay'] .browser-heading-actions > .browser-expand {
   order: 1;
 }
@@ -65,29 +62,6 @@
   background: var(--primary-soft);
   box-shadow: var(--clay-sunken);
   color: var(--primary);
-}
-
-/* The mode chip opens task details: the captured permission for the active task. */
-[data-interface='clay'] .browser-mode-chip {
-  max-width: 13rem;
-  height: 26px;
-  padding: 0 9px;
-  gap: 6px;
-  border-radius: 7px;
-  color: var(--ink-soft);
-  font-size: var(--text-caption);
-  font-weight: 600;
-}
-[data-interface='clay'] .browser-mode-chip[data-tone='autonomous'] {
-  background: var(--moss-soft);
-  color: var(--moss);
-}
-[data-interface='clay'] .browser-mode-chip[data-tone='private'] {
-  background: var(--primary-soft);
-  color: var(--primary);
-}
-[data-interface='clay'] .browser-mode-chip.browser-task-elsewhere {
-  box-shadow: inset 0 0 0 1px var(--teal);
 }
 
 /* Packet tab: the documents scroll inside the panel; the browser region above stays mounted. */
@@ -110,19 +84,6 @@
     .browser-agent-name
     > .truncate {
     display: none;
-  }
-  [data-interface='clay'] .browser-mode-chip {
-    max-width: 8.5rem;
-  }
-}
-@container browser-panel (max-width: 30rem) {
-  [data-interface='clay'] .browser-mode-chip > .truncate {
-    display: none;
-  }
-  [data-interface='clay'] .browser-mode-chip {
-    width: 30px;
-    padding: 0;
-    justify-content: center;
   }
 }
 
@@ -153,10 +114,9 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  margin: 12px 0 12px 12px;
-  border-radius: 14px 15px 13px 14px;
-  background: var(--clay-fill);
-  box-shadow: var(--clay);
+  /* Flush like the split view: one hairline frame, the activity column beside it. */
+  border-right: 1px solid var(--border);
+  background: var(--paper);
 }
 [data-interface='clay'] .browser-expanded-side {
   display: flex;
@@ -269,10 +229,36 @@
   background: var(--clay-fill);
   box-shadow: var(--clay);
 }
+/* Beside the page the tray cannot resize it, so it is as tall as its content. */
 [data-interface='clay'] .browser-expanded-side > .browser-approvals[data-reserved] {
-  height: min(15rem, calc(var(--browser-viewport-height, 100dvh) * 0.4));
+  height: auto;
+  min-height: 3.5rem;
 }
+[data-interface='clay'] .browser-expanded-side .clay-tray-line {
+  min-height: 3.5rem;
+}
+/* Beside the page a request reads top to bottom: its two lines, then one row of actions with
+ * the decision at the end (wrapping in a narrow column). */
 [data-interface='clay'] .browser-expanded-side .browser-pending-action {
-  flex-direction: column;
-  align-items: stretch;
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: 8px;
+  padding: 12px 14px;
+}
+[data-interface='clay'] .browser-expanded-side .browser-pending-action > .browser-approval-body {
+  flex-basis: 100%;
+}
+[data-interface='clay'] .browser-expanded-side .browser-pending-action > .approval-footer {
+  margin-left: auto;
+}
+
+/* Before the agent's first run here the column is just the message box and tray. */
+[data-interface='clay'] .agent-browser-panel:has(> .browser-expanded-side[data-empty]) {
+  grid-template-columns: minmax(0, 1fr) min(18rem, 28%);
+}
+[data-interface='clay'] .browser-expanded-side[data-empty] .browser-run-activity {
+  flex: none;
+}
+[data-interface='clay'] .browser-expanded-side[data-empty] .browser-expanded-activity {
+  flex: 0 0 auto;
 }

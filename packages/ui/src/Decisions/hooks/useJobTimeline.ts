@@ -3,6 +3,7 @@ import type { Card } from '@pitchcrew/core';
 import { api } from '@/api.ts';
 import { loadCardChanges, type CardChange, type CardChangesPage } from '@/ChatView/job-changes.ts';
 import { jobTimeline } from '../helpers.ts';
+import type { PacketStage } from '@/ClayInterface/packet-guidance.ts';
 
 const cache = new Map<string, Promise<CardChange[]>>();
 
@@ -23,7 +24,7 @@ const load = (card: Card) => {
 };
 
 /** The job's workflow track, dated from its saved history once that loads. */
-export const useJobTimeline = (card: Card | undefined) => {
+export const useJobTimeline = (card: Card | undefined, stage?: PacketStage) => {
   const [loaded, setLoaded] = useState<{ key: string; changes: CardChange[] }>();
   const key = card ? `${card.id}|${card.updatedAt}` : undefined;
   useEffect(() => {
@@ -39,5 +40,5 @@ export const useJobTimeline = (card: Card | undefined) => {
     };
   }, [card, key]);
   if (!card) return [];
-  return jobTimeline(card, loaded && loaded.key === key ? loaded.changes : undefined);
+  return jobTimeline(card, loaded && loaded.key === key ? loaded.changes : undefined, stage);
 };

@@ -3,7 +3,12 @@ import { api } from '@/api.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import type { ExtractedJob } from '@pitchcrew/core';
 import { useEffect, useRef, useState } from 'react';
-import { briefFromContext, emptyBrief, normalizedBrief } from '../helpers.ts';
+import {
+  briefConfirmationBlocker,
+  briefFromContext,
+  emptyBrief,
+  normalizedBrief,
+} from '../helpers.ts';
 import type { ApplicationBriefProps, ContextResponse } from '../types.ts';
 
 export const useApplicationBrief = ({
@@ -108,8 +113,17 @@ export const useApplicationBrief = ({
       savingRef.current = false;
     }
   };
+  const confirmationHint = briefConfirmationBlocker({
+    loaded,
+    draft,
+    busy,
+    linked: Boolean(card.url),
+  });
+  // Footer and inline buttons share this action; a second press during a save is ignored.
   const confirm = () =>
     loaded &&
+    !confirmationHint &&
+    !savingRef.current &&
     perform(
       'application-context/confirm',
       {
@@ -182,6 +196,8 @@ export const useApplicationBrief = ({
     roleId,
     setRoleId,
     confirm,
+    confirmDisabled: Boolean(confirmationHint),
+    confirmationHint,
     extract,
     startDraft,
     reviewPacket,

@@ -7,18 +7,32 @@ export const BrowserButton = ({ browserPanel }: Pick<ChatViewModel, 'browserPane
   const showing = browserPanel.open && browserPanel.view !== 'packet';
   return (
     <Button
-      variant="outline"
+      variant="ghost"
       size="sm"
       className="chat-browser"
-      aria-label={browserPanel.activity ? 'Browser, active' : 'Browser'}
+      data-open={showing || undefined}
+      aria-label={
+        browserPanel.waiting
+          ? 'Browser, waiting for your approval'
+          : browserPanel.held
+            ? 'Browser, agent paused while you have control'
+            : browserPanel.activity
+              ? 'Browser, agent working'
+              : 'Browser'
+      }
       aria-expanded={showing}
       aria-controls="agent-browser-panel"
       onClick={showing ? browserPanel.hide : browserPanel.show}
     >
       <Monitor size={14} />
       <span>Browser</span>
-      {browserPanel.activity ? (
-        <span className="chat-role-dot working" aria-label="Browser active" />
+      {browserPanel.waiting || browserPanel.held || browserPanel.activity ? (
+        <span
+          className="clay-bead"
+          data-size="sm"
+          data-tone={browserPanel.waiting || browserPanel.held ? 'ochre' : 'plum'}
+          aria-hidden="true"
+        />
       ) : null}
     </Button>
   );

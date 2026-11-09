@@ -19,7 +19,9 @@ export const PacketMoreActions = ({
   model,
 }: PacketActionProps) => (
   <DropdownMenu>
-    <DropdownMenuTrigger render={<Button variant="ghost" aria-label="More packet actions" />}>
+    <DropdownMenuTrigger
+      render={<Button variant="ghost" className="decide-more" aria-label="More packet actions" />}
+    >
       <Ellipsis size={16} /> <span className="decide-more-label">More</span>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="start">

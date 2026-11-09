@@ -55,9 +55,9 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
       const { page } = app;
       await page.locator('button[aria-controls="agent-browser-panel"]').click();
       await page.getByRole('button', { name: 'Open browser', exact: true }).last().click();
+      // Opening is browsing: control is taken implicitly and the chip says so.
       await page
-        .locator('.browser-panel-heading')
-        .getByRole('button', { name: 'Return to agent', exact: true })
+        .locator('.browser-state-chip:is([data-tone="browsing"], [data-tone="control"])')
         .waitFor();
       await page.getByRole('textbox', { name: 'Browser address' }).fill(`${siteOrigin}/form`);
       await page.getByRole('button', { name: 'Go to address', exact: true }).click();
@@ -145,7 +145,13 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
         await app.page
           .getByRole('separator', { name: 'Resize browser panel', exact: true })
           .press('ArrowLeft');
-      await app.page.locator('.browser-panel-heading').click({ button: 'right' });
+      // Let the resized page settle first: its late viewport change would otherwise close
+      // the menu while it is being checked.
+      await readyViewport(app);
+      // The header's empty edge: tabs in its middle open their own Tab actions menu.
+      await app.page
+        .locator('.browser-panel-heading')
+        .click({ button: 'right', position: { x: 14, y: 40 } });
       const menu = app.page.getByRole('menu', { name: 'Workspace actions', exact: true });
       await menu.waitFor();
       await assertLiveGuest(app, menu);
@@ -203,8 +209,7 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
     await app.page.getByRole('heading', { name: 'Settings', exact: true }).waitFor();
     await app.page.locator('a[href="/chat/writer"]').first().click();
     await app.page
-      .locator('.browser-panel-heading')
-      .getByRole('button', { name: 'Return to agent', exact: true })
+      .locator('.browser-state-chip:is([data-tone="browsing"], [data-tone="control"])')
       .waitFor();
     assert.equal(
       (await until(() => activeGuest(app), 'Browser guest did not return after route navigation'))
@@ -234,13 +239,15 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
       'UI Forward did not reach the next document',
     );
     // The guest navigates before its new title reaches the React tab strip.
-    await app.page.getByRole('button', { name: 'Fictional E2E next page', exact: true }).waitFor();
-    await app.page.getByRole('button', { name: 'Fictional E2E application', exact: true }).click();
+    await app.page.getByRole('tab', { name: 'Fictional E2E next page', exact: true }).waitFor();
+    await app.page.getByRole('tab', { name: 'Fictional E2E application', exact: true }).click();
     await until(
       async () => (await activeGuest(app)).id === original.id,
       'UI tab selection did not restore the original guest',
     );
     assert.equal(await original.read('document.querySelector("#name").value'), 'Human E2E');
+    // An inactive tab shows its close button on hover, as a person reaches for it.
+    await app.page.getByRole('tab', { name: 'Fictional E2E next page', exact: true }).hover();
     await app.page
       .getByRole('button', { name: 'Close Fictional E2E next page', exact: true })
       .click();
@@ -304,15 +311,94 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
       app.page.off('request', observe);
     }
   });
+  it('picks a real page element through inspect mode without pressing it', async () => {
+    const guest = await activeGuest(app);
+    const before = await guest.read('document.querySelector("#result").textContent');
+    await app.page.getByRole('button', { name: 'Pick an element to attach', exact: true }).click();
+    // Inspect mode starts after control and focus settle; the tray says so just before it.
+    await app.page
+      .locator('.browser-approvals')
+      .getByText('Click an element on the page to attach it.', { exact: false })
+      .waitFor();
+    assert.equal(
+      await app.page
+        .getByRole('button', { name: 'Cancel picking (Esc)', exact: true })
+        .getAttribute('aria-pressed'),
+      'true',
+    );
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const point = await guestPoint(app, '#continue');
+    await app.page.mouse.move(point.x, point.y, { steps: 4 });
+    await app.page.mouse.click(point.x, point.y);
+    const dialog = app.page.getByRole('dialog', { name: 'Picked element', exact: true });
+    await dialog.waitFor();
+    assert.match(await dialog.innerText(), /Button “Continue”/);
+    assert.equal(
+      await app.page.locator('.browser-settings-menu').count(),
+      0,
+      'Page settings stayed open over the page while picking',
+    );
+    // Escape reaches the review once it has taken focus back from the page.
+    await until(
+      () => dialog.evaluate((element) => element.contains(document.activeElement)),
+      'The picked-element review never took focus from the page',
+    );
+    assert.equal(
+      await guest.read('document.querySelector("#result").textContent'),
+      before,
+      'Picking pressed the element instead of selecting it',
+    );
+    const cropAt100 = await dialog
+      .locator('canvas')
+      .evaluate((canvas: HTMLCanvasElement) => [canvas.width, canvas.height]);
+    await app.page.keyboard.press('Escape');
+    await dialog.waitFor({ state: 'hidden' });
+    const settings = app.page.getByRole('button', { name: 'Browser page settings', exact: true });
+    if ((await settings.getAttribute('aria-expanded')) === 'true')
+      await app.page.keyboard.press('Escape');
+    // At 125% page zoom the crop is the same element, scaled: CSS-pixel boxes become DIP clips.
+    const zoom = (factor: number) =>
+      app.electron.evaluate(
+        ({ webContents }, [id, value]) => webContents.fromId(id)?.setZoomFactor(value),
+        [guest.id, factor] as const,
+      );
+    await zoom(1.25);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    await app.page.getByRole('button', { name: 'Pick an element to attach', exact: true }).click();
+    await app.page
+      .locator('.browser-approvals')
+      .getByText('Click an element on the page to attach it.', { exact: false })
+      .waitFor();
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const zoomed = await guestPoint(app, '#continue');
+    await app.page.mouse.move(zoomed.x, zoomed.y, { steps: 4 });
+    await app.page.mouse.click(zoomed.x, zoomed.y);
+    await dialog.waitFor();
+    assert.match(await dialog.innerText(), /Button “Continue”/);
+    const cropAt125 = await dialog
+      .locator('canvas')
+      .evaluate((canvas: HTMLCanvasElement) => [canvas.width, canvas.height]);
+    for (const axis of [0, 1])
+      assert.ok(
+        Math.abs(cropAt125[axis]! / cropAt100[axis]! - 1.25) < 0.08,
+        `The 125% crop was ${cropAt125.join('×')} against ${cropAt100.join('×')} at 100%`,
+      );
+    await until(
+      () => dialog.evaluate((element) => element.contains(document.activeElement)),
+      'The zoomed picked-element review never took focus from the page',
+    );
+    await app.page.keyboard.press('Escape');
+    await dialog.waitFor({ state: 'hidden' });
+    if ((await settings.getAttribute('aria-expanded')) === 'true')
+      await app.page.keyboard.press('Escape');
+    await zoom(1);
+  });
   it(
     'runs a real scoped MCP action only after an exact decision in the production UI',
     { timeout: 45000 },
     async () => {
       const guest = await activeGuest(app);
-      await app.page
-        .locator('.browser-panel-heading')
-        .getByRole('button', { name: 'Return to agent', exact: true })
-        .click();
+      // Control taken by browsing hands back on its own when the agent's run starts.
       await send(app, 'E2E: fill the application');
       const pending = await readyApproval(app);
       assert.equal(
@@ -322,8 +408,8 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
       );
       assert.equal(
         await app.page
-          .locator('.browser-panel-heading')
-          .getByRole('button', { name: 'Take control', exact: true })
+          .locator('.browser-approvals')
+          .getByRole('button', { name: 'Take over', exact: true })
           .isVisible(),
         true,
       );
@@ -335,7 +421,7 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
         result,
         'Read-only viewing allowed a human click without takeover',
       );
-      await pending.getByRole('button', { name: 'Approve interaction', exact: true }).click();
+      await pending.getByRole('button', { name: 'Approve typing', exact: true }).click();
       await until(
         async () => (await guest.read('document.querySelector("#name").value')) === 'Agent E2E',
         'Approved MCP action never reached the actual guest',
@@ -364,12 +450,14 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
     'recovers an actual crashed guest through Reload page with a fresh generation',
     { timeout: 30000 },
     async () => {
+      // The agent is idle again: explicit control comes from Browser options.
+      await app.page.locator('.browser-state-chip[data-tone="idle"]').waitFor();
+      await app.page.getByRole('button', { name: 'Browser options', exact: true }).click();
       await app.page
-        .locator('.browser-panel-heading')
-        .getByRole('button', { name: 'Take control', exact: true })
+        .getByRole('menuitem', { name: 'Keep control until I return it', exact: true })
         .click();
       await app.page
-        .locator('.browser-panel-heading')
+        .locator('.browser-approvals')
         .getByRole('button', { name: 'Return to agent', exact: true })
         .waitFor();
       const crashed = await activeGuest(app);
@@ -438,15 +526,14 @@ describe('Failed navigation in the production Electron browser', { concurrency: 
     await page.locator('button[aria-controls="agent-browser-panel"]').click();
     await page.getByRole('button', { name: 'Open browser', exact: true }).last().click();
     await page
-      .locator('.browser-panel-heading')
-      .getByRole('button', { name: 'Return to agent', exact: true })
+      .locator('.browser-state-chip:is([data-tone="browsing"], [data-tone="control"])')
       .waitFor();
     await navigate(app, `${siteOrigin}/form`, 'Fictional E2E application');
     await readyViewport(app);
     const firstGuest = (await activeGuest(app)).id;
     await page.getByRole('button', { name: 'New browser tab', exact: true }).click();
     try {
-      await page.getByRole('heading', { name: 'No page open', exact: true }).waitFor();
+      await page.getByRole('heading', { name: 'New tab', exact: true }).waitFor();
       const address = page.getByRole('textbox', { name: 'Browser address' });
       const failedUrl = 'https://pitchcrew-browser-test.invalid/';
       await address.fill(failedUrl);
@@ -454,10 +541,7 @@ describe('Failed navigation in the production Electron browser', { concurrency: 
       const error = page.locator('.browser-page-error');
       await error.waitFor();
       assert.equal(await address.inputValue(), failedUrl);
-      assert.equal(
-        await page.getByRole('heading', { name: 'No page open', exact: true }).count(),
-        0,
-      );
+      assert.equal(await page.getByRole('heading', { name: 'New tab', exact: true }).count(), 0);
       assert.match((await error.textContent()) ?? '', /ENOTFOUND pitchcrew-browser-test.invalid/);
       await page.screenshot({ path: `${app.directory}/failed-navigation.png` });
       await page.locator('.browser-tab-select').nth(0).click();

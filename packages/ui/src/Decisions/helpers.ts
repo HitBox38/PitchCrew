@@ -1,6 +1,7 @@
 import type { Approval, Card, Snapshot } from '@pitchcrew/core';
 import type { CardChange } from '../ChatView/job-changes.ts';
-import { trackBeads, trackSteps, type BeadState } from '../ClayInterface/helpers.ts';
+import { stepLabel, trackBeads, trackSteps, type BeadState } from '../ClayInterface/helpers.ts';
+import type { PacketStage } from '../ClayInterface/packet-guidance.ts';
 import { neededFiles } from '../components/InboxView/handoff.ts';
 
 export type TimelineStep = {
@@ -15,7 +16,11 @@ export type TimelineStep = {
  * The job's workflow track with the first time it reached each step. Dates come only from the
  * job's saved status moves (and its creation for Lead); a step without a saved move has no date.
  */
-export const jobTimeline = (card: Card, changes: CardChange[] | undefined): TimelineStep[] => {
+export const jobTimeline = (
+  card: Card,
+  changes: CardChange[] | undefined,
+  stage?: PacketStage,
+): TimelineStep[] => {
   const beads = trackBeads(card.state);
   const drafts = changes?.filter((change) => change.packet).length ?? 0;
   return trackSteps.map((step, index) => {
@@ -26,7 +31,7 @@ export const jobTimeline = (card: Card, changes: CardChange[] | undefined): Time
       label:
         step.id === 'drafting' && bead === 'done' && drafts > 1
           ? `Drafted, ${drafts} drafts`
-          : step.label,
+          : stepLabel(card.state, index, stage),
       bead,
       at: index === 0 ? card.createdAt : entered?.at,
     };

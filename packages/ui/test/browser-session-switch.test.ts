@@ -121,7 +121,9 @@ test('keeps browser presentation and manual control scoped to the selected job a
   const address = () => page.getByRole('textbox', { name: 'Browser address' });
   await toggle().click();
   await page.getByRole('button', { name: 'Open browser', exact: true }).last().click();
-  await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
+  await page
+    .locator('.browser-state-chip:is([data-tone="browsing"], [data-tone="control"])')
+    .waitFor();
   await address().fill('example.com/first-job');
   await address().press('Enter');
   await vi.waitFor(async () =>
@@ -133,10 +135,12 @@ test('keeps browser presentation and manual control scoped to the selected job a
   await toggle().click();
   // An unopened second session must not inherit the first job's control or native view.
   await page.getByRole('button', { name: 'Open browser', exact: true }).last().waitFor();
-  expect(await page.getByRole('button', { name: 'Return to agent', exact: true }).count()).toBe(0);
+  expect(await page.locator('.browser-state-chip[data-tone="browsing"]').count()).toBe(0);
   await vi.waitFor(async () => expect((await mounts()).at(-1)?.bounds).toBeNull());
   await page.getByRole('button', { name: 'Open browser', exact: true }).last().click();
-  await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
+  await page
+    .locator('.browser-state-chip:is([data-tone="browsing"], [data-tone="control"])')
+    .waitFor();
   await address().fill('example.com/second-job');
   await address().press('Enter');
   await vi.waitFor(() =>
@@ -166,12 +170,17 @@ test('keeps browser presentation and manual control scoped to the selected job a
   );
   await page.locator(`a[href="/chat/${relatedThread}"]`).first().click();
   await toggle().click();
-  await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
+  await page
+    .locator('.browser-state-chip:is([data-tone="browsing"], [data-tone="control"])')
+    .waitFor();
   await vi.waitFor(async () =>
     expect(await address().inputValue()).toBe('https://example.com/first-job'),
   );
+  // Control taken by browsing hands back when a run starts; release it now explicitly.
+  await page.getByRole('button', { name: 'Browser options', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Keep control until I return it', exact: true }).click();
   await page.getByRole('button', { name: 'Return to agent', exact: true }).click();
-  await page.getByRole('button', { name: 'Take control', exact: true }).waitFor();
+  await page.locator('.browser-state-chip[data-tone="idle"]').waitFor();
   expect(host.daemon.service.computer.browsers.list().map((session) => session.manual)).toEqual([
     false,
     true,

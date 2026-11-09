@@ -1,12 +1,13 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { adapters } from '../../adapters/src/index.ts';
 import type { Card, ChatMessage, ChatRequest, Conversation, Run } from '@pitchcrew/core';
 import { execFile } from 'node:child_process';
 import { readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { afterEach, expect, it } from 'vitest';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { cleanup, finish, setup, waitForSnapshot } from '../../orchestrator/test/helpers/daemon.ts';
 import { postingLinks, recordedPostings } from '../../orchestrator/test/helpers/job-links.ts';
 import {
@@ -17,9 +18,23 @@ import {
 
 const execute = promisify(execFile);
 const clients: Client[] = [];
+beforeEach(() => {
+  // External MCP behavior is independent of installed provider CLIs; keep Demo real.
+  for (const adapter of Object.values(adapters).filter((adapter) => adapter.id !== 'demo'))
+    vi.spyOn(adapter, 'detect').mockResolvedValue({
+      id: adapter.id,
+      available: false,
+      version: '',
+      detail: 'Native runtime detection is outside this stdio fixture.',
+    });
+});
 afterEach(async () => {
-  await Promise.all(clients.splice(0).map((client) => client.close()));
-  await cleanup();
+  try {
+    await Promise.all(clients.splice(0).map((client) => client.close()));
+    await cleanup();
+  } finally {
+    vi.restoreAllMocks();
+  }
 });
 const cli = fileURLToPath(new URL('../../orchestrator/src/cli.ts', import.meta.url));
 const command = async (directory: string, ...args: string[]) =>
@@ -284,6 +299,7 @@ it('manages jobs, preserves busy checks and delegates visible crew work through 
   );
 });
 
+// Loading examples exports real packet documents before the CLI and stdio children start.
 it('provides the stable read-only evidence for all ten example-workspace evaluation answers', async () => {
   const { daemon, directory } = await setup(15624);
   await daemon.service.loadExamples();
@@ -341,7 +357,7 @@ it('provides the stable read-only evidence for all ten example-workspace evaluat
   expect(answers).toEqual(
     [...evaluation.matchAll(/<answer>(.*?)<\/answer>/g)].map((match) => match[1]),
   );
-});
+}, 30000);
 
 it('fetches external job links before supplied text and preserves provenance without adding duplicates', async () => {
   const { daemon, directory } = await setup(15625);

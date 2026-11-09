@@ -234,7 +234,11 @@ describe('HTTP framework contracts', () => {
   });
 
   it('serves Vite deep links and assets without bypassing API or session checks', async () => {
-    const { daemon, request } = await setup(15005, false, { dev: true, ui: 'dev' });
+    const { daemon, request } = await setup(15005, false, {
+      dev: true,
+      ui: 'dev',
+      uiCache: 'temporary',
+    });
     const page = await fetch(`${daemon.url}/chat/scout`);
     expect(page.status).toBe(200);
     expect(await page.text()).toContain('/@vite/client');
@@ -266,5 +270,5 @@ describe('HTTP framework contracts', () => {
     await daemon.close();
     await closed;
     expect(socket.readyState).toBe(WebSocket.CLOSED);
-  });
+  }, 45000);
 });

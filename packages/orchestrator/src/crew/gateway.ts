@@ -57,14 +57,20 @@ export const agentCall = async (
   } catch {
     // Telemetry initialization must never prevent a scoped tool invocation.
   }
-  const finishActivity = observeChatTool(context, token, action);
+  const finishActivity = observeChatTool(context, token, action, data);
   let isError = true;
+  let failure: unknown;
+  let outcome: unknown;
   try {
     const result = await dispatchAgentCall(context, token, action, data);
     isError = false;
+    outcome = result;
     return result;
+  } catch (error) {
+    failure = error;
+    throw error;
   } finally {
-    finishActivity(isError);
+    finishActivity(isError, failure, outcome);
     finish(isError);
   }
 };

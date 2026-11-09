@@ -93,6 +93,12 @@ const nativeCommand = vi.fn(async (command: NativeBrowserCommand) => {
     };
   }
   if (command.kind === 'select-tab') state = { ...state, activeTab: command.tabId };
+  if (command.kind === 'move-tab') {
+    const moved = state.tabs.find((tab) => tab.id === command.tabId)!;
+    const tabs = state.tabs.filter((tab) => tab.id !== command.tabId);
+    tabs.splice(command.index, 0, moved);
+    state = { ...state, tabs };
+  }
   if (command.kind === 'close-tab') {
     const tabs = state.tabs.filter((tab) => tab.id !== command.tabId);
     state = {
@@ -160,6 +166,7 @@ beforeAll(async () => {
       mounts: [] as unknown[],
       finds: [] as unknown[],
       captures: 0,
+      picks: 0,
       artifacts: [] as { kind: 'png' | 'webm'; data: string }[],
       copied: [] as string[],
       revealed: [] as string[],
@@ -206,6 +213,23 @@ beforeAll(async () => {
             height: canvas.height,
             url: 'https://example.com/apply',
             title: 'Fictional application',
+          };
+        },
+        pickElement: async () => {
+          records.picks++;
+          const canvas = document.createElement('canvas');
+          canvas.width = 136;
+          canvas.height = 56;
+          const context = canvas.getContext('2d')!;
+          context.fillStyle = '#6fa8dc';
+          context.fillRect(0, 0, canvas.width, canvas.height);
+          return {
+            data: canvas.toDataURL('image/png').split(',')[1],
+            width: canvas.width,
+            height: canvas.height,
+            url: 'https://example.com/apply',
+            title: 'Fictional application',
+            label: 'Button “Apply now”',
           };
         },
         saveArtifact: async (kind: 'png' | 'webm', data: string) => {
@@ -297,6 +321,23 @@ const lastPresentation = () =>
       }
     ).nativeFixture.mounts.at(-1),
   );
+/** Resolves once the panel has sent no page resize for a second. */
+const viewportSettled = async (service: typeof host.daemon.service) => {
+  let last = Date.now();
+  const resize = service.computer.resizeBrowser;
+  const spy = vi.spyOn(service.computer, 'resizeBrowser').mockImplementation((...args) => {
+    last = Date.now();
+    return resize(...args);
+  });
+  try {
+    await vi.waitFor(() => expect(Date.now() - last).toBeGreaterThanOrEqual(1000), {
+      timeout: 10000,
+      interval: 100,
+    });
+  } finally {
+    spy.mockRestore();
+  }
+};
 const lastMount = async () => {
   const presentation = await lastPresentation();
   return presentation?.bounds;
@@ -315,6 +356,45 @@ const closePageSettings = async () => {
     await page.keyboard.press('Escape');
   await pageSettings().waitFor({ state: 'hidden' });
 };
+/**
+ * Explicit takeover: the tray offers Take control while an agent works; while it is idle the
+ * page is already usable and explicit control lives under Browser options.
+ */
+const takeControl = async () => {
+  const header = page
+    .locator('.browser-approvals')
+    .getByRole('button', { name: 'Take control', exact: true });
+  if (await header.isVisible()) await header.click();
+  else {
+    await page.getByRole('button', { name: 'Browser options', exact: true }).click();
+    await page
+      .getByRole('menuitem', { name: 'Keep control until I return it', exact: true })
+      .click();
+  }
+  // A menu click precedes the asynchronous lease acquisition. Do not let the next
+  // journey decide how to return control until explicit takeover has actually arrived.
+  await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
+};
+/** Control is held, explicitly (Return to agent) or by browsing (the chip says so). */
+const controlHeld = () =>
+  page.locator('.browser-state-chip:is([data-tone="browsing"], [data-tone="control"])').waitFor();
+/**
+ * Returns any held control. Control taken by browsing hands back when a run starts; a test
+ * releases it now by keeping it explicitly, then using the header's Return to agent.
+ */
+const returnControl = async () => {
+  const header = page.getByRole('button', { name: 'Return to agent', exact: true });
+  if (!(await header.isVisible())) {
+    await page.getByRole('button', { name: 'Browser options', exact: true }).click();
+    await page
+      .getByRole('menuitem', { name: 'Keep control until I return it', exact: true })
+      .click();
+    await header.waitFor();
+  }
+  await header.click();
+};
+const controlReleased = () =>
+  page.locator('.browser-state-chip:is([data-tone="idle"], [data-tone="working"])').waitFor();
 /** The toolbar keeps only a running recording's stop control. */
 const stopRecording = () =>
   page
@@ -330,7 +410,7 @@ test('uses the native surface and browser controls without screenshot or private
   );
   expect(await page.locator('.browser-screen').count()).toBe(0);
   expect(subscribeFrames).not.toHaveBeenCalled();
-  await page.getByRole('button', { name: 'Take control', exact: true }).click();
+  await takeControl();
   await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
   expect(setManual).toHaveBeenCalledWith(true);
   await page.getByRole('button', { name: 'New browser tab', exact: true }).click();
@@ -394,8 +474,8 @@ test('restores address drafts, searches on Enter and switches the focused addres
 });
 test('preserves a typed address when the first native tab hydrates under the same control lease', async () => {
   const original = structuredClone(state);
-  const take = page.getByRole('button', { name: 'Take control', exact: true });
-  if (await take.isVisible()) await take.click();
+  if (!(await page.getByRole('button', { name: 'Return to agent', exact: true }).isVisible()))
+    await takeControl();
   await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
   let held = false;
   let release = () => {};
@@ -538,11 +618,12 @@ test('keeps newer native events when a delayed command response arrives', async 
         window as unknown as { publishBrowserState: (next: NativeBrowserState) => void }
       ).publishBrowserState(next);
     }, state);
-    const title = page.getByRole('button', { name: 'Newer native page', exact: true });
-    await title.waitFor();
+    // A lone tab has no pill, so read the tab's label rather than its visibility.
+    const title = page.locator('.browser-tab-select', { hasText: 'Newer native page' });
+    await title.waitFor({ state: 'attached' });
     release();
     await page.getByText(stale.warning, { exact: true }).waitFor();
-    expect(await title.isVisible()).toBe(true);
+    expect(await title.count()).toBe(1);
   } finally {
     release();
     state = before;
@@ -570,7 +651,7 @@ test('reopens visited and closed pages through the same leased native browser', 
   await page
     .getByRole('region', { name: 'Recently closed in this conversation' })
     .getByRole('button')
-    .filter({ hasText: 'https://example.com/live-events' })
+    .filter({ hasText: 'example.com/live-events' })
     .click();
   await vi.waitFor(() => expect(nativeCommand).toHaveBeenLastCalledWith({ kind: 'new-tab' }));
   await vi.waitFor(() =>
@@ -585,8 +666,10 @@ test('reopens visited and closed pages through the same leased native browser', 
       .getByRole('button')
       .count(),
   ).toBe(0);
-  await page.getByRole('button', { name: 'Clear browser history', exact: true }).click();
-  expect(await history.getByRole('button').count()).toBe(0);
+  // Clearing asks once, in a quiet row, before removing both lists.
+  await page.getByRole('button', { name: 'Clear browser history…', exact: true }).click();
+  await page.getByRole('button', { name: 'Clear', exact: true }).click();
+  await expect.poll(() => history.getByRole('button').count()).toBe(0);
   expect(
     await page.evaluate(() => {
       const key = 'pitchcrew:browser-history:v1:writer:default';
@@ -606,17 +689,87 @@ test('uses native appearance, per-tab audio and external-browser developer contr
     expect(nativeCommand).toHaveBeenCalledWith({ kind: 'mute', muted: true, tabId: mutedId }),
   );
   await page.getByRole('button', { name: 'Browser page settings' }).click();
-  await page.getByRole('combobox', { name: 'Website appearance' }).click();
-  await page.getByRole('option', { name: 'Dark', exact: true }).click();
+  await page
+    .getByRole('group', { name: 'Website appearance' })
+    .getByRole('button', { name: 'Dark', exact: true })
+    .click();
   await vi.waitFor(() =>
     expect(nativeCommand).toHaveBeenCalledWith({ kind: 'appearance', colorScheme: 'dark' }),
   );
-  await page.getByRole('button', { name: 'Open in system browser', exact: true }).click();
-  await vi.waitFor(() => expect(nativeCommand).toHaveBeenCalledWith({ kind: 'open-external' }));
   await page.getByRole('button', { name: 'Open developer tools', exact: true }).click();
   await vi.waitFor(() => expect(nativeCommand).toHaveBeenCalledWith({ kind: 'devtools' }));
   await page.keyboard.press('Escape');
+  // The address bar offers Open in system browser beside an unedited web address.
+  await page.getByRole('button', { name: 'Open page in system browser', exact: true }).click();
+  await vi.waitFor(() => expect(nativeCommand).toHaveBeenCalledWith({ kind: 'open-external' }));
 });
+test('moves tabs by drag, keyboard and the tab menu without selecting them', async () => {
+  if (state.tabs.length < 2) {
+    await page.getByRole('button', { name: 'New browser tab', exact: true }).click();
+    await vi.waitFor(() => expect(state.tabs.length).toBeGreaterThan(1));
+  }
+  const strip = page.getByRole('tablist', { name: 'Browser tabs' });
+  // The fixture records commands before their response and refresh finish. The
+  // close button shares the sortable sensor's manual/working gate, even while
+  // visually hidden until hover. Wait without selecting or closing a tab.
+  const tabsReady = () =>
+    expect
+      .poll(() => strip.locator('.browser-tab-close').first().isEnabled(), { timeout: 5000 })
+      .toBe(true);
+  await tabsReady();
+  const order = async () =>
+    (await strip
+      .locator('.browser-tab')
+      .evaluateAll((tabs) =>
+        tabs.map((tab) => tab.querySelector('[role="tab"]')!.getAttribute('title')),
+      )) as string[];
+  const ids = () => state.tabs.map((tab) => tab.id);
+  const [first, second] = ids();
+  const active = state.activeTab;
+  // The tab menu moves the right-clicked tab, never selecting it.
+  await strip.locator('.browser-tab').nth(1).click({ button: 'right' });
+  await page.getByRole('menuitem', { name: 'Move tab left', exact: true }).click();
+  await vi.waitFor(() =>
+    expect(nativeCommand).toHaveBeenLastCalledWith({ kind: 'move-tab', tabId: second, index: 0 }),
+  );
+  await vi.waitFor(async () => expect((await order()).length).toBe(state.tabs.length));
+  expect(ids().slice(0, 2)).toEqual([second, first]);
+  expect(state.activeTab).toBe(active);
+  await tabsReady();
+  // Control+Shift+Page Down moves the focused tab right.
+  await strip.locator('.browser-tab[data-active="true"] [role="tab"]').focus();
+  const focusedId = state.activeTab;
+  const from = ids().indexOf(focusedId);
+  const to = from === state.tabs.length - 1 ? from - 1 : from + 1;
+  await page.keyboard.press(
+    from === state.tabs.length - 1 ? 'Control+Shift+PageUp' : 'Control+Shift+PageDown',
+  );
+  await vi.waitFor(() =>
+    expect(nativeCommand).toHaveBeenLastCalledWith({
+      kind: 'move-tab',
+      tabId: focusedId,
+      index: to,
+    }),
+  );
+  await expect
+    .poll(() => page.locator('output[aria-live="polite"]').filter({ hasText: 'Position' }).count())
+    .toBeGreaterThan(0);
+  await tabsReady();
+  // Whole-tab dragging past its neighbour moves it there.
+  const before = ids();
+  const source = (await strip.locator('.browser-tab').nth(0).boundingBox())!;
+  const target = (await strip.locator('.browser-tab').nth(1).boundingBox())!;
+  await page.mouse.move(source.x + source.width / 3, source.y + source.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(source.x + source.width / 3 + 12, source.y + source.height / 2, {
+    steps: 4,
+  });
+  await strip.locator('.browser-tab[data-dragging="true"]:not([aria-hidden="true"])').waitFor();
+  await page.mouse.move(target.x + target.width - 4, target.y + target.height / 2, { steps: 12 });
+  await page.mouse.up();
+  await vi.waitFor(() => expect(ids().slice(0, 2)).toEqual([before[1], before[0]]));
+  expect(nativeCommand).toHaveBeenLastCalledWith({ kind: 'move-tab', tabId: before[0], index: 1 });
+}, 30000);
 test('captures, annotates and saves the page and adds the reviewed PNG to the current message draft', async () => {
   const before = await lastMount();
   const messages = host.daemon.service.board.list('message').length;
@@ -694,6 +847,22 @@ test('captures, annotates and saves the page and adds the reviewed PNG to the cu
   expect(host.daemon.service.board.list('message')).toHaveLength(messages);
   await closePageSettings();
   await page.getByRole('button', { name: /^Remove browser-screenshot-/ }).click();
+});
+test('picks an element into a labelled review and attaches it to the draft by name', async () => {
+  const messages = host.daemon.service.board.list('message').length;
+  await page.getByRole('button', { name: 'Pick an element to attach', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Picked element', exact: true });
+  await dialog.waitFor();
+  expect(await dialog.innerText()).toContain('Button “Apply now” on Fictional application.');
+  await vi.waitFor(async () =>
+    expect(await dialog.getByRole('button', { name: 'Attach to message' }).isEnabled()).toBe(true),
+  );
+  await dialog.getByRole('button', { name: 'Attach to message', exact: true }).click();
+  await dialog.waitFor({ state: 'hidden' });
+  await page.getByText(/^browser-element-button-apply-now-\d+\.png$/).waitFor();
+  expect(host.daemon.service.board.list('message')).toHaveLength(messages);
+  await closePageSettings();
+  await page.getByRole('button', { name: /^Remove browser-element-/ }).click();
 });
 test('records changing browser frames into playable WebM, saves it and opens the owned floating window', async () => {
   const before = await lastMount();
@@ -792,9 +961,9 @@ test('changes the actual browser viewport with device presets, rotation and fill
     });
   });
 });
-test('blocks human clicks on the painting readonly guest while app menus stay usable, then admits private input', async () => {
-  await page.getByRole('button', { name: 'Return to agent', exact: true }).click();
-  await page.getByRole('button', { name: 'Take control', exact: true }).waitFor();
+test('blocks human clicks on the painting readonly guest, takes control from that press while idle, keeps app menus usable and admits private input', async () => {
+  await returnControl();
+  await controlReleased();
   const bounds = await page
     .getByLabel('Native browser page', { exact: true })
     .evaluate((element) => {
@@ -844,6 +1013,8 @@ test('blocks human clicks on the painting readonly guest while app menus stay us
     const before = await clicks();
     await page.mouse.click(point.x, point.y);
     expect(await clicks()).toEqual({ guest: before.guest, guarded: before.guarded + 1 });
+    // The agent is idle: the press starts browsing by taking control, never by clicking the page.
+    await controlHeld();
     await page.getByRole('button', { name: 'Browser history', exact: true }).click();
     const search = page.getByRole('textbox', { name: 'Search browser history', exact: true });
     await search.fill('Human menu remains interactive');
@@ -857,8 +1028,7 @@ test('blocks human clicks on the painting readonly guest while app menus stay us
       }),
     ).toBe(true);
     await page.keyboard.press('Escape');
-    await page.getByRole('button', { name: 'Take control', exact: true }).click();
-    await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
+    await controlHeld();
     const manualBounds = await page
       .getByLabel('Native browser page', { exact: true })
       .evaluate((element) => {
@@ -949,7 +1119,7 @@ test('preserves a fixed device viewport while visiting Settings and returning to
     page.off('request', observe);
     await page.unroute('**/api/browser/writer/native?*');
   }
-  await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
+  await controlHeld();
   const commands = nativeCommand.mock.calls.length;
   await page.getByRole('button', { name: 'Reload page', exact: true }).click();
   await vi.waitFor(() => {
@@ -972,7 +1142,7 @@ test('stops capturing browser frames when private control is returned to the age
   await pageTool('Record browser page');
   await closePageSettings();
   await stopRecording().waitFor();
-  await page.getByRole('button', { name: 'Return to agent', exact: true }).click();
+  await returnControl();
   const review = page.getByRole('dialog', { name: 'Browser recording', exact: true });
   await review.waitFor();
   const counts = await page.evaluate(() => {
@@ -985,7 +1155,7 @@ test('stops capturing browser frames when private control is returned to the age
   expect(counts[0]).toBe(counts[1]);
   await review.getByRole('button', { name: 'Discard recording' }).click();
   await review.waitFor({ state: 'hidden' });
-  await page.getByRole('button', { name: 'Take control', exact: true }).click();
+  await takeControl();
   await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
 });
 test('shows website dialogs in native mode and sends the manual decision', async () => {
@@ -1036,7 +1206,7 @@ test('keeps a failed blank tab address and explanation across switches, retries 
     const error = page.locator('.browser-page-error');
     await error.waitFor();
     expect(await address.inputValue()).toBe(failedUrl);
-    expect(await page.getByRole('heading', { name: 'No page open', exact: true }).count()).toBe(0);
+    expect(await page.getByRole('heading', { name: 'New tab', exact: true }).count()).toBe(0);
     await error.getByText('Technical details', { exact: true }).click();
     await error
       .getByText('getaddrinfo ENOTFOUND pitchcrew-browser-test.invalid', { exact: true })
@@ -1106,14 +1276,18 @@ test('guides blank tabs without a guest overlay and keeps loading in the toolbar
       tab.id === state.activeTab ? { ...tab, url: 'about:blank', title: '' } : tab,
     ),
   };
-  await page.getByRole('heading', { name: 'No page open', exact: true }).waitFor();
+  await page.getByRole('heading', { name: 'New tab', exact: true }).waitFor();
   await vi.waitFor(async () => expect(await lastMount()).toBeNull());
-  await page.getByRole('button', { name: 'Enter an address', exact: true }).click();
+  // The address field above is the blank tab's action; the page adds no button for it.
   expect(
     await page
-      .getByRole('textbox', { name: 'Browser address' })
-      .evaluate((element) => document.activeElement === element),
-  ).toBe(true);
+      .locator('.browser-placeholder')
+      .getByRole('button', { name: 'Enter an address', exact: true })
+      .count(),
+  ).toBe(0);
+  const address = page.getByRole('textbox', { name: 'Browser address' });
+  expect(await address.getAttribute('readonly')).toBeNull();
+  await address.focus();
   const before = await page.getByLabel('Native browser page', { exact: true }).boundingBox();
   await page.screenshot({ path: '/tmp/pitchcrew-browser-empty.png' });
   await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
@@ -1166,6 +1340,37 @@ test('keeps popup ownership visible and can bring its separate window forward', 
     .getByRole('heading', { name: 'Page open in a separate window' })
     .waitFor({ state: 'hidden' });
 });
+/** Which title parts are clipped, and the gap from the title's last glyph to its chevron. */
+const approvalTitleLayout = (review: import('playwright').Locator) =>
+  review.evaluate((element) => {
+    const parts = [...element.querySelectorAll<HTMLElement>('.browser-approval-text')];
+    const object = element.querySelector('.browser-approval-object')!;
+    const end = (object.lastElementChild ?? object).getBoundingClientRect();
+    const more = element.querySelector('.browser-approval-more')!.getBoundingClientRect();
+    const value = element.querySelector('.browser-approval-value')?.getBoundingClientRect();
+    return {
+      clipped: parts
+        .filter((part) => part.scrollWidth > part.clientWidth)
+        .map((part) => (part.closest('.browser-approval-value') ? 'value' : 'target')),
+      gap: more.left - end.right,
+      overlap: value ? value.right > object.getBoundingClientRect().left : false,
+    };
+  });
+const publishGuest = (bounds: DesktopBrowserView['bounds']) =>
+  page.evaluate((bounds) => {
+    (
+      window as unknown as { publishBrowserViews: (next: DesktopBrowserView[]) => void }
+    ).publishBrowserViews([
+      {
+        token: 'fixture-guest',
+        partition: 'persist:fixture',
+        contentsId: 99,
+        bounds,
+        painting: !!bounds,
+        manual: false,
+      },
+    ]);
+  }, bounds);
 test('keeps native approval evidence stable while requests appear, expand and resolve', async () => {
   const release = page.getByRole('button', { name: 'Return to agent', exact: true });
   if (await release.isVisible()) await release.click();
@@ -1175,6 +1380,10 @@ test('keeps native approval evidence stable while requests appear, expand and re
   await page.reload({ waitUntil: 'domcontentloaded' });
   const body = page.getByLabel('Native browser page', { exact: true });
   await body.waitFor();
+  // The daemon serves each waiting request's element box; the overlay rings it on the page.
+  const target = vi
+    .spyOn(service.computer, 'target')
+    .mockReturnValue({ x: 20, y: 30, width: 120, height: 32 });
   for (const size of [
     { width: 1440, height: 1000 },
     { width: 390, height: 844 },
@@ -1196,6 +1405,21 @@ test('keeps native approval evidence stable while requests appear, expand and re
       );
       const review = page.getByRole('region', { name: 'Pending browser action', exact: true });
       await review.waitFor();
+      // A short title is never shortened while the line has room, and its chevron follows it.
+      const title = await approvalTitleLayout(review);
+      expect(title.clipped).toEqual([]);
+      expect(title.gap).toBeGreaterThanOrEqual(0);
+      expect(title.gap).toBeLessThanOrEqual(16);
+      if (!index) {
+        // Present the guest at the page's place so the overlay can ring the element on it.
+        const box = (await body.boundingBox())!;
+        await publishGuest({ x: box.x, y: box.y, width: box.width, height: box.height });
+        const ring = page.locator('.browser-approval-target');
+        await ring.waitFor();
+        const placed = (await ring.boundingBox())!;
+        expect(Math.round(placed.x - box.x)).toBe(16);
+        expect(Math.round(placed.width)).toBe(128);
+      }
       expect(
         await page
           .locator('[data-slot="toast-title"]')
@@ -1205,7 +1429,7 @@ test('keeps native approval evidence stable while requests appear, expand and re
           .count(),
       ).toBe(0);
       expect((await body.boundingBox())?.height).toBe(before?.height);
-      await review.getByRole('button', { name: 'Details', exact: true }).click();
+      await review.getByRole('button', { name: /^Details: / }).click();
       await page.locator('.browser-evidence-popover').waitFor();
       if (!index)
         await page.screenshot({ path: `/tmp/pitchcrew-browser-approval-${size.width}.png` });
@@ -1218,13 +1442,17 @@ test('keeps native approval evidence stable while requests appear, expand and re
       expect((await service.snapshot({ workspace: true })).computerApprovals).toContainEqual(
         approval,
       );
-      await review.getByRole('button', { name: 'Approve interaction', exact: true }).click();
+      await review.getByRole('button', { name: 'Approve opening', exact: true }).click();
       await review.waitFor({ state: 'hidden' });
-      const confirmation = page.locator('[data-slot="toast"][data-kind="action"]').filter({
-        hasText: 'Browser action approved for this run',
-      });
-      await confirmation.locator('[data-slot="toast-close"]').click();
-      await confirmation.waitFor({ state: 'hidden' });
+      await page.locator('.browser-approval-target').waitFor({ state: 'detached' });
+      if (!index) await publishGuest(null);
+      // The tray shows the outcome; no toast covers the next request's decision.
+      expect(
+        await page
+          .locator('[data-slot="toast"]')
+          .filter({ hasText: 'Browser action approved for this run' })
+          .count(),
+      ).toBe(0);
       await service.computer.execute(
         scope.runId,
         approval.id,
@@ -1234,19 +1462,61 @@ test('keeps native approval evidence stable while requests appear, expand and re
       expect((await body.boundingBox())?.height).toBe(before?.height);
     }
   }
+  target.mockRestore();
   await page.setViewportSize({ width: 1440, height: 1000 });
   await service.computer.stop(scope.runId);
-  await page.getByRole('button', { name: 'Take control', exact: true }).click();
+  // Let the header settle on Idle so explicit control comes from Browser options.
+  await page.locator('.browser-state-chip[data-tone="idle"]').waitFor();
+  await takeControl();
 }, 30000);
+test('shortens a long typed value before the target at the default panel width', async () => {
+  // The previous journey ends holding control; the agent can only ask once it is returned.
+  await returnControl();
+  const service = host.daemon.service;
+  const scope = { runId: 'native-title-layout', roleId: 'writer', cardId: null };
+  service.computer.bindBrowser({ ...scope, threadId: 'writer' });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.getByLabel('Native browser page', { exact: true }).waitFor();
+  // The reloaded panel must know the run before its request can appear in the tray, and must
+  // have settled its size: a resize voids a pending request.
+  await page.locator('.browser-state-chip[data-tone="working"]').waitFor({ timeout: 10000 });
+  await viewportSettled(service);
+  const slot = page.locator('.browser-state-slot');
+  const working = (await slot.boundingBox())!.width;
+  const approval = await service.computer.request(
+    scope,
+    {
+      kind: 'fill',
+      selector: '#cover',
+      value: 'A fictional cover letter answer that runs far longer than the tray line can hold',
+    },
+    'Answer the fictional cover letter question',
+  );
+  const review = page.getByRole('region', { name: 'Pending browser action', exact: true });
+  await review.waitFor();
+  // The chip's slot holds its width from Working to Needs your OK, so the tabs never move.
+  expect((await slot.boundingBox())!.width).toBe(working);
+  const title = await approvalTitleLayout(review);
+  // The value may give way; the target never, and the parts never overlap.
+  expect(title.clipped).not.toContain('target');
+  expect(title.overlap).toBe(false);
+  expect(title.gap).toBeGreaterThanOrEqual(0);
+  expect(title.gap).toBeLessThanOrEqual(16);
+  service.computer.decide(approval.id, false);
+  await review.waitFor({ state: 'hidden' });
+  await service.computer.stop(scope.runId);
+  await page.locator('.browser-state-chip[data-tone="idle"]').waitFor();
+  await takeControl();
+});
 test('keeps the live page mounted under app overlays across native state polls in split and sheet views', async () => {
   await page
-    .locator('.browser-panel-heading')
+    .locator('.browser-approvals')
     .getByRole('button', { name: 'Return to agent', exact: true })
     .waitFor();
   await vi.waitFor(async () =>
     expect(
       await page
-        .locator('.browser-panel-heading')
+        .locator('.browser-approvals')
         .getByRole('button', { name: 'Return to agent', exact: true })
         .isEnabled(),
     ).toBe(true),

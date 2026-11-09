@@ -29,7 +29,7 @@ describe('recently closed browser pages', () => {
   });
   it('shows a time today, a weekday this week and a date before that', () => {
     expect(closedPageTime(now - 60_000, now)).toBe(
-      new Date(now - 60_000).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
+      new Date(now - 60_000).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }),
     );
     const twoDays = now - 2 * 24 * 3600_000;
     expect(closedPageTime(twoDays, now)).toBe(

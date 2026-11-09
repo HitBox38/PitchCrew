@@ -1,6 +1,6 @@
 import { keyedItems } from '@/lib/list-keys.ts';
 import { packetDocumentLabels } from '@/lib/packet-labels.ts';
-import { SourceBlock } from '@/components/SourceBlock/index.tsx';
+import { PacketDocumentView } from '@/components/CardDetails/components/PacketDocumentView.tsx';
 import { PacketDocumentPicker } from '@/components/CardDetails/components/PacketDocumentPicker.tsx';
 import type { JobPacketProps } from '@/components/CardDetails/types.ts';
 import { ShieldCheck } from 'lucide-react';
@@ -10,11 +10,7 @@ export const JobPacket = ({ document, setDocument, card }: JobPacketProps) => {
   return (
     <>
       <PacketDocumentPicker document={document} setDocument={setDocument} />
-      <SourceBlock
-        label={packetDocumentLabels[document]}
-        value={card.packet[document]}
-        contentClassName="font-sans text-body leading-relaxed"
-      />
+      <PacketDocumentView label={packetDocumentLabels[document]} text={card.packet[document]} />
       <h3>Sources</h3>
       <p className="quiet">
         Each claim quotes your profile notes word for word. Reviewer reads the whole packet as well.

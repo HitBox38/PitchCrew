@@ -72,7 +72,17 @@ export const registerComputerTools = async (server: McpServer, call: AgentCall) 
       {
         description:
           'Request user approval for one exact browser action on the current page. Supervised mode asks for every interaction. User-granted task browsing permits HTTPS read navigation, scrolling and hover on granted origins. Separate preparation grants permit recognized application fields and approved files. Clicks, keys, dialogs and submissions still ask. This request returns an approved automatic preparation or a pending human decision. Never bypass the tool gate. Final submission click/Enter uses purpose submission and exportApprovalId. If it opens a dialog, request an exact dialog decision with the existing submissionAttemptId; this is the only allowed continuation until user verification. Use scroll for long pages/containers, hover for menus, and drag with a targetSelector for page elements; these require exact approval. Use ref: IDs from the latest inspection or unique CSS selectors. References expire on navigation, handoff and a new inspection. Uploads accept only exported packet files for the attached card. This tool only proposes; it never interacts with the page.',
-        inputSchema: { input: browserActionSchema, reason: z.string().trim().min(1).max(2000) },
+        inputSchema: {
+          input: browserActionSchema,
+          reason: z
+            .string()
+            .trim()
+            .min(1)
+            .max(2000)
+            .describe(
+              'One short sentence for the user, about 60 characters, saying why this step serves their request (for example "Opens the posting you asked for"). It shows on one line beside the approval; leave out process details.',
+            ),
+        },
         annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
       },
       (input) => call('computer_request', input),

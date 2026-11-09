@@ -1,15 +1,20 @@
 import { X } from 'lucide-react';
 import { Button } from '@pitchcrew/design-system/button';
-import { cn } from '@pitchcrew/design-system/utils';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
-import { browserStatus } from '../helpers.ts';
-import { browserModeChip, type BrowserPanelView } from '../layout.ts';
+import { browserState, type BrowserPanelView } from '../layout.ts';
 import { BrowserAgentPicker } from './BrowserAgentPicker.tsx';
 import { BrowserTaskDetails } from './BrowserTaskDetails.tsx';
-import { BrowserControls } from './BrowserControls.tsx';
 import { BrowserMaintenance } from './BrowserMaintenance.tsx';
 import { BrowserExpandButton } from './BrowserExpandButton.tsx';
 import { BrowserViewSwitch } from './BrowserViewSwitch.tsx';
+import { NativeBrowserTabs } from './NativeBrowserTabs.tsx';
+import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
+import { useBrowserPresenceField } from '@/DesktopBrowserHost/presence.ts';
+
+/**
+ * One header row: who and which state, the page's tabs, then the panel's actions. The control
+ * action lives in the tray, so nothing here changes width when control changes hands.
+ */
 export const BrowserPanelHeading = (
   props: Pick<AgentBrowserProps, 'browserPanel' | 'thread' | 'data' | 'onThread' | 'onOpenCard'> & {
     control: BrowserControl;
@@ -18,47 +23,66 @@ export const BrowserPanelHeading = (
     toggleExpanded: () => void;
     /** Set when the panel offers the Packet | Browser switch. */
     view?: BrowserPanelView;
+    /** The native page model whose tabs show inline. */
+    native?: NativeBrowserModel;
+    nudged: boolean;
   },
 ) => {
   const { browserPanel, thread, control, narrow, expanded, toggleExpanded, view } = props;
+  const session = browserPanel.session;
   const waiting = props.data.computerApprovals.some(
     (approval) =>
       approval.roleId === browserPanel.role?.id &&
-      approval.runId === browserPanel.session?.runId &&
+      approval.runId === session?.runId &&
       approval.status === 'pending',
   );
-  const status = browserStatus(browserPanel.session, !!control.leaseId, waiting, thread);
-  // The mode chip already says who is in control; the status stays for screen readers.
-  const chip = browserModeChip(browserPanel.session, !!control.leaseId);
+  const picking = useBrowserPresenceField('picking');
+  const current = browserState({
+    session,
+    leaseId: control.leaseId,
+    implicit: control.implicit,
+    waiting,
+    opening: control.working && session?.status !== 'open',
+    name: browserPanel.role?.name ?? 'The agent',
+    elsewhere: !!session?.threadId && session.threadId !== thread,
+  });
+  const state = picking
+    ? {
+        tone: 'control' as const,
+        label: 'Picking',
+        detail: 'Click an element on the page to attach it to your message. Esc cancels.',
+      }
+    : current;
   return (
     <header className="browser-panel-heading" data-expanded={expanded || undefined}>
       <div className="browser-heading-identity">
         {view ? <BrowserViewSwitch view={view} setView={browserPanel.setView} /> : null}
         <BrowserAgentPicker browserPanel={browserPanel} data={props.data} />
-        <output
-          aria-live="polite"
-          title={status.detail}
-          className={cn(status.manual && 'browser-owner-manual', chip && 'sr-only') || undefined}
-        >
-          <span className="browser-state-dot" aria-hidden="true" />
-          <span className="truncate">{status.label}</span>
+        <BrowserTaskDetails {...props} state={state} nudged={props.nudged} />
+        <output className="sr-only" aria-live="polite">
+          {state.label}
         </output>
       </div>
+      {props.native ? (
+        <div className="browser-heading-tabs">
+          <NativeBrowserTabs model={props.native} manual={control.available && !control.working} />
+        </div>
+      ) : null}
       <div className="browser-heading-actions">
-        <BrowserControls browserPanel={browserPanel} thread={thread} control={control} />
-        <BrowserTaskDetails {...props} />
         <BrowserMaintenance browserPanel={browserPanel} thread={thread} control={control} />
         {!narrow ? <BrowserExpandButton expanded={expanded} toggle={toggleExpanded} /> : null}
-        <Button
-          size="icon-sm"
-          variant="ghost"
-          className="browser-hide"
-          aria-label="Hide browser"
-          title="Hide browser"
-          onClick={browserPanel.hide}
-        >
-          <X size={15} />
-        </Button>
+        {!expanded || narrow ? (
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            className="browser-hide"
+            aria-label="Hide browser"
+            title="Hide browser"
+            onClick={browserPanel.hide}
+          >
+            <X size={15} />
+          </Button>
+        ) : null}
       </div>
     </header>
   );

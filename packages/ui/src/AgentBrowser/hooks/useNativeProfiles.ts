@@ -3,7 +3,8 @@ import type {
   BrowserProfilesCommand,
   BrowserProfilesState,
 } from '../../../../core/src/browser-profiles.ts';
-export const useNativeProfiles = (id: string) => {
+/** Profile commands for one browser; prepare takes control first while the agent is idle. */
+export const useNativeProfiles = (id: string, prepare?: () => Promise<unknown>) => {
   const [state, setState] = useState<BrowserProfilesState | null>(null);
   const [working, setWorking] = useState(false);
   const [error, setError] = useState('');
@@ -13,6 +14,7 @@ export const useNativeProfiles = (id: string) => {
       setError('');
       if (command.kind === 'list') setState(null);
       try {
+        if (command.kind !== 'list' && command.kind !== 'cancel-import') await prepare?.();
         const next = await window.pitchcrewBrowser!.profiles(id, command);
         setState(next);
         return true;
@@ -23,7 +25,7 @@ export const useNativeProfiles = (id: string) => {
         setWorking(false);
       }
     },
-    [id],
+    [id, prepare],
   );
   const token = state?.preview?.token;
   useEffect(

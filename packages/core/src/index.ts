@@ -188,5 +188,13 @@ export {
 export type { ChatFileCitation } from './chat-citations.ts';
 
 export * from './browser-tabs.ts';
-export { browserErrorText } from './browser-errors.ts';
+export { publicText } from './browser-action-labels.ts';
+export {
+  browserErrorText,
+  isUserControlError,
+  isUserControlPause,
+  isUserDeclinedError,
+  userControlPauseLabel,
+  userDeclinedError,
+} from './browser-errors.ts';
 export * from './runtime-model-preferences.ts';

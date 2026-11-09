@@ -159,6 +159,7 @@ export class DesktopBrowserHosts {
           return driver.matches!(condition);
         },
         targetTab,
+        describeTarget: async (selector, frame) => driver.describeTarget?.(selector, frame),
         resolveAction: async (action) => {
           if (action.tabId) await targetTab(action.tabId);
           else await syncSelected();

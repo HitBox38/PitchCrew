@@ -16,7 +16,8 @@ export const BrowserPlaceholder = ({
   /** Shown under the action, e.g. recently closed pages. */
   children?: ReactNode;
 }) => {
-  const manual = !!control.leaseId;
+  // While the agent is idle the address field already works; only a running agent needs takeover.
+  const manual = control.available;
   const act = () => {
     if (!opened) void control.open();
     else if (!manual) void control.take();

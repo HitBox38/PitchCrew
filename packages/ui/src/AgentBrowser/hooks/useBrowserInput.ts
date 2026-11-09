@@ -28,10 +28,12 @@ export const useBrowserInput = (
     if (event.key === 'Escape') {
       event.preventDefault();
       event.stopPropagation();
-      event.currentTarget
-        .closest('.agent-browser-panel')
-        ?.querySelector<HTMLButtonElement>('[data-browser-controls] button:not(:disabled)')
-        ?.focus();
+      const panel = event.currentTarget.closest('.agent-browser-panel');
+      // The header control is absent while browsing implicitly; the address field never is.
+      (
+        panel?.querySelector<HTMLElement>('[data-browser-controls] button:not(:disabled)') ??
+        panel?.querySelector<HTMLElement>('[aria-label="Browser address"]')
+      )?.focus();
       return;
     }
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'v') return;
@@ -56,7 +58,17 @@ export const useBrowserInput = (
     }
   };
   const click = (event: React.MouseEvent<HTMLButtonElement>) => {
-    if (!manual || touch.shouldIgnoreClick()) return;
+    if (touch.shouldIgnoreClick()) return;
+    if (!manual) {
+      // Idle browsing, as on desktop: the press takes control and is not replayed onto the page.
+      if (!control.leaseId && control.available && !control.working && !props.panView) {
+        const screen = event.currentTarget;
+        void control.command(async () => {
+          if (await control.ensure()) screen.focus();
+        });
+      }
+      return;
+    }
     event.currentTarget.focus();
     const bounds = event.currentTarget.getBoundingClientRect();
     control.input({

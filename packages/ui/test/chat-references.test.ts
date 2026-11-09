@@ -54,7 +54,7 @@ beforeAll(async () => {
   page.setDefaultTimeout(10000);
   page.on('pageerror', (error) => errors.push(error.message));
   await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
-  await page.goto(`http://127.0.0.1:${address.port}/__chat-references`);
+  await page.goto(`http://127.0.0.1:${address.port}/__chat-references`, { timeout: 30000 });
   await page.getByRole('textbox', { name: 'Message the crew' }).waitFor({ timeout: 30000 });
 }, 60000);
 

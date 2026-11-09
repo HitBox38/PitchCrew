@@ -13,8 +13,8 @@ export const PacketThen = ({ approval, data }: { approval: Approval; data: Snaps
       {chosen ? (
         <p className="decide-why">
           {chosen.method === 'manual'
-            ? 'You chose to submit yourself. Apply on the posting, then record it here.'
-            : 'An agent is preparing the application. You approve the final submit click.'}
+            ? 'You chose to apply yourself. The files are saved on this computer; apply on the posting, then record it here.'
+            : 'This application was handed to an agent. Check its progress below. You approve the final submit click.'}
         </p>
       ) : (
         <>
@@ -23,8 +23,8 @@ export const PacketThen = ({ approval, data }: { approval: Approval; data: Snaps
               <User size={15} />
             </span>
             <div>
-              <strong>Submit myself</strong>
-              <span>Export the files and apply on the posting</span>
+              <strong>Export to apply myself</strong>
+              <span>Saves the files here. Nothing is sent; you apply on the posting</span>
             </div>
           </div>
           <div className="decide-then">

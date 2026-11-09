@@ -99,6 +99,10 @@ export const registerApprovalsRoutes = (app: FastifyInstance, service: CrewServi
       ),
     ),
   );
+  // Where a waiting browser request's element sits, so the panel can ring it on the live page.
+  app.get<IdRoute>('/api/computer-approvals/:id/target', (req) => ({
+    bounds: service.computer.target(z.uuid().parse(req.params.id)),
+  }));
   app.post<IdRoute>('/api/computer-approvals/:id/decide', (req, res) =>
     res.send(
       service.computer.decide(

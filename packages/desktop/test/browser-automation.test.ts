@@ -284,3 +284,57 @@ it.each(['render-process-gone', 'did-navigate'])(
     expect(contents.listenerCount('did-navigate')).toBe(0);
   },
 );
+
+it('answers request interception while focus emulation waits on the paused navigation', async () => {
+  // A cross-process navigation paused at the Fetch stage cannot answer renderer-side focus
+  // emulation. Routing Fetch.continueRequest behind it deadlocked every real website load.
+  const { automation, sendCommand } = fixture();
+  const focus = deferred<object>();
+  sendCommand.mockImplementation(async (method: string) =>
+    method === 'Emulation.setFocusEmulationEnabled' ? focus.promise : {},
+  );
+  const stalled = automation.send('Runtime.evaluate', { expression: '1' }, undefined, 'agent');
+  for (const method of [
+    'Fetch.continueRequest',
+    'Fetch.failRequest',
+    'Fetch.fulfillRequest',
+    'Fetch.continueWithAuth',
+  ])
+    await expect(
+      automation.send(method, { requestId: 'interception-job-1.0' }, undefined, 'agent'),
+    ).resolves.toEqual({});
+  expect(sendCommand).toHaveBeenCalledWith(
+    'Fetch.continueRequest',
+    { requestId: 'interception-job-1.0' },
+    undefined,
+  );
+  focus.resolve({});
+  await stalled;
+});
+
+it('reports automation pointer moves and presses on the owned page only', async () => {
+  const events = new EventEmitter();
+  const contents = Object.assign(events, {
+    isDestroyed: () => false,
+    focusedFrame: {},
+    isFocused: () => true,
+    debugger: { sendCommand: vi.fn(async () => ({})) },
+    sendInputEvent: vi.fn(),
+  }) as unknown as WebContents;
+  const pointer = vi.fn();
+  const automation = guestAutomation(contents, vi.fn(), () => 1, pointer);
+  await automation.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 40, y: 50 });
+  await automation.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: 41, y: 51 });
+  await automation.send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: 1, y: 1 });
+  await automation.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 9, y: 9 }, 'frame');
+  expect(pointer.mock.calls).toEqual([
+    [{ x: 40, y: 50, pressed: false }],
+    [{ x: 41, y: 51, pressed: true }],
+  ]);
+  // A floating mirror letting go keeps the pointer; the automation connection letting go clears it.
+  automation.release('floating:mirror');
+  expect(pointer).toHaveBeenCalledTimes(2);
+  automation.release('relay:session');
+  expect(pointer).toHaveBeenLastCalledWith(null);
+  events.emit('destroyed');
+});

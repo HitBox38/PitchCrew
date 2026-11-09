@@ -2,7 +2,7 @@ import type { Snapshot } from '@pitchcrew/core';
 import { Button } from '@pitchcrew/design-system/button';
 import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { missingSeats, setupProgress } from '../helpers.ts';
+import { missingSeats, scriptedSeats, setupProgress } from '../helpers.ts';
 import type { OnboardingActions } from '../types.ts';
 import { SetupItem } from './SetupItem.tsx';
 
@@ -19,6 +19,7 @@ export const SetupChecklist = ({
   const count = Object.values(progress).filter(Boolean).length;
   const current = !progress.profile ? 'profile' : !progress.crew ? 'crew' : 'job';
   const missing = missingSeats(data);
+  const scripted = progress.crew ? scriptedSeats(data) : [];
   return (
     <section className="onboarding-checklist" aria-labelledby="setup-title">
       <header className="onboarding-checklist-heading">
@@ -40,9 +41,12 @@ export const SetupChecklist = ({
           description={
             missing.length
               ? `Needs an enabled, installed ${missing.join(', ')}.`
-              : 'Scout, Writer and Reviewer are ready.'
+              : scripted.length
+                ? `${scripted.join(', ')} ${scripted.length > 1 ? 'use' : 'uses'} scripted Demo replies, with no AI calls. Choose real runtimes in Crew.`
+                : 'Scout, Writer and Reviewer are ready.'
           }
           done={progress.crew}
+          status={scripted.length ? 'Ready as scripted examples' : undefined}
           current={current === 'crew'}
           label="Set up crew"
           action={() => go('crew')}

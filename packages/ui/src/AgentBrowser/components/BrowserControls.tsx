@@ -1,40 +1,63 @@
 import { Bot, Hand } from 'lucide-react';
 import { Button } from '@pitchcrew/design-system/button';
 import type { BrowserControl, AgentBrowserProps } from '../types.ts';
+
+/**
+ * The tray's one control action, shown only when it means something: Take control while the
+ * agent works, Return to agent after an explicit takeover (or while a run waits on implicit
+ * browsing), Recover control when it lapsed. Idle pages are already usable without one.
+ */
 export const BrowserControls = ({
   browserPanel,
   control,
-}: Pick<AgentBrowserProps, 'browserPanel' | 'thread'> & { control: BrowserControl }) => {
-  const opened = browserPanel.session?.status === 'open';
-  // The empty page owns its one Open browser action.
-  if (!opened) return null;
+  nudged = false,
+  compact = false,
+}: Pick<AgentBrowserProps, 'browserPanel' | 'thread'> & {
+  control: BrowserControl;
+  /** The user pressed the page while the agent works: point at Take control. */
+  nudged?: boolean;
+  /** Beside a waiting request's own decision buttons: icon only unless the panel is wide. */
+  compact?: boolean;
+}) => {
+  const session = browserPanel.session;
+  if (session?.status !== 'open') return null;
+  const name = browserPanel.role?.name ?? 'the agent';
   const label = control.leaseId
-    ? 'Return to agent'
-    : browserPanel.session?.manual
+    ? control.implicit && !session.runId
+      ? null
+      : 'Return to agent'
+    : session.manual
       ? 'Recover control'
-      : 'Take control';
+      : session.runId
+        ? 'Take control'
+        : null;
+  if (!label) return null;
+  // Beside a request the short form fits the line; the shown words are also the accessible name.
+  const shown = compact && label === 'Take control' ? 'Take over' : label;
   const Icon = control.leaseId ? Bot : Hand;
   return (
-    <div data-browser-controls>
-      <Button
-        size="sm"
-        variant={control.leaseId ? 'secondary' : 'ghost'}
-        className="browser-handoff"
-        aria-label={label}
-        title={
-          label === 'Take control'
-            ? 'Take control to browse. Your agent pauses while you use the page.'
-            : label
-        }
-        disabled={control.working}
-        onClick={() => {
-          if (control.leaseId) void control.release();
-          else void control.take();
-        }}
-      >
-        <Icon size={15} />
-        <span className="browser-control-label">{label}</span>
-      </Button>
-    </div>
+    <Button
+      size="sm"
+      data-compact={compact || undefined}
+      variant={label === 'Take control' ? 'outline' : 'secondary'}
+      className="browser-handoff"
+      data-nudged={nudged || undefined}
+      aria-label={shown}
+      title={
+        label === 'Take control'
+          ? `Use the page yourself. ${name} pauses until you return it.`
+          : label === 'Return to agent'
+            ? `Give the page back to ${name}.`
+            : `Take control back, then return it to ${name}.`
+      }
+      disabled={control.working}
+      onClick={() => {
+        if (control.leaseId) void control.release();
+        else void control.take();
+      }}
+    >
+      <Icon size={15} aria-hidden="true" />
+      <span className="browser-handoff-label">{shown}</span>
+    </Button>
   );
 };

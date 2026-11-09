@@ -92,7 +92,8 @@ it('navigates to the blocker through the real unsaved-change router guard with n
   const page = await browser.newPage();
   page.setDefaultTimeout(5000);
   await page.route('**/api/**', (route) => route.abort('blockedbyclient'));
-  await page.goto(url + '/chat/current');
+  // The first navigation compiles this isolated fixture's dependency graph on a cold cache.
+  await page.goto(url + '/chat/current', { timeout: 30000 });
   await page.getByRole('button', { name: 'Mark unsaved queue edit' }).click();
   const link = page.getByRole('link', {
     name: 'Open blocking chat: Review the unfinished work in Earlier discussion',
@@ -117,7 +118,7 @@ it('navigates to the blocker through the real unsaved-change router guard with n
     'Queue message for after you retry',
   );
   await page.close();
-});
+}, 45000);
 
 it('shows shared recovery and truthful send labels in a new attached chat without foreign request rows', async () => {
   for (const kind of ['failed', 'interrupted', 'user']) {

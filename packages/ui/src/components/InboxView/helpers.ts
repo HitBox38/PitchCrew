@@ -145,5 +145,5 @@ export const packetConsequence = (
   if (approval.submission?.method === 'manual')
     return 'Record the submission only after you have applied.';
   if (approval.submission) return '';
-  return 'Either choice exports the files to this computer first. An agent asks you before the final submit.';
+  return 'Either choice exports the files to this computer first. Nothing is sent yet; an agent asks you before the final submit.';
 };

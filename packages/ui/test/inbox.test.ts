@@ -52,6 +52,35 @@ afterAll(async () => {
   await browser?.close();
   await cleanup();
 });
+/** Measures the packet footer's actions: their names, any that leave the footer or viewport or
+ * clip their label, and whether the footer itself scrolls to reach them. */
+const packetFooterLayout = () =>
+  page.locator('footer[aria-label="Packet decision"]').evaluate((footer) => {
+    const bounds = footer.getBoundingClientRect();
+    const actions = [...footer.querySelectorAll<HTMLElement>('.decide-actions :is(button, a)')];
+    const name = (element: HTMLElement) =>
+      element.getAttribute('aria-label') ?? element.textContent?.trim() ?? '';
+    const outside = (element: HTMLElement) => {
+      const box = element.getBoundingClientRect();
+      return (
+        box.left < Math.max(bounds.left, 0) - 0.5 ||
+        box.right > Math.min(bounds.right, innerWidth) + 0.5 ||
+        box.top < Math.max(bounds.top, 0) - 0.5 ||
+        box.bottom > Math.min(bounds.bottom, innerHeight) + 0.5
+      );
+    };
+    const first = actions[0]?.getBoundingClientRect();
+    const row = footer.querySelector('.decide-actions')!.getBoundingClientRect();
+    return {
+      names: actions.map(name),
+      outside: actions.filter(outside).map(name),
+      clipped: actions.filter((element) => element.scrollWidth > element.clientWidth + 1).map(name),
+      scrolls:
+        footer.scrollWidth > footer.clientWidth + 1 ||
+        footer.scrollHeight > footer.clientHeight + 1,
+      primaryFillsRow: !!first && Math.abs(first.width - row.width) <= 1,
+    };
+  });
 test('shows the waiting packet as a decision with the Reviewer summary before history', async () => {
   const summary = page.getByRole('region', { name: 'Packet summary', exact: true });
   expect(await summary.getByRole('heading', { name: 'Reviewer’s assessment' }).count()).toBe(1);
@@ -133,7 +162,9 @@ test('offers Markdown Rendered/Source and searchable script-free DOCX previews',
 });
 test('keeps manual follow-up after export, enables exact downloads and confirms withdrawal', async () => {
   await page.getByRole('button', { name: 'Approve packet', exact: true }).click();
-  await page.getByRole('heading', { name: 'Apply to Juniper Fixture', exact: true }).waitFor();
+  await page
+    .getByRole('heading', { name: 'Choose how to apply to Juniper Fixture', exact: true })
+    .waitFor();
   await page.getByRole('button', { name: 'Let an agent prepare', exact: true }).click();
   expect(await page.getByRole('combobox', { name: 'Submission agent' }).textContent()).toContain(
     'Submitter',
@@ -142,8 +173,11 @@ test('keeps manual follow-up after export, enables exact downloads and confirms 
     await page.getByRole('button', { name: 'Start preparation', exact: true }).isEnabled(),
   ).toBe(true);
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
-  await page.getByRole('button', { name: 'Submit myself', exact: true }).click();
+  await page.getByRole('button', { name: 'Export to apply myself', exact: true }).click();
   await page.getByRole('button', { name: 'I’ve submitted', exact: true }).waitFor();
+  await page
+    .getByRole('heading', { name: 'Apply to Juniper Fixture, then record it', exact: true })
+    .waitFor();
   expect(await page.locator('.decide-sheet .decide-heading').textContent()).toContain(
     'Ready for you to submit',
   );
@@ -155,6 +189,24 @@ test('keeps manual follow-up after export, enables exact downloads and confirms 
   await page.getByRole('button', { name: 'Close attachment', exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  // After a manual export every footer action stays whole and reachable on a phone, with
+  // I’ve submitted on its own full row; none hides behind a sideways scrollbar.
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 844 });
+    expect(await packetFooterLayout()).toEqual({
+      names: [
+        'I’ve submitted',
+        'Open application page',
+        'Let an agent prepare',
+        'More packet actions',
+      ],
+      outside: [],
+      clipped: [],
+      scrolls: false,
+      primaryFillsRow: true,
+    });
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.evaluate(() => document.documentElement.setAttribute('data-desktop', 'mac'));
   await page.getByRole('button', { name: /^resume.md Markdown/ }).click();
   const bounds = await page.getByRole('dialog', { name: 'resume.md', exact: true }).boundingBox();
@@ -348,9 +400,7 @@ test.each([
     expect(await source.textContent()).toBe(diagnostics);
     expect(await source.textContent()).not.toContain('\u001b');
     expect(await source.textContent()).not.toMatch(/\[2m|\[22m/);
-    expect(
-      await sheet.getByRole('button', { name: 'Approve interaction', exact: true }).count(),
-    ).toBe(0);
+    expect(await sheet.getByRole('button', { name: /^Approve / }).count()).toBe(0);
     expect(host.daemon.service.board.get<ComputerApproval>('computer_approval', saved.id)).toEqual(
       saved,
     );

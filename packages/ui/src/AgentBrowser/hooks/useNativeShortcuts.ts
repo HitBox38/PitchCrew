@@ -6,7 +6,8 @@ import type {
 
 export const useNativeShortcuts = (
   id: string | undefined,
-  leaseId: string | null,
+  /** The user may operate the page: holding control, or the agent is idle. */
+  available: boolean,
   state: NativeBrowserState | null,
   command: (value: NativeBrowserCommand) => Promise<void>,
   setFindOpen: (open: boolean) => void,
@@ -15,7 +16,7 @@ export const useNativeShortcuts = (
 ) => {
   useEffect(() => {
     const bridge = window.pitchcrewBrowser;
-    if (!id || !leaseId || !bridge) return;
+    if (!id || !available || !bridge) return;
     const inPanel = () => document.activeElement?.closest('#agent-browser-panel');
     const focus = () =>
       queueMicrotask(() => {
@@ -99,5 +100,5 @@ export const useNativeShortcuts = (
       document.removeEventListener('keydown', keydown, true);
       void bridge.focusControls(id, false).catch(() => {});
     };
-  }, [id, leaseId, state, command, setFindOpen, working, restoreClosed]);
+  }, [id, available, state, command, setFindOpen, working, restoreClosed]);
 };

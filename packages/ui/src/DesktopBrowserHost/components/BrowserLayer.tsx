@@ -23,10 +23,12 @@ export const BrowserLayer = ({
         data-expanded={surface ? '' : undefined}
         className="desktop-browser-layer"
         render={(props) => <div {...props} hidden={false} role={surface ? 'dialog' : undefined} />}
+        // Expanded: Back to chat. The narrow sheet: the sheet itself, so opening it neither
+        // selects the address (or raises a touch keyboard) nor lets a stray Space pause the agent.
         initialFocus={() =>
-          document.querySelector<HTMLButtonElement>(
-            '#agent-browser-panel [data-browser-controls] button',
-          )
+          document.querySelector<HTMLElement>(
+            '#agent-browser-panel .browser-expand[aria-label="Back to chat"]',
+          ) ?? document.querySelector<HTMLElement>('[data-desktop-browser-layer][data-expanded]')
         }
         finalFocus={() =>
           document.querySelector<HTMLButtonElement>('button[aria-controls="agent-browser-panel"]')

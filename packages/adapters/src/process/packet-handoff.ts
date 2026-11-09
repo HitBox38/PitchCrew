@@ -10,5 +10,19 @@ export const packetHandoffInstructions = (seat: string | null, context: RunConte
   if (context.deepReview?.subagent || context.purpose === 'packet-evaluation') return '';
   return seat === 'reviewer' ? reviewerHandoff : seat === 'writer' ? writerHandoff : '';
 };
+// Placeholders stay schema-valid so a literally copied example never fails validation.
 export const reviewSummaryShape =
-  '"summary":{"assessment":"","highlights":[],"limitations":[],"nextSteps":[""]}';
+  '"summary":{"assessment":"One to three sentences for the user","highlights":[],"limitations":[],"nextSteps":["One concrete step for the user"]}';
+const writerPacketShape =
+  '"packet":{"resume":"markdown","coverLetter":"markdown","formAnswers":"markdown","note":"markdown","claims":[{"claim":"exact profile quote","source":"profile.md","quote":"exact profile quote"}]}';
+/**
+ * The Writer's result example. A first draft omits changes entirely (an empty list is rejected);
+ * a revision of an existing packet supplies at least one change note.
+ */
+export const writerResultShape = (revising: boolean) =>
+  `{"role":"writer","changeSummary":"One sentence describing the completed work",${writerPacketShape}${revising ? ',"changes":["What changed from the previous draft and the finding or answer it addresses"]' : ''}}`;
+/** Tells the Writer which packet mode this run is in, so the example and instructions agree. */
+export const writerModeInstructions = (revising: boolean) =>
+  revising
+    ? 'This run revises the existing packet: include changes with one to eight non-empty notes.'
+    : 'This run writes the first draft: there is no existing packet, so omit the changes field entirely. Never return an empty changes list.';

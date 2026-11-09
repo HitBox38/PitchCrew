@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   fillBrowserViewport,
   type BrowserViewportSetting,
@@ -10,7 +10,15 @@ export const useBrowserSize = (
   resize: BrowserControl['resize'],
   setting: BrowserViewportSetting = fillBrowserViewport,
 ) => {
-  const [element, attach] = useState<HTMLDivElement | null>(null);
+  const [element, setElement] = useState<HTMLDivElement | null>(null);
+  // The page slot moves between the split pane, modal sheet and expanded dialog, whose subtrees
+  // commit independently. A React 19 ref cleanup lets only the detaching element clear it, so a
+  // late unmount can never leave the viewport unobserved (and the page stuck at an old size).
+  const attach = useCallback((node: HTMLDivElement | null) => {
+    if (!node) return;
+    setElement(node);
+    return () => setElement((current) => (current === node ? null : current));
+  }, []);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [error, setError] = useState('');
   useEffect(() => {

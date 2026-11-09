@@ -3,8 +3,10 @@ import { closedStateSet } from '../board-stages.ts';
 import { stateLabels } from '../lib/labels.ts';
 import { runActivityLabel } from '../lib/work-queue.ts';
 import { workflowSeat } from '@pitchcrew/core/states';
-import { jobBeadTone, trackIndex, trackSteps } from './helpers.ts';
-import { decisions, jobSignals, type Decision, type JobSignal } from './signals.ts';
+import { jobStep, snapshotStepFacts, type JobStep } from '../lib/job-step.ts';
+import { jobBeadTone, trackIndex } from './helpers.ts';
+import { packetTitle } from './packet-guidance.ts';
+import { decisions, jobSignals, signalAsks, type Decision, type JobSignal } from './signals.ts';
 
 export type SidebarJob = { card: Card; signal: JobSignal; status: string };
 
@@ -13,7 +15,7 @@ const roleName = (roles: Role[], id: string | null | undefined) =>
 
 export const jobStatus = (card: Card, signal: JobSignal, roles: Role[]) => {
   const { decision, run } = signal;
-  if (decision?.kind === 'packet') return 'Approve packet';
+  if (decision?.kind === 'packet') return decision.status ?? 'Approve packet';
   if (decision?.kind === 'browser') return 'Browser request';
   if (decision?.kind === 'brief') return 'Confirm brief';
   if (decision?.kind === 'question') return `${roleName(roles, decision.roleId)} asked`;
@@ -24,7 +26,7 @@ export const jobStatus = (card: Card, signal: JobSignal, roles: Role[]) => {
 /** Jobs past the lead stage, ordered: needs you, working, then most recently changed. */
 export const sidebarJobs = (data: Snapshot) => {
   const signals = jobSignals(data);
-  const rank = (signal: JobSignal) => (signal.decision ? 0 : signal.run ? 1 : 2);
+  const rank = (signal: JobSignal) => (signalAsks(signal) ? 0 : signal.run ? 1 : 2);
   const jobs = data.cards
     .filter((card) => !closedStateSet.has(card.state) && card.state !== 'lead')
     .map((card) => {
@@ -41,8 +43,11 @@ export const sidebarJobs = (data: Snapshot) => {
 export const decisionTitle = (decision: Decision, data: Snapshot) => {
   const card = data.cards.find((item) => item.id === decision.cardId);
   const who = roleName(data.roles, decision.roleId);
-  if (decision.kind === 'packet')
+  if (decision.kind === 'packet') {
+    const approval = data.approvals.find((item) => item.id === decision.id);
+    if (approval) return packetTitle(approval, card);
     return `Approve the ${card?.company ?? ''} packet?`.replace('  ', ' ');
+  }
   if (decision.kind === 'browser') return `${who} asks to use the browser`;
   if (decision.kind === 'brief') return `Confirm the ${card?.company ?? 'job'} brief`;
   return `${who} has a question`;
@@ -62,22 +67,44 @@ export type NextUp = { text: string; tone: 'asks' | 'working' | 'next' };
 
 /**
  * Who has the job's next move: the user when a decision waits, the agent working on it, or the
- * normal next step for its stage. Shown beside clay stage tracks.
+ * next application step from the same brief, form, fit and packet gates as job details' action.
+ * Shown beside clay stage tracks.
  */
 export const nextUp = (card: Card, data: Snapshot): NextUp | null => {
-  const { decision, run } = jobSignals(data).get(card.id) ?? {};
-  if (decision) return { text: `Waiting on you: ${decisionTitle(decision, data)}`, tone: 'asks' };
+  const signal = jobSignals(data).get(card.id) ?? {};
+  const { decision, run } = signal;
+  if (decision && signalAsks(signal))
+    return { text: `Waiting on you: ${decisionTitle(decision, data)}`, tone: 'asks' };
   if (run) return { text: `${roleName(data.roles, run.roleId)} is working`, tone: 'working' };
-  const step = trackSteps[trackIndex(card.state) ?? -1]?.id;
-  const next = {
-    lead: `${seatName(data, 'scout', 'Scout')} checks the fit`,
-    shortlisted: `${seatName(data, 'writer', 'Writer')} drafts the packet`,
-    drafting: `${seatName(data, 'reviewer', 'Reviewer')} reviews the packet`,
-    review: 'you approve the packet',
+  if (decision) return { text: decision.status ?? decisionTitle(decision, data), tone: 'next' };
+  if (trackIndex(card.state) === null) return null;
+  const step = jobStep(card, snapshotStepFacts(card, data.approvals));
+  const scout = seatName(data, 'scout', 'Scout');
+  const writer = seatName(data, 'writer', 'Writer');
+  const next: Record<JobStep, string> = {
+    'prepare-brief': 'you prepare the job brief',
+    'confirm-brief': 'you confirm the job brief',
+    'check-form': 'you check the application form',
+    'answer-requirements': 'you answer the brief’s required questions',
+    'evaluate-fit': `${scout} checks the fit`,
+    shortlist: 'you decide whether to shortlist',
+    draft: `${writer} drafts the packet`,
+    revise: `${writer} revises the packet`,
+    drafting: `${writer} finishes the draft`,
+    review: `${seatName(data, 'reviewer', 'Reviewer')} reviews the packet`,
+    export: 'you prepare the export for approval',
     approve: 'you approve the packet',
-    applied: 'you track their reply',
-  }[step ?? ''];
-  return next ? { text: `Next: ${next}`, tone: 'next' } : null;
+    apply: 'you apply, then record your submission',
+    outcome: outcomeNext[card.state] ?? 'you record their reply',
+  };
+  return step ? { text: `Next: ${next[step]}`, tone: 'next' } : null;
+};
+
+const outcomeNext: Partial<Record<Card['state'], string>> = {
+  submitted: 'you record their reply',
+  screening: 'you prepare for screening and record the result',
+  interviewing: 'you prepare for interviews and record the outcome',
+  offer: 'you review the offer and record your decision',
 };
 
 export type CardLine = { text: string; tone?: 'asks' | 'working' };
@@ -89,7 +116,11 @@ export type CardLine = { text: string; tone?: 'asks' | 'working' };
  * never inferred from the stage alone.
  */
 export const cardLine = (card: Card, signal: JobSignal, data: Snapshot): CardLine => {
-  if (signal.decision) return { text: jobStatus(card, signal, data.roles), tone: 'asks' };
+  if (signal.decision)
+    return {
+      text: jobStatus(card, signal, data.roles),
+      tone: signalAsks(signal) ? 'asks' : signal.run ? 'working' : undefined,
+    };
   if (signal.run)
     return {
       text: `${roleName(data.roles, signal.run.roleId)} · ${runActivityLabel(signal.run)}`,
@@ -115,8 +146,13 @@ export const cardLine = (card: Card, signal: JobSignal, data: Snapshot): CardLin
 export const columnBeads = (cards: Card[], signals: Map<string, JobSignal>) =>
   cards.slice(0, 5).map((card) => {
     const signal = signals.get(card.id);
-    const working = !!signal?.run && !signal.decision;
-    const tone = jobBeadTone(card.state, { asks: !!signal?.decision, working });
+    const asks = !!signal && signalAsks(signal);
+    const working = !!signal?.run && !asks;
+    const tone = jobBeadTone(card.state, {
+      asks,
+      working,
+      preparing: signal?.decision?.stage === 'preparing',
+    });
     return { id: card.id, tone, live: working };
   });
 
@@ -124,6 +160,17 @@ export const columnBeads = (cards: Card[], signals: Map<string, JobSignal>) =>
 export const decisionSource = (decision: Decision, data: Snapshot) => {
   const card = data.cards.find((item) => item.id === decision.cardId);
   if (decision.kind === 'packet') {
+    const approval = data.approvals.find((item) => item.id === decision.id);
+    const handoff = approval?.submission;
+    if (decision.stage === 'apply') return { roleId: null, text: 'You exported the files' };
+    if (decision.stage === 'choose') return { roleId: null, text: 'You approved' };
+    if (decision.stage === 'verify')
+      return { roleId: handoff?.roleId ?? null, text: 'Submission uncertain' };
+    if (decision.stage === 'preparing')
+      return {
+        roleId: handoff?.roleId ?? null,
+        text: `Handed to ${roleName(data.roles, handoff?.roleId)}`,
+      };
     const run = data.runs.find((item) => item.id === card?.packetReview?.runId);
     return { roleId: run?.roleId ?? null, text: `${roleName(data.roles, run?.roleId)} agreed` };
   }

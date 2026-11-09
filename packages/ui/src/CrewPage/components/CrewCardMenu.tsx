@@ -53,7 +53,7 @@ export const CrewCardMenu = ({
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem disabled={working || busy} onClick={onToggle}>
-            {role.enabled ? 'Pause role' : 'Resume role'}
+            {role.enabled ? `Pause ${role.name}` : `Resume ${role.name}`}
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

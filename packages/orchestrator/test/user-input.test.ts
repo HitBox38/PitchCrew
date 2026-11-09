@@ -339,7 +339,13 @@ it('restores a pending question after a real daemon restart without starting dep
   await daemon.close();
   const { createDaemon } = await import('../src/server.ts');
   const { resources } = await import('./helpers/daemon.ts');
-  const restored = await createDaemon({ directory, port: 19544, dev: true, seedSkills: false });
+  const restored = await createDaemon({
+    directory,
+    port: 19544,
+    dev: true,
+    ui: false,
+    seedSkills: false,
+  });
   resources.find((resource) => resource.daemon === daemon)!.daemon = restored;
   expect((await restored.service.snapshot()).userInputs?.[0].status).toBe('pending');
   expect(restored.service.board.list<import('@pitchcrew/core').AgentTask>('task')[0].status).toBe(

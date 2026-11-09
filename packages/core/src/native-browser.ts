@@ -33,6 +33,14 @@ export const nativeBrowserCommandSchema = z.discriminatedUnion('kind', [
   z
     .object({ kind: z.enum(['select-tab', 'close-tab']), tabId: z.string().min(1).max(100) })
     .strict(),
+  // A user drag or keyboard move: the tab's new position among the visible tabs.
+  z
+    .object({
+      kind: z.literal('move-tab'),
+      tabId: z.string().min(1).max(100),
+      index: z.number().int().min(0).max(100),
+    })
+    .strict(),
 ]);
 export type NativeBrowserCommand = z.infer<typeof nativeBrowserCommandSchema>;
 export interface NativeBrowserIdentity {
@@ -80,9 +88,28 @@ export interface DesktopBrowserView {
   viewport?: { width: number; height: number };
   painting: boolean;
   manual: boolean;
+  /**
+   * Where automation last moved or pressed the pointer, in page CSS pixels. A navigation marks
+   * it stale so the app fades it once the click's ping has shown.
+   * Presentation only; never approval evidence.
+   */
+  agentPointer?: {
+    x: number;
+    y: number;
+    pressed: boolean;
+    sequence: number;
+    /** The main frame navigated since: the point no longer matches the page. */
+    navigated?: boolean;
+  };
 }
 export interface DesktopBrowserBridge {
   capture(id: string): Promise<DesktopBrowserCapture>;
+  /**
+   * Waits for the user to click an element on the selected page (DevTools-style highlight) and
+   * returns it cropped with a short label, or null when cancelled. Requires held control.
+   */
+  pickElement?(id: string): Promise<(DesktopBrowserCapture & { label: string }) | null>;
+  cancelPick?(id: string): Promise<void>;
   saveArtifact(kind: 'png' | 'webm', data: string): Promise<string | null>;
   copyCapture(data: string): Promise<void>;
   revealArtifact(path: string): Promise<void>;
@@ -96,7 +123,12 @@ export interface DesktopBrowserBridge {
   focusPage(id: string): Promise<void>;
   focusControls(id: string, focused: boolean): Promise<void>;
   mount(id: string, bounds: NativeBrowserBounds | null): Promise<void>;
-  find(id: string, text: string, forward: boolean): Promise<void>;
+  /** Resolves with the match position and count, or null when cleared or unknown. */
+  find(
+    id: string,
+    text: string,
+    forward: boolean,
+  ): Promise<{ active: number; total: number } | null | void>;
   subscribeShortcuts(
     receive: (shortcut: { id: string; key: string; shift: boolean }) => void,
   ): () => void;
@@ -107,6 +139,8 @@ export interface DesktopBrowserCapture {
   height: number;
   url: string;
   title: string;
+  /** A picked element's tag and visible name, for the review dialog and file name. */
+  label?: string;
 }
 export const desktopBrowserHostSchema = z
   .object({

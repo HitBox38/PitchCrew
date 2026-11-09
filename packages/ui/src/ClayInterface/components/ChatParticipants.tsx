@@ -2,6 +2,7 @@ import type { Run, Snapshot, UserInputRequest } from '@pitchcrew/core';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { participantStates } from '../helpers.ts';
 import { StatusBead } from './StatusBead.tsx';
+import { useBrowserPresenceField } from '@/DesktopBrowserHost/presence.ts';
 
 const shown = 4;
 
@@ -20,7 +21,13 @@ export const ChatParticipants = ({
   questions: UserInputRequest[];
   data: Snapshot;
 }) => {
-  const states = participantStates(participants, running, questions);
+  // A browser request waiting on the user, or a page they hold, counts like a question: ochre.
+  const heldRuns = useBrowserPresenceField('heldRuns');
+  const approvals = data.computerApprovals.filter(
+    (approval) => approval.status === 'pending' && running.some((run) => run.id === approval.runId),
+  );
+  const held = running.filter((run) => heldRuns.includes(run.id));
+  const states = participantStates(participants, running, [...questions, ...approvals, ...held]);
   const name = (id: string) => data.roles.find((role) => role.id === id)?.name ?? id;
   const extra = states.length - shown;
   return (

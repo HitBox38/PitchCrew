@@ -70,7 +70,13 @@ describe('persistent user-only skill update checks', () => {
     ).toEqual([]);
     await request('/skills/updates/preferences', 'PUT', { automatic: false });
     for (const entry of resources.splice(0)) await entry.daemon.close();
-    const restarted = await createDaemon({ directory, port: 15732, seedSkills: false, dev: true });
+    const restarted = await createDaemon({
+      directory,
+      port: 15732,
+      seedSkills: false,
+      dev: true,
+      ui: false,
+    });
     resources.push({ daemon: restarted, directory });
     const state = (await restarted.service.snapshot()).skillUpdates!;
     expect(state.automatic).toBe(false);

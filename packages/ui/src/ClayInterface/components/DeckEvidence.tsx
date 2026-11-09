@@ -18,9 +18,11 @@ export const DeckEvidence = ({ decision, data }: { decision: Decision; data: Sna
       ? review.summary.highlights.slice(0, 3)
       : [];
   const files = approval?.artifacts ?? [];
-  if (!highlights.length && !files.length) return null;
+  const handoff = decision.stage && decision.stage !== 'approve';
+  if (!highlights.length && !files.length && !handoff) return null;
   return (
     <div className="clay-deck-evidence">
+      {handoff ? <p className="clay-deck-detail">{decision.detail}</p> : null}
       {files.length ? (
         <ul className="clay-deck-files" aria-label="Packet files">
           {files.map((file) => (

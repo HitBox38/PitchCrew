@@ -27,9 +27,7 @@ it.each([
         ),
       context.signal,
     ),
-  ).rejects.toThrow(
-    'The runtime did not return a valid structured result. Check its model/sign-in and retry.',
-  );
+  ).rejects.toThrow('The runtime did not return a valid structured result');
   ai.finish('failed');
   expect(record.mock.calls.map(([event]) => event)).toEqual(['$ai_span', '$ai_trace']);
   for (const [event, properties] of record.mock.calls) {

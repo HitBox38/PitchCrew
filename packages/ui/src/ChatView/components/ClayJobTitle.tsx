@@ -6,7 +6,7 @@ export const ClayJobTitle = ({ card }: { card: Card }) => {
   const meta = jobHeadingMeta(card);
   return (
     <div className="clay-job-title">
-      <h1>
+      <h1 title={`${card.company} · ${card.title}`}>
         <strong>{card.company}</strong> <span>{card.title}</span>
       </h1>
       {meta ? <span className="clay-job-title-meta">{meta}</span> : null}

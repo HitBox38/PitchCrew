@@ -2,12 +2,14 @@ import { Check, Hand, Square, X } from 'lucide-react';
 import { Button } from '@pitchcrew/design-system/button';
 import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
 import { browserActionTitles } from '@/ComputerApprovals/helpers.ts';
-import type { AgentBrowserProps } from '../types.ts';
+import type { AgentBrowserProps, BrowserControl } from '../types.ts';
+import { BrowserControls } from './BrowserControls.tsx';
 import { automaticSteps, formFillProgress, stepFieldLabel } from '../clay-states.ts';
 
 /**
  * The steps this run took on its own on granted sites, from saved records only. On
- * an inspected form page the title counts filled fields; Stop is the conversation's existing Stop.
+ * an inspected form page the title counts filled fields; Stop is the conversation's existing Stop,
+ * and Take control sits beside it as on every other tray.
  */
 export const ClayAutomaticSteps = ({
   browserPanel,
@@ -16,8 +18,12 @@ export const ClayAutomaticSteps = ({
   thread,
   action,
   working,
+  control,
+  nudged,
 }: Pick<AgentBrowserProps, 'browserPanel' | 'data' | 'thread' | 'action' | 'working'> & {
   name: string;
+  control: BrowserControl;
+  nudged: boolean;
 }) => {
   const session = browserPanel.session;
   const roleId = browserPanel.role?.id;
@@ -59,6 +65,12 @@ export const ClayAutomaticSteps = ({
           Buttons, keys, dialogs and submitting still ask here.
         </p>
       </div>
+      <BrowserControls
+        browserPanel={browserPanel}
+        thread={thread}
+        control={control}
+        nudged={nudged}
+      />
       {running ? (
         <Button
           size="sm"
