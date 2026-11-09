@@ -116,6 +116,49 @@
     padding-inline: 10px;
   }
 }
+/* Packet documents read as a paper sheet; Source keeps the exact saved text for copying. */
+.job-packet-document {
+  display: grid;
+  gap: 8px;
+  margin-block: 12px;
+}
+.job-packet-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.job-packet-sheet {
+  max-height: 32rem;
+  overflow-y: auto;
+  padding: 20px 22px;
+  border-radius: 6px;
+  background: var(--surface-bright);
+  box-shadow: var(--sheet);
+  font-size: var(--text-body);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.job-packet-sheet h1 {
+  margin-bottom: 4px;
+  font-size: 20px;
+  line-height: 1.25;
+}
+.job-packet-sheet h2 {
+  margin-top: 16px;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.job-packet-sheet h3 {
+  font-size: 14px;
+}
+@variant max-mobile {
+  .job-packet-sheet {
+    padding: 16px;
+  }
+}
 .evidence {
   display: flex;
   gap: 10px;

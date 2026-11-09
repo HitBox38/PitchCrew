@@ -50,7 +50,8 @@ export const ExternalSubmissionRegistration = ({
           </p>
         ) : null}
         <Button
-          className="button primary self-start"
+          variant="outline"
+          className="self-start"
           type="submit"
           disabled={working || !!card.owner}
         >

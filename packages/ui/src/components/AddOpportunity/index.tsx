@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { OpportunityFields } from './components/OpportunityFields.tsx';
 import { useAddOpportunity } from '@/components/AddOpportunity/hooks/useAddOpportunity.ts';
 import type { AddOpportunityProps } from '@/components/AddOpportunity/types.ts';
@@ -10,9 +11,26 @@ import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 export const AddOpportunity = (props: AddOpportunityProps) => {
   const controller = useAddOpportunity(props);
   const { card, guard, markDirty, working, onClose, submit, external, lookup } = controller;
+  const form = useRef<HTMLFormElement>(null);
+  // A new job starts in its first field, the posting link. Touch keeps the dialog's default so
+  // opening it never raises the keyboard; Edit job keeps the default too.
+  const firstField = (type: string) =>
+    type === 'touch' || card
+      ? true
+      : (form.current?.querySelector<HTMLInputElement>('input[name="url"]:not(:disabled)') ?? true);
   return (
-    <Modal title={card ? 'Edit job' : 'Add job'} onClose={onClose} className="add-job-panel">
-      <form onChange={markDirty} onSubmit={(e) => void submit(e)} className="form add-job-form">
+    <Modal
+      title={card ? 'Edit job' : 'Add job'}
+      onClose={onClose}
+      className="add-job-panel"
+      initialFocus={firstField}
+    >
+      <form
+        ref={form}
+        onChange={markDirty}
+        onSubmit={(e) => void submit(e)}
+        className="form add-job-form"
+      >
         <OpportunityFields {...controller} />
         <div className="ui-footer-bar add-job-footer">
           <span className="ui-footer-note">

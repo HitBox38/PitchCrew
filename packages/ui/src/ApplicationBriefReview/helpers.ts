@@ -25,3 +25,24 @@ export const normalizedBrief = (draft: ExtractedJob): ExtractedJob => ({
     constraints: draft.brief.constraints.map((line) => line.trim()).filter(Boolean),
   },
 });
+/**
+ * Why the brief cannot be confirmed yet, or '' when it can. The inline action and the job
+ * footer share this so both name the same blocker; the daemon still validates the request.
+ */
+export const briefConfirmationBlocker = ({
+  loaded,
+  draft,
+  busy,
+  linked,
+}: {
+  loaded: ContextResponse | null;
+  draft: ExtractedJob;
+  busy: boolean;
+  linked: boolean;
+}) => {
+  if (!loaded) return 'Loading the application brief…';
+  if (busy) return 'Wait for this job’s active work to finish before confirming.';
+  if (linked && !draft.form)
+    return 'Inspect the application form, or choose to check it yourself, before confirming.';
+  return '';
+};

@@ -1,6 +1,6 @@
 import type { Card, Role, Snapshot } from '@pitchcrew/core';
 import { describe, expect, it } from 'vitest';
-import { setupProgress } from '../helpers.ts';
+import { missingSeats, scriptedSeats, setupProgress } from '../helpers.ts';
 
 const roles: Role[] = (['scout', 'writer', 'reviewer'] as const).map((workflow) => ({
   id: `${workflow}-custom`,
@@ -59,5 +59,27 @@ describe('onboarding readiness', () => {
         roles: roles.map((role) => ({ ...role, id: role.workflow!, workflow: undefined })),
       }).crew,
     ).toBe(true);
+  });
+  it('labels seats ready only through the scripted Demo runtime without changing readiness', () => {
+    const demo = {
+      ...data,
+      roles: roles.map((role) => ({ ...role, runtime: 'demo' as const })),
+      runtimes: [...data.runtimes, { id: 'demo', available: true }],
+    } as Snapshot;
+    expect(setupProgress(demo).crew).toBe(true);
+    expect(scriptedSeats(demo)).toEqual(['Scout', 'Writer', 'Reviewer']);
+    expect(scriptedSeats(data)).toEqual([]);
+    const mixed = { ...demo, roles: [...demo.roles, roles[1]] } as Snapshot;
+    expect(scriptedSeats(mixed)).toEqual(['Scout', 'Reviewer']);
+  });
+  it('keeps paused or unavailable Demo agents out of readiness, as in production', () => {
+    const production = {
+      ...data,
+      roles: roles.map((role) => ({ ...role, runtime: 'demo' as const, enabled: false })),
+      runtimes: [...data.runtimes, { id: 'demo', available: false }],
+    } as Snapshot;
+    expect(setupProgress(production).crew).toBe(false);
+    expect(missingSeats(production)).toEqual(['Scout', 'Writer', 'Reviewer']);
+    expect(scriptedSeats(production)).toEqual([]);
   });
 });

@@ -44,16 +44,20 @@ export const FormPreparation = ({
         </p>
       )}
       {model.editing && !model.loaded?.form && card.url ? (
-        <label className="flex items-start gap-2">
+        // `.form label` stacks children; `checkbox-label` keeps the box beside its wrapping text.
+        <label className="checkbox-label min-h-8 items-start py-1 pointer-coarse:min-h-11">
           <Checkbox
+            className="mt-0.5 shrink-0"
             checked={model.draft.form?.status === 'manual'}
             disabled={model.disabled}
             onCheckedChange={(checked) =>
               model.setDraft({ ...model.draft, form: checked ? { status: 'manual' } : undefined })
             }
           />
-          I’ll check the form’s required fields and files myself. Continue with an uninspected
-          packet.
+          <span className="min-w-0">
+            I’ll check the form’s required fields and files myself. Continue with an uninspected
+            packet.
+          </span>
         </label>
       ) : null}
       {model.draft.form?.status === 'manual' ? (

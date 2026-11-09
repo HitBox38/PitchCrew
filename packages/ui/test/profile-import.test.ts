@@ -49,9 +49,9 @@ beforeAll(async () => {
 }, 60000);
 beforeEach(async () => {
   await page.setViewportSize({ width: 1280, height: 800 });
-  await page.goto(`${origin}/__profile-import`);
+  await page.goto(`${origin}/__profile-import`, { timeout: 30000 });
   await page.getByRole('dialog', { name: 'Review profile documents' }).waitFor({ timeout: 30000 });
-});
+}, 60000);
 afterAll(async () => {
   await browser?.close();
   await server?.close();

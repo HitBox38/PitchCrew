@@ -7,7 +7,7 @@ export const BrowserButton = ({ browserPanel }: Pick<ChatViewModel, 'browserPane
   const showing = browserPanel.open && browserPanel.view !== 'packet';
   return (
     <Button
-      variant="outline"
+      variant="ghost"
       size="sm"
       className="chat-browser"
       data-open={showing || undefined}

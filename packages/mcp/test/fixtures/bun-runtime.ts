@@ -215,6 +215,7 @@ try {
       seedSkills: false,
       dev: true,
       ui: 'dev',
+      uiCache: 'temporary',
     });
     try {
       await new Promise<void>((resolve) => development.http.listen(port, '127.0.0.1', resolve));

@@ -168,9 +168,24 @@ it(
       await page.getByRole('button', { name: 'Expand browser', exact: true }).click();
       assert.equal(await capture(app, 'expanded'), 0);
       await page.getByRole('button', { name: 'Back to chat', exact: true }).click();
-      await page.locator('button[aria-controls="agent-browser-panel"]').click();
+      // Hidden Electron windows can retain the expanded guest's hit-test surface after the DOM
+      // returns to the split view. Observe the native viewport and a new frame before pressing.
+      await readyViewport(app);
+      assert.equal(await capture(app, 'split-restored', { fresh: true }), 0);
+      const browserToggle = page.locator('button[aria-controls="agent-browser-panel"]');
+      await browserToggle.click();
+      await until(
+        async () => (await browserToggle.getAttribute('aria-expanded')) === 'false',
+        'The browser panel did not close',
+      );
+      await page.locator('#agent-browser-panel').waitFor({ state: 'hidden' });
       assert.equal(await capture(app, 'hidden'), 0);
-      await page.locator('button[aria-controls="agent-browser-panel"]').click();
+      await browserToggle.click();
+      await until(
+        async () => (await browserToggle.getAttribute('aria-expanded')) === 'true',
+        'The browser panel did not reopen',
+      );
+      await page.locator('#agent-browser-panel').waitFor({ state: 'visible' });
       await page.getByRole('tab', { name: 'Fictional E2E application', exact: true }).click();
       await until(
         async () => (await activeGuest(app)).id === original.id,

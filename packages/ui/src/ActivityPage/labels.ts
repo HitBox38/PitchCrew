@@ -73,7 +73,8 @@ export const activitySentence = (
     return 'Imported a past application';
   const imported = importedStatus.exec(message);
   if (imported && stages[imported[1]]) return `Imported past status: ${stages[imported[1]]}`;
-  const moved = /^Moved to (.+)$/.exec(message);
+  // A user status correction reads like any other move; the actor column already says who.
+  const moved = /^(?:Moved to|User changed status to) (.+)$/.exec(message);
   if (moved && event.kind === 'card' && stages[moved[1]]) return `Moved to ${stages[moved[1]]}`;
   const messaged = /^(\S+) messaged (\S+)$/.exec(message);
   if (messaged && event.kind === 'message') {

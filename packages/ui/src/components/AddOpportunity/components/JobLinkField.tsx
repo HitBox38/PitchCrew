@@ -4,7 +4,7 @@ import { Link2, LoaderCircle, MessageSquare } from 'lucide-react';
 import { useId } from 'react';
 import type { useJobLookup } from '../hooks/useJobLookup.ts';
 import type { useScoutJobImport } from '../hooks/useScoutJobImport.ts';
-import { jobLinkAction } from '../link-actions.ts';
+import { jobLinkAction, jobLinkHint } from '../link-actions.ts';
 import { LookupNotice } from './LookupNotice.tsx';
 
 /** Provider links fill the form; other posting links can be sent to Scout explicitly. */
@@ -26,11 +26,7 @@ export const JobLinkField = ({
   const id = useId();
   const mode = jobLinkAction(lookup.url);
   const askScout = !editing && (mode === 'scout' || lookup.scoutUrl === lookup.url.trim());
-  const blocker = askScout
-    ? external
-      ? 'Fill in this application yourself, or clear “Already applied” to ask Scout to add a lead.'
-      : scout.blocker
-    : '';
+  const unavailable = askScout && (external || !!scout.blocker);
   return (
     <div className="field add-job-link">
       <label htmlFor={id} className="flex-row items-baseline gap-2">
@@ -50,7 +46,7 @@ export const JobLinkField = ({
         />
         <Button
           variant="outline"
-          disabled={mode === 'invalid' || lookup.pending || working || !!blocker}
+          disabled={mode === 'invalid' || lookup.pending || working || unavailable}
           onClick={(event) =>
             void (askScout ? scout.askScout(event, lookup.scoutUrl) : lookup.fetchFromLink(event))
           }
@@ -66,10 +62,7 @@ export const JobLinkField = ({
         </Button>
       </div>
       <p id={`${id}-help`} className="add-job-hint" aria-live="polite">
-        {blocker ||
-          (askScout
-            ? 'Scout opens this link in a new conversation and adds the job. Or fill in the form.'
-            : 'Nothing is saved until you add it.')}
+        {jobLinkHint({ askScout, external, blocker: scout.blocker })}
       </p>
       {scout.error ? (
         <p className="form-error" role="alert">

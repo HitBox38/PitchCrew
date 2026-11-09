@@ -8,7 +8,7 @@ import { type DaemonOptions, createDaemon } from '../../src/server.ts';
 export const setup = async (
   port: number,
   seedSkills = false,
-  options: Pick<DaemonOptions, 'dev' | 'browserLaunch' | 'ui'> = {},
+  options: Pick<DaemonOptions, 'dev' | 'browserLaunch' | 'ui' | 'uiCache'> = {},
 ) => {
   const request = async <T>(
     path: string,

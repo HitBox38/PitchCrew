@@ -1,6 +1,23 @@
 import type { RunContext } from '@pitchcrew/core';
 import { originalReviewPerspectives, reviewPerspectives } from '@pitchcrew/core/deep-review-labels';
 
+/** A schema-valid example with every required perspective, never an empty assessment list. */
+export const deepReviewAssessmentShape = (context: RunContext) =>
+  JSON.stringify({
+    summary: 'An evidence-based assessment of the resume',
+    perspectives: (context.deepReview?.subagent
+      ? [context.deepReview.subagent.perspective]
+      : originalReviewPerspectives
+    ).map((perspective) => ({
+      perspective,
+      verdict: perspective === 'screen' ? 'REJECT' : perspective === 'interview' ? 'NO' : 'MAYBE',
+      rationale: 'Explain the chosen verdict using the supplied evidence.',
+      weakestLine: '',
+      interviewQuestions: [],
+    })),
+    findings: [],
+  });
+
 export const deepReviewInstructions = (context: RunContext) => {
   const review = context.deepReview;
   if (!review) return '';

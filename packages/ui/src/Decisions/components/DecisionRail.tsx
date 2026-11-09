@@ -3,6 +3,10 @@ import type { Decision } from '@/ClayInterface/signals.ts';
 import { useJobTimeline } from '../hooks/useJobTimeline.ts';
 import { trackDates } from '../helpers.ts';
 import { PacketThen } from './PacketThen.tsx';
+import { cardPacketStage } from '@/ClayInterface/packet-guidance.ts';
+import { currentStageTone } from '@/ClayInterface/helpers.ts';
+import { jobAsks } from '@/ClayInterface/signals.ts';
+import { executingRuns } from '@/lib/work-queue.ts';
 
 type DecisionRailProps = {
   decision: Decision;
@@ -13,7 +17,15 @@ type DecisionRailProps = {
 
 /** What follows this decision, and where its job stands, dated from the job's saved history. */
 export const DecisionRail = ({ decision, data, card, packet }: DecisionRailProps) => {
-  const steps = useJobTimeline(card);
+  const stage = card ? cardPacketStage(card, data.approvals) : undefined;
+  const steps = useJobTimeline(card, stage);
+  const tone = card
+    ? currentStageTone(card.state, {
+        stage,
+        asks: jobAsks(card.id, data),
+        live: executingRuns(data.runs).some((run) => run.cardId === card.id),
+      })
+    : 'current';
   if (!card && !packet) return null;
   const { shared, dates } = trackDates(steps.map((step) => step.at));
   return (
@@ -32,9 +44,9 @@ export const DecisionRail = ({ decision, data, card, packet }: DecisionRailProps
                   className="clay-bead"
                   data-size={step.bead === 'current' ? 'lg' : undefined}
                   data-tone={
-                    step.bead === 'done' ? 'done' : step.bead === 'current' ? 'ochre' : undefined
+                    step.bead === 'done' ? 'done' : step.bead === 'current' ? tone : undefined
                   }
-                  data-live={step.bead === 'current' ? '' : undefined}
+                  data-live={step.bead === 'current' && tone === 'plum' ? '' : undefined}
                   data-empty={step.bead === 'todo' ? '' : undefined}
                   aria-hidden="true"
                 />

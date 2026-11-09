@@ -1,5 +1,6 @@
 import type { CardState } from '@pitchcrew/core';
-import { trackBeads, trackSteps } from '../helpers.ts';
+import { currentStageTone, stepLabel, trackBeads, trackSteps } from '../helpers.ts';
+import type { PacketStage } from '../packet-guidance.ts';
 
 type StageTrackProps = {
   state: CardState;
@@ -9,21 +10,30 @@ type StageTrackProps = {
   tone?: 'plum' | 'ochre';
   size?: 'sm' | 'md';
   labelled?: boolean;
+  /** Where the job's packet decision stands (`cardPacketStage`), naming the approval step. */
+  stage?: PacketStage;
 };
 
 /**
  * The job's workflow as beads: completed steps primary, later steps empty sockets, and the current
- * step ochre when the user is asked (or must approve), plum only while an agent works, otherwise a
- * neutral raised bead with a primary ring.
+ * step ochre when the user is asked (or has the approval step's move), plum only while an agent
+ * works, otherwise a neutral raised bead with a primary ring.
  */
-export const StageTrack = ({ state, live, tone, size = 'sm', labelled }: StageTrackProps) => {
+export const StageTrack = ({
+  state,
+  live,
+  tone,
+  size = 'sm',
+  labelled,
+  stage,
+}: StageTrackProps) => {
   const beads = trackBeads(state);
   const current = beads.indexOf('current');
-  const step = trackSteps[current];
-  const currentTone =
-    tone === 'ochre' ? 'ochre' : live ? 'plum' : step?.id === 'approve' ? 'ochre' : 'current';
+  const currentTone = currentStageTone(state, { asks: tone === 'ochre', live, stage });
   const label =
-    current === -1 ? 'Closed' : `Stage ${current + 1} of ${trackSteps.length}: ${step?.label}`;
+    current === -1
+      ? 'Closed'
+      : `Stage ${current + 1} of ${trackSteps.length}: ${stepLabel(state, current, stage)}`;
   return (
     <div className="clay-stage-track" data-labelled={labelled ? '' : undefined}>
       <span className="sr-only">{label}</span>
@@ -45,7 +55,7 @@ export const StageTrack = ({ state, live, tone, size = 'sm', labelled }: StageTr
         <div className="clay-stage-labels" aria-hidden="true">
           {trackSteps.map((item, index) => (
             <span key={item.id} data-current={index === current ? '' : undefined}>
-              {item.label}
+              {stepLabel(state, index, stage, true)}
             </span>
           ))}
         </div>

@@ -235,4 +235,11 @@ it('marks application steps done in order and gives the first open step to whoev
   const waiting = applicationRows(awaiting, true, false);
   expect(waiting.at(-1)?.status).toBe('Approval requested');
   expect(applicationBeads(waiting)).toEqual(['done', 'done', 'done', 'ochre']);
+  const exported = applicationRows(awaiting, true, true);
+  expect(exported.map((row) => row.status)).toEqual([
+    'Confirmed',
+    'Exported version',
+    'Reviewed',
+    'Exported',
+  ]);
 });

@@ -1,4 +1,5 @@
 import type { CardState, ChatRequest, Run, RunActivity, UserInputRequest } from '@pitchcrew/core';
+import type { PacketStage } from './packet-guidance.ts';
 
 type ChatDelivery = ChatRequest['deliveries'][number];
 
@@ -19,6 +20,56 @@ export const trackSteps: TrackStep[] = [
 export const trackIndex = (state: CardState): number | null => {
   const index = trackSteps.findIndex((step) => step.states.includes(state));
   return index === -1 ? null : index;
+};
+
+// The six-stage track keeps one Applied step; its label names the recorded outcome so
+// moving to Interviewing visibly sticks without adding stages.
+const appliedOutcomes: Partial<Record<CardState, string>> = {
+  screening: 'Screening',
+  interviewing: 'Interviewing',
+  offer: 'Offer',
+};
+
+// Once a packet decision exists, the approval step names where it actually stands, so the track
+// never asks for an approval the user already gave. Track labels stay short; the current step's
+// full name is read by screen readers and shown beside the compact chat track.
+const approveLabels: Record<PacketStage, { full: string; short: string }> = {
+  approve: { full: 'You approve', short: 'You approve' },
+  choose: { full: 'Choose how to apply', short: 'Approved' },
+  apply: { full: 'Ready to apply', short: 'Ready to apply' },
+  preparing: { full: 'Agent preparation', short: 'Preparation' },
+  verify: { full: 'Verify submission', short: 'Verify' },
+};
+
+/**
+ * A step's label for this job: the current Applied step names the recorded outcome and the current
+ * approval step its packet stage (from `cardPacketStage`). `short` is for the labelled track row.
+ * A passed approval step is named as a phase, never an instruction; it does not claim an approval
+ * happened, since tracked or imported submissions can pass it without one.
+ */
+export const stepLabel = (state: CardState, index: number, stage?: PacketStage, short = false) => {
+  const step = trackSteps[index];
+  const current = trackIndex(state);
+  if (step?.id === 'approve' && current !== null && current > index) return 'Approval';
+  if (!step || current !== index) return step?.label ?? '';
+  if (step.id === 'applied') return appliedOutcomes[state] ?? step.label;
+  if (step.id === 'approve' && stage) return approveLabels[stage][short ? 'short' : 'full'];
+  return step.label;
+};
+
+/**
+ * The current bead's tone: ochre when the user is asked, plum while an agent executes. At rest the
+ * approval step is the user's move (ochre) unless an agent is preparing the approved application.
+ */
+export const currentStageTone = (
+  state: CardState,
+  { asks, live, stage }: { asks?: boolean; live?: boolean; stage?: PacketStage },
+): 'ochre' | 'plum' | 'current' => {
+  if (asks) return 'ochre';
+  if (live) return 'plum';
+  return trackSteps[trackIndex(state) ?? -1]?.id === 'approve' && stage !== 'preparing'
+    ? 'ochre'
+    : 'current';
 };
 
 export type BeadState = 'done' | 'current' | 'todo';
@@ -48,8 +99,9 @@ export const stateTone = (state: CardState): BeadTone | undefined => {
 /** A job's bead given what is happening on it: asked beats working beats its place at rest. */
 export const jobBeadTone = (
   state: CardState,
-  { asks, working }: { asks?: boolean; working?: boolean },
-): BeadTone | undefined => (asks ? 'ochre' : working ? 'plum' : stateTone(state));
+  { asks, working, preparing }: { asks?: boolean; working?: boolean; preparing?: boolean },
+): BeadTone | undefined =>
+  asks ? 'ochre' : working ? 'plum' : preparing ? 'current' : stateTone(state);
 
 /** A recorded status move: applied and later are positive outcomes, earlier moves completed steps. */
 export const moveTone = (state: CardState) => (trackIndex(state) === 5 ? 'moss' : 'done');

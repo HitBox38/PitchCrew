@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { forceLinting } from '@codemirror/lint';
@@ -16,7 +16,7 @@ export const useJsonEditor = (props: JsonEditorProps) => {
   useLayoutEffect(() => {
     latest.current = props;
   });
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!host.current) return;
     const editor = new EditorView({
       parent: host.current,
@@ -37,7 +37,9 @@ export const useJsonEditor = (props: JsonEditorProps) => {
       view.current = null;
     };
   }, []);
-  useEffect(() => {
+  // Sync controlled values before input resumes. A delayed effect can replace a newer
+  // local edit with stale props and map the caret to the start of the document.
+  useLayoutEffect(() => {
     const editor = view.current;
     if (!editor) return;
     if (editor.state.sliceDoc() !== props.value) {

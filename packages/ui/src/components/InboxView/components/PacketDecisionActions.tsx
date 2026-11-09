@@ -18,7 +18,7 @@ export const PacketDecisionActions = (props: PacketActionProps) => {
   const choosing =
     current && approval.status !== 'pending' && !approval.submission?.requestId && !uncertain;
   const manual = current && approval.submission?.method === 'manual' && !uncertain;
-  // After choosing Submit myself, handing over to an agent stays available as the clay option.
+  // After choosing Export to apply myself, handing over to an agent stays available as the clay option.
   const agent = choosing ? (
     <Button
       variant={approval.submission ? 'outline' : undefined}
@@ -35,7 +35,7 @@ export const PacketDecisionActions = (props: PacketActionProps) => {
         <>
           {agent}
           <Button variant="outline" disabled={disabled} onClick={() => void model.start('manual')}>
-            Submit myself
+            Export to apply myself
           </Button>
         </>
       ) : null}

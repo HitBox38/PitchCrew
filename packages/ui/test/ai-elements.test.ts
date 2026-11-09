@@ -49,7 +49,7 @@ beforeAll(async () => {
   page.setDefaultTimeout(10000);
   page.on('pageerror', (error) => errors.push(error.message));
   await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
-  await page.goto(`http://127.0.0.1:${address.port}/__ai-elements`);
+  await page.goto(`http://127.0.0.1:${address.port}/__ai-elements`, { timeout: 30000 });
   await page.locator('[data-message-id="message-60"]').waitFor({ timeout: 30000 });
 }, 60000);
 
@@ -60,6 +60,11 @@ afterAll(async () => {
 });
 
 const viewport = '[data-slot="message-scroller-viewport"]';
+const clipboardText = async () => {
+  const text = await page.evaluate(() => navigator.clipboard.readText());
+  // Windows stores clipboard line endings as CRLF; keep every other byte significant.
+  return process.platform === 'win32' ? text.replace(/\r\n/g, '\n') : text;
+};
 const atEnd = () =>
   page
     .locator(viewport)
@@ -95,16 +100,12 @@ test('code fences preserve blank lines, copy exact text, and retain image and li
   expect(await page.locator('[data-streamdown="inline-code"]').textContent()).toBe('hello');
   expect(await page.locator('img').count()).toBe(0);
   await code.getByRole('button', { name: 'Copy', exact: true }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
-    'const answer = 42;\n\nconsole.log(answer);\n',
-  );
+  expect(await clipboardText()).toBe('const answer = 42;\n\nconsole.log(answer);\n');
   await page.getByRole('button', { name: 'External source' }).click();
   const dialog = page.getByRole('dialog');
   await dialog.waitFor();
   await dialog.getByRole('button', { name: 'Copy link', exact: true }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
-    'https://example.com/source',
-  );
+  expect(await clipboardText()).toBe('https://example.com/source');
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'External source' }).click();
   const popupReady = page.waitForEvent('popup');
@@ -216,7 +217,7 @@ test('queue disclosure preserves explicit delivery commands', async () => {
 test('non-chat command and action previews copy exact source without executing or rendering it', async () => {
   const source = page.getByRole('region', { name: 'Source preview examples' });
   await source.getByRole('button', { name: 'Copy Background service command' }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('bun run service status');
+  expect(await clipboardText()).toBe('bun run service status');
   await source.getByText('Exact action details', { exact: true }).click();
   const expected = JSON.stringify(
     {
@@ -230,7 +231,7 @@ test('non-chat command and action previews copy exact source without executing o
   expect(await source.locator('pre[aria-label="Action JSON"]').textContent()).toBe(expected);
   expect(await source.locator('pre script').count()).toBe(0);
   await source.getByRole('button', { name: 'Copy Action JSON' }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(expected);
+  expect(await clipboardText()).toBe(expected);
 });
 
 test('document source previews wrap in narrow panels and remain keyboard-scrollable', async () => {

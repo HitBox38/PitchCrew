@@ -1,4 +1,5 @@
-import { afterEach, expect, it } from 'vitest';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { adapters } from '@pitchcrew/adapters';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -8,6 +9,16 @@ import { createDaemon } from '../src/server.ts';
 
 const resources: { daemon: Awaited<ReturnType<typeof createDaemon>>; directory: string }[] = [];
 const port = 23491;
+beforeEach(() => {
+  // Production replay needs real initialization, without host-dependent CLI/model discovery.
+  for (const adapter of Object.values(adapters).filter((adapter) => adapter.id !== 'demo'))
+    vi.spyOn(adapter, 'detect').mockResolvedValue({
+      id: adapter.id,
+      available: false,
+      version: '',
+      detail: 'Native runtime detection is outside this receipt fixture.',
+    });
+});
 const fixture = async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-http-receipts-'));
   const start = () => createDaemon({ directory, port, dev: false, ui: false, seedSkills: false });
@@ -25,6 +36,7 @@ const fixture = async () => {
   return { resource, start, headers };
 };
 afterEach(async () => {
+  vi.restoreAllMocks();
   for (const { daemon, directory } of resources.splice(0)) {
     await daemon.close();
     expect(directory.startsWith(join(tmpdir(), 'pitchcrew-http-receipts-'))).toBe(true);

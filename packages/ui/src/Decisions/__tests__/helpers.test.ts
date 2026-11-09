@@ -19,6 +19,16 @@ const artifact = (name: PacketArtifact['name'], layout?: PacketArtifact['layout'
   }) as PacketArtifact;
 
 describe('jobTimeline', () => {
+  it.each([
+    ['approve', 'You approve'],
+    ['choose', 'Choose how to apply'],
+    ['apply', 'Ready to apply'],
+    ['preparing', 'Agent preparation'],
+    ['verify', 'Verify submission'],
+  ] as const)('uses the shared %s stage label in the Decisions rail', (stage, label) => {
+    expect(jobTimeline(card('awaiting_approval'), undefined, stage)[4]?.label).toBe(label);
+  });
+
   it('dates each step from the first saved move into it and counts drafts', () => {
     const steps = jobTimeline(card('awaiting_approval'), [
       { id: 1, at: '2026-10-20T09:00:00Z', actor: 'user', state: 'shortlisted' },

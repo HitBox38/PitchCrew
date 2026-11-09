@@ -37,15 +37,42 @@ test('requires form inspection or explicit manual checking, then confirms the ac
     .click();
   const form = sheet.locator('section[aria-label="Application form inspection"]');
   await form.getByRole('button', { name: 'Inspect application form', exact: true }).waitFor();
+  // Without a brief, automatic extraction leads and explains itself; manual stays available.
+  const extraction = sheet.getByRole('region', { name: 'Extract brief from posting' });
+  expect(await extraction.getByRole('button', { name: 'Extract from source' }).isVisible()).toBe(
+    true,
+  );
+  expect(await sheet.getByRole('button', { name: 'Extract again from source' }).count()).toBe(0);
   await sheet.getByRole('button', { name: 'Prepare brief manually', exact: true }).click();
   const confirm = sheet.getByRole('button', {
     name: 'Confirm complete brief and requirements',
     exact: true,
   });
   expect(await confirm.isDisabled()).toBe(true);
-  await sheet.getByRole('checkbox', { name: /I’ll check the form’s required fields/ }).check();
+  const footerConfirm = sheet
+    .locator('.detail-footer')
+    .getByRole('button', { name: 'Confirm brief', exact: true });
+  expect(await footerConfirm.isDisabled()).toBe(true);
+  const hint = sheet
+    .locator('section[aria-label="Application brief review"]')
+    .getByText('Inspect the application form, or choose to check it yourself, before confirming.', {
+      exact: true,
+    });
+  expect(await hint.isVisible()).toBe(true);
+  const manual = sheet.getByRole('checkbox', { name: /I’ll check the form’s required fields/ });
+  expect(await manual.isChecked()).toBe(false);
+  // The box and its wrapping text share one row and one click target.
+  const [box, text] = await Promise.all([
+    manual.boundingBox(),
+    sheet.getByText(/Continue with an uninspected packet/).boundingBox(),
+  ]);
+  expect(Math.abs((box?.y ?? 0) - (text?.y ?? 100))).toBeLessThan(12);
+  await sheet.getByText(/Continue with an uninspected packet/).click();
+  expect(await manual.isChecked()).toBe(true);
+  expect(await hint.count()).toBe(0);
   expect(await confirm.isEnabled()).toBe(true);
-  await confirm.click();
+  expect(await footerConfirm.isEnabled()).toBe(true);
+  await footerConfirm.click();
   await expect
     .poll(
       () => host.daemon.service.board.get<Card>('card', card.id).applicationContext?.form?.status,
@@ -75,6 +102,11 @@ test('requires form inspection or explicit manual checking, then confirms the ac
     .locator('.detail-footer')
     .getByRole('button', { name: 'Review brief', exact: true })
     .waitFor();
+  // Once a brief exists, re-extraction is a collapsed advanced option.
+  expect(await sheet.getByRole('button', { name: 'Extract again from source' }).isVisible()).toBe(
+    true,
+  );
+  expect(await sheet.getByRole('button', { name: 'Extract again', exact: true }).count()).toBe(0);
   await sheet.getByRole('button', { name: 'Review or edit brief', exact: true }).click();
   await confirm.click();
   await expect

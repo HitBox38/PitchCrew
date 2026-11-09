@@ -10,6 +10,7 @@ const model = (patch: Partial<CardDetailsModel> = {}): CardDetailsModel => {
       runs: [],
       runtimes: [{ id: 'codex', available: true }],
       profile: [{ content: 'Fictional experience' }],
+      approvals: [],
     },
     brief: {
       loaded: { context: {} },
@@ -71,6 +72,31 @@ it('directs linked applications to form inspection before the draft action', () 
       brief: { ...base.brief, draft: { ...base.brief.draft, form: { status: 'manual' } } },
     }).label,
   ).toBe('Draft application');
+});
+it('confirms from the footer through the same guarded brief action', () => {
+  const base = model();
+  const confirm = vi.fn();
+  const editing = {
+    ...base.brief,
+    editing: true,
+    confirm,
+    confirmDisabled: true,
+    confirmationHint:
+      'Inspect the application form, or choose to check it yourself, before confirming.',
+  };
+  expect(jobNextAction({ ...base, brief: editing })).toMatchObject({
+    label: 'Confirm brief',
+    disabled: true,
+    hint: editing.confirmationHint,
+  });
+  const next = jobNextAction({
+    ...base,
+    brief: { ...editing, confirmDisabled: false, confirmationHint: '' },
+  });
+  expect(next.disabled).toBe(false);
+  next.perform();
+  expect(confirm).toHaveBeenCalledOnce();
+  expect(base.openApplication).not.toHaveBeenCalled();
 });
 it.each(['other-job', null])(
   'allows application actions while the same agent runs in a separate queue (%s)',
@@ -149,9 +175,10 @@ it('keeps packet review, export approval and manual submission as distinct decis
   expect(jobNextAction({ ...base, card: reviewed }).label).toBe('Prepare export');
   const awaiting = { ...reviewed, state: 'awaiting_approval' as const };
   expect(jobNextAction({ ...base, card: awaiting }).label).toBe('Open in Decisions');
-  expect(jobNextAction({ ...base, card: awaiting, exported: true }).label).toBe(
-    'Record manual submission',
-  );
+  // Exported files continue in Decisions; recording stays a secondary move after applying.
+  const exported = jobNextAction({ ...base, card: awaiting, exported: true });
+  expect(exported.label).toBe('Continue application');
+  expect(exported.alternates?.map((item) => item.label)).toEqual(['Record manual submission']);
   expect(jobNextAction({ ...base, card: { ...awaiting, state: 'submitted' } }).label).toBe(
     'Update outcome',
   );
@@ -182,4 +209,94 @@ it('acknowledges startup and lets held work open Queue without hiding user quest
   expect(jobNextAction({ ...held, agents: [{ run: waiting, name: 'Writer' }] }).label).toBe(
     'Answer in job chat',
   );
+});
+
+it('offers Shortlist first for a scored lead while evaluation stays reachable', () => {
+  const base = model({ runRole: 'scout' });
+  const data = {
+    ...base.data,
+    roles: [...base.data.roles, { id: 'scout', enabled: true, runtime: 'codex' }],
+  } as CardDetailsModel['data'];
+  const unscored = jobNextAction({ ...base, data, card: { ...base.card, state: 'lead' } });
+  expect(unscored.label).toBe('Evaluate fit');
+  expect(unscored.alternates?.map((item) => item.label)).toEqual(['Shortlist']);
+  const scored = jobNextAction({ ...base, data, card: { ...base.card, state: 'lead', fit: 60 } });
+  expect(scored.label).toBe('Shortlist');
+  expect(scored.hint).toContain('60/100');
+  scored.perform();
+  expect(base.act).toHaveBeenCalledWith('/cards/job/move', { state: 'shortlisted' }, 'Shortlisted');
+  const again = scored.alternates?.[0];
+  expect(again).toMatchObject({ label: 'Evaluate again', disabled: false });
+  again?.perform();
+  expect(base.act).toHaveBeenCalledWith(
+    '/cards/job/run',
+    { roleId: 'scout' },
+    'Fit evaluation started',
+  );
+});
+
+it('asks a lead for its brief before fit without hiding Shortlist', () => {
+  const base = model();
+  const lead = { ...base.card, state: 'lead' as const };
+  const missing = jobNextAction({
+    ...base,
+    card: lead,
+    brief: { ...base.brief, loaded: { ...base.brief.loaded!, context: null } },
+  });
+  expect(missing.label).toBe('Prepare brief');
+  expect(missing.alternates?.map((item) => item.label)).toEqual(['Shortlist']);
+  // An extracted but unconfirmed brief does not hold a lead: fit, then Shortlist, lead.
+  const unconfirmed = (fit: number | null) =>
+    jobNextAction({
+      ...base,
+      card: { ...lead, fit },
+      brief: { ...base.brief, confirmed: false },
+    });
+  const unscored = unconfirmed(null);
+  expect(unscored.label).toBe('Evaluate fit');
+  expect(unscored.alternates?.map((item) => item.label)).toEqual(['Shortlist', 'Review brief']);
+  for (const fit of [0, 60]) {
+    const scored = unconfirmed(fit);
+    expect(scored.label).toBe('Shortlist');
+    expect(scored.hint).toContain(`Fit ${fit}/100`);
+    expect(scored.hint).toContain('confirm the brief before drafting');
+    expect(scored.alternates?.map((item) => item.label)).toEqual([
+      'Evaluate again',
+      'Review brief',
+    ]);
+    scored.alternates?.[1]?.perform();
+    expect(base.openApplication).toHaveBeenLastCalledWith('brief');
+  }
+  // Once shortlisted, confirmation is required again before drafting.
+  const shortlisted = jobNextAction({ ...base, brief: { ...base.brief, confirmed: false } });
+  expect(shortlisted.label).toBe('Review brief');
+  expect(shortlisted.alternates).toBeUndefined();
+});
+
+it('names the recorded outcome in the post-submission hint', () => {
+  const base = model();
+  const next = jobNextAction({ ...base, card: { ...base.card, state: 'interviewing' } });
+  expect(next).toMatchObject({
+    label: 'Update outcome',
+    hint: 'Prepare for your interviews, then record the outcome.',
+  });
+});
+it('drafts the first packet, not a revision, when requested changes have no saved packet', () => {
+  const base = model();
+  const failedFirst = jobNextAction({
+    ...base,
+    card: { ...base.card, state: 'changes_requested', packet: null },
+  });
+  expect(failedFirst).toMatchObject({
+    label: 'Draft application',
+    hint: 'No packet has been saved yet. This drafts the first packet.',
+  });
+  failedFirst.perform();
+  expect(base.brief.startDraft).toHaveBeenCalledOnce();
+  const revision = jobNextAction({
+    ...base,
+    card: { ...base.card, state: 'changes_requested', packet: {} },
+  } as CardDetailsModel);
+  expect(revision.label).toBe('Draft application');
+  expect(revision.hint).toBeFalsy();
 });

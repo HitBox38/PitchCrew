@@ -1,23 +1,28 @@
-import { lazyRouteComponent } from '@tanstack/react-router';
-import { lazy } from 'react';
+import { recoverablePanel } from '@/LoadRecovery/index.tsx';
+import { retryableLazy } from '@/lib/retryable-lazy.ts';
 
-export const ConversationCreation = lazy(() =>
-  import('@/ConversationCreation/index.tsx').then((m) => ({ default: m.ConversationCreation })),
+// Lazy panels retry a failed import on request and never reload the window on their own.
+export const ConversationCreation = recoverablePanel(
+  retryableLazy(() => import('@/ConversationCreation/index.tsx'), 'ConversationCreation'),
+  'New conversation',
 );
 
-export const AddOpportunity = lazy(() =>
-  import('@/components/AddOpportunity/index.tsx').then((m) => ({ default: m.AddOpportunity })),
+export const AddOpportunity = recoverablePanel(
+  retryableLazy(() => import('@/components/AddOpportunity/index.tsx'), 'AddOpportunity'),
+  'Add job',
 );
 
-export const CardDetails = lazy(() =>
-  import('@/components/CardDetails/index.tsx').then((m) => ({ default: m.CardDetails })),
+export const CardDetails = recoverablePanel(
+  retryableLazy(() => import('@/components/CardDetails/index.tsx'), 'CardDetails'),
+  'Job details',
 );
 
-export const RoleSettings = lazy(() =>
-  import('@/components/RoleSettings/index.tsx').then((m) => ({ default: m.RoleSettings })),
+export const RoleSettings = recoverablePanel(
+  retryableLazy(() => import('@/components/RoleSettings/index.tsx'), 'RoleSettings'),
+  'Agent settings',
 );
 
-export const CommandPalette = lazyRouteComponent(
+export const CommandPalette = retryableLazy(
   () => import('@/CommandPalette/index.tsx'),
   'CommandPalette',
 );

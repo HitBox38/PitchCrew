@@ -31,7 +31,8 @@ export const JobOverview = (model: JobOverviewProps) => {
           </ul>
         </section>
       ) : null}
-      <PacketFit model={model} />
+      {/* Packet match rates a drafted packet; before one exists it is not yet useful. */}
+      {card.packet || card.packetFit ? <PacketFit model={model} /> : null}
       <AccordionSection className="detail-source" heading="Posting and source details">
         <JobMetadata card={card} />
         <p className="quiet">Added {new Date(card.createdAt).toLocaleString()}</p>

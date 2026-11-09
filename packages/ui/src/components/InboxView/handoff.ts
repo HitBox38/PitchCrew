@@ -46,7 +46,7 @@ export type NeededFile = {
   status: 'covered' | 'format' | 'export' | 'yours';
   files: string[];
 };
-const sourceFor = (label: string): PacketArtifact['source'] | null =>
+export const sourceFor = (label: string): PacketArtifact['source'] | null =>
   /cover/iu.test(label)
     ? 'coverLetter'
     : /r[eé]sum[eé]|\bcv\b|curriculum/iu.test(label)
@@ -99,3 +99,17 @@ export const neededFiles = (card: Card | undefined, approval: Approval): NeededF
       };
     });
 };
+
+/** The next step shown beside a saved export, for whoever applies. */
+export const exportHandoffNext = (
+  approval: Pick<Approval, 'submission'>,
+  current: boolean,
+  company: string,
+) =>
+  !current
+    ? 'These are the exact files you approved.'
+    : approval.submission?.method === 'manual'
+      ? `Open or download each file under Files, apply on ${company}’s form, then choose I’ve submitted. Nothing has been sent.`
+      : approval.submission?.method === 'agent'
+        ? 'The agent uploads these exact files. You approve the final submit click.'
+        : 'Open or download each file under Files.';

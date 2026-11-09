@@ -4,7 +4,7 @@ When you request export approval, Pitchcrew can render the resume and cover lett
 
 ## Inbox review and submission
 
-Inbox presents each frozen file as an attachment with a read-only viewer. Packet approval covers the whole packet. It does not export or start application work. Choose **Submit myself** to export and open the manual follow-up, or **Let an agent submit** to choose an agent (Submitter by default) and explicitly start preparation. Both paths export the same approved files before continuing; individual downloads then become available. See [Inbox redesign](inbox-redesign.md) for the complete flow.
+Inbox presents each frozen file as an attachment with a read-only viewer. Packet approval covers the whole packet. It does not export or start application work. Choose **Export to apply myself** to export and open the manual follow-up, or **Let an agent submit** to choose an agent (Submitter by default) and explicitly start preparation. Both paths export the same approved files before continuing; individual downloads then become available. See [Inbox redesign](inbox-redesign.md) for the complete flow.
 
 A failed export stays on the request for retry. Recovery of an already-consumed approval is limited to its unfinished export, rechecks the current reviewed packet and normal export gates, and writes to one stable directory for that approval. An already-completed matching directory can be recovered after a persistence interruption. Reusing an existing export checks the complete filenames and exact bytes. Changed files require a fresh approval; recovery never grants another application submission.
 

@@ -10,6 +10,7 @@ import type { WorkspacePanelsProps } from '@/App/types.ts';
 import { AnimatePresence } from 'motion/react';
 import { Suspense } from 'react';
 import { decisions } from '@/ClayInterface/signals.ts';
+import { cardPacketApproval } from '@/ClayInterface/packet-guidance.ts';
 
 export const WorkspacePanels = ({
   add,
@@ -61,7 +62,9 @@ export const WorkspacePanels = ({
               initialSection={selectedJobSection}
               onInbox={() => {
                 setSelectedId(null);
-                const waiting = decisions(data).find((item) => item.cardId === selected.id);
+                const waiting =
+                  cardPacketApproval(selected, data.approvals) ??
+                  decisions(data).find((item) => item.cardId === selected.id);
                 void navigate({ to: '/inbox', search: { decision: waiting?.id } });
               }}
               onChat={(thread, run) => {

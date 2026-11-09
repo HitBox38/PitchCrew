@@ -17,11 +17,16 @@ const snapshot = (fields: Partial<Snapshot>) =>
   ({ cards: [], roles: [], runs: [], approvals: [], computerApprovals: [], ...fields }) as Snapshot;
 
 describe('clay decisions', () => {
-  it('asks to confirm only briefs whose current revision is unconfirmed', () => {
+  it('asks to confirm only unconfirmed briefs past the lead stage', () => {
     const context = { revision: 'b', createdAt: '2026-10-30T08:00:00.000Z' };
     const data = snapshot({
       cards: [
-        card('open', { applicationContext: context as Card['applicationContext'] }),
+        card('open', {
+          state: 'shortlisted',
+          applicationContext: context as Card['applicationContext'],
+        }),
+        // A lead's brief is confirmed before drafting, so it does not wait on the user yet.
+        card('lead', { fit: 60, applicationContext: context as Card['applicationContext'] }),
         card('done', {
           applicationContext: {
             ...context,

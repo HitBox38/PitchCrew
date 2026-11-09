@@ -7,7 +7,8 @@ import { runtimeLabels } from '@/lib/labels.ts';
 
 export const JobActions = (model: JobActionsProps) => {
   const next = jobNextAction(model);
-  const role = 'roleId' in next ? model.data.roles.find((role) => role.id === next.roleId) : null;
+  const role = next.roleId ? model.data.roles.find((role) => role.id === next.roleId) : null;
+  const spinning = !!model.work.pending || (model.work.starting && model.work.spinning);
   return (
     <JobActionFooter
       failure={model.failed && !model.run ? model.failed.message : undefined}
@@ -23,33 +24,23 @@ export const JobActions = (model: JobActionsProps) => {
         </>
       }
     >
-      {model.card.state === 'lead' && !model.run ? (
+      {next.alternates?.map((alternate) => (
         <Button
-          aria-busy={model.work.pending?.targetState === 'shortlisted'}
-          disabled={model.busy}
+          key={alternate.label}
           variant="outline"
-          onClick={() =>
-            model.act(`/cards/${model.card.id}/move`, { state: 'shortlisted' }, 'Shortlisted')
-          }
+          disabled={model.busy || model.working || alternate.disabled}
+          onClick={alternate.perform}
         >
-          {model.work.pending?.targetState === 'shortlisted' ? (
-            <LoaderCircle
-              size={14}
-              className="spin motion-reduce:animate-none"
-              aria-hidden="true"
-            />
-          ) : null}
-          {model.work.pending?.targetState === 'shortlisted' ? 'Shortlisting…' : 'Shortlist'}
+          {alternate.label}
         </Button>
-      ) : null}
+      ))}
       <Button
-        variant={'secondary' in next ? 'outline' : 'default'}
-        aria-busy={!!model.work.pending || (model.work.starting && model.work.spinning)}
+        variant={next.secondary ? 'outline' : 'default'}
+        aria-busy={spinning}
         disabled={model.working || next.disabled}
         onClick={next.perform}
       >
-        {(model.work.pending && model.work.pending.targetState !== 'shortlisted') ||
-        (model.work.starting && model.work.spinning) ? (
+        {spinning ? (
           <LoaderCircle size={14} className="spin motion-reduce:animate-none" aria-hidden="true" />
         ) : null}
         {next.label}

@@ -39,6 +39,9 @@ export const DeckCard = ({ decision, data, count, later, openCard }: DeckCardPro
           {card.fit !== null ? <span className="clay-deck-fit"> · Fit {card.fit}</span> : null}
         </p>
       ) : null}
+      {decision.kind === 'packet' && decision.stage === 'apply' ? (
+        <p className="clay-deck-handoff">Files saved. Nothing has been sent.</p>
+      ) : null}
       <DeckEvidence decision={decision} data={data} />
       <DeckActions decision={decision} count={count} later={later} openCard={openCard} />
     </article>
