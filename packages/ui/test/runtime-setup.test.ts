@@ -311,21 +311,19 @@ test('setup stays named and bounded on a dark touch viewport across all three se
     expect(await dialog().evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(
       true,
     );
-    const undersized = await dialog()
-      .locator('button:visible')
-      .evaluateAll((buttons) =>
-        buttons
-          .filter((button) => button.getBoundingClientRect().height < 44)
-          .map((button) => button.textContent),
-      );
+    // Tab panels stay mounted and hide asynchronously. Read visibility and size in
+    // one browser evaluation so a selected button cannot hide between the two.
+    const undersized = await dialog().evaluate((element) =>
+      Array.from(element.querySelectorAll('button'))
+        .filter((button) => button.checkVisibility() && button.getBoundingClientRect().height < 44)
+        .map((button) => button.textContent),
+    );
     expect(undersized).toEqual([]);
-    const narrowIcons = await dialog()
-      .locator('button[data-size^="icon"]:visible, button.icon-button:visible')
-      .evaluateAll((buttons) =>
-        buttons
-          .filter((button) => button.getBoundingClientRect().width < 44)
-          .map((button) => button.getAttribute('aria-label')),
-      );
+    const narrowIcons = await dialog().evaluate((element) =>
+      Array.from(element.querySelectorAll('button[data-size^="icon"], button.icon-button'))
+        .filter((button) => button.checkVisibility() && button.getBoundingClientRect().width < 44)
+        .map((button) => button.getAttribute('aria-label')),
+    );
     expect(narrowIcons).toEqual([]);
     await capture(`v1-phone-dark-${section}`);
   }
