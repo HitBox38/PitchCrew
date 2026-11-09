@@ -11,7 +11,6 @@ import {
 } from './conversations.ts';
 import { drainConversationQueue } from './conversation-queue.ts';
 import {
-  assertFollowUpBudget,
   collectionPrompt,
   refreshRound,
   roundOf,
@@ -47,7 +46,6 @@ export const enqueue = (
     throw new Error('The target runtime is not available.');
   if (mode === 'workflow' && !capability.cardId)
     throw new Error('Attach a job before invoking a workflow.');
-  assertFollowUpBudget(context, rootRunId);
   const task: AgentTask = {
     id: randomUUID(),
     parentRunId: parent.id,

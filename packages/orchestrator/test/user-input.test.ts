@@ -359,7 +359,7 @@ it('restores a pending question after a real daemon restart without starting dep
   expect(turns[2].context.role.id).toBe('tracker');
   turns[2].complete();
 });
-it('rechecks delegation permissions after successive questions and keeps the chain’s existing follow-up budget', async () => {
+it('rechecks delegation permissions after successive questions and preserves chain identity', async () => {
   const { daemon, request, turns, token } = await begin();
   await daemon.service.agentCall(token, 'invoke', {
     roleId: 'scout',
