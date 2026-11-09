@@ -6,7 +6,7 @@ Reviewed against the local T3 Code checkout at `D:\CodeStuff\t3code` on 2026-11-
 
 Pitchcrew's weakest orchestration boundary is uncertainty: a user can lose the response to a message send, and a daemon crash can erase the public activity explaining what happened. Adding more agents or more animation would not fix either problem. T3 Code has a clearer model of command acceptance, execution, and durable observation.
 
-Pitchcrew already has meaningful safeguards. `crew/queue/admission.ts` reserves launches before asynchronous setup and prevents overlapping use of a participant's session. `crew/delegation-rounds.ts` records parent/delegate/collection dependencies and bounds follow-up work. `crew/lifecycle.ts` reconciles interrupted runs and queues and expires browser approvals. The scoped MCP gateway and explicit export/submission approvals are appropriate for a job-search app. None should be weakened to mimic a coding tool's broader permissions.
+Pitchcrew already has meaningful safeguards. `crew/queue/admission.ts` reserves launches before asynchronous setup and prevents overlapping use of a participant's session. `crew/delegation-rounds.ts` records parent/delegate/collection dependencies and limits each round to four delegates. `crew/lifecycle.ts` reconciles interrupted runs and queues and expires browser approvals. The scoped MCP gateway and explicit export/submission approvals are appropriate for a job-search app. None should be weakened to mimic a coding tool's broader permissions.
 
 ## Findings and priorities
 

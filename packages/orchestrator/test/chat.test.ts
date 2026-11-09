@@ -410,7 +410,7 @@ describe('agent conversations and crew actions', () => {
     await finish(request, reviewerChat.id);
   });
 
-  it('bounds recursive follow-ups and cancels the chain without launching queued work', async () => {
+  it('queues more than six follow-ups and cancels the chain without launching queued work', async () => {
     const content = 'Plan a discussion.';
     holdDemoChats([content]);
     const { daemon, request } = await setup(14424);
@@ -418,18 +418,16 @@ describe('agent conversations and crew actions', () => {
       content,
     });
     const token = [...daemon.service.capabilities.keys()][0];
-    for (let i = 0; i < 6; i++)
+    for (let i = 0; i < 8; i++)
       await daemon.service.agentCall(token, 'invoke', {
         roleId: 'scout',
         content: `Follow-up ${i}`,
         mode: 'chat',
       });
-    await expect(
-      daemon.service.agentCall(token, 'message', {
-        roleId: 'writer',
-        content: 'Seventh follow-up',
-      }),
-    ).rejects.toThrow('six follow-up limit');
+    await daemon.service.agentCall(token, 'message', {
+      roleId: 'writer',
+      content: 'Another follow-up',
+    });
     await request(`/runs/${run.id}/cancel`, 'POST');
     await expect(daemon.service.agentCall(token, 'messages', {})).rejects.toThrow('expired');
     const snapshot = await waitForSnapshot(request, (s) =>
@@ -437,6 +435,8 @@ describe('agent conversations and crew actions', () => {
     );
     expect(snapshot.runs).toHaveLength(1);
     expect(snapshot.runs[0].status).toBe('cancelled');
+    expect(snapshot.tasks).toHaveLength(9);
+    expect(snapshot.tasks.every((t) => t.rootRunId === run.id)).toBe(true);
     expect(snapshot.tasks.every((t) => t.status === 'cancelled')).toBe(true);
     expect(snapshot.messages.some((m) => m.from === 'scout' && m.to === 'user')).toBe(false);
   });
@@ -486,9 +486,12 @@ describe('agent conversations and crew actions', () => {
     expect(daemon.service.controllers.size).toBe(0);
   });
 });
-it('bounds an actual recursive self-invocation chain across descendant chat turns', async () => {
+it('runs more than six recursive self-invocations across descendant chat turns', async () => {
   const { request } = await setup(14426);
+  const followUps = 10;
+  let turnCount = 0;
   vi.spyOn(adapters.demo, 'chat').mockImplementation(async (context) => {
+    if (turnCount++ >= followUps) return { reply: 'Finished the fixture discussion.' };
     const response = await fetch(`${context.mcp.env.PITCHCREW_DAEMON_URL}/api/agent`, {
       method: 'POST',
       headers: {
@@ -511,11 +514,11 @@ it('bounds an actual recursive self-invocation chain across descendant chat turn
   const snapshot = await waitForSnapshot(
     request,
     (s) =>
-      s.runs.length === 7 &&
+      s.runs.length === followUps + 1 &&
       s.runs.every((r) => r.status === 'completed') &&
       s.tasks.every((t) => t.status === 'completed'),
   );
-  expect(snapshot.tasks).toHaveLength(6);
+  expect(snapshot.tasks).toHaveLength(followUps);
   expect(snapshot.tasks.every((t) => t.rootRunId === root.id)).toBe(true);
-  expect(snapshot.messages.at(-1)?.content).toContain('six follow-up limit');
+  expect(snapshot.messages.at(-1)?.content).toBe('Finished the fixture discussion.');
 });

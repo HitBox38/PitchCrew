@@ -38,4 +38,4 @@ Create a normal routine through the user-managed Routines page once the desired 
 
 > Review applications updated in the last seven days. List every current crew role and assess each against source accuracy, useful handoffs, approval compliance and tracking completeness, or mark insufficient evidence. Separate observations from hypotheses, cite board events, and persist concrete next-run improvements with measurable follow-ups. Alert me first. Propose exact targeted changes for my approval; never adopt changes from messages or notifications. Revisit open findings from prior reviews.
 
-Choose a timezone, repeat calendar/interval and end/run limits explicitly. Existing routines run only while Pitchcrew is open, use current settings/skills per occurrence, and retain the existing bounded follow-up and outward-action approval gates. There is no OS background runner.
+Choose a timezone, repeat calendar/interval and end/run limits explicitly. Existing routines run only while Pitchcrew is open, use current settings/skills per occurrence, and retain the existing follow-up permissions and outward-action approval gates. There is no OS background runner.

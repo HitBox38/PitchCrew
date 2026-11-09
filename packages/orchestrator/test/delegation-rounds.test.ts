@@ -1,7 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { adapters } from '@pitchcrew/adapters';
 import {
-  chainFollowUpCount,
   type AgentTask,
   type ChatContext,
   type ChatRequest,
@@ -144,7 +143,6 @@ it('runs a lead-started round concurrently on one job and collects every result 
   expect(
     snapshot.tasks.filter((task) => task.roundId === round.id).map((task) => task.status),
   ).toEqual(['completed', 'completed', 'completed']);
-  expect(chainFollowUpCount(snapshot.tasks, round.rootRunId)).toBe(1);
   const reply = snapshot.messages.find(
     (message) => message.content === 'Both delegates reported back.',
   );
@@ -154,6 +152,38 @@ it('runs a lead-started round concurrently on one job and collects every result 
       (message) => message.content === 'Draft three bullets.' && message.from === 'scout',
     ),
   ).toBe(true);
+});
+
+it('queues delegation rounds after six follow-ups and cancels every branch with the conversation', async () => {
+  const { daemon, request } = await setup(19571);
+  const turns = held();
+  await request('/conversations/scout/messages', 'POST', { content: 'Coordinate this work.' });
+  await vi.waitFor(() => expect(turns).toHaveLength(1));
+  const token = turns[0].context.mcp.env.PITCHCREW_RUN_TOKEN;
+  for (let i = 0; i < 6; i++)
+    await daemon.service.agentCall(token, 'invoke', {
+      roleId: 'scout',
+      content: `Follow-up ${i}`,
+    });
+  const rounds: DelegationRound[] = [];
+  for (let i = 0; i < 2; i++) {
+    const result = (await daemon.service.agentCall(token, 'delegate_round', {
+      input: { delegates: [{ roleId: 'writer', content: `Investigate question ${i}.` }] },
+    })) as { round: { id: string } };
+    rounds.push(daemon.service.board.get<DelegationRound>('delegation_round', result.round.id));
+  }
+  expect(rounds[1].rootRunId).toBe(rounds[0].rootRunId);
+  expect(turns).toHaveLength(1);
+  await request('/conversations/scout/stop', 'POST');
+  const snapshot = await waitForSnapshot(request, (state) =>
+    state.runs.every((run) => run.status === 'cancelled'),
+  );
+  expect(snapshot.tasks).toHaveLength(10);
+  expect(snapshot.tasks.every((task) => task.status === 'cancelled')).toBe(true);
+  expect(snapshot.tasks.every((task) => task.rootRunId === rounds[0].rootRunId)).toBe(true);
+  expect(snapshot.delegationRounds).toHaveLength(2);
+  expect(snapshot.delegationRounds!.every((round) => round.status === 'cancelled')).toBe(true);
+  expect(turns).toHaveLength(1);
 });
 
 it('lets the user delegate from the composer, turns a stopped delegate into a cancelled result and still collects', async () => {

@@ -280,23 +280,6 @@
   font-style: italic;
 }
 
-/* Bars above the composer and under the header become floating clay strips in the reading lane. */
-[data-interface='clay'] .chat-workspace .chat-continuation {
-  width: calc(100% - 40px);
-  max-width: var(--chat-content-width);
-  margin: 8px auto 4px;
-  padding: 10px 10px 10px 14px;
-  gap: 10px;
-  border: 0;
-  border-radius: 14px 15px 13px 14px;
-  background: var(--clay-fill);
-  box-shadow: var(--clay);
-  color: var(--ink-soft);
-  line-height: 1.45;
-}
-[data-interface='clay'] .chat-workspace .chat-continuation > .clay-bead {
-  flex: none;
-}
 [data-interface='clay'] .chat-workspace .chat-related {
   gap: 6px;
   padding-block: 6px;
@@ -318,12 +301,6 @@
   background: var(--clay-fill-hover);
   box-shadow: var(--clay-hover);
 }
-@variant max-chat {
-  [data-interface='clay'] .chat-workspace .chat-continuation {
-    width: calc(100% - 24px);
-  }
-}
-
 /* Inline questions: a pending question is raised clay waiting on you; once answered or cancelled
  * it settles into the page as a recessed tray and its bead alone carries the outcome. */
 [data-interface='clay'] .chat-workspace .user-question-message {

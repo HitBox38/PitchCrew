@@ -9,7 +9,6 @@ import { QuestionDockProvider } from '@/UserQuestions/QuestionDockProvider.tsx';
 import { ConversationAnnouncer } from './components/ConversationAnnouncer.tsx';
 import { ChatSettingsPanels } from './components/ChatSettingsPanels.tsx';
 import { RelatedConversations } from './components/RelatedConversations.tsx';
-import { ContinuationNotice } from './components/ContinuationNotice.tsx';
 import { ConversationQueue } from './components/ConversationQueue.tsx';
 import { ConversationInput } from './components/ConversationInput.tsx';
 import { ConversationHeading } from '@/ChatView/components/ConversationHeading.tsx';
@@ -48,7 +47,6 @@ export const ChatView = (props: ChatViewProps) => {
           {pane === 'conversation' ? <ConversationPanel {...controller} /> : null}
           {pane === 'work' ? <CrewWorkPanel {...controller} /> : null}
           <RuntimeReadinessNotice {...controller} />
-          <ContinuationNotice {...controller} />
           <ConversationQueue {...controller} />
           <PendingQuestions {...controller} />
           <ConversationInput {...controller} />

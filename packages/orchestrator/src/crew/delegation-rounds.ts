@@ -1,7 +1,5 @@
 import { randomUUID } from 'node:crypto';
 import {
-  chainFollowUpCount,
-  chainFollowUpLimit,
   delegationRoundLimits,
   type AgentTask,
   type ChatMessage,
@@ -60,12 +58,6 @@ export const taskParentReady = (context: CrewContext, task: AgentTask, runs?: Ru
   if (task.roundPart === 'delegate') return true;
   return roundDelegateTasks(context, round).every((delegate) => settled(delegate.status));
 };
-export const assertFollowUpBudget = (context: CrewContext, rootRunId: string): void => {
-  if (chainFollowUpCount(context.board.list<AgentTask>('task'), rootRunId) >= chainFollowUpLimit)
-    throw new Error(
-      'This run chain reached its six follow-up limit. Ask the user to start another turn.',
-    );
-};
 
 export interface RoundRequest {
   leadId: RoleId;
@@ -104,7 +96,6 @@ export const startRound = (context: CrewContext, input: RoundRequest): Delegatio
         throw new Error(`Choose a shared conversation with ${role.name} and the same job scope.`);
     }
   }
-  assertFollowUpBudget(context, input.rootRunId);
   const createdAt = new Date().toISOString();
   const roundId = randomUUID();
   const anchor = input.parentRunId ?? input.requestId ?? input.rootRunId;
