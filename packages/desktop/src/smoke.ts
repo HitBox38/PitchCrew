@@ -206,6 +206,7 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
               addSkill()?.click();
               // The skill body is a CodeMirror editor: set its document through the editor view.
               const editorReady = await waitFor(() => !!document.querySelector('#skill-content')?.cmTile?.root?.view);
+              if (!editorReady) throw new Error('Skill Markdown editor did not load.');
               const fill = (selector, value) => {
                 const input = document.querySelector(selector);
                 const prototype = input instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
@@ -215,8 +216,13 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
               fill('#skill-name', 'Fictional smoke checklist');
               const body = document.querySelector('#skill-content').cmTile.root.view;
               body.dispatch({ changes: { from: 0, to: body.state.doc.length, insert: '# Fictional checklist\\n\\nKeep fixture claims supported.' } });
+              // CodeMirror updates synchronously; the React form must commit before submitting.
+              const characterCount = body.state.doc.length.toLocaleString() + ' /';
+              const contentReady = await waitFor(() => document.querySelector('.skills-savebar-note')?.textContent.includes(characterCount));
+              if (!contentReady) throw new Error('Skill Markdown did not reach the form state.');
               document.querySelector('#skill-content').closest('form').requestSubmit();
               const skillSaved = await waitFor(() => !document.querySelector('[role="dialog"]:not([data-slot="toast"])') && document.querySelector('.skills-library')?.textContent.includes('Fictional smoke checklist'));
+              if (!skillSaved) throw new Error('Skill smoke save failed: ' + (document.querySelector('.skills-savebar [role="alert"]')?.textContent ?? 'Saved skill did not appear.'));
               document.querySelector('a[href="/crew"]')?.click();
               await waitFor(() => !!document.querySelector('.crew-card.scout'));
               document.querySelector('.crew-card.scout .crew-card-name-button')?.click();
