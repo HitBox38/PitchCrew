@@ -1,4 +1,4 @@
-import { MarkdownModeTabs } from '@/components/MarkdownEditor/components/MarkdownModeTabs.tsx';
+import { MarkdownModeSwitch } from '@/components/MarkdownEditor/components/MarkdownModeSwitch.tsx';
 import { Button } from '@pitchcrew/design-system/button';
 import type { SkillEditorModel } from '../types.ts';
 import { ArrowLeft } from 'lucide-react';
@@ -23,7 +23,7 @@ export const SkillEditorHeading = (c: SkillEditorModel & { onBack: () => void })
         ) : null}
       </div>
       <div className="skills-pane-actions">
-        <MarkdownModeTabs label="Skill editor mode" />
+        <MarkdownModeSwitch label="Skill editor view" value={c.mode} onChange={c.setMode} />
       </div>
     </header>
   );

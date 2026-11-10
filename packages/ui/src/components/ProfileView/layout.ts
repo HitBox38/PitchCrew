@@ -1,13 +1,22 @@
+import type { MarkdownMode } from '@/components/MarkdownEditor/types.ts';
+
 /** The editor frame's device-local layout: explorer width and visibility, and the citations rail. */
 export interface ProfileLayout {
   explorerWidth: number;
   explorerOpen: boolean;
   citationsOpen: boolean;
+  mode: MarkdownMode;
+  /** Source mode: every Markdown mark stays visible instead of hiding away from the caret. */
+  showSyntax: boolean;
 }
 
 export const explorerBounds = { min: 180, max: 420, initial: 240 } as const;
-/** Windows at least this wide open the explorer by default (the design system's `wide` threshold). */
-export const wideQuery = '(min-width: 68.8125rem)';
+/** Windows at least this wide (a 1024px laptop included) open the explorer by default. */
+export const wideQuery = '(min-width: 62rem)';
+/** Split's two columns need a sheet at least this wide (40rem); narrower sheets show Write. */
+export const splitMinimum = 640;
+/** Below this width left for the note (26rem), the explorer opens over it as a drawer. */
+export const overlayBelow = 416;
 /** Windows at least this wide show the citations beside the note instead of in a popover. */
 export const railQuery = '(min-width: 87.5rem)';
 const key = 'pitchcrew.profile.layout';
@@ -19,6 +28,8 @@ export const defaultLayout = (wide: boolean): ProfileLayout => ({
   explorerWidth: explorerBounds.initial,
   explorerOpen: wide,
   citationsOpen: false,
+  mode: 'write',
+  showSyntax: false,
 });
 
 /** The layout saved on this device, or the defaults when nothing valid is stored. */
@@ -37,6 +48,10 @@ export const readLayout = (wide: boolean): ProfileLayout => {
         typeof stored.explorerOpen === 'boolean' ? stored.explorerOpen : fallback.explorerOpen,
       citationsOpen:
         typeof stored.citationsOpen === 'boolean' ? stored.citationsOpen : fallback.citationsOpen,
+      mode: ['write', 'split', 'preview'].includes(stored.mode as string)
+        ? (stored.mode as MarkdownMode)
+        : fallback.mode,
+      showSyntax: typeof stored.showSyntax === 'boolean' ? stored.showSyntax : fallback.showSyntax,
     };
   } catch {
     return fallback;
@@ -57,38 +72,22 @@ export const quoteRange = (content: string, quote: string) => {
   return start < 0 ? null : { start, end: start + quote.length };
 };
 
-/** Selects and reveals a quote, including wrapped lines that the textarea cannot expose as DOM. */
-export const selectQuote = (editor: HTMLTextAreaElement, quote: string) => {
-  const range = quoteRange(editor.value, quote);
-  if (!range) return false;
-  editor.focus();
-  editor.setSelectionRange(range.start, range.end);
-  // Programmatic textarea selections do not scroll in Chromium. Measure the wrapped prefix in
-  // an invisible, equally sized text box so the match is centered without changing the draft.
-  const style = getComputedStyle(editor);
-  const mirror = document.createElement('div');
-  mirror.style.cssText =
-    'position:fixed;left:-10000px;top:0;visibility:hidden;white-space:pre-wrap;overflow-wrap:break-word;';
-  for (const property of [
-    'width',
-    'box-sizing',
-    'font',
-    'line-height',
-    'letter-spacing',
-    'word-spacing',
-    'padding',
-    'border',
-    'tab-size',
-    'text-indent',
-    'word-break',
-  ])
-    mirror.style.setProperty(property, style.getPropertyValue(property));
-  mirror.textContent = editor.value.slice(0, range.start);
-  const marker = document.createElement('span');
-  marker.textContent = quote;
-  mirror.append(marker);
-  document.body.append(mirror);
-  editor.scrollTop = Math.max(0, marker.offsetTop - editor.clientHeight / 2);
-  mirror.remove();
-  return true;
+const autosaveKey = 'pitchcrew.profile.autosave';
+/** Whether notes save shortly after typing stops on this device (on unless turned off). */
+export const readAutosave = () => {
+  try {
+    return localStorage.getItem(autosaveKey) !== 'false';
+  } catch {
+    return true;
+  }
 };
+export const writeAutosave = (enabled: boolean) => {
+  try {
+    localStorage.setItem(autosaveKey, String(enabled));
+  } catch {
+    /* This visit keeps the choice in memory. */
+  }
+};
+
+/** The daemon's per-note limit, in characters. */
+export const profileNoteLimit = 50000;

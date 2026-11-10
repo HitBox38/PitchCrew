@@ -22,15 +22,15 @@ describe('profile folder tree', () => {
     expect(rows.map(({ node }) => node.label)).toEqual([
       'profile',
       'Experience',
-      'role.md',
+      'role',
       'Projects',
       'Atlas',
-      'context.md',
+      'context',
       'Skills',
       'Design',
-      'background.md',
+      'background',
     ]);
-    expect(rows.find(({ node }) => node.label === 'context.md')).toMatchObject({
+    expect(rows.find(({ node }) => node.label === 'context')).toMatchObject({
       depth: 4,
       node: { note: { name: 'atlas-stable-id.md' } },
     });
@@ -45,7 +45,7 @@ describe('profile folder tree', () => {
     const tree = buildProfileTree(notes, paths, organization);
     expect(noteFolder('atlas-stable-id.md', organization, paths)).toBe('');
     expect(tree.root.children.find(({ note }) => note?.name === 'atlas-stable-id.md')?.label).toBe(
-      'context.md',
+      'context',
     );
     expect(tree.folders).toEqual(['', 'Selected']);
   });
@@ -58,7 +58,7 @@ describe('profile folder tree', () => {
       { node: { label: 'profile' } },
       { node: { label: 'Projects' } },
       { node: { label: 'Atlas' } },
-      { node: { label: 'context.md' } },
+      { node: { label: 'context' } },
     ]);
     expect(visibleProfileTree(tree.root, collapsed, 'no-match')).toEqual([]);
     expect(collapsed.size).toBe(3);
@@ -69,14 +69,57 @@ describe('profile folder tree', () => {
     const rows = visibleProfileTree(tree.root, new Set(['Projects']), '', false);
     expect(rows.map(({ node }) => node.label)).toEqual([
       'Experience',
-      'role.md',
+      'role',
       'Projects',
-      'background.md',
+      'background',
     ]);
     expect(rows[0]).toMatchObject({ depth: 1, parent: null, position: 1, size: 3 });
     expect(rows[1]).toMatchObject({ depth: 2, parent: 'folder:Experience' });
     expect(
       visibleProfileTree(tree.root, new Set(), 'context', false).map(({ node }) => node.label),
-    ).toEqual(['Projects', 'Atlas', 'context.md']);
+    ).toEqual(['Projects', 'Atlas', 'context']);
+  });
+
+  it('finds notes by their text and shows the matching passage under the note', () => {
+    const tree = buildProfileTree(notes, new Map());
+    const rows = visibleProfileTree(tree.root, new Set(), 'atlas', false);
+    expect(rows.map(({ node, snippet }) => [node.label, snippet])).toEqual([
+      ['atlas stable id', undefined],
+    ]);
+    const text = visibleProfileTree(tree.root, new Set(), 'other', false);
+    expect(text[0]).toMatchObject({ node: { label: 'other stable id' }, snippet: undefined });
+    const byContent = visibleProfileTree(
+      buildProfileTree(
+        [{ name: 'role.md', content: 'Led the CRDT sync engine rewrite.' }],
+        new Map(),
+      ).root,
+      new Set(),
+      'crdt',
+      false,
+    );
+    expect(byContent[0].snippet).toEqual({
+      text: 'Led the CRDT sync engine rewrite.',
+      count: 1,
+      term: 'crdt',
+    });
+    const table = visibleProfileTree(
+      buildProfileTree(
+        [{ name: 'years.md', content: '| Year | Team |\n| --- | --- |\n| 2024 | Atlas team |' }],
+        new Map(),
+      ).root,
+      new Set(),
+      'team',
+      false,
+    );
+    expect(table[0].snippet).toEqual({ text: 'Year · Team', count: 2, term: 'team' });
+    // Words that are not side by side still find the note; the longest one is shown.
+    const words = visibleProfileTree(
+      buildProfileTree([{ name: 'skills.md', content: '- TypeScript\n- React\n- Rust' }], new Map())
+        .root,
+      new Set(),
+      'typescript   react',
+      false,
+    );
+    expect(words[0].snippet).toEqual({ text: 'TypeScript', count: 1, term: 'typescript' });
   });
 });

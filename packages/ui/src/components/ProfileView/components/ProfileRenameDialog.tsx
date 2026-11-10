@@ -7,64 +7,83 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@pitchcrew/design-system/dialog';
-import { Input } from '@pitchcrew/design-system/input';
 import { Button } from '@pitchcrew/design-system/button';
-import { filenameProblem } from '../helpers.ts';
+import { ProfileNameField } from './ProfileNameField.tsx';
 
-/** Drafts a filename on the note's tab; Save writes the note under it. */
+/**
+ * One name field: a folder's name, or a note's filename without its `.md` (shown beside the
+ * field and added on submit, so typing "work.md" or "work" both give work.md).
+ */
 export const ProfileRenameDialog = ({
+  title,
+  description,
+  label,
   current,
-  taken,
+  suffix = '',
+  problem: check,
+  submitLabel = 'Rename',
+  hint,
   close,
   submit,
 }: {
+  title: string;
+  description: string;
+  label: string;
   current: string;
-  taken: string[];
+  suffix?: string;
+  problem: (name: string) => string;
+  submitLabel?: string;
+  /** A line under the field about what the name becomes, such as the filename. */
+  hint?: (name: string) => string;
   close: () => void;
-  submit: (name: string) => void;
+  submit: (name: string) => Promise<unknown> | void;
 }) => {
-  const [name, setName] = useState(current);
+  const strip = (value: string) =>
+    suffix && value.toLowerCase().endsWith(suffix) ? value.slice(0, -suffix.length) : value;
+  const [name, setName] = useState(strip(current));
   const [problem, setProblem] = useState('');
-  const save = (event: FormEvent) => {
+  const [busy, setBusy] = useState(false);
+  const save = async (event: FormEvent) => {
     event.preventDefault();
-    const next = name.trim();
-    const issue = filenameProblem(next, taken);
+    event.stopPropagation();
+    const next = `${strip(name.trim())}${suffix}`;
+    if (next === current) return close();
+    const issue = check(next);
     setProblem(issue);
-    if (!issue) submit(next);
+    if (issue) return;
+    setBusy(true);
+    await submit(next);
+    setBusy(false);
   };
   return (
-    <Dialog open onOpenChange={(open) => !open && close()}>
+    <Dialog open onOpenChange={(open) => !open && !busy && close()}>
       <DialogContent className="modal profile-small-dialog">
         <DialogHeader>
-          <DialogTitle>Change filename</DialogTitle>
-          <DialogDescription>
-            Saving writes the note under the new filename. The file with the old name stays in your
-            profile folder.
-          </DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <form className="ui-field-group" onSubmit={save}>
+        <form className="ui-field-group" onSubmit={(event) => void save(event)}>
           <label className="profile-dialog-field">
-            Filename
-            <Input
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              autoComplete="off"
-              spellCheck={false}
-              maxLength={100}
-              required
-              className="font-mono"
-            />
+            {label}
+            <ProfileNameField value={name} onChange={setName} suffix={suffix} invalid={!!problem} />
           </label>
+          {hint?.(name) ? (
+            <p className="profile-dialog-note">
+              Saved as <code>{hint(name)}</code>
+            </p>
+          ) : null}
           {problem ? (
             <p className="form-error" role="alert">
               {problem}
             </p>
           ) : null}
           <DialogFooter>
-            <Button variant="outline" onClick={close}>
+            <Button variant="outline" disabled={busy} onClick={close}>
               Cancel
             </Button>
-            <Button type="submit">Use filename</Button>
+            <Button type="submit" disabled={busy || !strip(name.trim())}>
+              {busy ? 'Saving…' : submitLabel}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

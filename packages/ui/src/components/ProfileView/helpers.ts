@@ -1,112 +1,4 @@
-import type { ProfileDocument, ProfileDocumentsState } from './types.ts';
-
-export const documentDirty = (document: ProfileDocument) => {
-  return document.name !== document.saved.name || document.content !== document.saved.content;
-};
-
-export const openDocument = (
-  state: ProfileDocumentsState,
-  note: { name: string; content: string },
-  id: string,
-  replace = false,
-): ProfileDocumentsState => {
-  const existing = state.documents.find((document) => document.saved.name === note.name);
-  if (existing) {
-    return {
-      activeId: existing.id,
-      documents: replace
-        ? state.documents.map((document) =>
-            document.id === existing.id
-              ? { ...document, ...note, saved: note, error: '' }
-              : document,
-          )
-        : state.documents,
-    };
-  }
-  return {
-    activeId: id,
-    documents: [...state.documents, { id, ...note, saved: note, error: '' }],
-  };
-};
-
-export const closeDocument = (state: ProfileDocumentsState, id: string): ProfileDocumentsState => {
-  const index = state.documents.findIndex((document) => document.id === id);
-  const documents = state.documents.filter((document) => document.id !== id);
-  return {
-    documents,
-    activeId:
-      state.activeId === id
-        ? (documents[Math.min(index, documents.length - 1)]?.id ?? null)
-        : state.activeId,
-  };
-};
-
-export const discardDocuments = (state: ProfileDocumentsState): ProfileDocumentsState => {
-  return {
-    ...state,
-    documents: state.documents.map((document) => ({ ...document, ...document.saved, error: '' })),
-  };
-};
-
-export const syncDocuments = (
-  state: ProfileDocumentsState,
-  notes: { name: string; content: string }[],
-): ProfileDocumentsState => {
-  let changed = false;
-  const documents = state.documents.map((document) => {
-    const note = notes.find((note) => note.name === document.saved.name);
-    if (!note || documentDirty(document) || note.content === document.content) return document;
-    changed = true;
-    return { ...document, ...note, saved: note, error: '' };
-  });
-  return changed ? { ...state, documents } : state;
-};
-
-export const reorderDocument = (
-  state: ProfileDocumentsState,
-  id: string,
-  index: number,
-): ProfileDocumentsState => {
-  const from = state.documents.findIndex((document) => document.id === id);
-  if (
-    from < 0 ||
-    !Number.isInteger(index) ||
-    index < 0 ||
-    index >= state.documents.length ||
-    from === index
-  )
-    return state;
-  const documents = [...state.documents];
-  const [document] = documents.splice(from, 1);
-  documents.splice(index, 0, document);
-  return { ...state, documents };
-};
-
-export const initialProfileNote = {
-  name: 'profile.md',
-  content: '# Your name\n\n- Describe one experience or achievement you can substantiate.\n',
-};
-
-/** Opens the note if needed and drafts a new filename; saving writes under that filename. */
-export const renameDocument = (
-  state: ProfileDocumentsState,
-  note: { name: string; content: string },
-  id: string,
-  name: string,
-): ProfileDocumentsState => {
-  const opened = openDocument(state, note, id);
-  return {
-    ...opened,
-    documents: opened.documents.map((document) =>
-      document.id === opened.activeId ? { ...document, name } : document,
-    ),
-  };
-};
-
-export const wordCount = (content: string) => {
-  const text = content.trim();
-  return text ? text.split(/\s+/u).length : 0;
-};
+export { proseWordCount as wordCount } from '@/components/MarkdownEditor/helpers.ts';
 
 /** Profile notes are written only while no agent run is active (the daemon enforces it). */
 export const saveBlocker = (runs: { status: string }[], proposals: { status: string }[] = []) => {
@@ -176,6 +68,39 @@ export const proposalNotice = (proposal: {
 export const filenameProblem = (name: string, taken: string[]) => {
   if (!/^[\w.-]+\.md$/.test(name) || name.includes('..'))
     return 'Use letters, numbers, dots, dashes or underscores, ending in .md.';
-  if (taken.includes(name)) return 'Another note already uses this filename.';
+  // Case-insensitive, as on macOS and Windows disks.
+  if (taken.some((other) => other.toLowerCase() === name.toLowerCase()))
+    return 'Another note already uses this filename.';
   return '';
 };
+
+/** Lowercase hex SHA-256 of a note's UTF-8 text, the baseline a save expects to replace. */
+export const sha256 = async (text: string) => {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+};
+
+/** A typed name as a filename stem: case kept, accents dropped, anything else a hyphen. */
+export const slugName = (title: string) =>
+  title
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\.md$/i, '')
+    .replace(/[^A-Za-z0-9_.]+/g, '-')
+    .replace(/\.{2,}/g, '.')
+    .replace(/^[-.]+|[-.]+$/g, '')
+    .slice(0, 60)
+    .replace(/[-.]+$/, '');
+
+/** A note title as an unused Markdown filename: "Work history" → "Work-history.md". */
+export const filenameFor = (title: string, taken: string[]) => {
+  const base = slugName(title) || 'Untitled-note';
+  const used = new Set(taken.map((name) => name.toLowerCase()));
+  let name = `${base}.md`;
+  for (let index = 2; used.has(name.toLowerCase()); index++) name = `${base}-${index}.md`;
+  return name;
+};
+
+/** How a note is named in the app: its filename read as words ("Work-history.md" → "Work history"). */
+export const noteLabel = (name: string) =>
+  name.replace(/\.md$/i, '').replace(/[-_]+/g, ' ').trim() || name;

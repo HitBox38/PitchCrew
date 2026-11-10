@@ -249,15 +249,40 @@ describe('reviewed profile sources', () => {
       content: 'Fictional question',
     });
     expect(chat.result.error).toContain('profile update');
-    await expect(daemon.service.saveProfile('second.md', 'Concurrent edit')).rejects.toThrow(
-      'current profile update',
-    );
+    // A note save during the import waits its turn rather than failing or interleaving.
+    let saved = false;
+    const queued = daemon.service.saveProfile('second.md', 'Concurrent edit').then((profile) => {
+      saved = true;
+      return profile;
+    });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(saved).toBe(false);
     release([]);
     await pending;
+    await expect(queued).resolves.toHaveLength(2);
     expect((await request<Snapshot>('/snapshot')).result.runs).toEqual([]);
     await expect(
       daemon.service.saveProfile('second.md', '# Another fictional fact'),
     ).resolves.toHaveLength(2);
+    // A save that waited while an approved update was interrupted refuses once its turn comes.
+    let hold: (value: { name: string; content: string }[]) => void = () => {};
+    vi.mocked(daemon.service.profileSources.import).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          hold = resolve;
+        }),
+    );
+    const importing = daemon.service.importProfileSource({});
+    const waiting = daemon.service.saveProfile('second.md', 'Written after the interruption');
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    const list = daemon.service.board.list.bind(daemon.service.board);
+    vi.spyOn(daemon.service.board, 'list').mockImplementation(((kind: string) =>
+      kind === 'profile_proposal'
+        ? [{ id: 'fictional-proposal', status: 'applying' }]
+        : list(kind as 'card')) as typeof daemon.service.board.list);
+    hold([]);
+    await importing;
+    await expect(waiting).rejects.toThrow('Finish the approved profile update');
   });
   it('expires reviewed snapshots without saving source content', async () => {
     const { daemon, request } = await setup(14504);

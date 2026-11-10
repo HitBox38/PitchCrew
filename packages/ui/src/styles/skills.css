@@ -456,6 +456,7 @@
   height: 11px;
 }
 .skills-sheet {
+  container-type: inline-size;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -588,52 +589,6 @@
   background: var(--clay-fill);
   box-shadow: var(--clay);
   color: var(--ink);
-}
-.skills-sheet .profile-write-panel {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  background: transparent;
-}
-.skills-sheet .profile-preview-panel {
-  display: block;
-  flex: 1;
-  min-height: 0;
-  margin: 0;
-  /* The shared Markdown root fills its panel, so centre the 72ch measure with padding. */
-  padding: 32px max(44px, calc((100% - 72ch) / 2));
-  font-size: 0.9375rem;
-  line-height: 1.7;
-  overflow: auto;
-  background: transparent;
-  overscroll-behavior: contain;
-}
-.skills-sheet :is(.profile-write-panel, .profile-preview-panel)[hidden] {
-  display: none;
-}
-.skills-sheet textarea {
-  flex: 1;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  padding: 28px max(40px, calc((100% - 88ch) / 2));
-  border: 0;
-  border-radius: 0;
-  resize: none;
-  background: transparent;
-  box-shadow: none;
-  color: var(--ink);
-  font: 400 15px/1.6 var(--font-sans);
-  field-sizing: fixed;
-  tab-size: 2;
-}
-.skills-sheet textarea:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: -2px;
-  box-shadow: none;
 }
 .skills-savebar {
   display: flex;
@@ -798,13 +753,8 @@
   .skills-pane-actions {
     margin-left: 44px;
   }
-  .skills-sheet-scroll,
-  .skills-sheet .profile-preview-panel {
+  .skills-sheet-scroll {
     padding: 20px;
-  }
-  .skills-sheet textarea {
-    padding: 18px 20px;
-    font-size: 16px;
   }
   .skills-pane-empty,
   .skills-pane-empty .skills-sheet {
