@@ -33,6 +33,7 @@ export {
   jobDetailsChanges,
   updateJobInput,
   editJobInput,
+  reviewFeedbackInput,
 } from './job-management.ts';
 export * from './tracking.ts';
 export type { Card, CardInput, CardLesson, PacketFit } from './cards.ts';

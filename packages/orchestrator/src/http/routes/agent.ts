@@ -23,6 +23,7 @@ export const registerAgentRoutes = (app: FastifyInstance, service: CrewService) 
         changes: z.unknown().optional(),
         suggestion: z.unknown().optional(),
         state: z.enum(states).optional(),
+        review: z.unknown().optional(),
         cardId: z.uuid().optional(),
         tool: z.string().max(100).optional(),
         input: z.unknown().optional(),
