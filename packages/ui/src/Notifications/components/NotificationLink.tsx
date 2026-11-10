@@ -26,6 +26,12 @@ export const NotificationLink = ({
         onOpen(item);
     },
   };
+  if (item.target === '/settings' && item.context === 'remote_connection')
+    return (
+      <Link to="/settings" search={{ section: 'accounts' }} hash="remote-mcp-heading" {...props}>
+        {children}
+      </Link>
+    );
   if (item.target === '/settings')
     return (
       <Link

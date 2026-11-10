@@ -4,6 +4,7 @@ import type { ConnectorStatus, ExternalMcpInfo, PacketRules, Role } from '@pitch
 import { cleanup, setup } from './helpers/daemon.ts';
 import { smokeSettingsNavigation } from '../../desktop/src/smoke-settings.ts';
 import { smokeAutomaticUpdatesSelector } from '../../desktop/src/smoke-updates.ts';
+import { readExternalAccess } from '../../mcp/src/external/access.ts';
 
 let host: Awaited<ReturnType<typeof setup>>;
 let browser: Browser;
@@ -571,8 +572,41 @@ test('external agent access is opt-in, exposes a copyable configuration and revo
   await configuration.waitFor();
   const initial = await host.request<ExternalMcpInfo>('/external-mcp/access');
   expect(initial.result).toMatchObject({ enabled: true, write: false });
+  await page.getByText('Waiting for your app’s first request', { exact: true }).waitFor();
+  const access = (await readExternalAccess(host.directory))!;
+  await fetch(`${host.daemon.url}/api/external-mcp`, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${access.token}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ action: 'status', input: {} }),
+  });
+  await page.getByText('Request received', { exact: true }).waitFor();
+  expect(await page.locator('.external-mcp-verification').innerText()).toContain(
+    'pitchcrew_status',
+  );
+  const denied = await fetch(`${host.daemon.url}/api/external-mcp`, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${access.token}`, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      action: 'send_message',
+      input: { conversationId: 'scout', content: 'Test' },
+    }),
+  });
+  expect(denied.status).toBe(403);
+  await page.getByText('Request blocked: changes are off', { exact: true }).waitFor();
   expect(JSON.parse((await configuration.textContent())!)).toEqual(initial.result.configuration);
-  await page.getByRole('button', { name: 'Copy Pitchcrew MCP configuration', exact: true }).click();
+  await choose('Configuration for', 'Codex');
+  expect(await configuration.textContent()).toContain('[mcp_servers.pitchcrew]');
+  await page.getByRole('button', { name: 'Copy configuration', exact: true }).click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain(
+    '[mcp_servers.pitchcrew]',
+  );
+  await choose('Configuration for', 'JSON configuration');
+  expect(
+    await page
+      .getByRole('button', { name: 'Copy configuration', exact: true })
+      .getAttribute('data-copied'),
+  ).toBeNull();
+  await page.getByRole('button', { name: 'Copy configuration', exact: true }).click();
   expect((await page.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/g, '\n')).toBe(
     JSON.stringify(initial.result.configuration, null, 2),
   );
@@ -580,6 +614,7 @@ test('external agent access is opt-in, exposes a copyable configuration and revo
   await expect
     .poll(async () => (await host.request<ExternalMcpInfo>('/external-mcp/access')).result.write)
     .toBe(true);
+  await page.getByText('Waiting for your app’s first request', { exact: true }).waitFor();
   await enabled.click();
   await configuration.waitFor({ state: 'detached' });
   expect((await host.request<ExternalMcpInfo>('/external-mcp/access')).result).toMatchObject({
@@ -587,6 +622,25 @@ test('external agent access is opt-in, exposes a copyable configuration and revo
     write: false,
   });
   expect(await write.isDisabled()).toBe(true);
+}, 30000);
+
+test('reconciles an ambiguous external access save before permitting another change', async () => {
+  await host.request('/external-mcp/access', 'PUT', { enabled: true, write: false });
+  await open('accounts');
+  const write = page.getByRole('switch', { name: 'Allow changes and crew messages', exact: true });
+  await expect.poll(() => write.isEnabled()).toBe(true);
+  await page.route('**/api/external-mcp/access', async (route) => {
+    if (route.request().method() !== 'PUT') return route.continue();
+    await host.request('/external-mcp/access', 'PUT', { enabled: true, write: true });
+    await route.abort('failed');
+  });
+  await write.click();
+  await page.getByRole('alert').filter({ hasText: 'Access may have changed' }).waitFor();
+  expect(await write.count()).toBe(0);
+  await page.unroute('**/api/external-mcp/access');
+  await page.getByRole('button', { name: 'Check again', exact: true }).click();
+  await expect.poll(() => write.isChecked()).toBe(true);
+  await host.request('/external-mcp/access', 'PUT', { enabled: false, write: false });
 }, 30000);
 
 test.each(['denied', 'unavailable'] as const)(
@@ -608,7 +662,7 @@ test.each(['denied', 'unavailable'] as const)(
     }, availability);
     await open('accounts');
     const copy = page.getByRole('button', {
-      name: 'Copy Pitchcrew MCP configuration',
+      name: 'Copy configuration',
       exact: true,
     });
     await copy.click();

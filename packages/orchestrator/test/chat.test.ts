@@ -303,16 +303,16 @@ describe('agent conversations and crew actions', () => {
       (await request(`/proposals/${proposal.id}/decide`, 'POST', { approved: true })).response
         .status,
     ).toBe(400);
-    expect(
-      (
-        await agent({
-          action: 'invoke',
-          roleId: 'writer',
-          mode: 'workflow',
-          content: 'Draft a source-backed packet.',
-        })
-      ).response.status,
-    ).toBe(200);
+    const writerInvoke = await agent<{ delivered?: boolean; note?: string }>({
+      action: 'invoke',
+      roleId: 'writer',
+      mode: 'workflow',
+      content: 'Draft a source-backed packet.',
+    });
+    expect(writerInvoke.response.status).toBe(200);
+    // Workflow content never reaches the isolated run, so the agent is told how to route corrections.
+    expect(writerInvoke.result).toMatchObject({ delivered: false });
+    expect(writerInvoke.result.note).toContain('writing_correct');
     expect(
       (
         await agent({
@@ -332,16 +332,14 @@ describe('agent conversations and crew actions', () => {
         })
       ).response.status,
     ).toBe(200);
-    expect(
-      (
-        await agent({
-          action: 'invoke',
-          roleId: 'scout',
-          mode: 'chat',
-          content: 'Summarize your plan.',
-        })
-      ).response.status,
-    ).toBe(200);
+    const chatInvoke = await agent<{ delivered?: boolean }>({
+      action: 'invoke',
+      roleId: 'scout',
+      mode: 'chat',
+      content: 'Summarize your plan.',
+    });
+    expect(chatInvoke.response.status).toBe(200);
+    expect(chatInvoke.result.delivered).toBeUndefined();
     release(rootMessage);
     const snapshot = await waitForSnapshot(
       request,

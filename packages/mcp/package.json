@@ -1,6 +1,6 @@
 {
   "name": "@pitchcrew/mcp",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -9,14 +9,19 @@
     "./computer": "./src/computer.ts",
     "./external": "./src/external/index.ts",
     "./external/access": "./src/external/access.ts",
-    "./external/tools": "./src/external/tools.ts"
+    "./external/tools": "./src/external/tools.ts",
+    "./remote": "./src/remote/index.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.31.0",
     "@pitchcrew/board": "workspace:*",
     "@pitchcrew/core": "workspace:*",
     "@pitchcrew/packet": "workspace:*",
+    "express": "5.2.1",
     "playwright": "^1.63.0",
     "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/express": "5"
   }
 }

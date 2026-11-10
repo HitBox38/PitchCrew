@@ -214,7 +214,9 @@ bun run dev
 
 ## Connect agents from other apps
 
-Pitchcrew offers a local stdio MCP server for other desktop agent apps. Open **Settings → Accounts → External agents**, enable access and copy the displayed MCP configuration into your agent app. Enable **Allow changes and crew messages** for job management and crew work. Keep Pitchcrew running while connected.
+Grok Bot and other remote apps can connect through **Settings → Accounts → Grok Bot and remote apps**. Start a temporary connection, copy its message into Grok Bot, then approve the matching verification code in Pitchcrew. Read-only is the default; **Allow changes and crew messages** adds job management and crew work. This requires `cloudflared`, keeps the workspace UI private, and changes address whenever the connection restarts. Keep Pitchcrew and the computer running.
+
+For local desktop agent apps, open **Settings → Accounts → Local agent apps**, enable access and copy the displayed stdio MCP configuration into your agent app. Local and remote grants stay separate.
 
 From a repository checkout, you can also enable access and generate the client configuration:
 
@@ -225,7 +227,7 @@ bun run mcp config
 
 Paste the printed `mcpServers.pitchcrew` entry into your client's MCP configuration. It uses absolute paths and works from another working directory. Omit `--write` for read-only access. External agents can read the board, Profile, conversations and public run activity; write access adds job management, conversation creation and messages to your crew. Sending crew messages can start paid runtime work. Approval and application confirmation stay in Pitchcrew.
 
-`bun run mcp disable` revokes every external connection. See [external MCP setup](docs/external-mcp.md) for custom workspaces, tools and the access boundary.
+`bun run mcp disable` revokes local stdio access. Remote apps can be disconnected individually in Settings; stopping the remote connection revokes them all. See [external MCP setup](docs/external-mcp.md) for custom workspaces, tools and the access boundary.
 
 ## Current limits
 
