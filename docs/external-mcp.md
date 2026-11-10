@@ -8,6 +8,10 @@ In the desktop app or local browser UI, open **Settings → Accounts → Externa
 
 ### Repository CLI
 
+Settings walks through access, connection and a read-only check prompt. Choose JSON or Codex TOML, merge the entry with your client's existing servers and send the check prompt in that app. Request evidence refreshes automatically while Settings is visible; **Check for requests** also refreshes it. It shows the latest successful request or an authenticated failed/read-only attempt with recovery guidance. No credentials, inputs or error text are kept in this evidence. It is scoped to the current shared grant since daemon startup, not a live connection indicator or per-app identity. Invalid credentials and unknown actions never populate it; an app reporting revoked access must reconnect. Changing access or restarting Pitchcrew clears the evidence. Permission changes with an uncertain response require **Check again** before another change. Turning access off blocks future calls; it does not cancel work already queued.
+
+The JSON uses `mcpServers`, supported by some local clients. Clients with a different configuration format need the same generated `command` and `args` in their own format. Merge with existing servers rather than replacing them. A cloud-hosted Grok Bot or ChatGPT connector needs remote HTTP MCP and cannot use this local stdio configuration.
+
 Use the repository checkout with its dependencies installed and the pinned Bun version. From that checkout:
 
 ```sh
@@ -37,22 +41,23 @@ bun run mcp disable
 
 All tools use the `pitchcrew_` prefix and return JSON text plus MCP structured content.
 
-| Tool                  | Purpose                                                                    |
-| --------------------- | -------------------------------------------------------------------------- |
-| `status`              | Job counts by status and crew IDs/availability                             |
-| `list_jobs`           | Paginated company/title/location search with optional status filter        |
-| `read_job`            | Saved posting, brief, packet and feedback; excludes captured provider HTML |
-| `read_profile`        | Local Profile Markdown                                                     |
-| `list_conversations`  | Paginated conversation summaries; optional archived view                   |
-| `read_conversation`   | Latest 50 saved message/activity entries, or an older/newer anchor page    |
-| `read_run`            | Run state and public activity, excluding saved execution configuration     |
-| `read_queue`          | Active, ready and held work, including delivery/run IDs                    |
-| `create_job`          | Write: fetch a posting link first; fall back to the original posting text  |
-| `update_job`          | Write: correct company/title/location/salary with a reason                 |
-| `move_job`            | Write: change local board status with a reason                             |
-| `delete_job`          | Write: history-preserving deletion with a reason                           |
-| `create_conversation` | Write: named conversation with existing crew participants and optional job |
-| `send_message`        | Write: queue a message to a crew conversation                              |
+| Tool                   | Purpose                                                                      |
+| ---------------------- | ---------------------------------------------------------------------------- |
+| `status`               | Job counts by status and crew IDs/availability                               |
+| `list_jobs`            | Paginated company/title/location search with optional status filter          |
+| `read_job`             | Saved posting, brief, packet and feedback; excludes captured provider HTML   |
+| `read_profile`         | Local Profile Markdown                                                       |
+| `list_conversations`   | Paginated conversation summaries; optional archived view                     |
+| `read_conversation`    | Latest 50 saved message/activity entries, or an older/newer anchor page      |
+| `read_run`             | Run state and public activity, excluding saved execution configuration       |
+| `read_queue`           | Active, ready and held work, including delivery/run IDs                      |
+| `read_message_receipt` | Read acceptance identity for a conversation and client UUID, without sending |
+| `create_job`           | Write: fetch a posting link first; fall back to the original posting text    |
+| `update_job`           | Write: correct company/title/location/salary with a reason                   |
+| `move_job`             | Write: change local board status with a reason                               |
+| `delete_job`           | Write: history-preserving deletion with a reason                             |
+| `create_conversation`  | Write: named conversation with existing crew participants and optional job   |
+| `send_message`         | Write: queue a message to a crew conversation                                |
 
 List tools return `items`, `total` and `nextOffset`; pass `nextOffset` as `offset` until it is null. Lists default to 20 and allow up to 50 results. Conversation history returns `older` and `newer` anchors. Read the selected job or conversation for its complete context.
 
@@ -62,7 +67,9 @@ If fetching fails, `needs_details` means nothing was saved. Read the original po
 
 For crew work, read `status`, create or select a conversation, then call `send_message`. Group messages can mention existing participants with `@agent-id`. External messages are labelled `[External MCP agent]` in the saved transcript and use the ordinary conversation queue. Sending can incur provider costs under the crew's existing runtime settings and capabilities. The result is a queued request, not a completed answer. Follow its delivery/run IDs through `read_queue`, `read_run` and `read_conversation`. A question or approval may require the user to return to Pitchcrew. DMs and legacy crew history remain read-only.
 
-Writes are not automatically retried. If a request times out or the connection drops, inspect the board or conversation before deciding whether to repeat it.
+For `send_message`, generate a UUID `clientRequestId` before the first call and retain it with the original conversation and exact content. Concurrent identical calls coalesce; committed retries return the existing request without another message or paid run. Reusing the ID with changed content fails. `read_message_receipt` returns only acceptance identity (`id`, `threadId`, `submission.id`) or null; it does not return content, the payload digest or completion state. Use the ordinary queue/run/conversation reads for progress. An unaccepted ID can still be in flight, so retry only with the same UUID and exact payload. Calls without a UUID retain the older behavior and cannot be safely retried automatically.
+
+Other writes are not automatically retried. If a request times out or the connection drops, inspect the board or conversation before deciding whether to repeat it.
 
 ## Access boundary
 

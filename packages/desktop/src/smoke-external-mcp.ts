@@ -11,7 +11,7 @@ export const clickSmokeMcpCopy = async (window: BrowserWindow) => {
     await debuggerSession.sendCommand('Emulation.setFocusEmulationEnabled', { enabled: true });
     await window.webContents.executeJavaScript(
       `(async () => {
-      const copy = document.querySelector('button[aria-label="Copy Pitchcrew MCP configuration"]');
+      const copy = document.querySelector('button[aria-label="Copy configuration"]');
       copy.click();
       for (let i = 0; i < 80; i++) {
         if (copy.dataset.copied === 'true') return;
@@ -34,7 +34,7 @@ export const smokeExternalMcp = `(async () => {
   if (!await waitFor(() => enabled() && !enabled().disabled)) throw new Error('External MCP settings unavailable.');
   if (enabled().getAttribute('aria-checked') !== 'false') throw new Error('External MCP smoke requires disabled fixture access.');
   enabled().click();
-  const copy = () => document.querySelector('button[aria-label="Copy Pitchcrew MCP configuration"]');
+  const copy = () => document.querySelector('button[aria-label="Copy configuration"]');
   if (!await waitFor(() => !!copy())) throw new Error('MCP configuration copy button missing.');
   const expected = document.querySelector('pre[aria-label="Pitchcrew MCP configuration"]').textContent;
   console.info(${JSON.stringify(smokeMcpCopyRequest)});

@@ -52,6 +52,11 @@ export const externalTools = {
       'Read a crew run status and public activity. Poll after sending a message; completion may require the user to answer or approve something in Pitchcrew.',
     schema: z.object({ runId: z.uuid() }).strict(),
   },
+  read_message_receipt: {
+    description:
+      'Check whether a message with your clientRequestId was accepted in this conversation. Returns only request/conversation/submission identity, or null if not committed yet. This read never sends or retries a message. Use read_queue or read_conversation to follow an accepted request.',
+    schema: z.object({ conversationId, clientRequestId: z.uuid() }).strict(),
+  },
   read_queue: {
     description:
       'Read working, ready and held jobs/conversations, including queued message delivery run IDs. Sending a message queues work and can spend runtime credits.',
@@ -94,8 +99,14 @@ export const externalTools = {
   },
   send_message: {
     description:
-      'Requires write access. Queue a visibly attributed external-agent message to a crew conversation. Can start paid CLI work using existing agent capabilities. Use @agent mentions to target group members. Returns a request with delivery/run IDs; read_queue or read_conversation tracks progress. User questions and approvals remain in Pitchcrew. Do not automatically retry a timed-out write.',
-    schema: z.object({ conversationId, content: z.string().trim().min(1).max(7900) }).strict(),
+      'Requires write access. Queue a visibly attributed external-agent message to a crew conversation. Can start paid CLI work using existing agent capabilities. Use @agent mentions to target group members. Generate a clientRequestId UUID before sending and retain it with the exact content and conversation. Identical retries with that ID replay acceptance without creating more work; changed content with the same ID is rejected. After an uncertain result use read_message_receipt first; null may mean the original send is still pending. Never retry without the original ID and unchanged payload. Without an ID, inspect the conversation before considering another send. Returns a request with delivery/run IDs; read_queue or read_conversation tracks progress. User questions and approvals remain in Pitchcrew.',
+    schema: z
+      .object({
+        conversationId,
+        content: z.string().trim().min(1).max(7900),
+        clientRequestId: z.uuid().optional(),
+      })
+      .strict(),
     write: true,
   },
 } as const;

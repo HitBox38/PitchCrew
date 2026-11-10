@@ -36,7 +36,11 @@ export const createExternalClient = (url: string, access: ExternalAccess): Exter
         content: [
           {
             type: 'text',
-            text: `${error instanceof Error ? error.message : 'Pitchcrew request failed.'} Ensure Pitchcrew is running and external MCP access is enabled. Do not retry writes without checking their result in the app.`,
+            text: `${error instanceof Error ? error.message : 'Pitchcrew request failed.'} Keep Pitchcrew running. After changing access, reconnect this app. ${
+              action === 'send_message' && input.clientRequestId
+                ? 'Check acceptance with pitchcrew_read_message_receipt using the same conversationId and clientRequestId. Retry only with the same ID and exact content.'
+                : 'Do not retry writes without checking their result in Pitchcrew.'
+            }`,
           },
         ],
       };

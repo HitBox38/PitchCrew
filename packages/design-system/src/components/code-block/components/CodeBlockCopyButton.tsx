@@ -5,12 +5,13 @@ import { CheckIcon, CopyIcon } from 'lucide-react';
 
 export const CodeBlockCopyButton = ({
   value,
+  label,
   variant = 'ghost',
   size = 'icon-xs',
   className,
   onClick,
   ...props
-}: React.ComponentProps<typeof Button> & { value: string }) => {
+}: React.ComponentProps<typeof Button> & { value: string; label?: string }) => {
   const [copied, setCopied] = React.useState(false);
   const [failed, setFailed] = React.useState(false);
 
@@ -48,6 +49,7 @@ export const CodeBlockCopyButton = ({
         {...props}
       >
         {copied ? <CheckIcon /> : <CopyIcon />}
+        {label ? <span>{label}</span> : null}
       </Button>
       <span aria-live="polite" className={failed ? 'primitive:text-xs' : 'primitive:sr-only'}>
         {failed ? 'Could not copy. Select the text and copy it manually.' : copied ? 'Copied' : ''}
