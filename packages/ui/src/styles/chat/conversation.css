@@ -6,12 +6,12 @@
   overflow-y: auto;
 }
 /* A waiting question yields space before the transcript loses its reading area and pager. */
-.chat-panel:has(.pending-user-questions) {
+.chat-panel[data-has-questions] {
   /* Short windows can scroll the column after the history and answer controls reach their
    * minimum usable sizes; the browser keeps its independent viewport. */
   overflow-y: auto;
 }
-.chat-panel:has(.pending-user-questions) .chat-conversation-panel {
+.chat-panel[data-has-questions] .chat-conversation-panel {
   --chat-history-min-height: clamp(6rem, 20dvh, 10rem);
 }
 .chat-transcript {
@@ -38,7 +38,7 @@
 .chat-transcript:has(> .chat-empty) {
   padding-bottom: 0;
 }
-.chat-panel:has(.chat-empty) .chat-compose {
+.chat-panel[data-has-welcome] .chat-compose {
   padding-top: 8px;
 }
 .chat-empty-purpose {

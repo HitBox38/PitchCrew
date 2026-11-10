@@ -689,7 +689,7 @@
 /* Beside the browser the chat header's rule would sit 21px above the toolbar's: one rule only. */
 [data-interface='clay']
   .chat-page
-  .chat-workspace[data-browser-open='true']:has(> .agent-browser-panel)
+  .chat-workspace[data-browser-open='true'][data-has-browser-panel]
   .chat-heading {
   border-bottom-color: transparent;
 }

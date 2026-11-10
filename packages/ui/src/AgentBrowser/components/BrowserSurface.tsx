@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { Sheet, SheetContent, SheetTitle } from '@pitchcrew/design-system/sheet';
 import { useBrowserViewport } from '../hooks/useBrowserViewport.ts';
+import { chatWorkspacePresence } from '@/ChatView/presence.ts';
 import { useDesktopBrowserHost } from '@/DesktopBrowserHost/context.ts';
 import { BrowserSheet } from '@/DesktopBrowserHost/BrowserSheet.tsx';
 
@@ -18,6 +19,8 @@ export const BrowserSurface = ({
   children: ReactNode;
 }) => {
   const height = useBrowserViewport();
+  // The docked panel, a child of the chat workspace (its layout styles key off this).
+  chatWorkspacePresence.usePresent('browser-panel', !modal && open);
   const desktop = useDesktopBrowserHost();
   if (!modal) {
     if (!open) return null;

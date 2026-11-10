@@ -8,7 +8,7 @@
 .chat-page .chat-workspace {
   position: relative;
 }
-.chat-page .chat-workspace:has(.chat-side-panel) {
+.chat-page .chat-workspace[data-has-side-panel] {
   grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
 }
 .chat-side-panel {
@@ -98,7 +98,7 @@
     z-index: 20;
     box-shadow: var(--pop);
   }
-  .chat-page .chat-workspace:has(.chat-side-panel) {
+  .chat-page .chat-workspace[data-has-side-panel] {
     grid-template-columns: minmax(0, 1fr);
   }
 }

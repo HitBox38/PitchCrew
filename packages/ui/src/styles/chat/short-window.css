@@ -75,7 +75,7 @@
     padding-block: 4px;
   }
   .chat-panel .chat-conversation-panel,
-  .chat-panel:has(.pending-user-questions) .chat-conversation-panel {
+  .chat-panel[data-has-questions] .chat-conversation-panel {
     --chat-history-min-height: clamp(7rem, 35dvh, 10rem);
   }
   .chat-queue-content,

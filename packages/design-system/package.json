@@ -10,6 +10,7 @@
     "./styles.css": "./src/styles.css",
     "./theme.css": "./src/styles/theme.css",
     "./utils": "./src/lib/utils.ts",
+    "./presence": "./src/lib/presence.ts",
     "./use-mobile": "./src/hooks/use-mobile.ts",
     "./use-surface-presence": "./src/hooks/useSurfacePresence.ts",
     "./menu-components": "./src/components/context-menu/menu-components.ts",
