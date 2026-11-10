@@ -186,8 +186,14 @@ export const verifyDocument = async (
   return structuredClone(await pending);
 };
 
-const bootstrap = `import { register } from ${JSON.stringify(import.meta.resolve('tsx/esm/api'))};
-import { parentPort, workerData } from 'node:worker_threads';
+// PDF.js loads before tsx's hooks, which make its large modules take seconds longer to load. Its
+// worker module sets globalThis.pdfjsWorker, so the in-thread worker skips another import.
+const bootstrap = `import { parentPort, workerData } from 'node:worker_threads';
+if (workerData.mimeType === 'application/pdf') {
+  await import(${JSON.stringify(import.meta.resolve('pdfjs-dist/legacy/build/pdf.mjs'))});
+  await import(${JSON.stringify(import.meta.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs'))});
+}
+const { register } = await import(${JSON.stringify(import.meta.resolve('tsx/esm/api'))});
 register();
 const { extractDocument } = await import(workerData.module);
 parentPort.postMessage(await extractDocument(workerData.bytes, workerData.mimeType, workerData.headings));`;
