@@ -64,7 +64,7 @@ export const queueMessage = async (
 
 // Isolated workflow runs never see free-form crew text; say so instead of implying delivery.
 const workflowContentNote =
-  'Content is a visible handoff note only. The isolated workflow run receives the confirmed job brief, verified Profile evidence, the current packet and its saved review feedback, not this text. To deliver a user correction to the Writer, use pitchcrew_application_quality with action writing_correct, the user message ID and an exact quote.';
+  'Content is a visible handoff note only and is not sent to the isolated workflow run. To deliver a user correction to the Writer, use pitchcrew_application_quality with action writing_correct, the user message ID and an exact quote.';
 
 /** A lead assigns chat-only subtasks to several agents and collects every result in one turn. */
 export const delegateRound = (
