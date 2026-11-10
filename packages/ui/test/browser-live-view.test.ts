@@ -82,7 +82,9 @@ test('takes private control, presents typed changes through the real HTTP stream
   await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
   await vi.waitFor(() => expect(website.viewportSize()!.width).toBeLessThan(1000));
   const target = (await website.locator('#name').boundingBox())!;
+  // Resizing the page for the panel replaces its frames, so the screen can be briefly absent.
   const surface = page.locator('.browser-screen');
+  await surface.waitFor();
   const bounds = (await surface.boundingBox())!;
   const scale = bounds.width / website.viewportSize()!.width;
   await surface.click({ position: { x: (target.x + 20) * scale, y: (target.y + 10) * scale } });

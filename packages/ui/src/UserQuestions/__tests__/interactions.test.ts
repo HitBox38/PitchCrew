@@ -15,6 +15,9 @@ import { setup, cleanup } from '../../../../orchestrator/test/helpers/daemon.ts'
 let server: ViteDevServer, browser: Browser, cache: string, url: string;
 let rejectionHost: Awaited<ReturnType<typeof setup>> | undefined;
 beforeAll(async () => {
+  // A production daemon checks every installed runtime before it serves (many seconds on a
+  // machine with CLIs installed), so it starts here, alongside the UI server, never inside a test.
+  const rejection = prepareRejectionFixture();
   const root = fileURLToPath(new URL('../../..', import.meta.url));
   const designSystem = createRequire(join(root, '../design-system/package.json'));
   const core = createRequire(join(root, '../core/package.json'));
@@ -119,7 +122,8 @@ beforeAll(async () => {
   if (!stylesheet.ok) throw new Error(await stylesheet.text());
   await stylesheet.text();
   browser = await chromium.launch({ headless: true });
-}, 60000);
+  await rejection;
+}, 120000);
 afterAll(async () => {
   await browser?.close();
   await server?.close();
