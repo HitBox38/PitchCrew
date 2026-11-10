@@ -75,6 +75,10 @@ export const agentCall = async (
   }
 };
 
+// MCP tools wrap their arguments in `input`, the only free-form field the /api/agent body keeps.
+const toolInput = (data: Record<string, unknown>) =>
+  (data.input ?? data) as Record<string, unknown>;
+
 const dispatchAgentCall = async (
   context: CrewContext,
   token: string,
@@ -235,9 +239,9 @@ const dispatchAgentCall = async (
       'transfer_lead',
     ].includes(action)
   )
-    return conversationAction(context, capability, action, data);
+    return conversationAction(context, capability, action, toolInput(data));
   if (['recall_memory', 'save_memory'].includes(action))
-    return memoryAction(context, capability, action, data);
+    return memoryAction(context, capability, action, toolInput(data));
   if (action === 'application_insights')
     return insightsAction(context, capability, token, data.input);
   if (action === 'quality') return qualityAgentAction(context, capability, data.input);
