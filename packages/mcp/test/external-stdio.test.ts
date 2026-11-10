@@ -67,7 +67,7 @@ it('connects from another working directory, advertises read-only tools and revo
   expect(config.stdout).not.toContain(access.token);
   const client = await connect(directory, Number(new URL(daemon.url).port));
   const tools = (await client.listTools()).tools;
-  expect(tools).toHaveLength(8);
+  expect(tools).toHaveLength(9);
   expect(tools.every((tool) => tool.annotations?.readOnlyHint)).toBe(true);
   const result = await client.callTool({ name: 'pitchcrew_status', arguments: {} });
   expect(result.isError).not.toBe(true);
@@ -197,7 +197,7 @@ it('manages jobs, preserves busy checks and delegates visible crew work through 
   const { daemon, directory, request } = await setup(15623);
   await command(directory, 'enable', '--write');
   const client = await connect(directory, Number(new URL(daemon.url).port));
-  expect((await client.listTools()).tools).toHaveLength(14);
+  expect((await client.listTools()).tools).toHaveLength(15);
   const call = async <T>(name: string, input: Record<string, unknown> = {}) => {
     const result = await client.callTool({ name: `pitchcrew_${name}`, arguments: input });
     expect(result.isError, JSON.stringify(result.content)).not.toBe(true);

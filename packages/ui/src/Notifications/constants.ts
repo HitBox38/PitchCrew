@@ -22,5 +22,6 @@ export const notificationPresentation: Record<
   skill_proposal: { icon: BookOpenCheck, action: 'Review skill' },
   instruction_update: { icon: Sparkles, action: 'Review update' },
   runtime_update: { icon: Settings2, action: 'Open runtime' },
+  remote_connection: { icon: Settings2, action: 'Review connection' },
   skill_update: { icon: BookOpenCheck, action: 'Review update' },
 };

@@ -15,6 +15,7 @@ import {
 import { useNotificationStore } from '../store.ts';
 import { useLinkFeedback } from './useLinkFeedback.ts';
 import { useNotificationItems } from './useNotificationItems.ts';
+import { useRemoteConnectionNotices } from './useRemoteConnectionNotices.ts';
 import {
   getVisibleQuestionToasts,
   subscribeQuestionToastVisibility,
@@ -23,6 +24,7 @@ import {
 /** Toasts and sounds for new notices; mounted once by the notification center. */
 export const useNotifications = () => {
   useLinkFeedback();
+  useRemoteConnectionNotices();
   const { data, items } = useNotificationItems();
   const toastManager = workspaceToasts;
   const activeToasts = useRef(new Set<string>());
@@ -62,6 +64,16 @@ export const useNotifications = () => {
     const visible = document.visibilityState === 'visible';
     // Read after layout publication, not a render-time snapshot that may precede a new dock.
     const questionToasts = getVisibleQuestionToasts();
+    const visibleRemoteRequests = new Set(
+      Array.from(document.querySelectorAll<HTMLElement>('.remote-mcp-request h5[id]'))
+        .filter((element) => {
+          const bounds = element.getBoundingClientRect();
+          return bounds.height > 0 && bounds.bottom > 0 && bounds.top < window.innerHeight;
+        })
+        .map((element) => `remote-mcp:${element.id.slice('remote-request-'.length)}`),
+    );
+    const remoteRequestInView = (item: (typeof items)[number]) =>
+      visible && item.context === 'remote_connection' && visibleRemoteRequests.has(item.id);
     const byId = new Map(items.map((item) => [item.id, item]));
     const currentIds = new Set(items.map((item) => item.id));
     const visibleBrowserApprovals = new Set([
@@ -74,7 +86,12 @@ export const useNotifications = () => {
       const item = byId.get(id);
       const questionInView =
         item?.context === 'input' && notificationInView(item, pathname, visible, questionToasts);
-      if (!currentIds.has(id) || visibleBrowserApprovals.has(id) || questionInView) {
+      if (
+        !currentIds.has(id) ||
+        visibleBrowserApprovals.has(id) ||
+        questionInView ||
+        (item && remoteRequestInView(item))
+      ) {
         toastManager.close(id);
         activeToasts.current.delete(id);
       }
@@ -82,6 +99,7 @@ export const useNotifications = () => {
     const fresh = tracker
       .update(items)
       .filter(notificationShouldAlert)
+      .filter((item) => !remoteRequestInView(item))
       .filter((item) => !notificationInView(item, pathname, visible, questionToasts));
     if (!fresh.length) return;
     const priority = fresh.find((item) => item.kind === 'attention') ?? fresh[0]!;

@@ -1,12 +1,28 @@
 # External MCP access
 
-The external MCP server lets desktop agents use the local Pitchcrew workspace through stdio. Pitchcrew's daemon must already be running on `127.0.0.1`; the MCP command does not start another daemon, open the UI or enable access automatically. Cloud-hosted MCP clients and remote HTTP MCP connections are not supported.
+Pitchcrew supports local desktop agents through stdio and remote apps such as Grok Bot through an opt-in temporary HTTPS MCP connection. Both use the same external tools and keep application approvals in Pitchcrew. Local and remote access are authorized separately. The daemon stays on `127.0.0.1`; the public connection targets a separate MCP-only listener, never the workspace UI or private API.
 
-## Connect
+## Grok Bot and remote apps
 
-In the desktop app or local browser UI, open **Settings → Accounts → External agents**. Turn on **Allow external agents** for reads, optionally enable **Allow changes and crew messages**, then copy the displayed MCP configuration into your desktop agent app. The generated configuration uses the running daemon's Bun executable, CLI entry and workspace settings, including in standalone installations. Reconnect clients after changing permissions. The command paths must remain available; regenerate the configuration if you move or reinstall the app. Disabling access revokes every connected client. Search Settings or the command palette for “MCP” to find these controls.
+1. Open **Settings → Accounts → Grok Bot and remote apps**. Install `cloudflared` on the computer running Pitchcrew if the screen reports it missing.
+2. Choose **Start temporary connection**. Pitchcrew creates an isolated listener and a Cloudflare Quick Tunnel, then checks that its public address reaches that listener before showing **Address ready**.
+3. Copy **Message for Grok Bot**, open Grok Bot and send the message, or add a custom **Remote HTTPS** connector using the displayed MCP address. Leave client ID and HTTP headers empty; the app can discover OAuth automatically. This is a Grok Bot app connection, separate from the Grok Build runtime and its API key.
+4. Follow the app's connection prompt. Its browser page shows a verification code and asks you to return to Pitchcrew. Waiting requests also appear under **Needs you** in the notification bell; that notice opens this Settings section and never approves access. In **Connection requests**, match that code and review the app-provided name, callback host and requested access. Names are self-declared, not verified identities. Approve only requests you started. Read-only is the default; **Allow changes and crew messages** also allows paid work through existing crew settings.
+5. Ask the app to use `pitchcrew_status`. **Authorized apps** distinguishes authorization from a successful tool request and shows the latter's time. Disconnect one app there, or stop the connection to disconnect all remote apps. Already accepted work may finish.
+
+Keep Pitchcrew and the computer running. The temporary address changes whenever the connection restarts, so reconnect the remote app afterward. The connection does not restart automatically at login. Cloudflare Quick Tunnels require no account or domain, have no uptime guarantee and do not support SSE; Pitchcrew therefore uses stateless JSON Streamable HTTP. This is temporary connectivity, not a permanent hosted service. Authorized data passes through Cloudflare and the remote app. See [Cloudflare's documented limits](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/) and [Grok Bot's app connection guide](https://docs.x.ai/grok-bot/computer-and-apps).
+
+The remote listener exposes only MCP, OAuth discovery/registration/token/revocation endpoints, a connection waiting page and its readiness check. OAuth uses S256 PKCE, registered HTTPS callbacks (HTTP loopback for local clients), resource-bound short-lived access tokens and rotating refresh tokens. A single `pitchcrew:access` protocol scope supports clients that select only the first advertised scope; the local read-only or read/write grant independently limits tool discovery and every call. User-approved per-app grants expire after 30 days and can be revoked independently. Pending consent and authorization codes stay in memory. `remote-mcp.json` stores bounded registrations and token hashes with private atomic writes; tokens, browser tickets and OAuth codes are absent from snapshots, events, prompts and settings responses. Corrupt storage fails closed without overwriting it. Stop, unexpected tunnel exit and restart revoke the temporary connection's grants. The public address is never derived from arbitrary forwarded headers.
+
+## Local desktop apps
+
+In the desktop app or local browser UI, open **Settings → Accounts → Local agent apps**. Turn on **Allow external agents** for reads, optionally enable **Allow changes and crew messages**, then copy the displayed MCP configuration into your desktop agent app. The generated configuration uses the running daemon's Bun executable, CLI entry and workspace settings, including in standalone installations. Reconnect clients after changing permissions. The command paths must remain available; regenerate the configuration if you move or reinstall the app. Disabling this local access revokes local clients; remote apps have separate grants above. Search Settings or the command palette for “MCP” to find these controls.
 
 ### Repository CLI
+
+Settings walks through access, connection and a read-only check prompt. Choose JSON or Codex TOML, merge the entry with your client's existing servers and send the check prompt in that app. Request evidence refreshes automatically while Settings is visible; **Check for requests** also refreshes it. It shows the latest successful request or an authenticated failed/read-only attempt with recovery guidance. No credentials, inputs or error text are kept in this evidence. It is scoped to the current shared grant since daemon startup, not a live connection indicator or per-app identity. Invalid credentials and unknown actions never populate it; an app reporting revoked access must reconnect. Changing access or restarting Pitchcrew clears the evidence. Permission changes with an uncertain response require **Check again** before another change. Turning access off blocks future calls; it does not cancel work already queued.
+
+The JSON uses `mcpServers`, supported by some local clients. Clients with a different configuration format need the same generated `command` and `args` in their own format. Merge with existing servers rather than replacing them. A cloud-hosted Grok Bot or ChatGPT connector needs remote HTTP MCP and cannot use this local stdio configuration.
 
 Use the repository checkout with its dependencies installed and the pinned Bun version. From that checkout:
 
@@ -37,22 +53,23 @@ bun run mcp disable
 
 All tools use the `pitchcrew_` prefix and return JSON text plus MCP structured content.
 
-| Tool                  | Purpose                                                                    |
-| --------------------- | -------------------------------------------------------------------------- |
-| `status`              | Job counts by status and crew IDs/availability                             |
-| `list_jobs`           | Paginated company/title/location search with optional status filter        |
-| `read_job`            | Saved posting, brief, packet and feedback; excludes captured provider HTML |
-| `read_profile`        | Local Profile Markdown                                                     |
-| `list_conversations`  | Paginated conversation summaries; optional archived view                   |
-| `read_conversation`   | Latest 50 saved message/activity entries, or an older/newer anchor page    |
-| `read_run`            | Run state and public activity, excluding saved execution configuration     |
-| `read_queue`          | Active, ready and held work, including delivery/run IDs                    |
-| `create_job`          | Write: fetch a posting link first; fall back to the original posting text  |
-| `update_job`          | Write: correct company/title/location/salary with a reason                 |
-| `move_job`            | Write: change local board status with a reason                             |
-| `delete_job`          | Write: history-preserving deletion with a reason                           |
-| `create_conversation` | Write: named conversation with existing crew participants and optional job |
-| `send_message`        | Write: queue a message to a crew conversation                              |
+| Tool                   | Purpose                                                                      |
+| ---------------------- | ---------------------------------------------------------------------------- |
+| `status`               | Job counts by status and crew IDs/availability                               |
+| `list_jobs`            | Paginated company/title/location search with optional status filter          |
+| `read_job`             | Saved posting, brief, packet and feedback; excludes captured provider HTML   |
+| `read_profile`         | Local Profile Markdown                                                       |
+| `list_conversations`   | Paginated conversation summaries; optional archived view                     |
+| `read_conversation`    | Latest 50 saved message/activity entries, or an older/newer anchor page      |
+| `read_run`             | Run state and public activity, excluding saved execution configuration       |
+| `read_queue`           | Active, ready and held work, including delivery/run IDs                      |
+| `read_message_receipt` | Read acceptance identity for a conversation and client UUID, without sending |
+| `create_job`           | Write: fetch a posting link first; fall back to the original posting text    |
+| `update_job`           | Write: correct company/title/location/salary with a reason                   |
+| `move_job`             | Write: change local board status with a reason                               |
+| `delete_job`           | Write: history-preserving deletion with a reason                             |
+| `create_conversation`  | Write: named conversation with existing crew participants and optional job   |
+| `send_message`         | Write: queue a message to a crew conversation                                |
 
 List tools return `items`, `total` and `nextOffset`; pass `nextOffset` as `offset` until it is null. Lists default to 20 and allow up to 50 results. Conversation history returns `older` and `newer` anchors. Read the selected job or conversation for its complete context.
 
@@ -62,11 +79,13 @@ If fetching fails, `needs_details` means nothing was saved. Read the original po
 
 For crew work, read `status`, create or select a conversation, then call `send_message`. Group messages can mention existing participants with `@agent-id`. External messages are labelled `[External MCP agent]` in the saved transcript and use the ordinary conversation queue. Sending can incur provider costs under the crew's existing runtime settings and capabilities. The result is a queued request, not a completed answer. Follow its delivery/run IDs through `read_queue`, `read_run` and `read_conversation`. A question or approval may require the user to return to Pitchcrew. DMs and legacy crew history remain read-only.
 
-Writes are not automatically retried. If a request times out or the connection drops, inspect the board or conversation before deciding whether to repeat it.
+For `send_message`, generate a UUID `clientRequestId` before the first call and retain it with the original conversation and exact content. Concurrent identical calls coalesce; committed retries return the existing request without another message or paid run. Reusing the ID with changed content fails. `read_message_receipt` returns only acceptance identity (`id`, `threadId`, `submission.id`) or null; it does not return content, the payload digest or completion state. Use the ordinary queue/run/conversation reads for progress. An unaccepted ID can still be in flight, so retry only with the same UUID and exact payload. Calls without a UUID retain the older behavior and cannot be safely retried automatically.
+
+Other writes are not automatically retried. If a request times out or the connection drops, inspect the board or conversation before deciding whether to repeat it.
 
 ## Access boundary
 
-External access has its own random bearer credential in `external-mcp.json` inside the workspace data directory. Atomic writes use mode `0600` on systems with POSIX permissions; operating-system account protections apply on Windows. The credential stays out of generated client configuration and protocol results. All clients configured for the same workspace share this grant; per-client permissions are not implemented. Enabling access authorizes those local clients to read private career data. Protect the data folder and configure only trusted clients.
+Local stdio access has its own random bearer credential in `external-mcp.json` inside the workspace data directory. Atomic writes use mode `0600` on systems with POSIX permissions; operating-system account protections apply on Windows. The credential stays out of generated client configuration and protocol results. Local clients configured for the same workspace share this grant; remote OAuth apps have separate per-app grants. Enabling access authorizes those clients to read private career data. Protect the data folder and configure only trusted clients.
 
 The stdio process captures the credential at startup. The daemon rechecks the saved credential and write permission on each call, so disabling or rotating access rejects subsequent calls from existing processes. A call already accepted may finish. Revocation does not remove data a client already read.
 
