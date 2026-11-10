@@ -31,7 +31,7 @@ export const registerConversationTools = (
       },
       annotations: readOnly,
     },
-    (input) => call('conversation_messages', input),
+    (input) => call('conversation_messages', { input }),
   );
   if (!options.delegate) registerGroupTools(server, call, mutation);
   server.registerTool(
@@ -42,7 +42,7 @@ export const registerConversationTools = (
       inputSchema: { query: z.string().max(200).optional() },
       annotations: readOnly,
     },
-    (input) => call('recall_memory', input),
+    (input) => call('recall_memory', { input }),
   );
   server.registerTool(
     'pitchcrew_save_memory',
@@ -55,7 +55,7 @@ export const registerConversationTools = (
       },
       annotations: mutation,
     },
-    (input) => call('save_memory', input),
+    (input) => call('save_memory', { input }),
   );
 };
 /** Group creation, invitations and lead handoff; omitted for a round's delegates. */
@@ -75,7 +75,7 @@ const registerGroupTools = (
       },
       annotations: mutation,
     },
-    (input) => call('create_group', input),
+    (input) => call('create_group', { input }),
   );
   server.registerTool(
     'pitchcrew_invite_agent',
@@ -85,7 +85,7 @@ const registerGroupTools = (
       inputSchema: { conversationId: z.string(), roleId: roleIdSchema },
       annotations: mutation,
     },
-    (input) => call('invite_agent', input),
+    (input) => call('invite_agent', { input }),
   );
   server.registerTool(
     'pitchcrew_transfer_lead',
@@ -95,6 +95,6 @@ const registerGroupTools = (
       inputSchema: { conversationId: z.string(), roleId: roleIdSchema },
       annotations: mutation,
     },
-    (input) => call('transfer_lead', input),
+    (input) => call('transfer_lead', { input }),
   );
 };
