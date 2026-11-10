@@ -1,5 +1,6 @@
 import { workspaceQueue } from './queue/projection.ts';
 import { ensureQueue, patchQueue } from './queue/state.ts';
+import { activeRuns } from './queue/queries.ts';
 import { workspaceCards, workspaceRuns, workspaceEvents } from './workspace-projection.ts';
 import { workspaceMessages } from '@pitchcrew/board';
 import { activityRuns, finishChatActivity, restoreActivityCheckpoints } from './chat-activity.ts';
@@ -57,7 +58,8 @@ export const initialize = async (
     for (const folder of ['profile', 'roles', 'packets'])
       await mkdir(join(context.directory, folder), { recursive: true });
     for (const runId of restoreActivityCheckpoints(context)) finishChatActivity(context, runId);
-    for (const run of context.board.list<Run>('run').filter((r) => r.status === 'running')) {
+    // Indexed: historical runs keep large frozen configurations that recovery never needs.
+    for (const run of activeRuns(context)) {
       recordOperationalLog(context.diagnostics, { code: 'daemon_run_recovered', area: 'daemon' });
       for (const session of context.board.list<ConversationSession>('conversation_session'))
         if (session.threadId === run.threadId && session.roleId === run.roleId && !session.invalid)
