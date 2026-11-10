@@ -8,6 +8,8 @@ import { Button } from '@pitchcrew/design-system/button';
 import { ArrowRight, BriefcaseBusiness, LoaderCircle } from 'lucide-react';
 import { ReplyActions } from './ReplyActions.tsx';
 import { MessageTimestamp } from './MessageTimestamp.tsx';
+import { useSendFlightLanding } from '../hooks/useSendFlightLanding.ts';
+import { pendingSendId, transcriptKey } from '../send-flight.ts';
 
 export const TranscriptMessage = ({
   message,
@@ -35,13 +37,18 @@ export const TranscriptMessage = ({
   const cancelledUnsent =
     request?.deliveries.length &&
     request.deliveries.every((delivery) => !delivery.runId && delivery.status === 'cancelled');
+  useSendFlightLanding(thread, message.id);
   return (
     <AnimatedMessage
-      initial={{ opacity: 0, y: reduced ? 0 : 8 }}
+      // A pending copy's entrance is the bubble flying in from the composer.
+      initial={
+        pendingSendId(transcriptKey(message.id)) ? false : { opacity: 0, y: reduced ? 0 : 8 }
+      }
       animate={{ opacity: 1, y: 0 }}
       from={message.from === 'user' ? 'user' : 'assistant'}
       className={`chat-message ${message.from === 'system' ? 'chat-system' : ''}`}
       data-continued={continued ? '' : undefined}
+      data-chat-message-id={message.id}
     >
       <div
         className={`chat-message-meta flex items-center gap-2 text-detail text-muted-foreground${continued ? ' sr-only' : ''}`}

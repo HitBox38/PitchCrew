@@ -8,7 +8,7 @@ import { useChatPreferences } from './useChatPreferences.ts';
 import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
 import type { ChatViewProps } from '@/ChatView/types.ts';
 import type { ChatMessage } from '@pitchcrew/core';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { focusAfterReveal, questionReturnFocus } from '@/UserQuestions/focus.ts';
 import type { QuestionFocusIntent } from '@/UserQuestions/types.ts';
 import {
@@ -22,6 +22,14 @@ import { useQuestionLifecycle } from '@/UserQuestions/hooks/useQuestionLifecycle
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useComposerDraft } from './useComposerDraft.ts';
 import { sendComposerDraft } from '../composer-send.ts';
+import { composerState } from '../composer-state.ts';
+import { conversationQueueHold } from '../queue-recovery-plan.ts';
+import {
+  cancelSendFlight,
+  dropSendFlight,
+  launchSendFlight,
+  sendFlightOrigin,
+} from '../send-flight.ts';
 import { effectiveComposerMode } from '../composer-retry.ts';
 
 export const useChatView = (props: ChatViewProps) => {
@@ -179,6 +187,7 @@ export const useChatView = (props: ChatViewProps) => {
     composerDraft.offerDraft(thread, prompt);
     inputRef.current?.focus();
   };
+  useEffect(() => dropSendFlight, [thread]);
   const send = async (text: string, intent: 'queue' | 'interrupt' = 'queue') => {
     if (
       (!text.trim() && !attachments.files.length) ||
@@ -194,7 +203,20 @@ export const useChatView = (props: ChatViewProps) => {
     }
     setPane('conversation');
     setError('');
-    await sendComposerDraft(thread, action, { intent });
+    // Only a send that dispatches now lands in the transcript; a held one waits in the queue.
+    const flies = !reduced && !busy && !questions.length && !conversationQueueHold(data, thread);
+    const origin = flies ? sendFlightOrigin(inputRef.current) : undefined;
+    const before = composerState(thread).operation;
+    const sending = sendComposerDraft(thread, action, { intent });
+    // A repeated Enter reaches here while the first send is in progress and is refused; only
+    // the call that began the send launches or cancels its flight.
+    const operation = composerState(thread).operation;
+    const payload = operation !== before ? operation?.payload : undefined;
+    const id = payload?.submission?.id;
+    // References keep the draft's own offsets, so the copy renders them like the saved message.
+    if (origin && payload && id)
+      launchSendFlight(thread, { id, text: payload.text, references: payload.references }, origin);
+    if (!(await sending) && id) cancelSendFlight(thread, id);
   };
 
   const sendDelegation = async (text: string, roleIds: string[]) => {
