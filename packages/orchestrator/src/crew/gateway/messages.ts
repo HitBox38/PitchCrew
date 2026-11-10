@@ -50,17 +50,21 @@ export const queueMessage = async (
     )
       throw new Error('Choose a shared conversation with the same job scope.');
   }
-  return {
-    task: context.enqueue(
-      capability,
-      input.roleId,
-      action === 'message' ? 'chat' : input.mode,
-      input.content,
-      action,
-      input.conversationId,
-    ),
-  };
+  const mode = action === 'message' ? 'chat' : input.mode;
+  const task = context.enqueue(
+    capability,
+    input.roleId,
+    mode,
+    input.content,
+    action,
+    input.conversationId,
+  );
+  return mode === 'workflow' ? { task, delivered: false, note: workflowContentNote } : { task };
 };
+
+// Isolated workflow runs never see free-form crew text; say so instead of implying delivery.
+const workflowContentNote =
+  'Content is a visible handoff note only. The isolated workflow run receives the confirmed job brief, verified Profile evidence, the current packet and its saved review feedback, not this text. To deliver a user correction to the Writer, use pitchcrew_application_quality with action writing_correct, the user message ID and an exact quote.';
 
 /** A lead assigns chat-only subtasks to several agents and collects every result in one turn. */
 export const delegateRound = (

@@ -148,7 +148,7 @@ const registerDelegationTools = (server: McpServer, call: AgentCall) => {
     {
       title: 'Invoke a role',
       description:
-        'Queue yourself or another role after this run completes. Chat uses a visible agent DM or specified shared group; workflow runs operate only on the attached card and must follow its state machine.',
+        'Queue yourself or another role after this run completes. Chat uses a visible agent DM or specified shared group; workflow runs operate only on the attached card and must follow its state machine. Workflow content is a visible note, never sent to the isolated run; queue user corrections to Writer with pitchcrew_application_quality writing_correct.',
       inputSchema: {
         roleId: roleIdSchema,
         content: z.string().trim().min(1).max(8000),
