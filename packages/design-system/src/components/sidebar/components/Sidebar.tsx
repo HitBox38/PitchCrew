@@ -1,4 +1,5 @@
 import { MobileSidebar } from './MobileSidebar.tsx';
+import { sidebarWrapperPresence } from '../wrapper-presence.ts';
 import { useSidebar } from '../hooks/useSidebar.ts';
 import type { SidebarProps } from '../types.ts';
 import { cn } from '../../../lib/utils.ts';
@@ -11,6 +12,7 @@ export const Sidebar = ({
   children,
   ...props
 }: SidebarProps) => {
+  sidebarWrapperPresence.usePresent('inset', variant === 'inset');
   const { isMobile, state } = useSidebar();
 
   if (collapsible === 'none') {

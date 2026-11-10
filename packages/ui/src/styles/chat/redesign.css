@@ -131,6 +131,38 @@
   background: var(--clay-fill);
   border-radius: 14px 14px 5px 14px;
 }
+/* The send morph (send-flight.ts): a copy of the bubble forms over the composer's text, then
+ * flies above the page to its message, which stays hidden until it lands. Inside, a copy of the
+ * transcript lane sizes it with the same rules as the real bubble. */
+.chat-send-flight {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+.chat-send-flight > div {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+/* No entrance: it starts exactly where the typed text was. */
+.chat-send-flight .chat-message-content {
+  box-sizing: border-box;
+  margin: 0;
+}
+.chat-send-flight .chat-message-content::before {
+  content: attr(data-text);
+  white-space: pre-wrap;
+}
+[data-send-flight] {
+  visibility: hidden;
+}
+/* A new entry's first frame lays out at its real size, not content-visibility's placeholder
+ * (see useYoung), so the scroller pins it where it will stay. */
+.chat-transcript > [data-young] {
+  content-visibility: visible;
+}
 .chat-prompt [data-slot='input-group'] {
   background: var(--surface-bright);
   box-shadow: var(--clay-sunken);

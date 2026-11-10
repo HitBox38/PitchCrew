@@ -247,7 +247,7 @@ test.each([390, 1000, 1920])(
       const show = page.getByRole('button', { name: 'Show notes explorer', exact: true });
       if (await show.isVisible()) await show.click();
       await page.getByRole('treeitem', { name: title, exact: true }).click();
-      await page.getByRole('button', { name: 'Preview', exact: true }).click();
+      await page.getByRole('tab', { name: 'Preview', exact: true }).click();
       await page.getByRole('button', { name: 'Cited in 1 packet', exact: true }).click();
       await page.getByRole('button', { name: quote, exact: true }).click();
       const editor = page.getByRole('textbox', { name: 'Profile Markdown', exact: true });

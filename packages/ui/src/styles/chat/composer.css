@@ -55,6 +55,9 @@
   padding: 10px 12px 0;
   gap: 8px;
 }
+.chat-composer-files > li {
+  animation: clay-emerge 180ms var(--ease);
+}
 .chat-context-chip {
   display: flex;
   align-items: center;

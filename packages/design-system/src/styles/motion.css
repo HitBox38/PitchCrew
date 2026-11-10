@@ -1,5 +1,8 @@
 /* Base UI owns surface state and unmounting; CSS provides interruptible motion.
-   Motion remains for dynamic board layout, pointer tilt and new chat messages. */
+   Motion remains for dynamic board layout, pointer tilt and new chat messages.
+   The motif is clay that morphs rather than slides: pressed things push into the paper (the
+   shadow tokens interpolate), a switch thumb squashes under the finger, a check is drawn in,
+   and the chosen tab is one pebble that stretches its leading edge to the next choice. */
 [data-slot='button'] {
   transition:
     transform var(--duration-press) var(--ease),
@@ -110,11 +113,119 @@
   height: 0;
   opacity: 0;
 }
+/* Accordion panels morph between 0 and their natural height. Feature styles pad the panel
+   itself, so height interpolates to auto (Chromium) rather than to Base UI's measured
+   variable, and the vertical padding collapses with it. Elsewhere the height snaps. */
+[data-slot='accordion-content'] {
+  interpolate-size: allow-keywords;
+  opacity: 1;
+  transition:
+    height 200ms var(--ease),
+    padding-block 200ms var(--ease),
+    opacity 200ms var(--ease);
+}
+[data-slot='accordion-content']:is([data-starting-style], [data-ending-style]) {
+  height: 0;
+  opacity: 0;
+  /* Important only in these momentary states: feature padding rules are more specific. */
+  padding-block: 0 !important;
+}
+/* Squash, not shrink: pressed clay spreads sideways as it flattens, then springs back. */
+[data-slot='switch']:active:not([data-disabled]) [data-slot='switch-thumb'] {
+  scale: 1.2 0.88;
+}
+[data-slot='checkbox-indicator'] {
+  transition: opacity 100ms var(--ease);
+}
+[data-slot='checkbox-indicator'][data-ending-style] {
+  opacity: 0;
+}
+[data-slot='checkbox-indicator'] svg {
+  clip-path: inset(0);
+  transition: clip-path 180ms var(--ease);
+}
+[data-slot='checkbox-indicator'][data-starting-style] svg {
+  clip-path: inset(0 100% 0 0);
+}
+/* Icon swap: two stacked icons, the first at rest and the second once data-swapped is set
+   (Copy → Copied). One shape blurs down as the other swells in, so it reads as one morph. */
+[data-slot='icon-swap'] {
+  display: inline-grid;
+  flex: none;
+}
+[data-slot='icon-swap'] > * {
+  grid-area: 1 / 1;
+  transition:
+    opacity 200ms var(--ease),
+    scale 200ms var(--ease),
+    filter 200ms var(--ease);
+}
+[data-slot='icon-swap']:not([data-swapped]) > :last-child,
+[data-slot='icon-swap'][data-swapped] > :first-child {
+  opacity: 0;
+  scale: 0.5;
+  filter: blur(4px);
+}
+/* Mount entrances for features to name in `animation` (they never retarget, so keyframes):
+   clay-emerge presses a small object up out of the paper; clay-settle-in lets a new line of
+   content settle into place. Pair them with var(--ease) and 160–220ms. */
+@keyframes clay-emerge {
+  from {
+    opacity: 0;
+    scale: 0.92;
+  }
+}
+@keyframes clay-settle-in {
+  from {
+    opacity: 0;
+    translate: 0 3px;
+    filter: blur(2px);
+  }
+}
+/* Reduced motion redefines both as a plain fade, so every feature that names them follows. */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes clay-emerge {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes clay-settle-in {
+    from {
+      opacity: 0;
+    }
+  }
+}
+/* The pebble's edges travel separately: the leading edge leaves first and the trailing edge
+   catches up, so it stretches like soft clay instead of sliding as a rigid block. */
+[data-slot='tabs-indicator'] {
+  transition:
+    left 280ms var(--ease-in-out),
+    right 280ms var(--ease-in-out),
+    top 280ms var(--ease-in-out),
+    bottom 280ms var(--ease-in-out);
+}
+/* Durations follow the transition order: left, right, top, bottom. */
+[data-slot='tabs-indicator'][data-activation-direction='right'] {
+  transition-duration: 280ms, 200ms, 280ms, 280ms;
+}
+[data-slot='tabs-indicator'][data-activation-direction='left'] {
+  transition-duration: 200ms, 280ms, 280ms, 280ms;
+}
+[data-slot='tabs-indicator'][data-activation-direction='down'] {
+  transition-duration: 280ms, 280ms, 280ms, 200ms;
+}
+[data-slot='tabs-indicator'][data-activation-direction='up'] {
+  transition-duration: 280ms, 280ms, 200ms, 280ms;
+}
 @media (prefers-reduced-motion: reduce) {
   [data-slot='button'],
   [data-slot='sidebar-container'],
   [data-slot='sidebar-gap'],
-  :is([data-slot='collapsible-content'], [data-slot='trace-collapsible-content']) {
+  :is(
+    [data-slot='collapsible-content'],
+    [data-slot='trace-collapsible-content'],
+    [data-slot='accordion-content']
+  ) {
     transition: none;
   }
   [data-slot='button']:active:not(:disabled):not([data-disabled]) {
@@ -159,6 +270,17 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  [data-slot='switch']:active:not([data-disabled]) [data-slot='switch-thumb'] {
+    scale: none;
+  }
+  [data-slot='checkbox-indicator'] svg,
+  [data-slot='tabs-indicator'] {
+    transition: none;
+  }
+  /* The swap stays a crossfade; the hidden icon's scale and blur change while it is invisible. */
+  [data-slot='icon-swap'] > * {
+    transition: opacity 120ms var(--ease);
+  }
   [data-slot='message-scroller-button'] {
     transition: opacity 120ms var(--ease);
     translate: -50% 0;

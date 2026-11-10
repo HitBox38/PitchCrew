@@ -49,3 +49,35 @@ export const liveHistoryItems = (
   );
   return historyWindow(items, null).items;
 };
+
+/**
+ * What the reader has seen on the latest page stays put. Entries above the newest window stay
+ * until the reader navigates, so the window dropping its oldest entry (or a refetched page drawing
+ * the cut differently) never shifts the transcript. Until the next saved page arrives
+ * (`untilRefetch`), entries that leave the live data stay too: a finished reply leaves the stream,
+ * and a finished turn the live runs, before the refetched page brings their saved copies.
+ */
+export const keepShownItems = (
+  shown: TranscriptItem[],
+  items: TranscriptItem[],
+  untilRefetch: boolean,
+) => {
+  const ids = new Set(items.map((item) => item.id));
+  if (!shown.some((item) => ids.has(item.id))) return items;
+  const result: TranscriptItem[] = [];
+  const placed = new Set<string>();
+  let next = 0;
+  for (const item of shown) {
+    if (!ids.has(item.id)) {
+      if (untilRefetch || !placed.size) result.push(item);
+      continue;
+    }
+    while (next < items.length && !placed.has(item.id)) {
+      const entry = items[next++];
+      result.push(entry);
+      placed.add(entry.id);
+    }
+  }
+  result.push(...items.slice(next));
+  return result.length === items.length ? items : result;
+};

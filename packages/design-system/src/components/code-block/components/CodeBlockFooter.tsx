@@ -1,7 +1,9 @@
 import * as React from 'react';
 import { cn } from '../../../lib/utils.ts';
+import { codeBlockPresence } from '../presence.ts';
 
 export const CodeBlockFooter = ({ className, ...props }: React.ComponentProps<'div'>) => {
+  codeBlockPresence.usePresent('footer');
   return (
     <div
       data-slot="code-block-footer"

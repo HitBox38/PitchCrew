@@ -53,7 +53,12 @@ beforeAll(async () => {
   if (!address || typeof address === 'string') throw new Error('No sidebar fixture port.');
   url = `http://127.0.0.1:${address.port}/sidebar-media`;
   browser = await chromium.launch();
-}, 60000);
+  // The first visit compiles the fixture's modules; do it here rather than inside a test's budget.
+  const warm = await browser.newPage();
+  await warm.goto(url);
+  await warm.locator('#state').waitFor({ timeout: 90000 });
+  await warm.close();
+}, 120000);
 
 afterAll(async () => {
   await browser?.close();

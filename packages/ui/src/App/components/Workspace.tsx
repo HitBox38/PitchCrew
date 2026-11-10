@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { useStableCallbacks } from '@/lib/use-stable-callbacks.ts';
 import { AppContextMenu } from '@/AppContextMenu/index.tsx';
 import { RuntimeMaintenance } from '@/RuntimeMaintenance/index.tsx';
 import { WorkspacePage } from '@/App/components/WorkspacePage.tsx';
@@ -28,6 +29,10 @@ export const Workspace = (props: ReadyWorkspaceProps) => {
   const shortCoarse = useShortCoarseChatRail(controller.view);
   const browserRail = useBrowserRail(controller.view);
   const preferRail = shortCoarse || browserRail;
+  const bar = useStableCallbacks({
+    search: () => controller.setPaletteOpen(true),
+    addJob: () => controller.setAdd(true),
+  });
   return (
     <AppContextMenu {...controller}>
       <SidebarProvider defaultOpen={sidebarOpen} preferRail={preferRail} style={shellWidths}>
@@ -36,10 +41,9 @@ export const Workspace = (props: ReadyWorkspaceProps) => {
           <RuntimeMaintenance />
           <ShellShortcuts go={controller.go} />
           <WorkspaceAppBar
-            data={controller.data}
             settingsActive={controller.view === 'settings'}
-            onSearch={() => controller.setPaletteOpen(true)}
-            onAddJob={() => controller.setAdd(true)}
+            onSearch={bar.search}
+            onAddJob={bar.addJob}
           />
           <WorkspaceSidebar {...controller} />
           <SidebarInset id="main" tabIndex={-1} className="workspace-main">

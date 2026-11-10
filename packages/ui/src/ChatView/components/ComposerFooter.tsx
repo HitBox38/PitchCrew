@@ -8,12 +8,14 @@ import { ComposerRuntime } from './ComposerRuntime.tsx';
 import { ComposerRecipient } from './ComposerRecipient.tsx';
 import { ComposerOptions } from './ComposerOptions.tsx';
 import { conversationQueue, queueNeedsResume } from '../queue-presentation.ts';
+import { useStableCallbacks } from '@/lib/use-stable-callbacks.ts';
 
 export const ComposerFooter = (
   props: ChatComposerProps & {
     contextActions: RefObject<((action: NonNullable<ComposerSuggestion['action']>) => void) | null>;
   },
 ) => {
+  const stable = useStableCallbacks({ patchConversation: props.patchConversation });
   return (
     <PromptInputFooter
       className="chat-prompt-footer"
@@ -35,7 +37,13 @@ export const ComposerFooter = (
         </div>
         <ComposerAttachmentMenu key={props.thread} {...props} />
         <ComposerRuntime {...props} />
-        <ComposerOptions {...props} />
+        <ComposerOptions
+          role={props.role}
+          panelRole={props.browserPanel.roles.find((item) => item.id === props.role.id)}
+          conversation={props.conversation}
+          working={props.working}
+          patchConversation={stable.patchConversation}
+        />
       </div>
       <ComposerSendActions {...props} />
     </PromptInputFooter>

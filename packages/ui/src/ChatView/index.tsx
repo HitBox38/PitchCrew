@@ -17,50 +17,59 @@ import { CrewWorkPanel } from '@/ChatView/components/CrewWorkPanel.tsx';
 import { useChatView } from '@/ChatView/hooks/useChatView.ts';
 import type { ChatViewProps } from '@/ChatView/types.ts';
 import { Tabs } from '@pitchcrew/design-system/tabs';
+import { chatPanelPresence, chatWorkspacePresence } from './presence.ts';
 
 export const ChatView = (props: ChatViewProps) => {
   const controller = useChatView(props);
   const { pane, setPane } = controller;
+  const workspace = chatWorkspacePresence.useRoot();
+  const panel = chatPanelPresence.useRoot();
   return (
-    <section
-      className={`chat-workspace ${controller.roleId}`}
-      data-chat-width={controller.width}
-      data-browser-open={controller.browserPanel.open}
-      style={{ '--browser-width': `${controller.browserPanel.width}px` } as CSSProperties}
-      aria-label="Agent conversations"
-    >
-      <ConversationAnnouncer key={controller.thread} {...controller} />
-      <QuestionDockProvider
-        questions={controller.questions}
-        activeQuestionId={controller.activeQuestionId}
-        onWriteMessage={controller.writeMessage}
-        onQuestionResolved={controller.questionResolved}
+    <workspace.Provider value={workspace.register}>
+      <section
+        {...workspace.attributes}
+        className={`chat-workspace ${controller.roleId}`}
+        data-chat-width={controller.width}
+        data-browser-open={controller.browserPanel.open}
+        style={{ '--browser-width': `${controller.browserPanel.width}px` } as CSSProperties}
+        aria-label="Agent conversations"
       >
-        <Tabs
-          value={pane}
-          onValueChange={(value) => setPane(value as 'conversation' | 'work')}
-          className="chat-panel"
+        <ConversationAnnouncer key={controller.thread} {...controller} />
+        <QuestionDockProvider
+          questions={controller.questions}
+          activeQuestionId={controller.activeQuestionId}
+          onWriteMessage={controller.writeMessage}
+          onQuestionResolved={controller.questionResolved}
         >
-          <ConversationHeading {...controller} />
-          <RelatedConversations {...controller} />
-          <SubmissionVerification {...controller} />
-          {pane === 'conversation' ? <ConversationPanel {...controller} /> : null}
-          {pane === 'work' ? <CrewWorkPanel {...controller} /> : null}
-          <RuntimeReadinessNotice {...controller} />
-          <ConversationQueue {...controller} />
-          <PendingQuestions {...controller} />
-          <ConversationInput {...controller} />
-        </Tabs>
-      </QuestionDockProvider>
-      <ChatSettingsPanels {...controller} />
-      <AgentBrowser
-        {...controller}
-        onAttachBrowserFile={(file) => {
-          const error = validateAttachments([...controller.files, file]);
-          if (error) throw new Error(error);
-          controller.addFiles([file]);
-        }}
-      />
-    </section>
+          <panel.Provider value={panel.register}>
+            <Tabs
+              {...panel.attributes}
+              value={pane}
+              onValueChange={(value) => setPane(value as 'conversation' | 'work')}
+              className="chat-panel"
+            >
+              <ConversationHeading {...controller} />
+              <RelatedConversations {...controller} />
+              <SubmissionVerification {...controller} />
+              {pane === 'conversation' ? <ConversationPanel {...controller} /> : null}
+              {pane === 'work' ? <CrewWorkPanel {...controller} /> : null}
+              <RuntimeReadinessNotice {...controller} />
+              <ConversationQueue {...controller} />
+              <PendingQuestions {...controller} />
+              <ConversationInput {...controller} />
+            </Tabs>
+          </panel.Provider>
+        </QuestionDockProvider>
+        <ChatSettingsPanels {...controller} />
+        <AgentBrowser
+          {...controller}
+          onAttachBrowserFile={(file) => {
+            const error = validateAttachments([...controller.files, file]);
+            if (error) throw new Error(error);
+            controller.addFiles([file]);
+          }}
+        />
+      </section>
+    </workspace.Provider>
   );
 };

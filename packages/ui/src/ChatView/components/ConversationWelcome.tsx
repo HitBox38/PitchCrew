@@ -1,4 +1,5 @@
 import { ArrowRight, ChevronDown } from 'lucide-react';
+import { chatPanelPresence } from '../presence.ts';
 import type { ConversationWelcomeProps } from '@/ChatView/types.ts';
 import {
   Collapsible,
@@ -18,6 +19,7 @@ const StarterRow = ({ starter, apply }: { starter: Starter; apply: (prompt: stri
 
 /** An empty conversation: one purpose line and a few quiet starters just above the composer. */
 export const ConversationWelcome = (props: ConversationWelcomeProps) => {
+  chatPanelPresence.usePresent('welcome');
   const { applyStarter, readOnly } = props;
   const starters = readOnly ? [] : welcomeStarters(props);
   // Three starters stay in view; any others fold behind one quiet toggle.

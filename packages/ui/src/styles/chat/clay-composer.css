@@ -178,6 +178,8 @@ span.chat-send-note {
 
 /* Stop: a raised clay button in rose, named rather than an icon alone. */
 [data-interface='clay'] .chat-stop-response {
+  /* Mounts only while an agent runs, so it marks the moment the turn starts. */
+  animation: clay-emerge 160ms var(--ease);
   flex-shrink: 0;
   gap: 6px;
   width: auto;

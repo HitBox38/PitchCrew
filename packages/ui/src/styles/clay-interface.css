@@ -45,6 +45,18 @@
 .clay-bead[data-live] {
   outline: 2px solid color-mix(in srgb, var(--bead-color, var(--plum)) 30%, transparent);
   outline-offset: 2px;
+  animation: clay-breathe 1.6s ease-in-out infinite;
+}
+/* A working agent's clay breathes: it swells a little and settles while the run executes. */
+@keyframes clay-breathe {
+  50% {
+    scale: var(--breathe, 1.15);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .clay-bead[data-live] {
+    animation: none;
+  }
 }
 .clay-bead[data-empty] {
   background: var(--sunken-fill);

@@ -1,5 +1,5 @@
 import { settingsSections } from '../constants.ts';
-import { TabsList, TabsTrigger } from '@pitchcrew/design-system/tabs';
+import { TabsIndicator, TabsList, TabsTrigger } from '@pitchcrew/design-system/tabs';
 import { SettingsSearch } from './SettingsSearch.tsx';
 import { SettingsPicker } from './SettingsPicker.tsx';
 
@@ -22,6 +22,7 @@ export const SettingsTabs = ({ compact }: { compact: boolean }) => {
               </TabsTrigger>
             </div>
           ))}
+          <TabsIndicator />
         </TabsList>
       )}
     </nav>
