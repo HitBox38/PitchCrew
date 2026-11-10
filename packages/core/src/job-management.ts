@@ -39,3 +39,10 @@ export const bulkDeleteJobsInput = z
   })
   .strict();
 export const bulkMoveJobsInput = bulkDeleteJobsInput.extend({ state: z.enum(states) });
+/** Chat Reviewer findings; limits match the isolated reviewer result. */
+export const reviewFeedbackInput = z
+  .object({
+    feedback: z.array(z.string().trim().min(1).max(2000)).min(1).max(30),
+    suggestions: z.array(z.string().trim().min(1).max(2000)).max(60).optional(),
+  })
+  .strict();
