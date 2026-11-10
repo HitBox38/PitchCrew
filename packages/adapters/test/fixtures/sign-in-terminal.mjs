@@ -14,7 +14,9 @@ if (mode === 'overflow') {
     pending += data.toString();
     if (!pending.includes('\r') && !pending.includes('\n')) return;
     if (pending.trim() === 'size') {
-      process.stdout.write(`SIZE:${process.stdout.columns}:${process.stdout.rows}\n`);
+      // Read the PTY size now: `columns`/`rows` refresh only when SIGWINCH is handled, which can follow this input.
+      const [columns, rows] = process.stdout.getWindowSize();
+      process.stdout.write(`SIZE:${columns}:${rows}\n`);
       pending = '';
     } else if (pending.trim() === 'finish') {
       process.stdout.write('FINISHED\n');
