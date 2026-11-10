@@ -4,11 +4,10 @@ import type { ChatMessage } from '@pitchcrew/core';
 import type { MessageTranscriptProps } from '@/ChatView/types.ts';
 import { useTranscriptJobEvents } from '../hooks/useTranscriptJobEvents.ts';
 import { useState } from 'react';
-import { AnimatePresence } from 'motion/react';
 import { useOpenQuestionId } from '@/UserQuestions/QuestionDockProvider.tsx';
 import { usePendingSend } from '../hooks/usePendingSend.ts';
 import { usePinSent } from '../hooks/usePinSent.ts';
-import { useStableHandlers } from '../hooks/useStableHandlers.ts';
+import { useStableCallbacks } from '@/lib/use-stable-callbacks.ts';
 import { transcriptKey } from '../send-flight.ts';
 
 /** A reply directly under its own turn; both hang on one thread. */
@@ -48,20 +47,20 @@ export const MessageTranscript = ({
   const jobEvents = useTranscriptJobEvents(props.data, props.thread, items, edges, (index) =>
     continues(items, index),
   );
-  const handlers = useStableHandlers(props.onOpenCard, props.answerQuestion);
+  // Stable, so a new closure from the chat view does not render every entry again.
+  const handlers = useStableCallbacks({
+    onOpenCard: props.onOpenCard,
+    answerQuestion: props.answerQuestion,
+  });
   return (
-    <AnimatePresence initial={false}>
+    <>
       {items.map((item, index) => (
         <TranscriptEntry
           key={transcriptKey(item.id)}
           {...props}
           {...handlers}
           item={item}
-          anchor={
-            item.kind === 'message' &&
-            item.message.from === 'user' &&
-            !opened.has(transcriptKey(item.id))
-          }
+          fresh={!opened.has(transcriptKey(item.id))}
           day={
             index === 0 ||
             new Date(items[index - 1].createdAt).toDateString() !==
@@ -72,6 +71,6 @@ export const MessageTranscript = ({
           replying={item.kind === 'turn' && replyingRuns.has(item.run.id)}
         />
       ))}
-    </AnimatePresence>
+    </>
   );
 };

@@ -25,7 +25,7 @@ const data = {
 const handlers = { onOpenCard: () => {}, answerQuestion: () => {} };
 const props = (overrides: Partial<TranscriptEntryProps> = {}): TranscriptEntryProps => ({
   item: { kind: 'message', id: 'm1', createdAt: message.createdAt, message },
-  anchor: false,
+  fresh: false,
   day: false,
   continued: false,
   replying: false,

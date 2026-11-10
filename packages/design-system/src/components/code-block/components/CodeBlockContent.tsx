@@ -25,7 +25,7 @@ export const CodeBlockContent = ({
       tabIndex={0}
       style={{ counterReset: `line ${startLine - 1}`, ...style }}
       className={cn(
-        'primitive:scroll-fade-x primitive:data-wrap:scroll-fade-y primitive:min-h-0 primitive:min-w-0 primitive:scrollbar-thin primitive:overflow-auto primitive:px-4 primitive:py-4 primitive:text-start primitive:font-mono primitive:leading-relaxed primitive:outline-none primitive:group-has-data-[slot=code-block-footer]/code-block:pb-2 primitive:group-has-data-[slot=code-block-header]/code-block:pt-2 primitive:group-data-[size=sm]/code-block:px-3 primitive:group-data-[size=sm]/code-block:py-3 primitive:group-data-[size=sm]/code-block:group-has-data-[slot=code-block-header]/code-block:pt-1.5 primitive:data-wrap:wrap-break-word primitive:data-wrap:whitespace-pre-wrap',
+        'primitive:scroll-fade-x primitive:data-wrap:scroll-fade-y primitive:min-h-0 primitive:min-w-0 primitive:scrollbar-thin primitive:overflow-auto primitive:px-4 primitive:py-4 primitive:text-start primitive:font-mono primitive:leading-relaxed primitive:outline-none primitive:group-data-[has-footer]/code-block:pb-2 primitive:group-data-[has-header]/code-block:pt-2 primitive:group-data-[size=sm]/code-block:px-3 primitive:group-data-[size=sm]/code-block:py-3 primitive:group-data-[size=sm]/code-block:group-data-[has-header]/code-block:pt-1.5 primitive:data-wrap:wrap-break-word primitive:data-wrap:whitespace-pre-wrap',
         className,
       )}
       {...props}

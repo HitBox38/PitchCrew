@@ -10,6 +10,7 @@ import { ReplyActions } from './ReplyActions.tsx';
 import { MessageTimestamp } from './MessageTimestamp.tsx';
 import { useSendFlightLanding } from '../hooks/useSendFlightLanding.ts';
 import { pendingSendId, transcriptKey } from '../send-flight.ts';
+import { cancelledUnsent } from '../transcript-entry.ts';
 
 export const TranscriptMessage = ({
   message,
@@ -22,27 +23,25 @@ export const TranscriptMessage = ({
   answerQuestion,
   continued,
   timestamp,
+  entering,
 }: Omit<MessageTranscriptProps, 'messages'> & {
   message: ChatMessage;
   continued?: boolean;
   timestamp?: string;
+  /** New since the page opened; saved history never replays an entrance. */
+  entering?: boolean;
 }) => {
   const job = data.cards.find((card) => card.id === message.cardId);
   const sameJob = data.conversations?.some((item) => item.id === thread && item.cardId === job?.id);
   const streaming = streamingIds.has(message.id);
-  const request =
-    message.from === 'user'
-      ? data.chatRequests?.find((item) => item.messageId === message.id)
-      : undefined;
-  const cancelledUnsent =
-    request?.deliveries.length &&
-    request.deliveries.every((delivery) => !delivery.runId && delivery.status === 'cancelled');
   useSendFlightLanding(thread, message.id);
   return (
     <AnimatedMessage
       // A pending copy's entrance is the bubble flying in from the composer.
       initial={
-        pendingSendId(transcriptKey(message.id)) ? false : { opacity: 0, y: reduced ? 0 : 8 }
+        entering && !pendingSendId(transcriptKey(message.id))
+          ? { opacity: 0, y: reduced ? 0 : 8 }
+          : false
       }
       animate={{ opacity: 1, y: 0 }}
       from={message.from === 'user' ? 'user' : 'assistant'}
@@ -73,7 +72,9 @@ export const TranscriptMessage = ({
         answerQuestion={answerQuestion}
       />
       <MemoryUsed message={message} data={data} />
-      {cancelledUnsent ? <span className="chat-message-delivery">Not sent · cancelled</span> : null}
+      {cancelledUnsent(data, message) ? (
+        <span className="chat-message-delivery">Not sent · cancelled</span>
+      ) : null}
       {message.from !== 'user' && message.from !== 'system' && !message.userInput && !streaming ? (
         <ReplyActions message={message} />
       ) : null}

@@ -4,8 +4,8 @@ import type { PlacedJobEvents } from './job-events.ts';
 
 export type TranscriptEntryProps = Omit<MessageTranscriptProps, 'messages' | 'focusRunId'> & {
   item: TranscriptItem;
-  /** A user message sent since the page opened, which the scroller pins. */
-  anchor: boolean;
+  /** Added since the page opened: it enters, and as a user message the scroller pins it. */
+  fresh: boolean;
   /** Starts a new day, so it shows the day. */
   day: boolean;
   events?: PlacedJobEvents;
@@ -20,19 +20,22 @@ const shallow = (a: object, b: object) => {
   return keys.length === Object.keys(left).length && keys.every((key) => left[key] === right[key]);
 };
 /** What an entry reads from the snapshot. A question or answer reads more, so it always renders. */
-const read = [
-  'cards',
-  'conversations',
-  'roles',
-  'skills',
-  'profile',
-  'approvals',
-  'memories',
-] as const;
+const read = ['cards', 'roles', 'skills', 'profile', 'approvals', 'memories'] as const;
+/** Of the conversations (which change with every message's preview), only the attached job. */
+const jobOf = (props: TranscriptEntryProps) =>
+  props.data.conversations?.find((item) => item.id === props.thread)?.cardId;
 const requestOf = (data: Snapshot, message: ChatMessage): ChatRequest | undefined =>
   message.from === 'user'
     ? data.chatRequests?.find((request) => request.messageId === message.id)
     : undefined;
+/** A user message whose every delivery was cancelled before it reached an agent. */
+export const cancelledUnsent = (data: Snapshot, message: ChatMessage) => {
+  const deliveries = requestOf(data, message)?.deliveries ?? [];
+  return (
+    !!deliveries.length &&
+    deliveries.every((delivery) => !delivery.runId && delivery.status === 'cancelled')
+  );
+};
 
 /**
  * Whether an entry would render the same. The store shares unchanged data across updates, so
@@ -49,7 +52,7 @@ export const sameEntry = (a: TranscriptEntryProps, b: TranscriptEntryProps) => {
     if (requestOf(a.data, x.message) !== requestOf(b.data, y.message)) return false;
   }
   return (
-    a.anchor === b.anchor &&
+    a.fresh === b.fresh &&
     a.day === b.day &&
     a.events === b.events &&
     a.continued === b.continued &&
@@ -58,6 +61,7 @@ export const sameEntry = (a: TranscriptEntryProps, b: TranscriptEntryProps) => {
     a.thread === b.thread &&
     a.onOpenCard === b.onOpenCard &&
     a.answerQuestion === b.answerQuestion &&
+    jobOf(a) === jobOf(b) &&
     read.every((key) => a.data[key] === b.data[key])
   );
 };

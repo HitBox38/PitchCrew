@@ -35,3 +35,10 @@ export const shareEqual = <T>(prev: unknown, next: T): T => {
   }
   return next;
 };
+
+/**
+ * Whether two values hold the same data: plain objects and arrays compared deeply, anything else
+ * (functions included) by identity. As a `memo` comparison it lets a component skip rendering when
+ * its props are rebuilt each render but unchanged; shared parts return at once.
+ */
+export const deepEqual = (a: unknown, b: unknown) => shareEqual(a, b) === a;

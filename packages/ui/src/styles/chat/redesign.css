@@ -158,6 +158,11 @@
 [data-send-flight] {
   visibility: hidden;
 }
+/* A new entry's first frame lays out at its real size, not content-visibility's placeholder
+ * (see useYoung), so the scroller pins it where it will stay. */
+.chat-transcript > [data-young] {
+  content-visibility: visible;
+}
 .chat-prompt [data-slot='input-group'] {
   background: var(--surface-bright);
   box-shadow: var(--clay-sunken);

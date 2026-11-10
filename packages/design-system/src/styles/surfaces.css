@@ -86,19 +86,18 @@
   background: var(--border);
 }
 /* The chosen tab's raised pebble sits under the tab labels inside the recessed list. */
-[data-slot='tabs-list']:has(> [data-slot='tabs-indicator']) {
+[data-slot='tabs-list'][data-indicator] {
   position: relative;
   isolation: isolate;
 }
 /* Only the active tab gives up its fill; others keep their hover tint. */
-[data-slot='tabs-list']:has(> [data-slot='tabs-indicator'])
-  [data-slot='tabs-trigger'][data-active] {
+[data-slot='tabs-list'][data-indicator] [data-slot='tabs-trigger'][data-active] {
   background: transparent;
   box-shadow: none;
 }
 /* The line variant's underline sits outside each tab and would inflate the list's scroll size,
    which Base UI uses for the pebble's right and bottom edges. */
-[data-slot='tabs-list']:has(> [data-slot='tabs-indicator']) [data-slot='tabs-trigger']::after {
+[data-slot='tabs-list'][data-indicator] [data-slot='tabs-trigger']::after {
   display: none;
 }
 :where([data-slot='tabs-indicator']) {
