@@ -275,8 +275,7 @@
   }
 }
 
-.chat-related,
-.chat-continuation {
+.chat-related {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -286,17 +285,8 @@
   color: var(--muted);
   border-bottom: 1px solid var(--border);
 }
-.chat-continuation {
-  background: var(--ochre-soft);
-  border-block: 1px solid var(--border);
-}
-.chat-continuation > span {
-  flex: 1;
-}
-
 @variant max-chat {
-  .chat-related,
-  .chat-continuation {
+  .chat-related {
     padding-inline: 12px;
   }
 }

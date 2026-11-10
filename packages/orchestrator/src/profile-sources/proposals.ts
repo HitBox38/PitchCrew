@@ -44,46 +44,59 @@ export const decideProfileProposal = async (context: CrewContext, id: string, da
     JSON.stringify(input.names) !== JSON.stringify(proposal.selected)
   )
     throw new Error('Retry the exact previously approved selection.');
-  return changeProfile(context, async () => {
-    const source = (await context.profileSources.list()).find(
-      (item) => item.id === proposal.source.id,
-    );
-    if (!source?.watching) throw new Error('This source is no longer watched.');
-    const account = context.connectors
-      .status()
-      .find((item) => item.id === (source.input.provider === 'github' ? 'github' : 'google'));
-    if (
-      !account?.connected ||
-      (source.input.provider === 'drive' && !account.services.includes('drive'))
-    )
-      throw new Error('Reconnect the source account before applying.');
-    await context.profileSources.commitMaintenance(
-      proposal,
-      input.names,
-      proposal.status === 'applying',
-      true,
-    );
-    const applying: ProfileMaintenanceProposal = {
-      ...proposal,
-      status: 'applying',
-      selected: input.names,
-      verifiedFacts: true,
-      decidedAt: proposal.decidedAt ?? new Date().toISOString(),
-    };
-    // Save the user decision first; an interrupted write can only retry this exact snapshot.
-    context.board.record(
-      'profile_proposal',
-      applying,
-      'user',
-      'Approved verified profile snapshot',
-    );
-    await context.profileSources.commitMaintenance(
-      applying,
-      input.names,
-      proposal.status === 'applying',
-    );
-    const applied: ProfileMaintenanceProposal = { ...applying, status: 'applied' };
-    context.board.record('profile_proposal', applied, 'user', 'Applied approved profile snapshot');
-    return applied;
-  });
+  return changeProfile(
+    context,
+    async () => {
+      // Decided while another write held the queue: still the proposal that was reviewed?
+      const current = context.board.get<ProfileMaintenanceProposal>('profile_proposal', id);
+      if (current.status !== proposal.status || current.snapshotDigest !== proposal.snapshotDigest)
+        throw new Error('This profile proposal changed while waiting. Review it again.');
+      const source = (await context.profileSources.list()).find(
+        (item) => item.id === proposal.source.id,
+      );
+      if (!source?.watching) throw new Error('This source is no longer watched.');
+      const account = context.connectors
+        .status()
+        .find((item) => item.id === (source.input.provider === 'github' ? 'github' : 'google'));
+      if (
+        !account?.connected ||
+        (source.input.provider === 'drive' && !account.services.includes('drive'))
+      )
+        throw new Error('Reconnect the source account before applying.');
+      await context.profileSources.commitMaintenance(
+        proposal,
+        input.names,
+        proposal.status === 'applying',
+        true,
+      );
+      const applying: ProfileMaintenanceProposal = {
+        ...proposal,
+        status: 'applying',
+        selected: input.names,
+        verifiedFacts: true,
+        decidedAt: proposal.decidedAt ?? new Date().toISOString(),
+      };
+      // Save the user decision first; an interrupted write can only retry this exact snapshot.
+      context.board.record(
+        'profile_proposal',
+        applying,
+        'user',
+        'Approved verified profile snapshot',
+      );
+      await context.profileSources.commitMaintenance(
+        applying,
+        input.names,
+        proposal.status === 'applying',
+      );
+      const applied: ProfileMaintenanceProposal = { ...applying, status: 'applied' };
+      context.board.record(
+        'profile_proposal',
+        applied,
+        'user',
+        'Applied approved profile snapshot',
+      );
+      return applied;
+    },
+    { recovery: id },
+  );
 };

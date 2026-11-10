@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { ProfileFolderOperation, ProfileTreeModel, ProfileViewModel } from '../types.ts';
 
+/** Folder-level explorer actions: new folder, move a note, rename or delete a folder. */
 export const useProfileFolderActions = (controller: ProfileViewModel, tree: ProfileTreeModel) => {
   const [operation, setOperation] = useState<ProfileFolderOperation | null>(null);
   const start = (next: ProfileFolderOperation) => {
@@ -9,20 +10,19 @@ export const useProfileFolderActions = (controller: ProfileViewModel, tree: Prof
   };
   const submit = async (folder: string) => {
     if (!operation || controller.working) return;
-    if (operation.kind === 'rename') {
-      controller.renameNote(operation.note, folder);
-      setOperation(null);
-      return;
-    }
     const changed = await controller.organization.change(
       operation.kind === 'create'
         ? { action: 'create', path: folder }
-        : { action: 'move', name: operation.name, folder },
+        : operation.kind === 'move'
+          ? { action: 'move', name: operation.name, folder }
+          : { action: 'rename-folder', from: operation.path, to: folder },
     );
     if (changed) {
       tree.reveal(folder);
       setOperation(null);
     }
   };
-  return { operation, start, submit, close: () => setOperation(null) };
+  const removeFolder = (path: string) =>
+    void controller.organization.change({ action: 'delete-folder', path });
+  return { operation, start, submit, removeFolder, close: () => setOperation(null) };
 };

@@ -111,7 +111,7 @@ export interface CrewContext {
   ): Promise<Role>;
   createCard(data: unknown): Card;
   moveCard(id: string, state: CardState): Card;
-  saveProfile(name: string, content: string): Promise<ProfileFile[]>;
+  saveProfile(name: string, content: string, baseline?: string | null): Promise<ProfileFile[]>;
   loadExamples(): Promise<void>;
   startRun(
     cardId: string,

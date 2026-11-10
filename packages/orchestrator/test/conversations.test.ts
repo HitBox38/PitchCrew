@@ -188,7 +188,7 @@ it('scopes memory to its agent, preserves sources and applies edits and deletion
   );
   expect(daemon.service.board.get<AgentMemory>('agent_memory', memory.id).deleted).toBe(true);
 });
-it('persists agent-created groups and user-visible read-only DMs without resetting the follow-up budget', async () => {
+it('persists agent-created groups and read-only DMs with more than six follow-ups in one chain', async () => {
   const { request, daemon } = await fixture();
   const turns = heldTurns();
   await request('/conversations/scout/messages', 'POST', { content: 'Coordinate with Writer.' });
@@ -217,14 +217,18 @@ it('persists agent-created groups and user-visible read-only DMs without resetti
     (await request(`/conversations/${dm.id}/messages`, 'POST', { content: 'User interruption' }))
       .response.status,
   ).toBe(400);
-  for (let i = 0; i < 5; i++)
+  for (let i = 0; i < 8; i++)
     await daemon.service.agentCall(token, 'message', {
       roleId: 'writer',
       content: `Follow-up ${i}`,
+      ...(i % 2 === 0 ? { conversationId: created.conversation.id } : {}),
     });
-  await expect(
-    daemon.service.agentCall(token, 'message', { roleId: 'writer', content: 'Too many.' }),
-  ).rejects.toThrow('six follow-up limit');
+  const tasks = daemon.service.board.list<import('@pitchcrew/core').AgentTask>('task');
+  expect(tasks).toHaveLength(9);
+  expect(tasks.every((task) => task.rootRunId === delegated.task.rootRunId)).toBe(true);
+  expect(new Set(tasks.map((task) => task.threadId))).toEqual(
+    new Set([dm.id, created.conversation.id]),
+  );
   await request('/conversations/scout/stop', 'POST');
   await waitForSnapshot(request, (snapshot) =>
     snapshot.runs.every((run) => run.status !== 'running'),

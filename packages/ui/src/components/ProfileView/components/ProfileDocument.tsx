@@ -1,23 +1,30 @@
 import { PanelLeft } from 'lucide-react';
 import { Tabs } from '@pitchcrew/design-system/tabs';
 import { Button } from '@pitchcrew/design-system/button';
-import { MarkdownModeTabs } from '@/components/MarkdownEditor/components/MarkdownModeTabs.tsx';
+import { MarkdownModeSwitch } from '@/components/MarkdownEditor/components/MarkdownModeSwitch.tsx';
+import { MarkdownOutline } from '@/components/MarkdownEditor/components/MarkdownOutline.tsx';
+import { useMarkdownSaveShortcut } from '@/components/MarkdownEditor/hooks/useMarkdownSaveShortcut.ts';
+import { useElementWidth } from '@/hooks/useElementWidth.ts';
 import type { ProfileSectionProps } from '../types.ts';
 import { ProfileDocumentTabs } from './ProfileDocumentTabs.tsx';
 import { ProfileEditor } from './ProfileEditor.tsx';
 import { ProfileEmpty } from './ProfileEmpty.tsx';
 
-/** The note sheet: a tab band (explorer toggle, open notes, Write | Preview) over the editor. */
+/**
+ * The note sheet: one band (explorer toggle, open notes, outline, Write | Split | Preview) over
+ * the editor and its status bar. ⌘S saves from anywhere in the sheet.
+ */
 export const ProfileDocument = (props: ProfileSectionProps) => {
   const { controller: c, workspace } = props;
+  const form = useMarkdownSaveShortcut();
+  useElementWidth(form, workspace.setSheetWidth);
   const open = workspace.explorerVisible;
   return (
-    <Tabs
-      value={workspace.mode}
-      onValueChange={(value) => {
-        if (value === 'write' || value === 'preview') workspace.setMode(value);
-      }}
+    <form
+      ref={form}
       className="profile-document"
+      aria-label={c.name ? `Note ${c.name}` : 'Notes'}
+      onSubmit={(event) => void c.save(event)}
     >
       <div className="profile-tab-row">
         <Button
@@ -38,11 +45,25 @@ export const ProfileDocument = (props: ProfileSectionProps) => {
           }}
           className="profile-tabs-host"
         >
-          <ProfileDocumentTabs {...c} />
+          <ProfileDocumentTabs {...props} />
         </Tabs>
-        {c.documents.length ? <MarkdownModeTabs label="Note editor mode" /> : null}
+        {c.activeId ? (
+          <div className="profile-tab-tools">
+            <MarkdownOutline
+              content={c.content}
+              line={workspace.cursor?.line}
+              reveal={workspace.revealHeading}
+            />
+            <MarkdownModeSwitch
+              label="Note view"
+              value={workspace.mode}
+              onChange={workspace.setMode}
+              split={workspace.splitRoom}
+            />
+          </div>
+        ) : null}
       </div>
-      {c.activeId ? <ProfileEditor key={c.activeId} {...props} /> : <ProfileEmpty {...props} />}
-    </Tabs>
+      {c.activeId ? <ProfileEditor {...props} /> : <ProfileEmpty {...props} />}
+    </form>
   );
 };

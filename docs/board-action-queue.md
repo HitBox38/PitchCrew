@@ -58,7 +58,7 @@ Routines without a job remain outside this view as specified below.
 
 ## Crew follow-ups
 
-Agent-requested follow-ups needed to complete the current action remain grouped with that action and run before the job's next queued user request. Show them beneath the initiating action, with the existing shared six-follow-up limit retained. For example, corrections requested from Writer by Reviewer finish before the next queued user action begins.
+Agent-requested follow-ups needed to complete the current action remain grouped with that action and run before the job's next queued user request. Show them beneath the initiating action; there is no per-chain follow-up count limit. For example, corrections requested from Writer by Reviewer finish before the next queued user action begins.
 
 Delegates of one [delegation round](delegation-rounds.md) run concurrently within the job's single slot, since they are chat turns that never write the packet; other work on the job still waits. The action is complete for workspace scheduling only after its related follow-up chain finishes. It retains the job's slot while that work is executing; waiting for user input, failure and explicit Stop retain the queue behavior described elsewhere in this document. Existing capability and prerequisite checks still govern each follow-up.
 

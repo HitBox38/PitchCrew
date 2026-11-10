@@ -17,22 +17,74 @@ export const matchingJobCommands = (cards: Card[], search: string) => {
 };
 
 /**
+ * Profile note text by palette value, lower-cased once per change. Notes match their text with
+ * a plain search: fuzzy-scoring whole note bodies on every key press stalls the palette.
+ */
+export const noteBodies = new Map<string, string>();
+
+let indexed: unknown = null;
+// The name and the first heading (at most 120 characters) are fuzzy-scored; the text is not.
+const noteValue = (note: { name: string; content: string }) =>
+  `note ${note.name} ${/^#\s+(.+)$/m.exec(note.content)?.[1]?.trim().slice(0, 120) ?? ''}`.trim();
+
+/** Indexes the notes' text (once per new list); returns each note's palette value. */
+export const indexNotes = (notes: { name: string; content: string }[]) => {
+  if (indexed !== notes) {
+    noteBodies.clear();
+    for (const note of notes) noteBodies.set(noteValue(note), note.content.toLocaleLowerCase());
+    indexed = notes;
+  }
+  return noteValue;
+};
+
+/**
+ * What of the search a note's text contains, as the words to show and reveal: the whole phrase,
+ * or, when every word appears but not side by side, the longest word. Empty for no match.
+ */
+const textHit = (body: string | undefined, search: string) => {
+  const needle = search.trim().toLocaleLowerCase().replace(/\s+/g, ' ');
+  if (!body || needle.length < 2) return '';
+  if (body.includes(needle)) return needle;
+  const words = needle.split(' ');
+  if (words.length < 2 || !words.every((word) => body.includes(word))) return '';
+  return words.reduce((longest, word) => (word.length > longest.length ? word : longest));
+};
+
+/** The part of the search a note's text contains (see `textHit`), or ''. */
+export const noteTextHit = (value: string, search: string) =>
+  textHit(noteBodies.get(value), search);
+export const noteTextMatches = (value: string, search: string) => !!noteTextHit(value, search);
+
+/** Some note's text contains the search. */
+export const anyNoteText = (search: string) => {
+  for (const body of noteBodies.values()) if (textHit(body, search)) return true;
+  return false;
+};
+
+/**
  * Keep paging in cmdk's registered keyboard selection, below every matching result. Settings
- * entries drop near-zero scattered-letter matches so they never crowd out real results.
+ * entries drop near-zero scattered-letter matches so they never crowd out real results; notes
+ * found by their text rank below name matches.
  */
 export const commandFilter = (value: string, search: string, keywords?: string[]) => {
   if (value === `${jobPagePrefix}previous` || value === `${jobPagePrefix}next`)
     return Number.MIN_VALUE;
   const score = defaultFilter(value, search, keywords);
+  // Text found in a note outranks scattered-letter matches, but not a real name match.
+  if (noteTextMatches(value, search)) return Math.max(score, noteTextScore);
   return value.startsWith('Settings ') && score < 0.01 ? 0 : score;
 };
 
 export const jobPagePrefix = 'pitchcrew:job-page:';
+export const noteTextScore = 0.6;
 
-/** React re-renders undo cmdk's DOM group sort, so rank jobs and settings before rendering. */
-export const settingsRankFirst = (cards: Card[], search: string) => {
+/**
+ * React re-renders undo cmdk's DOM group sort, so rank jobs and settings before rendering.
+ * `floor` is the score other results already reach (a note containing the words).
+ */
+export const settingsRankFirst = (cards: Card[], search: string, floor = 0) => {
   if (search.trim().length < 2) return false;
-  const job = Math.max(0, ...cards.map((card) => defaultFilter(jobCommandValue(card), search)));
+  const job = Math.max(floor, ...cards.map((card) => defaultFilter(jobCommandValue(card), search)));
   const setting = Math.max(
     ...settingEntries.map((entry) =>
       commandFilter(`Settings ${entry.label}`, search, entry.keywords),

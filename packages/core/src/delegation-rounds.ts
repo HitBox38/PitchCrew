@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { roleIdSchema } from './roles.ts';
 import type { RoleId } from './states.ts';
-import type { AgentTask } from './runs.ts';
 
 /** One lead assigns subtasks to several agents at once and collects every result in one turn. */
 export interface DelegationRound {
@@ -55,19 +54,3 @@ export const userDelegationInput = z
     roleIds: z.array(roleIdSchema).min(1).max(delegationRoundLimits.delegates),
   })
   .strict();
-
-/** Follow-ups charged to a chain: every ordinary task plus one per delegation round. */
-export const chainFollowUpCount = (
-  tasks: Pick<AgentTask, 'rootRunId' | 'roundId'>[],
-  rootRunId: string,
-) => {
-  const rounds = new Set<string>();
-  let ordinary = 0;
-  for (const task of tasks) {
-    if (task.rootRunId !== rootRunId) continue;
-    if (task.roundId) rounds.add(task.roundId);
-    else ordinary += 1;
-  }
-  return ordinary + rounds.size;
-};
-export const chainFollowUpLimit = 6;

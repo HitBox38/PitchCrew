@@ -68,7 +68,7 @@ const registerGroupTools = (
     'pitchcrew_create_group',
     {
       description:
-        'Create a group for collaboration. You become its lead. All participants and the user can read its full history. Membership grants no tools. Creating a group does not reset the six-follow-up budget.',
+        'Create a group for collaboration. You become its lead. All participants and the user can read its full history. Membership grants no tools.',
       inputSchema: {
         title: z.string().trim().min(1).max(120),
         participants: z.array(roleIdSchema).min(1),

@@ -133,7 +133,7 @@ const registerDelegationTools = (server: McpServer, call: AgentCall) => {
     {
       title: 'Message a crew member',
       description:
-        'Persist a visible agent DM (or a specified shared group message) and queue a reply from that role after this run finishes. Six follow-ups maximum per user-started chain.',
+        'Persist a visible agent DM (or a specified shared group message) and queue a reply from that role after this run finishes.',
       inputSchema: {
         roleId: roleIdSchema,
         content: z.string().trim().min(1).max(8000),
@@ -148,7 +148,7 @@ const registerDelegationTools = (server: McpServer, call: AgentCall) => {
     {
       title: 'Invoke a role',
       description:
-        'Queue yourself or another role after this run completes. Chat uses a visible agent DM or specified shared group; workflow runs operate only on the attached card and must follow its state machine. Six follow-ups maximum per chain.',
+        'Queue yourself or another role after this run completes. Chat uses a visible agent DM or specified shared group; workflow runs operate only on the attached card and must follow its state machine.',
       inputSchema: {
         roleId: roleIdSchema,
         content: z.string().trim().min(1).max(8000),
@@ -164,7 +164,7 @@ const registerDelegationTools = (server: McpServer, call: AgentCall) => {
     {
       title: 'Delegate subtasks to several agents at once',
       description:
-        'Start a delegation round: give one to four other crew members separate chat subtasks that run at the same time after this turn ends. You then get one collection turn with every result, so do not wait or poll. The whole round costs one of the six follow-ups per chain. Delegates work in ordinary chat with their own tools and cannot delegate further; do not ask them to edit the packet, which stays with the serialized workflow. Requires invokeAgents; rejected from workflow and review stages.',
+        'Start a delegation round: give one to four other crew members separate chat subtasks that run at the same time after this turn ends. You then get one collection turn with every result, so do not wait or poll. Delegates work in ordinary chat with their own tools and cannot delegate further; do not ask them to edit the packet, which stays with the serialized workflow. Requires invokeAgents; rejected from workflow and review stages.',
       inputSchema: delegationRoundInput.shape,
       annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
     },

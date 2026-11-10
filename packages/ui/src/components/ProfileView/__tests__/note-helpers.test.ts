@@ -1,30 +1,49 @@
 import { describe, expect, it } from 'vitest';
 import {
-  documentDirty,
+  filenameFor,
+  noteLabel,
   filenameProblem,
   noteCitations,
   citationRows,
-  openDocument,
   proposalNotice,
-  renameDocument,
   saveBlocker,
   wordCount,
 } from '../helpers.ts';
+import { documentDirty, openDocument, renameDocument } from '../documents.ts';
 
 const background = { name: 'background.md', content: '# Background' };
 const projects = { name: 'projects.md', content: '# Projects' };
 
 describe('profile note helpers', () => {
-  it('drafts a filename on an open tab or opens the note first', () => {
+  it('follows a completed rename without losing the draft or the saved copy', () => {
     const state = openDocument({ documents: [], activeId: null }, background, 'background');
-    const renamed = renameDocument(state, background, 'unused', 'about-me.md');
-    expect(renamed.documents).toHaveLength(1);
-    expect(renamed.documents[0]).toMatchObject({ name: 'about-me.md', saved: background });
+    state.documents[0] = { ...state.documents[0], content: '# Unsaved draft' };
+    const renamed = renameDocument(state, 'background.md', 'about-me.md');
+    expect(renamed.documents[0]).toMatchObject({
+      name: 'about-me.md',
+      content: '# Unsaved draft',
+      saved: { name: 'about-me.md', content: '# Background' },
+    });
     expect(documentDirty(renamed.documents[0])).toBe(true);
-    const opened = renameDocument(renamed, projects, 'projects', 'work.md');
-    expect(opened.activeId).toBe('projects');
-    expect(opened.documents[1]).toMatchObject({ name: 'work.md', saved: projects });
-    expect(opened.documents[0].name).toBe('about-me.md');
+    expect(renameDocument(renamed, 'projects.md', 'work.md')).toEqual(renamed);
+  });
+
+  it('names a new note after its title without reusing a filename', () => {
+    expect(filenameFor('Work history', [])).toBe('Work-history.md');
+    expect(filenameFor('Café & Résumé!', [])).toBe('Cafe-Resume.md');
+    expect(filenameFor('Work history', ['work-history.md', 'Work-History-2.md'])).toBe(
+      'Work-history-3.md',
+    );
+    expect(filenameFor('notes.md', [])).toBe('notes.md');
+    expect(filenameFor('שלום', [])).toBe('Untitled-note.md');
+    expect(filenameFor('  ', [projects.name])).toBe('Untitled-note.md');
+  });
+
+  it('reads filenames as note names', () => {
+    expect(noteLabel('Work-history.md')).toBe('Work history');
+    expect(noteLabel('side_projects.md')).toBe('side projects');
+    expect(noteLabel('profile.md')).toBe('profile');
+    expect(noteLabel('---.md')).toBe('---.md');
   });
 
   it('states the real reason saving is unavailable', () => {
@@ -40,7 +59,9 @@ describe('profile note helpers', () => {
 
   it('counts words and lists only packets that quote this exact note', () => {
     expect(wordCount('  ')).toBe(0);
-    expect(wordCount('# Title\n\n- one two')).toBe(5);
+    // Markdown marks and link targets are not words; hyphenated words count once.
+    expect(wordCount('# Title\n\n- one two')).toBe(3);
+    expect(wordCount('A real-time [demo](https://example.com/a b) ---')).toBe(3);
     const card = (id: string, sources: string[]) => ({
       id,
       company: `Company ${id}`,

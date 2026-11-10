@@ -143,44 +143,52 @@ it('does not resume an interrupted native session', () => {
   expect(next.directory).not.toBe(first.directory);
 });
 
-it('starts a new session for pre-delivery native transcripts even when their skills are unchanged', () => {
-  const context = fixture();
-  const oldRevision = createHash('sha256')
-    .update(
-      JSON.stringify({
-        role,
-        skills: [],
-        participants: conversation.participants,
-        leadId: conversation.leadId,
-        cardId: conversation.cardId,
-        summary: conversation.summary,
-        memories: [],
-      }),
-    )
-    .digest('hex');
-  const oldSession: ConversationSession = {
-    id: 'old-session',
-    nativeId: '11111111-1111-4111-8111-111111111111',
-    directoryId: 'old-directory',
-    threadId: conversation.id,
-    roleId: role.id,
-    runtime: role.runtime,
-    revision: oldRevision,
-    lastMessageId: 'reply',
-    invalid: false,
-  };
-  context.board.record('conversation_session', oldSession, role.id, 'Saved old transcript');
-  const next = prepareSession(context, role, [], conversation, messages);
-  expect(next.session.nativeId).toBeNull();
-  expect(next.session.revision).not.toBe(oldRevision);
-  expect(next.directory).not.toContain('old-directory');
-  expect(next.messages).toEqual(messages);
-  next.onSession('22222222-2222-4222-8222-222222222222');
-  finishSession(context, next.session, 'reply', false);
-  expect(prepareSession(context, role, [], conversation, messages).session.nativeId).toBe(
-    '22222222-2222-4222-8222-222222222222',
-  );
-});
+it.each([
+  { label: 'pre-delivery', version: {} },
+  { label: 'six-follow-up', version: { skillDeliveryVersion: 1 } },
+])(
+  'starts a new session for $label native transcripts even when their skills are unchanged',
+  ({ version }) => {
+    const context = fixture();
+    const oldRevision = createHash('sha256')
+      .update(
+        JSON.stringify({
+          ...version,
+          role,
+          skills: [],
+          participants: conversation.participants,
+          leadId: conversation.leadId,
+          cardId: conversation.cardId,
+          summary: conversation.summary,
+          memories: [],
+        }),
+      )
+      .digest('hex');
+    const oldSession: ConversationSession = {
+      id: 'old-session',
+      nativeId: '11111111-1111-4111-8111-111111111111',
+      directoryId: 'old-directory',
+      threadId: conversation.id,
+      roleId: role.id,
+      runtime: role.runtime,
+      revision: oldRevision,
+      lastMessageId: 'reply',
+      invalid: false,
+    };
+    context.board.record('conversation_session', oldSession, role.id, 'Saved old transcript');
+    const next = prepareSession(context, role, [], conversation, messages);
+    expect(next.session.nativeId).toBeNull();
+    expect(next.session.revision).not.toBe(oldRevision);
+    expect(next.directory).not.toContain('old-directory');
+    expect(next.messages).toEqual(messages);
+    next.onSession('22222222-2222-4222-8222-222222222222');
+    finishSession(context, next.session, 'reply', false);
+    const resumed = prepareSession(context, role, [], conversation, messages);
+    expect(resumed.session.nativeId).toBe('22222222-2222-4222-8222-222222222222');
+    expect(resumed.directory).toBe(next.directory);
+    expect(resumed.messages).toEqual([messages[2]]);
+  },
+);
 
 it('refreshes native context for skill delivery, body and assignment changes', () => {
   const context = fixture();
