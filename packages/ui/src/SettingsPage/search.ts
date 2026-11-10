@@ -48,10 +48,15 @@ export const settingEntries: SettingEntry[] = [
       'permissions',
       'claude',
       'codex',
-      'grok',
       'cursor',
       'MCP',
     ],
+  },
+  {
+    label: 'Grok Bot and remote MCP connections',
+    section: 'accounts',
+    target: 'remote-mcp-heading',
+    keywords: ['grok', 'bot', 'remote', 'cloud', 'MCP', 'OAuth', 'tunnel', 'cloudflared'],
   },
   {
     label: 'Job sources',

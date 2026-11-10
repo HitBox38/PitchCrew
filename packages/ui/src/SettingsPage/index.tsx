@@ -4,6 +4,7 @@ import {
   AnalyticsSettings,
   ConnectorSettings,
   ExternalMcpSettings,
+  RemoteMcpSettings,
   JobSourcesSettings,
   PacketRulesSettings,
   RuntimeSettings,
@@ -51,6 +52,7 @@ export const SettingsPage = () => {
           <SettingsPanel value="accounts">
             <ConnectorSettings data={data} action={action} working={working} />
             <ExternalMcpSettings />
+            <RemoteMcpSettings />
           </SettingsPanel>
           <SettingsPanel value="sources">
             <JobSourcesSettings />

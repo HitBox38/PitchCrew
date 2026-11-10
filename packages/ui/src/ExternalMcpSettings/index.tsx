@@ -12,7 +12,7 @@ export const ExternalMcpSettings = () => {
     <div aria-busy={busy}>
       <SettingsSection
         id="external-mcp-heading"
-        title="External agents"
+        title="Local agent apps"
         scope={
           info
             ? `This workspace · ${!info.enabled ? 'Off' : info.write ? 'Job changes + crew' : 'Read-only'}`
@@ -36,15 +36,15 @@ export const ExternalMcpSettings = () => {
         {info ? (
           <>
             <p className="quiet">
-              Local apps only, through stdio MCP. Cloud-hosted Grok Bot and ChatGPT connectors are
-              not supported.
+              These permissions apply to local stdio MCP apps. Connect Grok Bot and other remote
+              apps in the section below, with separate permissions for each app.
             </p>
             <ol className="external-mcp-steps">
               <li>
                 <h4>Choose access</h4>
                 <p className="quiet">
-                  All configured apps share this access. Changing either switch requires every app
-                  to reconnect.
+                  All configured local apps share this access. Changing either switch requires every
+                  local app to reconnect.
                 </p>
                 <ExternalAccess info={info} busy={busy} configure={configure} />
                 {saved ? <output className="quiet">{saved}</output> : null}

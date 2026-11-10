@@ -7,7 +7,8 @@ export type NotificationContext =
   | 'skill_proposal'
   | 'instruction_update'
   | 'skill_update'
-  | 'runtime_update';
+  | 'runtime_update'
+  | 'remote_connection';
 
 export interface CrewNotification {
   id: string;
