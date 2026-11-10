@@ -79,6 +79,24 @@ describe('document verification', () => {
     expect(missingContent('שלום café', 'םולש cafe\u0301')).toBe('');
     expect(missingContent('Entry Entry', 'Entry')).not.toBe('');
   });
+  it('extracts every page of a multi-page PDF in the bounded worker', async () => {
+    const lines = Array.from({ length: 70 }, (_, i) => `- Fictional entry ${i} at Example Corp.`);
+    const resume = `# Example candidate\n\n${lines.join('\n')}`;
+    const [artifact] = await renderArtifacts({ ...packet, resume }, ['pdf'], 'formatted', {
+      sources: ['resume'],
+    });
+    const result = await verifyDocument(
+      { ...artifact, name: 'resume.pdf', source: 'resume' },
+      expectedDocumentText(resume, 'formatted'),
+    );
+    expect(result.status).toBe('verified');
+    expect(result.findings).toContainEqual(
+      expect.objectContaining({
+        check: 'layout',
+        message: expect.stringMatching(/runs to \d+ pages/),
+      }),
+    );
+  });
   it('reports essential timeouts as blocked', async () => {
     const [artifact] = await renderArtifacts(packet, ['pdf']);
     const result = await verifyDocument(artifact, packet.resume, 1);
