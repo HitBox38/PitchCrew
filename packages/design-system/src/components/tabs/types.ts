@@ -8,3 +8,5 @@ export type TabsContentProps = TabsPrimitive.Panel.Props;
 export type TabsListProps = TabsPrimitive.List.Props & VariantProps<typeof tabsListVariants>;
 
 export type TabsTriggerProps = TabsPrimitive.Tab.Props;
+
+export type TabsIndicatorProps = TabsPrimitive.Indicator.Props;

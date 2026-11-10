@@ -777,6 +777,9 @@ button.profile-citation-quote:hover {
     border-radius: 9px;
     font-size: 0;
   }
+  .profile-tab-row > .profile-mode-tabs [data-slot='tabs-indicator'] {
+    border-radius: 9px;
+  }
   /* The status bar keeps the path, the save state and Save; words and origin go. */
   .profile-save-bar {
     gap: 8px;
@@ -854,9 +857,7 @@ button.profile-citation-quote:hover {
   font-size: var(--text-label);
 }
 .profile-mode-tabs [data-slot='tabs-trigger'][data-active] {
-  background: var(--clay-fill);
   color: var(--ink);
-  box-shadow: var(--clay);
 }
 .profile-write-panel {
   display: flex;

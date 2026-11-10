@@ -124,8 +124,6 @@
   color: var(--muted);
 }
 .chat-view-switch [data-slot='tabs-trigger'][data-active] {
-  background: var(--clay-fill);
-  box-shadow: var(--clay);
   color: var(--ink);
   font-weight: 600;
 }

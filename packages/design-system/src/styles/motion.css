@@ -1,5 +1,8 @@
 /* Base UI owns surface state and unmounting; CSS provides interruptible motion.
-   Motion remains for dynamic board layout, pointer tilt and new chat messages. */
+   Motion remains for dynamic board layout, pointer tilt and new chat messages.
+   The motif is clay that morphs rather than slides: pressed things push into the paper (the
+   shadow tokens interpolate), a switch thumb squashes under the finger, a check is drawn in,
+   and the chosen tab is one pebble that stretches its leading edge to the next choice. */
 [data-slot='button'] {
   transition:
     transform var(--duration-press) var(--ease),
@@ -110,6 +113,38 @@
   height: 0;
   opacity: 0;
 }
+/* Squash, not shrink: pressed clay spreads sideways as it flattens, then springs back. */
+[data-slot='switch']:active:not([data-disabled]) [data-slot='switch-thumb'] {
+  scale: 1.2 0.88;
+}
+[data-slot='checkbox-indicator'] {
+  transition: opacity 100ms var(--ease);
+}
+[data-slot='checkbox-indicator'][data-ending-style] {
+  opacity: 0;
+}
+[data-slot='checkbox-indicator'] svg {
+  clip-path: inset(0);
+  transition: clip-path 180ms var(--ease);
+}
+[data-slot='checkbox-indicator'][data-starting-style] svg {
+  clip-path: inset(0 100% 0 0);
+}
+/* The pebble's edges travel separately: the leading edge leaves first and the trailing edge
+   catches up, so it stretches like soft clay instead of sliding as a rigid block. */
+[data-slot='tabs-indicator'] {
+  transition:
+    left 280ms var(--ease-in-out),
+    right 280ms var(--ease-in-out),
+    top 280ms var(--ease-in-out),
+    height 280ms var(--ease-in-out);
+}
+[data-slot='tabs-indicator'][data-activation-direction='right'] {
+  transition-duration: 280ms, 200ms, 280ms, 280ms;
+}
+[data-slot='tabs-indicator'][data-activation-direction='left'] {
+  transition-duration: 200ms, 280ms, 280ms, 280ms;
+}
 @media (prefers-reduced-motion: reduce) {
   [data-slot='button'],
   [data-slot='sidebar-container'],
@@ -159,6 +194,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  [data-slot='switch']:active:not([data-disabled]) [data-slot='switch-thumb'] {
+    scale: none;
+  }
+  [data-slot='checkbox-indicator'] svg,
+  [data-slot='tabs-indicator'] {
+    transition: none;
+  }
   [data-slot='message-scroller-button'] {
     transition: opacity 120ms var(--ease);
     translate: -50% 0;

@@ -33,8 +33,6 @@
   font-weight: 600;
 }
 [data-interface='clay'] .browser-view-switch [data-slot='tabs-trigger'][data-active] {
-  background: var(--clay-fill);
-  box-shadow: var(--clay);
   color: var(--ink);
 }
 [data-interface='clay'] .browser-view-switch [data-slot='tabs-trigger']:hover:not([data-active]) {

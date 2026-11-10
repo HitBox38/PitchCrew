@@ -1,4 +1,4 @@
-import { TabsList, TabsTrigger } from '@pitchcrew/design-system/tabs';
+import { TabsIndicator, TabsList, TabsTrigger } from '@pitchcrew/design-system/tabs';
 import { Eye, PencilLine } from 'lucide-react';
 
 export const MarkdownModeTabs = ({ label }: { label: string }) => {
@@ -10,6 +10,7 @@ export const MarkdownModeTabs = ({ label }: { label: string }) => {
       <TabsTrigger value="preview">
         <Eye size={14} /> Preview
       </TabsTrigger>
+      <TabsIndicator />
     </TabsList>
   );
 };

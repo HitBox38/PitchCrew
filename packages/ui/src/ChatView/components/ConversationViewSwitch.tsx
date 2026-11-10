@@ -1,4 +1,4 @@
-import { TabsList, TabsTrigger } from '@pitchcrew/design-system/tabs';
+import { TabsIndicator, TabsList, TabsTrigger } from '@pitchcrew/design-system/tabs';
 import { GitBranch, MessageSquare } from 'lucide-react';
 
 export const ConversationViewSwitch = ({ attention }: { attention: number }) => {
@@ -21,6 +21,7 @@ export const ConversationViewSwitch = ({ attention }: { attention: number }) => 
         </span>
         {attention ? <span className="chat-count">{attention}</span> : null}
       </TabsTrigger>
+      <TabsIndicator />
     </TabsList>
   );
 };
