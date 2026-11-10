@@ -190,6 +190,10 @@
   flex: none;
   transition: transform 140ms var(--ease);
 }
+/* Only running turns carry data-active, so opening a chat never replays its saved steps. */
+.chat-turn-body[data-active] .chat-activity-step {
+  animation: clay-settle-in 180ms var(--ease);
+}
 .chat-turn-disclosure[data-panel-open] > svg {
   transform: rotate(90deg);
 }

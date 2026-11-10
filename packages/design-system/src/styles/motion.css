@@ -166,6 +166,35 @@
   scale: 0.5;
   filter: blur(4px);
 }
+/* Mount entrances for features to name in `animation` (they never retarget, so keyframes):
+   clay-emerge presses a small object up out of the paper; clay-settle-in lets a new line of
+   content settle into place. Pair them with var(--ease) and 160–220ms. */
+@keyframes clay-emerge {
+  from {
+    opacity: 0;
+    scale: 0.92;
+  }
+}
+@keyframes clay-settle-in {
+  from {
+    opacity: 0;
+    translate: 0 3px;
+    filter: blur(2px);
+  }
+}
+/* Reduced motion redefines both as a plain fade, so every feature that names them follows. */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes clay-emerge {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes clay-settle-in {
+    from {
+      opacity: 0;
+    }
+  }
+}
 /* The pebble's edges travel separately: the leading edge leaves first and the trailing edge
    catches up, so it stretches like soft clay instead of sliding as a rigid block. */
 [data-slot='tabs-indicator'] {

@@ -103,6 +103,9 @@
   color: var(--ochre);
   flex-shrink: 0;
 }
+.pending-question-chevron {
+  transition: transform 140ms var(--ease);
+}
 .pending-question-trigger[data-panel-open] .pending-question-chevron {
   transform: rotate(180deg);
 }
