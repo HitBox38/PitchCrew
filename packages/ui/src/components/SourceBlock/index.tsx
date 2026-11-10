@@ -14,12 +14,14 @@ export const SourceBlock = ({
   label,
   className,
   contentClassName,
+  copyLabel,
   wrap = true,
 }: {
   value: string;
   label: string;
   className?: string;
   contentClassName?: string;
+  copyLabel?: string;
   wrap?: boolean;
 }) => {
   return (
@@ -27,7 +29,13 @@ export const SourceBlock = ({
       <CodeBlockHeader>
         <CodeBlockTitle>{label}</CodeBlockTitle>
         <CodeBlockActions>
-          <CodeBlockCopyButton value={value} aria-label={`Copy ${label}`} />
+          <CodeBlockCopyButton
+            key={value}
+            value={value}
+            label={copyLabel}
+            size={copyLabel ? 'sm' : undefined}
+            aria-label={copyLabel ?? `Copy ${label}`}
+          />
         </CodeBlockActions>
       </CodeBlockHeader>
       <CodeBlockContent aria-label={label} wrap={wrap} className={cn('max-h-80', contentClassName)}>

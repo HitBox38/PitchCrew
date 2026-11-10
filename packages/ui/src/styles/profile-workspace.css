@@ -27,7 +27,7 @@
 .profile-review-count {
   min-width: 18px;
   padding: 0 5px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--ochre-soft);
   color: var(--ochre);
   font-size: var(--text-detail);
@@ -50,7 +50,7 @@
   gap: 10px;
   min-height: 40px;
   padding: 4px 4px 4px 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: rgb(var(--tint) / 0.05);
 }
 .profile-notice-kind {
@@ -83,6 +83,7 @@
 
 /* The frame: explorer | handle | sheet [| rail]. Columns close on the page's edges. */
 .profile-body {
+  position: relative;
   display: grid;
   flex: 1;
   grid-template-columns: var(--explorer-width, 240px) 8px minmax(0, 1fr);
@@ -102,6 +103,29 @@
   grid-template-columns: minmax(0, 1fr) 264px;
   grid-template-areas: 'doc rail';
 }
+/* Too narrow for three columns: the explorer is a drawer over the note, on a light scrim. */
+.profile-body[data-drawer] > .profile-aside {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 6;
+  grid-area: auto;
+  width: min(var(--explorer-width, 240px), calc(100% - 56px));
+  padding: 6px;
+  border-radius: var(--radius-md);
+  background: var(--paper);
+  box-shadow:
+    0 0 0 1px var(--border-strong),
+    var(--pop);
+}
+.profile-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: rgb(20 22 30 / 0.22) !important;
+  cursor: default;
+}
 
 /* Explorer: a tree on the paper, no card. Search on top; the list scrolls to the frame's foot. */
 .profile-aside {
@@ -115,19 +139,44 @@
 .profile-aside[hidden] {
   display: none;
 }
-/* Level with the sheet's 40px tab band, so the search and the open tab share one line. */
-.profile-tree-search {
-  display: flex;
+/* The explorer's head: a "Notes" row level with the sheet's 40px tab band, then search. */
+.profile-tree-head {
+  display: grid;
   flex-shrink: 0;
-  align-items: center;
   gap: 4px;
+  margin-bottom: 6px;
+}
+.profile-tree-title {
+  display: flex;
+  align-items: center;
+  gap: 2px;
   height: 40px;
-  margin-bottom: 4px;
+  padding-left: 8px;
+}
+.profile-tree-title > h2 {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: var(--ink);
+  font: 600 var(--text-label) / var(--text-label--line-height) var(--font-sans);
+}
+.profile-tree-count {
+  margin-left: 4px;
+  color: var(--muted);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.profile-tree-title > button {
+  color: var(--ink-soft);
+}
+.profile-tree-search {
+  position: relative;
 }
 .profile-tree-search input {
   height: 32px;
+  padding-right: 32px;
   padding-left: 30px;
-  border-radius: 9px;
+  border-radius: var(--radius-sm);
   font-size: var(--text-label);
 }
 .profile-tree-search-icon {
@@ -168,9 +217,9 @@
   gap: 6px;
   width: 100%;
   min-width: 0;
-  height: 28px;
-  padding: 0 28px 0 calc(6px + var(--depth, 0) * 14px);
-  border-radius: 7px;
+  height: 32px;
+  padding: 0 32px 0 calc(6px + var(--depth, 0) * 14px);
+  border-radius: var(--radius-sm);
   color: var(--ink-soft);
   font: 400 var(--text-label) / 1.3 var(--font-sans);
   text-align: left;
@@ -198,9 +247,17 @@
 }
 .profile-row-menu {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 0;
+  right: 0;
   opacity: 0;
+}
+/* A search hit's passage is a label for its row: clicking it opens the note there too. */
+.profile-tree-snippet {
+  cursor: pointer;
+}
+/* The row a right-click menu belongs to stays marked while the menu is open. */
+.profile-tree-row[data-popup-open] > .profile-file {
+  box-shadow: inset 0 0 0 1px var(--primary);
 }
 .profile-tree-row:hover .profile-row-menu,
 .profile-tree-row:focus-within .profile-row-menu,
@@ -276,7 +333,7 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   background: var(--surface-bright);
   box-shadow: 0 0 0 1px var(--border);
 }
@@ -294,15 +351,25 @@
   flex: none;
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   color: var(--muted);
 }
 .profile-tab-row > .profile-explorer-toggle[aria-expanded='false'] {
   color: var(--ink);
 }
-.profile-tab-row > .profile-mode-tabs {
+.profile-tab-tools {
+  display: flex;
   flex: none;
+  align-items: center;
+  gap: 4px;
   margin-left: auto;
+  padding-left: 4px;
+}
+.profile-tab-tools .md-tool {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
 }
 .profile-tabs-host {
   flex: 1 1 auto;
@@ -381,15 +448,17 @@
   box-shadow: none;
   color: var(--ink);
 }
+/* Like a code editor: only the open note's tab, a hovered one or a focused close shows its ×,
+ * so a tab scrolled half out of the strip never leaves a stray × at its edge. */
 .profile-tab-close {
   flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-  margin-right: 8px;
+  width: 32px;
+  height: 32px;
+  margin-right: 4px;
   padding: 0;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   color: var(--muted);
-  opacity: 0.6;
+  opacity: 0;
 }
 .profile-tab-item:hover .profile-tab-close,
 .profile-tab-item[data-selected='true'] .profile-tab-close,
@@ -397,13 +466,7 @@
   opacity: 1;
 }
 
-/* The editor fills the sheet between the tab band and the status bar. */
-.profile-note-form {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-height: 0;
-}
+/* The editor fills the sheet between the tools and the status bar. */
 .profile-sheet {
   display: flex;
   flex: 1;
@@ -411,57 +474,35 @@
   min-height: 0;
   overflow: hidden;
 }
-.profile-sheet .profile-write-panel,
-.profile-sheet .profile-preview-panel {
-  flex: 1;
-  min-height: 0;
-}
-.profile-sheet .profile-write-panel[hidden],
-.profile-sheet .profile-preview-panel[hidden] {
-  display: none;
-}
-/* Prose wraps at the sheet's width like an editor, capped at a long measure on wide windows. */
-.profile-sheet textarea {
-  flex: 1;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  padding: 28px max(40px, calc(100% - 120ch - 40px)) 48px 40px;
-  border: 0;
-  border-radius: 0;
-  resize: none;
-  background: transparent;
-  box-shadow: none;
-  color: var(--ink);
-  font: 400 15px/1.65 var(--font-sans);
-  field-sizing: fixed;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  tab-size: 2;
-}
-.profile-sheet textarea:focus-visible {
-  outline: none;
-  box-shadow: none;
-}
-.profile-sheet .profile-preview-panel {
-  overflow: auto;
-  overscroll-behavior: contain;
-  padding: 28px 40px 48px;
-  background: transparent;
-}
-.profile-sheet .profile-preview-panel > div {
-  max-width: 90ch;
-  font-size: 15px;
-  line-height: 1.7;
-}
 .profile-empty {
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 24px;
+  padding: 32px 24px;
+}
+.profile-empty-card {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  max-width: 30rem;
+  text-align: center;
+}
+.profile-empty-card > h2 {
+  margin: 0;
+  color: var(--ink);
+  font: 600 var(--text-section) / var(--text-section--line-height) var(--font-sans);
+}
+.profile-empty-card > p {
+  margin: 0;
   color: var(--ink-soft);
   font-size: var(--text-body);
-  text-align: center;
+  line-height: 1.6;
+}
+.profile-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
 }
 
 /* Status bar: path and origin on the left; words, citations, the save state and Save on the
@@ -515,48 +556,102 @@
   background: rgb(var(--tint) / 0.08);
   color: var(--ink);
 }
-.profile-save-state {
+.profile-status-caret {
   flex: none;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.profile-save-state[data-dirty] {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.profile-status-words[data-near] {
   color: var(--ochre);
   font-weight: 600;
 }
-.profile-save-state[data-dirty]::before {
+.profile-save-state {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 24rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.profile-save-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.profile-save-state > svg {
+  flex: none;
+}
+.profile-save-state[data-tone='done'] > svg {
+  color: var(--moss);
+}
+.profile-save-state[data-tone='busy'] > svg {
+  animation: profile-spin 900ms linear infinite;
+}
+.profile-save-state[data-tone='warn'] {
+  color: var(--ochre);
+  font-weight: 600;
+}
+.profile-save-state[data-tone='error'] {
+  color: var(--error-ink);
+  font-weight: 600;
+}
+.profile-save-dot {
+  flex: none;
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--ochre);
-  content: '';
 }
-.profile-save-blocked {
-  display: flex;
-  flex: 1 0 100%;
-  order: -1;
-  align-items: center;
-  gap: 6px;
-  color: var(--ochre);
-  font-size: var(--text-label);
-  font-weight: 600;
+@keyframes profile-spin {
+  to {
+    rotate: 360deg;
+  }
 }
-.profile-save-error {
-  flex: 1 0 100%;
-  order: -1;
-  margin: 0;
-  overflow-wrap: anywhere;
-  color: var(--error-ink);
-  font-size: var(--text-label);
+@media (prefers-reduced-motion: reduce) {
+  .profile-save-state[data-tone='busy'] > svg {
+    animation: none;
+  }
 }
 .profile-save-kbd {
   height: 18px;
   margin-left: 2px;
-  background: rgb(255 255 255 / 0.18);
-  color: inherit;
-  opacity: 0.85;
+  opacity: 0.8;
+}
+.profile-status-more {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  margin-left: -6px;
+  color: var(--muted);
+}
+
+/* A draft whose saved copy changed underneath it: nothing is written until the user picks. */
+.profile-conflict {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 12px 10px 16px;
+  background: var(--ochre-soft);
+  box-shadow: inset 0 -1px 0 var(--border);
+}
+.profile-conflict-icon {
+  flex: none;
+  color: var(--ochre);
+}
+.profile-conflict-text {
+  flex: 1 1 18rem;
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+}
+.profile-conflict-actions {
+  display: flex;
+  flex: none;
+  gap: 6px;
 }
 
 /* Citations: the rail on the paper beside the sheet, or the same list in a popover. */
@@ -621,7 +716,7 @@
   min-width: 0;
   padding: 2px 8px;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--muted);
   font-size: var(--text-detail);
@@ -647,7 +742,7 @@
   width: 100%;
   padding: 3px 8px;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--ink-soft);
   font-size: var(--text-detail);
@@ -693,7 +788,7 @@ button.profile-citation-quote:hover {
   min-height: 24px;
   padding: 0;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--primary);
   font-size: var(--text-detail);
@@ -743,14 +838,6 @@ button.profile-citation-quote:hover {
   .profile-aside {
     padding: 0;
   }
-  .profile-sheet .profile-preview-panel {
-    padding: 20px;
-  }
-  /* 16px on phones so focusing the editor never zooms the page. */
-  .profile-sheet textarea {
-    padding: 20px;
-    font-size: 16px;
-  }
   /* One 44px band: toggle, the tab lane (scrolling on its own) and Write | Preview. */
   .profile-tab-row {
     gap: 4px;
@@ -765,20 +852,9 @@ button.profile-citation-quote:hover {
   .profile-tab-item {
     height: 44px;
   }
-  .profile-tab-row > .profile-mode-tabs {
-    height: 44px;
-    padding: 0;
-  }
-  /* Icon-only Write | Preview so the open tabs keep their room; names stay accessible. */
-  .profile-tab-row > .profile-mode-tabs [data-slot='tabs-trigger'] {
-    gap: 0;
-    height: 44px;
-    padding: 0 12px;
-    border-radius: 9px;
-    font-size: 0;
-  }
-  .profile-tab-row > .profile-mode-tabs [data-slot='tabs-indicator'] {
-    border-radius: 9px;
+  .profile-tab-tools .md-mode-switch > button {
+    height: 36px;
+    padding: 0 10px;
   }
   /* The status bar keeps the path, the save state and Save; words and origin go. */
   .profile-save-bar {
@@ -813,13 +889,19 @@ button.profile-citation-quote:hover {
     flex: 1 1 0;
     min-width: 0;
   }
+  /* With a note open, the note gets the height; Insights and Sources wait on the note list. */
+  .profile-workspace[data-view='note'] .ui-title-row.profile-title-row {
+    min-height: 0;
+    padding: 0 0 6px;
+  }
+  .profile-workspace[data-view='note'] .profile-title-row > .ui-title-actions {
+    display: none;
+  }
   .profile-tabs-host {
     flex: 1 1 0;
   }
 }
 
-/* Shared Markdown editor primitives (Profile and Skills): the Write | Preview segment and the
- * panels. Pages style their own sheet around these. */
 @media (pointer: coarse) and (width >= 48rem) {
   .profile-tree-search,
   .profile-tab-row,
@@ -831,55 +913,8 @@ button.profile-citation-quote:hover {
     width: 44px;
     height: 44px;
   }
-  .profile-tab-row > .profile-mode-tabs {
-    height: 44px;
-    padding: 0;
-  }
-  .profile-tab-row > .profile-mode-tabs [data-slot='tabs-trigger'] {
-    height: 44px;
-  }
-}
-.profile-mode-tabs {
-  height: 32px;
-  padding: 3px;
-  gap: 2px;
-  border-radius: 9px;
-  background: var(--sunken-fill);
-  box-shadow: var(--clay-sunken);
-}
-.profile-mode-tabs [data-slot='tabs-trigger'] {
-  height: 26px;
-  padding: 0 10px;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  box-shadow: none;
-  font-size: var(--text-label);
-}
-.profile-mode-tabs [data-slot='tabs-trigger'][data-active] {
-  color: var(--ink);
-}
-.profile-write-panel {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
-.profile-preview-panel {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  overscroll-behavior: contain;
-  padding: 24px 28px;
-}
-.profile-preview-panel > div {
-  max-width: 72ch;
-  font-size: 15px;
-  line-height: 1.75;
-}
-@variant max-mobile {
-  .profile-preview-panel {
-    padding: 18px;
+  .profile-tab-tools .md-mode-switch > button {
+    height: 36px;
   }
 }
 /* Skills' document paper follows the app theme like the library and footers around it. */
@@ -957,11 +992,466 @@ button.profile-citation-quote:hover {
     padding: 16px 48px 12px 16px;
   }
 }
-.profile-sheet .profile-preview-panel h1 {
-  margin-bottom: 4px;
-  font-size: 1.375rem;
-  letter-spacing: -0.01em;
+
+/* Explorer details: search with a clear button, rotating chevrons, indent guides, matching
+ * passages under notes found by their text, empty folders and Undo after a delete. */
+.profile-tree-search input::-webkit-search-cancel-button {
+  appearance: none;
 }
-.profile-sheet .profile-preview-panel h2 {
-  font-size: 1rem;
+.profile-tree-search-clear {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  translate: 0 -50%;
+}
+.profile-tree-search-clear:hover {
+  background: rgb(var(--tint) / 0.08);
+  color: var(--ink);
+}
+.profile-tree-search-clear:focus-visible {
+  outline: 2px solid var(--primary);
+}
+.profile-chevron {
+  flex: none;
+  transition: rotate var(--duration-press, 120ms) var(--ease);
+}
+.profile-chevron[data-open] {
+  rotate: 90deg;
+}
+@media (prefers-reduced-motion: reduce) {
+  .profile-chevron {
+    transition: none;
+  }
+}
+/* One hairline per ancestor level, under that level's chevron. */
+.profile-tree-row::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 13px;
+  width: calc(var(--depth, 0) * 14px);
+  background: repeating-linear-gradient(to right, var(--border) 0 1px, transparent 1px 14px);
+  content: '';
+  pointer-events: none;
+}
+.profile-tree-snippet {
+  margin: -2px 0 4px;
+  padding: 0 8px 0 calc(26px + var(--depth, 0) * 14px);
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.profile-tree-empty-folder {
+  margin: 0;
+  padding: 2px 8px 4px calc(26px + (var(--depth, 0) + 1) * 14px);
+  color: var(--muted);
+  font-size: var(--text-detail);
+  font-style: italic;
+  line-height: 20px;
+}
+.profile-trash-note {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: min(420px, calc(100% - 32px));
+  padding: 4px 4px 4px 14px;
+  border-radius: var(--radius-md);
+  background: var(--surface-bright);
+  box-shadow:
+    0 0 0 1px var(--border-strong),
+    var(--pop);
+  font-size: var(--text-label);
+  translate: -50% 0;
+}
+/* Beside an open explorer, the pill centres on the note rather than across both. */
+@media (width >= 48rem) {
+  .profile-body[data-explorer='open'] > .profile-trash-note {
+    left: calc(
+      var(--explorer-width, 240px) + 8px + (100% - var(--explorer-width, 240px) - 8px) / 2
+    );
+    max-width: min(420px, calc(100% - var(--explorer-width, 240px) - 40px));
+  }
+}
+.profile-trash-text {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--ink-soft);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.profile-trash-note b {
+  color: var(--ink);
+}
+
+/* Tabs: an unsaved note shows a dot in the close slot; hover or focus turns it into ×. */
+.profile-tab-close {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.profile-tab-close > * {
+  grid-area: 1 / 1;
+}
+.profile-tab-item[data-dirty] .profile-tab-close {
+  opacity: 1;
+}
+.profile-tab-item[data-dirty] .profile-tab-x {
+  opacity: 0;
+}
+.profile-tab-item[data-dirty]:hover .profile-tab-x,
+.profile-tab-item[data-dirty] .profile-tab-close:focus-visible .profile-tab-x {
+  opacity: 1;
+}
+.profile-tab-item[data-dirty]:hover .profile-dirty-dot,
+.profile-tab-item[data-dirty] .profile-tab-close:focus-visible .profile-dirty-dot {
+  opacity: 0;
+}
+/* A conflict waits on the user: ochre like unsaved work, ringed to tell it apart. */
+.profile-tab-item[data-conflict] .profile-dirty-dot {
+  background: var(--ochre);
+  box-shadow:
+    0 0 0 2px var(--surface-bright),
+    0 0 0 3px var(--ochre);
+}
+
+/* Note dialogs. */
+.profile-dialog-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-detail);
+}
+.profile-dialog-note code {
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  background: rgb(var(--tint) / 0.06);
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+}
+.profile-delete-consequences {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 10px 12px 10px 28px;
+  border-radius: var(--radius-md);
+  background: var(--ochre-soft);
+  color: var(--ink);
+  font-size: var(--text-label);
+  line-height: 1.5;
+}
+.profile-tree-snippet mark {
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--primary) 18%, transparent);
+  color: var(--ink);
+}
+.profile-name-field {
+  position: relative;
+  display: block;
+}
+.profile-name-field[data-suffix] input {
+  padding-right: 44px;
+}
+.profile-name-suffix {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  color: var(--muted);
+  font: 400 var(--text-label) / 1 var(--font-mono);
+  pointer-events: none;
+  translate: 0 -50%;
+}
+
+/* Compare a draft with the saved copy. */
+.profile-compare-dialog {
+  width: min(760px, calc(100vw - 32px));
+  max-height: calc(100dvh - var(--desktop-titlebar-height, 0px) - 48px);
+}
+.profile-compare-body {
+  min-height: 0;
+  max-height: min(60vh, 560px);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+/* Note dialogs: 16px from the description to the fields and between field groups. */
+.profile-small-dialog [data-slot='dialog-header'] {
+  margin-bottom: 16px;
+}
+.profile-small-dialog form.ui-field-group {
+  gap: 16px;
+}
+/* Empty profile: a clay orb, one line of purpose and the ways in. */
+.profile-empty-orb {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 4px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  color: var(--primary);
+}
+.profile-tree-start {
+  display: grid;
+  gap: 10px;
+  margin: 8px 4px 0;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  color: var(--ink-soft);
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+}
+.profile-tree-start > p {
+  margin: 0;
+}
+/* Tabs that do not fit fade at the band's edges instead of being cut mid-label; revealing the
+ * open tab settles the left edge on a tab's start (tab-reveal.ts). */
+.profile-document-tabs {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 12px,
+    #000 calc(100% - 16px),
+    transparent
+  );
+}
+@variant max-mobile {
+  .profile-save-bar {
+    flex-wrap: nowrap;
+  }
+  .profile-status-caret,
+  .profile-save-kbd {
+    display: none;
+  }
+}
+@media (pointer: coarse) {
+  .profile-save-kbd {
+    display: none;
+  }
+  .profile-tab-close,
+  .profile-status-more,
+  .profile-tree-search-clear {
+    width: 44px;
+    height: 44px;
+  }
+}
+.profile-tree-snippet {
+  display: flex;
+  gap: 6px;
+}
+.profile-tree-snippet-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.profile-tree-matches {
+  flex: none;
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: var(--radius-sm);
+  background: rgb(var(--tint) / 0.07);
+  color: var(--ink-soft);
+  font-size: var(--text-caption);
+  line-height: 16px;
+  text-align: center;
+}
+/* The section holding the caret, after the note's path: where am I in a long note. */
+.profile-status-section {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 18rem;
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.profile-status-section::before {
+  margin-right: 6px;
+  color: var(--faint, var(--muted));
+  content: '›';
+}
+@container (width < 42rem) {
+  .profile-status-section {
+    display: none;
+  }
+}
+.profile-status-where {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 4px 12px;
+  min-width: 0;
+}
+.profile-status-where > .profile-save-path {
+  flex: 0 1 auto;
+}
+
+/* Recently deleted. */
+.profile-trash-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.profile-trash-list > li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  box-shadow: inset 0 -1px 0 var(--border);
+}
+.profile-trash-list > li:last-child {
+  box-shadow: none;
+}
+.profile-trash-list svg {
+  flex: none;
+  color: var(--muted);
+}
+.profile-trash-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: var(--text-label);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.profile-trash-when {
+  flex: none;
+  color: var(--muted);
+  font-size: var(--text-detail);
+}
+/* Touch has no hover: an unsaved tab shows its close button rather than only a dot. */
+@media (hover: none) {
+  .profile-tab-item[data-dirty] .profile-tab-x {
+    opacity: 1;
+  }
+  .profile-tab-item[data-dirty] .profile-dirty-dot {
+    opacity: 0;
+  }
+}
+
+/* Close buttons sit in a dialog's top right corner, centred on the title's line; headings and
+ * descriptions stay left-aligned on phones too and stop short of the button. */
+:is(.profile-small-dialog, .profile-compare-dialog) [data-slot='dialog-header'] {
+  padding-right: 40px;
+  text-align: left;
+}
+:is(.profile-small-dialog, .profile-compare-dialog) [data-slot='dialog-close'] {
+  top: 15px;
+  right: 14px;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  opacity: 1;
+}
+/* Touch makes the button 44px; keep its centre on the title's line. */
+@media (width < 48rem), (pointer: coarse) {
+  :is(.profile-small-dialog, .profile-compare-dialog) [data-slot='dialog-close'] {
+    top: 9px;
+    right: 8px;
+  }
+}
+@variant max-compact {
+  :is(.profile-small-dialog, .profile-compare-dialog) [data-slot='dialog-close'] {
+    top: 5px;
+    right: 4px;
+  }
+}
+:is(.profile-small-dialog, .profile-compare-dialog) [data-slot='dialog-close']:hover {
+  background: rgb(var(--tint) / 0.06);
+  color: var(--ink);
+}
+
+/* Compare: a code editor's line diff. Both line numbers, a marker column, additions on moss and
+ * removals on rose (blank lines too), and folded runs of unchanged lines. */
+.profile-compare-body {
+  margin-bottom: 16px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 1px var(--border);
+}
+.profile-diff {
+  width: 100%;
+  border-collapse: collapse;
+  font: 400 var(--text-label) / var(--text-label--line-height) var(--font-mono);
+  font-variant-ligatures: none;
+}
+.profile-diff td {
+  padding: 0 8px 0 0;
+  vertical-align: top;
+}
+.profile-diff .profile-diff-number {
+  width: 1%;
+  padding: 0 8px;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+  user-select: none;
+}
+.profile-diff .profile-diff-number + .profile-diff-number {
+  box-shadow: inset -1px 0 0 var(--border);
+}
+.profile-diff .profile-diff-marker {
+  width: 1%;
+  padding: 0 0 0 8px;
+  user-select: none;
+}
+.profile-diff .profile-diff-text {
+  padding-left: 10px;
+}
+.profile-compare-dialog [data-slot='dialog-header'] {
+  margin-bottom: 12px;
+}
+.profile-diff-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.profile-diff tr[data-kind='added'] {
+  background: color-mix(in srgb, var(--moss) 22%, transparent);
+}
+.profile-diff tr[data-kind='removed'] {
+  background: color-mix(in srgb, var(--rose) 16%, transparent);
+}
+.profile-diff tr[data-kind='added'] .profile-diff-marker {
+  color: var(--moss);
+}
+.profile-diff tr[data-kind='removed'] .profile-diff-marker {
+  color: var(--rose);
+}
+.profile-diff-skip td {
+  padding: 4px 12px;
+  background: rgb(var(--tint) / 0.035);
+  color: var(--muted);
+  font: 400 var(--text-detail) / var(--text-detail--line-height) var(--font-sans);
+}
+
+/* The explorer's "No notes yet" is for phones, where it replaces the document's empty state. */
+@media (width >= 48rem) {
+  .profile-tree-start {
+    display: none;
+  }
 }

@@ -44,6 +44,12 @@ import { access, mkdir } from 'node:fs/promises';
 import { createCrewContext } from './crew/context.ts';
 import type { CrewContext } from './crew/types.ts';
 import { decideProfileProposal } from './profile-sources/proposals.ts';
+import {
+  deleteProfileNote,
+  listProfileTrash,
+  renameProfileNote,
+  restoreProfileNote,
+} from './profile-notes/index.ts';
 import { assertProfileReady, changeProfile } from './profile-sources/mutation.ts';
 import { updatePipelineReview } from './crew/pipeline/reviews.ts';
 import {
@@ -188,14 +194,19 @@ export class CrewService {
   };
   unlinkProfileSource = (id: string): Promise<void> => {
     assertProfileReady(this.context);
-    return changeProfile(this.context, () => this.profileSources.unlink(id), true);
+    return changeProfile(this.context, () => this.profileSources.unlink(id), {
+      allowActive: true,
+    });
   };
   watchProfileProject = (input: unknown) => {
     assertProfileReady(this.context);
     return changeProfile(this.context, () => this.profileSources.watchProject(input));
   };
   setProfileSourceWatching = (id: string, watching: boolean) => {
-    return changeProfile(this.context, () => this.profileSources.setWatching(id, watching), true);
+    return changeProfile(this.context, () => this.profileSources.setWatching(id, watching), {
+      allowActive: true,
+      recovery: true,
+    });
   };
   decideProfileProposal = (id: string, input: unknown) => {
     return decideProfileProposal(this.context, id, input);
@@ -326,8 +337,20 @@ export class CrewService {
   moveCard = (id: string, state: CardState): Card => {
     return this.context.moveCard(id, state);
   };
-  saveProfile = (name: string, content: string): Promise<ProfileFile[]> => {
-    return this.context.saveProfile(name, content);
+  saveProfile = (name: string, content: string, baseline?: string | null) => {
+    return this.context.saveProfile(name, content, baseline);
+  };
+  renameProfileNote = (input: unknown) => {
+    return renameProfileNote(this.context, input);
+  };
+  deleteProfileNote = (name: unknown) => {
+    return deleteProfileNote(this.context, name);
+  };
+  listProfileTrash = () => {
+    return listProfileTrash(this.context);
+  };
+  restoreProfileNote = (input: unknown) => {
+    return restoreProfileNote(this.context, input);
   };
   loadExamples = (): Promise<void> => {
     return this.context.loadExamples();

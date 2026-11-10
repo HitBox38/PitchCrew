@@ -33,6 +33,7 @@ export {
   jobDetailsChanges,
   updateJobInput,
   editJobInput,
+  reviewFeedbackInput,
 } from './job-management.ts';
 export * from './tracking.ts';
 export type { Card, CardInput, CardLesson, PacketFit } from './cards.ts';
@@ -198,3 +199,4 @@ export {
   userDeclinedError,
 } from './browser-errors.ts';
 export * from './runtime-model-preferences.ts';
+export * from './remote-mcp.ts';

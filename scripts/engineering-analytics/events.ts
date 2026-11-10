@@ -175,8 +175,14 @@ const conclusions = new Set([
 const triggers = new Set(['pull_request', 'push', 'merge_group', 'workflow_dispatch']);
 const jobs: Record<string, string> = {
   'Lint, format, types and build': 'quality',
+  // Pre-sharding names keep backfills of older runs classified.
   'Tests (Node 22)': 'tests_node22',
   'Tests (Node 24)': 'tests_node24',
+  'Tests (Node 22, shard 1/2)': 'tests_node22',
+  'Tests (Node 22, shard 2/2)': 'tests_node22',
+  'Tests (Node 24, shard 1/2)': 'tests_node24',
+  'Tests (Node 24, shard 2/2)': 'tests_node24',
+  'Bun runtime integration': 'bun_runtime',
   'Electron smoke (macos-15)': 'desktop_macos',
   'Electron smoke (windows-2025)': 'desktop_windows',
   'Packaged app (ubuntu-24.04)': 'installer_linux',
@@ -193,6 +199,7 @@ const steps: Record<string, string> = {
   'Build public landing page': 'landing_build',
   'Build installers': 'installer_build',
   'Run unit, HTTP, adapter, MCP and browser tests': 'tests',
+  'Verify the Bun daemon, MCP and bounded helpers': 'bun_runtime_tests',
   'Build and verify the actual Electron renderer': 'desktop_smoke',
   'Verify Windows installer process handling': 'installer_process_smoke',
   'Verify packaged app (Linux)': 'packaged_smoke',

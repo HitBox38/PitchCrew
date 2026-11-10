@@ -1,0 +1,71 @@
+.remote-mcp-connection,
+.remote-mcp-handoff,
+.remote-mcp-requests,
+.remote-mcp-clients {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.remote-mcp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.remote-mcp-request {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  overflow-wrap: anywhere;
+}
+.remote-mcp-request h5,
+.remote-mcp-client h5 {
+  margin: 0;
+  color: var(--ink);
+  font: 600 var(--text-label)/1.4 var(--font-sans);
+}
+.remote-mcp-permission {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  cursor: pointer;
+  font-size: var(--text-label);
+}
+.remote-mcp-request [role='checkbox'] {
+  border: 1px solid color-mix(in srgb, var(--ink) 55%, transparent);
+}
+.remote-mcp-code {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+.remote-mcp-client {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding-block: 12px;
+  border-top: 1px solid var(--border);
+}
+.remote-mcp-client > div {
+  flex: 1 1 260px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.remote-mcp-settings h4[tabindex='-1']:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+.remote-mcp-settings [data-slot='code-block-copy-button'] {
+  min-height: 32px;
+}
+@media (pointer: coarse) {
+  .remote-mcp-settings [data-slot='button'],
+  .remote-mcp-stop-dialog [data-slot='button'] {
+    min-height: 44px;
+  }
+}

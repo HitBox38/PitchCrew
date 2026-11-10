@@ -6,6 +6,8 @@ let host: Awaited<ReturnType<typeof setup>>;
 let browser: Browser;
 let page: Page;
 const name = 'Experience-Engineering-Leadership-and-Project-Highlights-0123456789abcdef.md';
+// The explorer and tabs show note titles without the shared .md extension.
+const title = name.replace(/\.md$/, '').replace(/-/g, ' ');
 const folder = 'Background-and-professional-project-documentation';
 const quote = 'Led the fictional migration with a verified reduction in processing time.';
 const errors: string[] = [];
@@ -55,10 +57,10 @@ test.each([1440, 1000, 390])(
       if (await later.isVisible()) await later.click();
       const show = page.getByRole('button', { name: 'Show notes explorer', exact: true });
       if (await show.isVisible()) await show.click();
-      const note = page.getByRole('treeitem', { name, exact: true });
+      const note = page.getByRole('treeitem', { name: title, exact: true });
       await note.waitFor();
       await page.evaluate(() => document.fonts.ready);
-      for (const label of [folder, name]) {
+      for (const label of [folder, title]) {
         const item = page.getByRole('treeitem', { name: label, exact: true });
         const layout = await item.evaluate((element) => {
           const text = element.querySelector('span')!;
@@ -83,11 +85,11 @@ test.each([1440, 1000, 390])(
         expect(layout.bottom).toBeGreaterThanOrEqual(0);
         expect(layout.right).toBeGreaterThanOrEqual(0);
         expect(layout.menuOverflow).toBeLessThanOrEqual(0);
-        if (width > 390 || label === name) expect(layout.truncated).toBe(true);
-        expect(await item.getAttribute('title')).toBe(label);
+        if (width > 390 || label === title) expect(layout.truncated).toBe(true);
+        expect(await item.getAttribute('title')).toBe(label === title ? name : label);
       }
       await note.focus();
-      const actions = page.getByRole('button', { name: `Actions for ${name}`, exact: true });
+      const actions = page.getByRole('button', { name: `Actions for ${title}`, exact: true });
       expect(await actions.evaluate((element) => getComputedStyle(element).opacity)).toBe('1');
       await actions.click();
       await page.getByRole('menuitem', { name: 'Move to folder…', exact: true }).waitFor();
@@ -95,9 +97,9 @@ test.each([1440, 1000, 390])(
       await note.focus();
       await page.keyboard.press('Enter');
       await page.getByRole('textbox', { name: 'Profile Markdown', exact: true }).waitFor();
-      expect(await page.getByRole('textbox', { name: 'Profile Markdown' }).inputValue()).toContain(
-        'Fictional career background',
-      );
+      await expect
+        .poll(() => page.getByRole('textbox', { name: 'Profile Markdown' }).innerText())
+        .toContain('Fictional career background');
       expect(errors).toEqual([]);
     } finally {
       await page.close();
@@ -120,10 +122,12 @@ test('the document fills the available workspace on a wide desktop', async () =>
   });
   try {
     await openWorkspace(page);
+    // The editor loads lazily; measure once it is there.
+    await page.locator('.profile-body .cm-editor').waitFor();
     const layout = await page.locator('.profile-body').evaluate((element) => {
       const frame = element.getBoundingClientRect();
       const document = element.querySelector('.profile-document')!.getBoundingClientRect();
-      const editor = element.querySelector('textarea')!.getBoundingClientRect();
+      const editor = element.querySelector('.cm-editor')!.getBoundingClientRect();
       return {
         rightGap: frame.right - document.right,
         bottomGap: frame.bottom - document.bottom,
@@ -148,7 +152,7 @@ test.each([390, 768])('opening another note reveals its active tab at %ipx', asy
     await openWorkspace(page);
     const show = page.getByRole('button', { name: 'Show notes explorer', exact: true });
     if (await show.isVisible()) await show.click();
-    await page.getByRole('treeitem', { name: 'Next-note.md', exact: true }).click();
+    await page.getByRole('treeitem', { name: 'Next note', exact: true }).click();
     await expect
       .poll(() =>
         page.locator('.profile-document-tabs').evaluate((lane) => {
@@ -158,9 +162,9 @@ test.each([390, 768])('opening another note reveals its active tab at %ipx', asy
         }),
       )
       .toBe(true);
-    expect(await page.getByRole('textbox', { name: 'Profile Markdown' }).inputValue()).toContain(
-      'Another fictional note',
-    );
+    await expect
+      .poll(() => page.getByRole('textbox', { name: 'Profile Markdown' }).innerText())
+      .toContain('Another fictional note');
   } finally {
     await page.close();
   }
@@ -205,7 +209,8 @@ test('a touch tablet resize handle leaves the editor controls reachable', async 
   try {
     await openWorkspace(page);
     expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches)).toBe(true);
-    await page.getByRole('button', { name: 'Show notes explorer', exact: true }).click();
+    // A 1000px window opens the explorer by default.
+    await page.getByRole('button', { name: 'Hide notes explorer', exact: true }).waitFor();
     const handle = page.getByRole('separator', { name: 'Resize notes explorer', exact: true });
     const handleBounds = await handle.boundingBox();
     const documentBounds = await page.locator('.profile-document').boundingBox();
@@ -241,20 +246,25 @@ test.each([390, 1000, 1920])(
       await openWorkspace(page);
       const show = page.getByRole('button', { name: 'Show notes explorer', exact: true });
       if (await show.isVisible()) await show.click();
-      await page.getByRole('treeitem', { name, exact: true }).click();
+      await page.getByRole('treeitem', { name: title, exact: true }).click();
       await page.getByRole('tab', { name: 'Preview', exact: true }).click();
       await page.getByRole('button', { name: 'Cited in 1 packet', exact: true }).click();
       await page.getByRole('button', { name: quote, exact: true }).click();
       const editor = page.getByRole('textbox', { name: 'Profile Markdown', exact: true });
+      // Revealing a quote switches to Write, selects and marks the exact line (⌘K on that
+      // selection still opens the command palette) and scrolls it into view.
       await expect
         .poll(() =>
-          editor.evaluate((element: HTMLTextAreaElement) => ({
-            focused: document.activeElement === element,
-            selected: element.value.slice(element.selectionStart, element.selectionEnd),
-            scrolled: element.scrollTop > 0,
+          editor.evaluate((element) => ({
+            focused: element.contains(document.activeElement),
+            marked: [...element.querySelectorAll('.cm-md-revealed')]
+              .map((mark) => mark.textContent)
+              .join(''),
+            selected: document.getSelection()?.toString(),
+            scrolled: element.closest('.cm-scroller')!.scrollTop > 0,
           })),
         )
-        .toEqual({ focused: true, selected: quote, scrolled: true });
+        .toEqual({ focused: true, marked: quote, selected: quote, scrolled: true });
       await expect.poll(() => page.locator('.profile-cited-popover').isVisible()).toBe(false);
     } finally {
       await page.close();
@@ -262,30 +272,34 @@ test.each([390, 1000, 1920])(
   },
 );
 
-test('a long save error and citations keep Save reachable on a phone', async () => {
+test('a long save error and citations keep Retry reachable on a phone', async () => {
   const page = await browser.newPage({
     viewport: { width: 390, height: 844 },
     reducedMotion: 'reduce',
   });
   try {
     await openWorkspace(page);
-    await page.getByRole('treeitem', { name, exact: true }).click();
-    const editor = page.getByRole('textbox', { name: 'Profile Markdown', exact: true });
-    await editor.fill(`${quote}\nEdited draft.`);
+    const show = page.getByRole('button', { name: 'Show notes explorer', exact: true });
+    if (await show.isVisible()) await show.click();
+    await page.getByRole('treeitem', { name: title, exact: true }).click();
     await page.route('**/api/profile', (route) =>
       route.fulfill({
-        status: 409,
+        status: 500,
         contentType: 'application/json',
         body: JSON.stringify({
           error:
-            'The profile changed during this save. Review the current source update before trying again.',
+            'The profile folder could not be written. Check the disk and its permissions before trying again.',
         }),
       }),
     );
+    const editor = page.getByRole('textbox', { name: 'Profile Markdown', exact: true });
+    await editor.click();
+    await page.keyboard.type(' Edited draft.');
+    // Autosave fails visibly; the draft stays and Retry saves it on request.
+    await page.locator('.profile-save-state[data-tone="error"]').waitFor();
     const save = page.getByRole('button', { name: 'Save note', exact: true });
-    await save.click();
-    await page.locator('.profile-save-error').waitFor();
     const bounds = await save.boundingBox();
+    expect(await save.textContent()).toContain('Retry');
     expect(bounds!.x).toBeGreaterThanOrEqual(0);
     expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(390);
     expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(844);

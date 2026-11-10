@@ -15,8 +15,12 @@ export const useProfileNotes = ({
       source.files.map((file) => [file.name, file.path] as const),
     ),
   );
+  // Search sees open drafts, not only what is saved.
+  const drafts = new Map(documents.map((document) => [document.saved.name, document.content]));
   const notes = [
-    ...data.profile,
+    ...data.profile.map((note) =>
+      drafts.has(note.name) ? { ...note, content: drafts.get(note.name)! } : note,
+    ),
     ...documents
       .filter((document) => !data.profile.some((note) => note.name === document.saved.name))
       .map((document) => ({ name: document.saved.name, content: document.content })),
@@ -57,6 +61,7 @@ export const useProfileNotes = ({
       .join(' / ');
   };
   return {
+    folderOf: (name: string) => noteFolder(name, data.profileOrganization, paths),
     query,
     setQuery,
     paths,

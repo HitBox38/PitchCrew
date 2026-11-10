@@ -3,6 +3,7 @@ import {
   applicationQuery,
   bulkDeleteJobsInput,
   bulkMoveJobsInput,
+  reviewFeedbackInput,
   states,
   updateJobInput,
 } from '@pitchcrew/core';
@@ -65,11 +66,12 @@ export const registerJobTools = (server: McpServer, call: AgentCall) => {
     {
       title: 'Change job status',
       description:
-        'Requires manageWorkflow. Move a board job from any status to any status, including terminal statuses. Supply cardId from pitchcrew_list_jobs, or omit it to use the attached job. Records the reason and invalidates unused packet/browser approvals. This changes local board status only; it does not run agents, approve/export packets or submit externally. Wait for active workflow runs to finish.',
+        "Requires manageWorkflow. Move a board job from any status to any status, including terminal statuses. Supply cardId from pitchcrew_list_jobs, or omit it to use the attached job. Records the reason and invalidates unused packet/browser approvals. This changes local board status only; it does not run agents, approve/export packets or submit externally. Wait for active workflow runs to finish. Reviewer seat only: when requesting changes on the attached job's current packet, pass review.feedback with the blocking corrections the Writer must make and optional review.suggestions for non-blocking advice; they are saved for the next Writer revision against the same confirmed brief. This cannot approve a packet.",
       inputSchema: {
         cardId: z.uuid().optional(),
         state: z.enum(states),
         reason: z.string().trim().min(1).max(2000),
+        review: reviewFeedbackInput.optional(),
       },
       annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
     },

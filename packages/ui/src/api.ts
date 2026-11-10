@@ -64,6 +64,7 @@ export const api = (async <T>(
           typeof data.error === 'string'
           ? data.error
           : undefined,
+        { body: data },
       );
     if (tracked) analytics.capture(tracked.event, tracked.properties);
     result = 'success';

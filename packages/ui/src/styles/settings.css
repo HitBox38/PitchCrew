@@ -708,6 +708,54 @@
   gap: 4px;
   padding-top: 8px;
 }
+.external-mcp-steps {
+  display: grid;
+  gap: 24px;
+  margin: 0;
+  padding-left: 24px;
+  list-style: decimal;
+}
+.external-mcp-steps > li {
+  min-width: 0;
+  padding-left: 4px;
+}
+.external-mcp-steps > li::marker {
+  color: var(--muted);
+  font-size: var(--text-label);
+}
+.external-mcp-steps h4 {
+  margin-bottom: 8px;
+}
+.external-mcp-steps .settings-preferences {
+  padding-inline: 0;
+}
+.external-mcp-verification > output {
+  flex: 1 1 220px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.external-mcp-steps [data-slot='code-block-copy-button'] {
+  min-width: 32px;
+  min-height: 32px;
+}
+@media (pointer: coarse) {
+  .external-mcp-steps [role='switch'] {
+    position: relative;
+  }
+  .external-mcp-steps [role='switch']::after {
+    content: '';
+    position: absolute;
+    inset: -10px 0;
+  }
+  .external-mcp-steps [data-slot='code-block-copy-button'],
+  .external-mcp-steps [data-slot='accordion-trigger'] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+.external-mcp-verification p {
+  margin: 4px 0 0;
+}
 .settings-callout {
   display: flex;
   flex-wrap: wrap;
