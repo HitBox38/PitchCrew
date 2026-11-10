@@ -50,6 +50,7 @@ it('reuses compact runs and refetches only runs named by newer events', () => {
     expect(() =>
       board.db.transaction(() => {
         board.record('run', run('rolled-back'), 'system', 'Fixture');
+        expect(workspaceRuns(board).some((r) => r.id === 'rolled-back')).toBe(true);
         throw new Error('rollback');
       })(),
     ).toThrow('rollback');

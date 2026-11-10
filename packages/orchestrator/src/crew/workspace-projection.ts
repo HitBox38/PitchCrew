@@ -35,10 +35,12 @@ const compactRunCaches = new WeakMap<Board, CompactRunCache>();
  * projection's insertion (rowid) order.
  */
 export const workspaceRuns = (board: Board): Run[] => {
+  // An enclosing transaction may still roll back; never cache its uncommitted projection.
+  const cacheable = !board.db.inTransaction;
   const runs = board.db.transaction(() => {
     const cursor =
       (board.db.prepare('SELECT max(id) AS id FROM events').get() as { id: number | null }).id ?? 0;
-    const cache = compactRunCaches.get(board);
+    const cache = cacheable ? compactRunCaches.get(board) : undefined;
     if (cache?.cursor === cursor) return cache.runs;
     const rows = (sql: string, ...args: unknown[]) =>
       board.db.prepare(sql).all(...args) as (CompactRunRow & { id: string })[];
@@ -57,7 +59,7 @@ export const workspaceRuns = (board: Board): Run[] => {
         if (row) runs.set(id, compactRunRow(row));
         else runs.delete(id);
       }
-    compactRunCaches.set(board, { cursor, runs });
+    if (cacheable) compactRunCaches.set(board, { cursor, runs });
     return runs;
   })();
   // Callers own the returned runs; the cache keeps its own copies.
