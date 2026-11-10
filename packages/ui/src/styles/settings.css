@@ -121,9 +121,10 @@
   background: rgb(var(--tint) / 0.045);
 }
 .settings-tab[aria-selected='true'] {
-  background: var(--clay-fill);
-  box-shadow: var(--clay);
   color: var(--ink);
+}
+.settings-tabs [data-slot='tabs-indicator'] {
+  border-radius: 10px;
 }
 .settings-tab[aria-selected='true'] .settings-tab-label {
   font-weight: 600;
@@ -467,6 +468,9 @@
   background: var(--clay-fill);
   box-shadow: var(--clay);
   color: var(--ink);
+}
+.settings-segment [data-slot='tabs-indicator'] {
+  border-radius: 8px;
 }
 .settings-segment-option:focus-visible {
   outline: 2px solid var(--primary);

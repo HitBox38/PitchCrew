@@ -113,6 +113,23 @@
   height: 0;
   opacity: 0;
 }
+/* Accordion panels morph between 0 and their natural height. Feature styles pad the panel
+   itself, so height interpolates to auto (Chromium) rather than to Base UI's measured
+   variable, and the vertical padding collapses with it. Elsewhere the height snaps. */
+[data-slot='accordion-content'] {
+  interpolate-size: allow-keywords;
+  opacity: 1;
+  transition:
+    height 200ms var(--ease),
+    padding-block 200ms var(--ease),
+    opacity 200ms var(--ease);
+}
+[data-slot='accordion-content']:is([data-starting-style], [data-ending-style]) {
+  height: 0;
+  opacity: 0;
+  /* Important only in these momentary states: feature padding rules are more specific. */
+  padding-block: 0 !important;
+}
 /* Squash, not shrink: pressed clay spreads sideways as it flattens, then springs back. */
 [data-slot='switch']:active:not([data-disabled]) [data-slot='switch-thumb'] {
   scale: 1.2 0.88;
@@ -137,19 +154,30 @@
     left 280ms var(--ease-in-out),
     right 280ms var(--ease-in-out),
     top 280ms var(--ease-in-out),
-    height 280ms var(--ease-in-out);
+    bottom 280ms var(--ease-in-out);
 }
+/* Durations follow the transition order: left, right, top, bottom. */
 [data-slot='tabs-indicator'][data-activation-direction='right'] {
   transition-duration: 280ms, 200ms, 280ms, 280ms;
 }
 [data-slot='tabs-indicator'][data-activation-direction='left'] {
   transition-duration: 200ms, 280ms, 280ms, 280ms;
 }
+[data-slot='tabs-indicator'][data-activation-direction='down'] {
+  transition-duration: 280ms, 280ms, 280ms, 200ms;
+}
+[data-slot='tabs-indicator'][data-activation-direction='up'] {
+  transition-duration: 280ms, 280ms, 200ms, 280ms;
+}
 @media (prefers-reduced-motion: reduce) {
   [data-slot='button'],
   [data-slot='sidebar-container'],
   [data-slot='sidebar-gap'],
-  :is([data-slot='collapsible-content'], [data-slot='trace-collapsible-content']) {
+  :is(
+    [data-slot='collapsible-content'],
+    [data-slot='trace-collapsible-content'],
+    [data-slot='accordion-content']
+  ) {
     transition: none;
   }
   [data-slot='button']:active:not(:disabled):not([data-disabled]) {

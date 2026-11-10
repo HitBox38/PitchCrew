@@ -90,18 +90,22 @@
   position: relative;
   isolation: isolate;
 }
-[data-slot='tabs-list']:has(> [data-slot='tabs-indicator']) > [data-slot='tabs-trigger'] {
+/* Only the active tab gives up its fill; others keep their hover tint. */
+[data-slot='tabs-list']:has(> [data-slot='tabs-indicator'])
+  [data-slot='tabs-trigger'][data-active] {
   background: transparent;
   box-shadow: none;
+}
+/* The line variant's underline sits outside each tab and would inflate the list's scroll size,
+   which Base UI uses for the pebble's right and bottom edges. */
+[data-slot='tabs-list']:has(> [data-slot='tabs-indicator']) [data-slot='tabs-trigger']::after {
+  display: none;
 }
 :where([data-slot='tabs-indicator']) {
   position: absolute;
   z-index: -1;
-  top: var(--active-tab-top);
-  right: var(--active-tab-right);
-  left: var(--active-tab-left);
-  /* Height, not bottom: a list whose content overflows vertically reports a taller scrollHeight. */
-  height: var(--active-tab-height);
+  inset: var(--active-tab-top) var(--active-tab-right) var(--active-tab-bottom)
+    var(--active-tab-left);
   border-radius: 7px;
   background: var(--clay-fill);
   box-shadow: var(--clay);
