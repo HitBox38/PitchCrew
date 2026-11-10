@@ -47,7 +47,10 @@ export const CodeBlockCopyButton = ({
         }}
         {...props}
       >
-        {copied ? <CheckIcon /> : <CopyIcon />}
+        <span data-slot="icon-swap" data-swapped={copied || undefined} aria-hidden="true">
+          <CopyIcon />
+          <CheckIcon />
+        </span>
       </Button>
       <span aria-live="polite" className={failed ? 'primitive:text-xs' : 'primitive:sr-only'}>
         {failed ? 'Could not copy. Select the text and copy it manually.' : copied ? 'Copied' : ''}

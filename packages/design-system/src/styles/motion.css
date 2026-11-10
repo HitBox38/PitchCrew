@@ -147,6 +147,25 @@
 [data-slot='checkbox-indicator'][data-starting-style] svg {
   clip-path: inset(0 100% 0 0);
 }
+/* Icon swap: two stacked icons, the first at rest and the second once data-swapped is set
+   (Copy → Copied). One shape blurs down as the other swells in, so it reads as one morph. */
+[data-slot='icon-swap'] {
+  display: inline-grid;
+  flex: none;
+}
+[data-slot='icon-swap'] > * {
+  grid-area: 1 / 1;
+  transition:
+    opacity 200ms var(--ease),
+    scale 200ms var(--ease),
+    filter 200ms var(--ease);
+}
+[data-slot='icon-swap']:not([data-swapped]) > :last-child,
+[data-slot='icon-swap'][data-swapped] > :first-child {
+  opacity: 0;
+  scale: 0.5;
+  filter: blur(4px);
+}
 /* The pebble's edges travel separately: the leading edge leaves first and the trailing edge
    catches up, so it stretches like soft clay instead of sliding as a rigid block. */
 [data-slot='tabs-indicator'] {
@@ -228,6 +247,10 @@
   [data-slot='checkbox-indicator'] svg,
   [data-slot='tabs-indicator'] {
     transition: none;
+  }
+  /* The swap stays a crossfade; the hidden icon's scale and blur change while it is invisible. */
+  [data-slot='icon-swap'] > * {
+    transition: opacity 120ms var(--ease);
   }
   [data-slot='message-scroller-button'] {
     transition: opacity 120ms var(--ease);

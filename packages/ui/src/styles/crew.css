@@ -164,8 +164,15 @@
     inset -4px -6px 10px rgb(0 0 0 / 0.22);
 }
 .crew-pebble[data-live] > .role-avatar {
+  --breathe: 1.04;
   outline: 3px solid color-mix(in srgb, var(--tone) 22%, transparent);
   outline-offset: 3px;
+  animation: clay-breathe 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .crew-pebble[data-live] > .role-avatar {
+    animation: none;
+  }
 }
 :root[data-theme='dark'] .crew-pebble > .role-avatar {
   background: radial-gradient(
