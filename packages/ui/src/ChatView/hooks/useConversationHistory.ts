@@ -4,6 +4,7 @@ import { transcriptItems, type TranscriptItem } from '@/ChatTurn/helpers.ts';
 import type { ConversationHistoryPage } from '@pitchcrew/core';
 import type { MessageTranscriptProps } from '../types.ts';
 import { keepShownItems, liveHistoryItems } from '../remote-history.ts';
+import { shareEqual } from '@/lib/share-equal.ts';
 import { useHistoryWindow } from './useHistoryWindow.ts';
 
 export const useConversationHistory = (props: MessageTranscriptProps) => {
@@ -27,6 +28,8 @@ export const useConversationHistory = (props: MessageTranscriptProps) => {
     thread: string;
     anchor: string | null;
     revision: string | undefined;
+    /** Counts fetches: a refetched page equal to the last keeps its identity, not its fetch. */
+    fetch: number;
     page: ConversationHistoryPage;
   } | null>(null);
   const [error, setError] = useState('');
@@ -45,7 +48,14 @@ export const useConversationHistory = (props: MessageTranscriptProps) => {
       .then((page) => {
         if (!controller.signal.aborted) {
           setError('');
-          setLoaded({ thread, anchor, revision, page });
+          // A refetched page keeps the entries it shares with the last one, unchanged.
+          setLoaded((last) => ({
+            thread,
+            anchor,
+            revision,
+            fetch: (last?.fetch ?? 0) + 1,
+            page: shareEqual(last?.page, page),
+          }));
         }
       })
       .catch((failure) => {
@@ -79,18 +89,18 @@ export const useConversationHistory = (props: MessageTranscriptProps) => {
   // What the latest page showed, adjusted while rendering whenever the live entries change.
   const [shown, setShown] = useState<{
     thread: string;
-    page: ConversationHistoryPage;
+    fetch: number | undefined;
     live: TranscriptItem[];
     items: TranscriptItem[];
   } | null>(null);
   let current = live ? shown : null;
-  if (saved && live && shown?.live !== live) {
+  if (saved && live && (shown?.live !== live || shown.fetch !== loaded?.fetch)) {
     const previous = shown?.thread === thread ? shown : null;
     // A page fetched before the latest change cannot speak for what left the live data since.
-    const untilRefetch = previous?.page === saved || loaded?.revision !== revision;
+    const untilRefetch = previous?.fetch === loaded?.fetch || loaded?.revision !== revision;
     current = {
       thread,
-      page: saved,
+      fetch: loaded?.fetch,
       live,
       items: keepShownItems(previous?.items ?? [], live, untilRefetch),
     };

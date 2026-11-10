@@ -12,7 +12,8 @@
   flex-shrink: 0;
   padding: 10px 0 12px 8px;
 }
-.workspace-title-fact:not(:has(> *)) {
+/* :empty rather than :not(:has(> *)), which Chrome rechecks after every change on the page. */
+.workspace-title-fact:empty {
   display: none;
 }
 .workspace-title-fact:has(> [data-page-fact]) > .workspace-default-fact {

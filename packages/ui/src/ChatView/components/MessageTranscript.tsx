@@ -1,16 +1,14 @@
-import { TranscriptMessage } from './TranscriptMessage.tsx';
-import { JobEventChips } from './JobEventChips.tsx';
-import { ChatTurn } from '@/ChatTurn/index.tsx';
+import { TranscriptEntry } from './TranscriptEntry.tsx';
 import type { TranscriptItem } from '@/ChatTurn/helpers.ts';
 import type { ChatMessage } from '@pitchcrew/core';
-import { messageDay } from '@/ChatView/helpers.ts';
 import type { MessageTranscriptProps } from '@/ChatView/types.ts';
 import { useTranscriptJobEvents } from '../hooks/useTranscriptJobEvents.ts';
 import { useState } from 'react';
 import { AnimatePresence } from 'motion/react';
-import { MessageScrollerItem } from '@pitchcrew/design-system/message-scroller';
 import { useOpenQuestionId } from '@/UserQuestions/QuestionDockProvider.tsx';
 import { usePendingSend } from '../hooks/usePendingSend.ts';
+import { usePinSent } from '../hooks/usePinSent.ts';
+import { useStableHandlers } from '../hooks/useStableHandlers.ts';
 import { transcriptKey } from '../send-flight.ts';
 
 /** A reply directly under its own turn; both hang on one thread. */
@@ -45,51 +43,34 @@ export const MessageTranscript = ({
       item.message.userInput.id !== openQuestionId,
   );
   const items = usePendingSend(props.thread, shownItems, props.data.chatRequests, edges.newest);
+  usePinSent(items, opened);
   const replyingRuns = new Set(props.data.streamingMessages.map((message) => message.runId));
   const jobEvents = useTranscriptJobEvents(props.data, props.thread, items, edges, (index) =>
     continues(items, index),
   );
+  const handlers = useStableHandlers(props.onOpenCard, props.answerQuestion);
   return (
     <AnimatePresence initial={false}>
       {items.map((item, index) => (
-        <MessageScrollerItem
+        <TranscriptEntry
           key={transcriptKey(item.id)}
-          messageId={item.id}
-          scrollAnchor={
+          {...props}
+          {...handlers}
+          item={item}
+          anchor={
             item.kind === 'message' &&
             item.message.from === 'user' &&
             !opened.has(transcriptKey(item.id))
           }
-          className="flex flex-col gap-6"
-        >
-          {index === 0 ||
-          new Date(items[index - 1].createdAt).toDateString() !==
-            new Date(item.createdAt).toDateString() ? (
-            <div className="chat-day">
-              <span>{messageDay(item.createdAt)}</span>
-            </div>
-          ) : null}
-          {jobEvents.get(item.id)?.before ? (
-            <JobEventChips events={jobEvents.get(item.id)!.before!} name={props.name} />
-          ) : null}
-          {item.kind === 'turn' ? (
-            <ChatTurn
-              run={item.run}
-              name={props.name(item.run.roleId)}
-              replying={replyingRuns.has(item.run.id)}
-            />
-          ) : (
-            <TranscriptMessage
-              {...props}
-              message={item.message}
-              timestamp={item.createdAt}
-              continued={continues(items, index)}
-            />
-          )}
-          {jobEvents.get(item.id)?.after ? (
-            <JobEventChips events={jobEvents.get(item.id)!.after!} name={props.name} />
-          ) : null}
-        </MessageScrollerItem>
+          day={
+            index === 0 ||
+            new Date(items[index - 1].createdAt).toDateString() !==
+              new Date(item.createdAt).toDateString()
+          }
+          events={jobEvents.get(item.id)}
+          continued={continues(items, index)}
+          replying={item.kind === 'turn' && replyingRuns.has(item.run.id)}
+        />
       ))}
     </AnimatePresence>
   );

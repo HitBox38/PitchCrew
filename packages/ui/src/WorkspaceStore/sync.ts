@@ -4,12 +4,14 @@ import { subscribeChatStream } from '@/chat-stream.ts';
 import type { ChatStreamState, Snapshot } from '@pitchcrew/core';
 import type { WorkspaceSet } from './types.ts';
 import { reconcileComposerReceipts } from '@/ChatView/composer-receipts.ts';
+import { shareEqual } from '@/lib/share-equal.ts';
 
 export const createWorkspaceSync = (set: WorkspaceSet) => {
   let chatState: ChatStreamState | null = null;
   let stopSync: (() => void) | undefined;
+  // Unchanged parts keep their identity, so views that did not change skip rendering.
   const applySnapshot = (snapshot: Snapshot) =>
-    set({ data: mergeChatState(snapshot, chatState), error: '' });
+    set(({ data }) => ({ data: shareEqual(data, mergeChatState(snapshot, chatState)), error: '' }));
   const startSync = () => {
     if (stopSync) return stopSync;
     let active = true;
@@ -26,7 +28,7 @@ export const createWorkspaceSync = (set: WorkspaceSet) => {
           void reconcileComposerReceipts();
         }
         chatState = state;
-        set(({ data }) => ({ data: data ? mergeChatState(data, state) : data }));
+        set(({ data }) => ({ data: data ? shareEqual(data, mergeChatState(data, state)) : data }));
       },
       () => {
         if (active) {
