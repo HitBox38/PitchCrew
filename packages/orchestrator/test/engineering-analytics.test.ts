@@ -89,6 +89,30 @@ describe('content-free engineering analytics', () => {
       ),
     ).toEqual([]);
   });
+  it('classifies the current sharded test and Bun integration jobs', () => {
+    const jobClasses = (names: string[]) =>
+      runEvents(
+        run,
+        names.map((name, index) => ({ ...job, id: index + 1, name, steps: [] })),
+      ).map((item) => item.properties.job);
+    expect(
+      jobClasses([
+        'Tests (Node 22, shard 1/2)',
+        'Tests (Node 22, shard 2/2)',
+        'Tests (Node 24, shard 1/2)',
+        'Tests (Node 24, shard 2/2)',
+        'Bun runtime integration',
+      ]).slice(1),
+    ).toEqual(['tests_node22', 'tests_node22', 'tests_node24', 'tests_node24', 'bun_runtime']);
+    const [, , step] = runEvents(run, [
+      {
+        ...job,
+        name: 'Bun runtime integration',
+        steps: [{ ...job.steps[0], name: 'Verify the Bun daemon, MCP and bounded helpers' }],
+      },
+    ]);
+    expect(step?.properties.step).toBe('bun_runtime_tests');
+  });
   it('treats prototype property names as unknown classes rather than allowlisted labels', () => {
     const events = runEvents(run, [
       { ...job, name: 'constructor', steps: [{ ...job.steps[0], name: 'toString' }] },
