@@ -41,14 +41,16 @@
     [data-slot='checkbox'],
     [data-sidebar='rail'],
     .skip-link,
-    .chat-reference
+    .chat-reference,
+    [data-streamdown='link']
   ) {
     min-height: 44px !important;
   }
   :is(button, [data-slot='button'], .icon-button, .ui-segment > a):not(
     [data-slot='switch'],
     [data-slot='checkbox'],
-    [data-sidebar='rail']
+    [data-sidebar='rail'],
+    [data-streamdown='link']
   ) {
     min-width: 44px !important;
   }

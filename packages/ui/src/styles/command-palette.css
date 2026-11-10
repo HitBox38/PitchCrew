@@ -151,3 +151,10 @@
     min-height: 44px;
   }
 }
+
+/* The matched words of a note found by its text, tinted like the editor's find. */
+.command-context mark {
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--primary) 18%, transparent);
+  color: var(--ink);
+}

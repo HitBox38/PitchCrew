@@ -2,6 +2,12 @@ import { chromium, type Browser, type BrowserContext, type Page } from 'playwrig
 import { afterAll, afterEach, beforeAll, beforeEach, expect, test, vi } from 'vitest';
 import type { ProfileMaintenanceProposal, ProfileSource, Snapshot } from '@pitchcrew/core';
 import { openMorePage } from './helpers/navigation.ts';
+import {
+  disableAutosave,
+  editorSelection,
+  editorValue,
+  selectInEditor,
+} from './helpers/markdown-editor.ts';
 import { cleanup, setup } from './helpers/daemon.ts';
 import { createProposal, importSource, sourceFixture } from './helpers/profile-sources.ts';
 const openSources = async () => {
@@ -57,6 +63,8 @@ beforeEach(async () => {
   remote = sourceFixture(host);
   context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   page = await context.newPage();
+  // These scenarios keep drafts unsaved on purpose, as with autosave turned off.
+  await disableAutosave(page);
   page.setDefaultTimeout(10000);
   page.on('pageerror', (error) => errors.push(error.message));
 }, 60000);
@@ -75,8 +83,12 @@ test('direct Profile navigation loads source paths without Sources and preserves
   remote.paths.push('about-me/Projects/tool.md');
   const imported = await importSource(host);
   const before = (await host.request<Snapshot>('/snapshot')).result.profile;
-  const active = imported.files.find((file) => file.name === before[0].name)!;
-  const label = active.path.split('/').at(-1)!;
+  // Without a remembered session, Profile opens the first note by filename.
+  const first = [...before].sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { numeric: true }),
+  )[0];
+  const active = imported.files.find((file) => file.name === first.name)!;
+  const label = active.path.split('/').at(-1)!.replace(/\.md$/, '');
   const release = await deferred('**/api/profile/sources');
   await page.goto(`${host.daemon.url}/profile`, { waitUntil: 'domcontentloaded' });
   await page.getByRole('button', { name: 'Set up later', exact: true }).click();
@@ -91,13 +103,13 @@ test('direct Profile navigation loads source paths without Sources and preserves
     .getAttribute('id');
   // Keep the same editor DOM node, including focus and caret, when metadata arrives.
   await editor.evaluate((element) => element.setAttribute('data-draft-editor', 'original'));
-  await editor.evaluate((element: HTMLTextAreaElement) => element.setSelectionRange(5, 12));
+  await selectInEditor(editor, 5, 12);
   release();
   await explorer.getByRole('treeitem', { name: 'about-me', exact: true }).waitFor();
   await explorer.getByRole('treeitem', { name: 'Projects', exact: true }).waitFor();
-  expect(
-    await explorer.getByRole('treeitem', { name: /^tool.md/ }).getAttribute('aria-level'),
-  ).toBe('3');
+  expect(await explorer.getByRole('treeitem', { name: /^tool/ }).getAttribute('aria-level')).toBe(
+    '3',
+  );
   await explorer
     .getByRole('treeitem', { name: `${label}, unsaved changes`, exact: true })
     .waitFor();
@@ -108,15 +120,10 @@ test('direct Profile navigation loads source paths without Sources and preserves
   expect(await page.locator('.profile-save-path').textContent()).toContain(
     active.path.split('/').join(' / '),
   );
-  expect(await editor.inputValue()).toBe('# Unsaved draft while metadata loads');
+  expect(await editorValue(editor)).toBe('# Unsaved draft while metadata loads');
   expect(await editor.getAttribute('data-draft-editor')).toBe('original');
   expect(await editor.evaluate((element) => document.activeElement === element)).toBe(true);
-  expect(
-    await editor.evaluate((element: HTMLTextAreaElement) => [
-      element.selectionStart,
-      element.selectionEnd,
-    ]),
-  ).toEqual([5, 12]);
+  expect(await editorSelection(editor)).toEqual([5, 12]);
   expect(selected).toBeTruthy();
   expect(await page.locator('.profile-document-tab[aria-selected="true"]').getAttribute('id')).toBe(
     selected,
@@ -145,7 +152,7 @@ test('Profile loads metadata on client navigation and reloads it after navigatin
   await profileLink.click();
   await page.getByRole('status').filter({ hasText: 'Loading note information' }).waitFor();
   release();
-  await page.getByRole('treeitem', { name: 'background.md', exact: true }).waitFor();
+  await page.getByRole('treeitem', { name: 'background', exact: true }).waitFor();
   await page
     .locator('.profile-origin')
     .getByRole('link', { name: /about-me\/background.md/ })
@@ -176,11 +183,9 @@ test('Profile metadata failures offer retry without showing fallback paths or re
   await editor.fill('# Draft survives retry');
   await page.unroute('**/api/profile/sources');
   await explorer.getByRole('button', { name: 'Retry loading note information' }).click();
-  await page
-    .getByRole('treeitem', { name: 'background.md, unsaved changes', exact: true })
-    .waitFor();
+  await page.getByRole('treeitem', { name: 'background, unsaved changes', exact: true }).waitFor();
   await page.locator('.profile-origin').waitFor();
-  expect(await editor.inputValue()).toBe('# Draft survives retry');
+  expect(await editorValue(editor)).toBe('# Draft survives retry');
   expect(await dialog().count()).toBe(0);
 });
 
@@ -275,7 +280,7 @@ test('source reads and imports survive closing and navigation while retaining th
   expect(await dialog().isVisible()).toBe(true);
   await dialog().getByRole('button', { name: 'Open note', exact: true }).click();
   await expect.poll(() => sources().count()).toBe(0);
-  expect(await page.getByRole('textbox', { name: 'Profile Markdown' }).inputValue()).toBe(
+  expect(await editorValue(page.getByRole('textbox', { name: 'Profile Markdown' }))).toBe(
     note.content,
   );
 }, 30000);
@@ -489,7 +494,15 @@ test('long source lists and focused setup fit a narrow viewport with reduced mot
 test('an import still protects unsaved Profile drafts before writing notes', async () => {
   await openSources();
   await dialog().getByRole('button', { name: 'Close', exact: true }).click();
-  await page.getByRole('textbox', { name: 'Profile Markdown' }).fill('# Unsaved local work');
+  // An empty profile opens nothing; a new note is named first and stays unsaved here.
+  await page
+    .locator('.profile-empty')
+    .getByRole('button', { name: 'New note', exact: true })
+    .click();
+  const create = page.getByRole('dialog', { name: 'New note' });
+  await create.getByRole('textbox', { name: 'Name' }).fill('Unsaved local work');
+  await create.getByRole('button', { name: 'Create note', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Profile Markdown' }).waitFor();
   const before = (await host.request<Snapshot>('/snapshot')).result.profile;
   await page.getByRole('button', { name: /^Sources/ }).click();
   await githubNotes();
