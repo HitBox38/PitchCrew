@@ -13,7 +13,7 @@ const passing = () => ({
   assessment: assessment(),
 });
 it('keeps blockers authoritative even when a model incorrectly sets passed=true', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24551);
+  const { daemon, request, card } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {
     if (context.role.workflow === 'writer') return original(context);
@@ -36,7 +36,7 @@ it('keeps blockers authoritative even when a model incorrectly sets passed=true'
   expect(daemon.service.board.list<DeepReview>('deep_review')[0]!.status).toBe('needs_changes');
 });
 it('rejects stale packet results without overwriting a concurrent edit', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24552);
+  const { daemon, request, card } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {
     if (context.role.workflow === 'writer') return original(context);
@@ -62,7 +62,7 @@ it('rejects stale packet results without overwriting a concurrent edit', async (
   );
 });
 it('uses only explicitly configured model alternatives and preserves specialist attribution', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24553);
+  const { daemon, request, card } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   let inherited = '';
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {
@@ -125,7 +125,7 @@ it('uses only explicitly configured model alternatives and preserves specialist 
   ).toEqual(['impact']);
 });
 it('rechecks current delegation permission instead of relying on the starting role snapshot', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24554);
+  const { daemon, request, card } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {
     if (context.role.workflow === 'writer') return original(context);
@@ -152,7 +152,7 @@ it('rechecks current delegation permission instead of relying on the starting ro
   expect(daemon.service.board.list('review_subagent')).toHaveLength(0);
 });
 it('retains reports through projection rebuild and fetches large prose only in report views for workspace clients', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24555);
+  const { daemon, request, card } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) =>
     context.role.workflow === 'writer' ? original(context) : passing(),
@@ -173,7 +173,7 @@ it('retains reports through projection rebuild and fetches large prose only in r
   expect(detail.result.report.originalResume).toContain('Built a React interface.');
 });
 it('deduplicates a native chat tool retry and ties its cancellation root to the originating request', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24556);
+  const { daemon, request, card } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) =>
     context.role.workflow === 'writer' ? original(context) : passing(),
@@ -203,7 +203,7 @@ it('deduplicates a native chat tool retry and ties its cancellation root to the 
   expect(daemon.service.board.list<DeepReview>('deep_review')).toHaveLength(1);
 });
 it('schedules all user-requested perspectives, including more than concurrent capacity, before parent synthesis', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24557);
+  const { daemon, request, card } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   const perspectives = ['screen', 'readiness', 'relevance', 'impact', 'collaboration'] as const;
   let running = 0;

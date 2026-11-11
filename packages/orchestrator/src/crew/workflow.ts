@@ -461,13 +461,15 @@ export const cancelRun = (context: CrewContext, id: string): void => {
   const parentId = reviewRun.deepReviewId
     ? (context.deepReviewExecutions.get(reviewRun.deepReviewId)?.runId ?? id)
     : id;
-  const queue = context.board
-    .list<import('@pitchcrew/core').WorkQueue>('work_queue')
-    .find((q) => q.id === runLane(context, reviewRun));
-  if (queue && !queue.id.startsWith('routine:'))
-    patchQueue(context, queue.id, { paused: true, pauseKind: 'user', reason: 'Paused by you.' });
+  // Check before pausing: a stale Stop must not leave the queue on hold with nothing running.
   const controller = context.controllers.get(parentId);
   if (!controller) throw new Error('This run is no longer active.');
+  const lane = runLane(context, reviewRun);
+  const queue = context.board
+    .list<import('@pitchcrew/core').WorkQueue>('work_queue')
+    .find((q) => q.id === lane);
+  if (queue && !queue.id.startsWith('routine:'))
+    patchQueue(context, queue.id, { paused: true, pauseKind: 'user', reason: 'Paused by you.' });
   controller.abort();
   const run = context.board.get<Run>('run', id);
   const rootRunId = run.rootRunId ?? run.id;

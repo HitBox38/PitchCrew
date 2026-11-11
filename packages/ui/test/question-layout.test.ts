@@ -25,7 +25,7 @@ beforeAll(async () => {
     .contexts()[0]
     .pages()[0]
     .setContent('<title>Fictional application</title><p>Application form fixture</p>');
-  host = await setup(23971, false, { browserLaunch: async () => driver });
+  host = await setup(false, { browserLaunch: async () => driver });
   const service = host.daemon.service;
   const role = service.board.get<Role>('role', 'writer');
   service.board.record(

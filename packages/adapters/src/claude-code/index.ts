@@ -1,9 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import type { ChatContext, RunContext, RuntimeAdapter } from '@pitchcrew/core';
 import { chatCli, detectCli, promptFor, runCli } from '../process.ts';
+import { withMcpConfigFile } from '../process/mcp-config.ts';
 import { claudeModelArgs, readClaudeModels } from './models.ts';
 
-const argsFor = (context: RunContext | ChatContext) => {
+const argsFor = (context: RunContext | ChatContext, mcpConfig: string) => {
   const args = [
     '-p',
     '--output-format',
@@ -20,8 +21,9 @@ const argsFor = (context: RunContext | ChatContext) => {
     'dontAsk',
     '--allowedTools',
     'mcp__pitchcrew__*',
+    // A file path keeps the scoped run token out of the process command line.
     '--mcp-config',
-    JSON.stringify({ mcpServers: { pitchcrew: context.mcp } }),
+    mcpConfig,
   ];
   if (!context.purpose && 'session' in context && context.session) {
     if (context.session.id) args.push('--resume', context.session.id);
@@ -35,6 +37,10 @@ const argsFor = (context: RunContext | ChatContext) => {
   if (context.role.reasoning) args.push('--effort', context.role.reasoning);
   return args;
 };
+const withClaudeMcpConfig = <T>(
+  context: RunContext | ChatContext,
+  use: (path: string) => Promise<T>,
+) => withMcpConfigFile(context.directory, { mcpServers: { pitchcrew: context.mcp } }, use);
 const extract = (event: Record<string, unknown>): string | null => {
   if (event.type === 'result' && typeof event.result === 'string') return event.result;
   return null;
@@ -71,6 +77,12 @@ export const claudeCode: RuntimeAdapter = {
   ],
   listModels: (signal) => readClaudeModels('claude', claudeModelArgs, signal),
   detect: () => detectCli('claude-code', 'claude'),
-  run: (context) => runCli('claude', argsFor(context), context, promptFor(context), extract),
-  chat: (context) => chatCli('claude', argsFor(context), context, extract),
+  run: (context) =>
+    withClaudeMcpConfig(context, (path) =>
+      runCli('claude', argsFor(context, path), context, promptFor(context), extract),
+    ),
+  chat: (context) =>
+    withClaudeMcpConfig(context, (path) =>
+      chatCli('claude', argsFor(context, path), context, extract),
+    ),
 };

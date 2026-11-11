@@ -86,13 +86,14 @@ export const historyGroups = (requests: ApprovalRequest[], now: Date) => {
   const groups: { label: string; requests: ApprovalRequest[] }[] = [];
   for (const request of requests) {
     const created = new Date(request.approval.createdAt);
-    const age = today - dayStart(created).getTime();
+    // Whole calendar days: across a clock change two local midnights are 23 or 25 hours apart.
+    const days = Math.round((today - dayStart(created).getTime()) / day);
     const label =
-      age <= 0
+      days <= 0
         ? 'Today'
-        : age <= day
+        : days === 1
           ? 'Yesterday'
-          : age < 7 * day
+          : days < 7
             ? 'Earlier this week'
             : created.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
     const last = groups.at(-1);

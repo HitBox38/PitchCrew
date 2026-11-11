@@ -37,7 +37,7 @@ const clientFor = async (context: RunContext, run: (client: Client) => Promise<v
 
 afterEach(cleanup);
 it('exposes distinct parent and child review tools over actual MCP stdio without granting native or crew tools', async () => {
-  const { request, card } = await deepReviewFixture(24531);
+  const { request, card } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   let checkedChild = false;
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {
@@ -131,7 +131,7 @@ it('exposes distinct parent and child review tools over actual MCP stdio without
   expect(checkedChild).toBe(true);
 });
 it('gives a parent deadline decision extension, diagnostic and application read tools over stdio', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24532);
+  const { daemon, request, card } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   let decided = false;
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {

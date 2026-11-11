@@ -2,7 +2,7 @@ import { QueueBusyError, reserveLaunch } from '../queue/admission.ts';
 import { ensureQueue } from '../queue/state.ts';
 import { randomUUID } from 'node:crypto';
 import { RuntimeHeldError } from '../../runtime-maintenance/availability.ts';
-import { assertConfirmedContext, digestPacket } from '@pitchcrew/board';
+import { assertConfirmedContext, digestPacket, runsWithStatus } from '@pitchcrew/board';
 import {
   deepReviewLifecycle,
   deepReviewOptionsSchema,
@@ -114,15 +114,12 @@ const startDeepReviewPrepared = async (
       context.profileWriting ||
       context.profileRevision !== profileRevision ||
       context.board.hasActiveRun(cardId) ||
-      context.board
-        .list<Run>('run')
-        .some(
-          (r) =>
-            r.status === 'running' &&
-            ((r.mode !== 'chat' && r.cardId === cardId) ||
-              (r.cardId === cardId &&
-                !(sourceThreadId && r.threadId === sourceThreadId && r.mode === 'chat'))),
-        ) ||
+      runsWithStatus(context.board, ['running']).some(
+        (r) =>
+          (r.mode !== 'chat' && r.cardId === cardId) ||
+          (r.cardId === cardId &&
+            !(sourceThreadId && r.threadId === sourceThreadId && r.mode === 'chat')),
+      ) ||
       [reviewer.id, writer.id].some((id) => context.configuring.has(id))
     )
       throw new Error('Wait for active application, agent or settings work to finish.');

@@ -6,6 +6,7 @@ export const PipelineReviews = ({ data, thread, name, working, action }: ChatWor
   const reviews = (data.pipelineReviews ?? []).filter(
     (review) =>
       thread === 'crew' ||
+      review.threadId === thread ||
       review.roleId === thread ||
       review.findings.some((finding) => finding.targetRoleId === thread),
   );

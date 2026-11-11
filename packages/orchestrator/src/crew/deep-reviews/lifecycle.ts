@@ -1,3 +1,4 @@
+import { runsForDeepReview } from '@pitchcrew/board';
 import type { Card, Run } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 import { drainConversationQueue, finishDelivery } from '../conversation-queue.ts';
@@ -115,9 +116,9 @@ export const executeDeepReview = async (context: CrewContext, live: LiveDeepRevi
           cardId,
           run.id,
         );
-      for (const reservation of context.board
-        .list<Run>('run')
-        .filter((item) => item.deepReviewId === id && item.reviewSeatReservation)) {
+      for (const reservation of runsForDeepReview(context.board, id).filter(
+        (item) => item.reviewSeatReservation,
+      )) {
         context.board.record(
           'run',
           { ...reservation, status, message: current.summary, finishedAt: finished.finishedAt },

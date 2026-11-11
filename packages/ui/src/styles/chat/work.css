@@ -320,7 +320,7 @@
 }
 .chat-round-error {
   margin: 2px 0 0;
-  color: var(--destructive);
+  color: var(--rose);
   font-size: var(--text-label);
 }
 .chat-round-state {

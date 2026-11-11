@@ -24,7 +24,7 @@ const heldTurns = () => {
 };
 
 afterEach(cleanup);
-const fixture = () => setup(19541);
+const fixture = () => setup();
 const body = { title: 'Application planning', participants: ['scout', 'writer'], leadId: 'scout' };
 it('migrates history without rewriting messages and supports unlimited group membership with targeted mentions', async () => {
   const { request, daemon } = await fixture();

@@ -9,7 +9,7 @@ import {
 } from '@pitchcrew/core';
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, setup, resources, finish } from './helpers/daemon.ts';
-const fixture = async (port: number) => {
+const fixture = async () => {
   const driver = {
     snapshot: vi.fn(async () => ({
       url: 'https://8.8.8.8/application',
@@ -30,7 +30,7 @@ const fixture = async (port: number) => {
     close: vi.fn(async () => {}),
     input: vi.fn(async () => {}),
   };
-  const fixture = await setup(port, false, { browserLaunch: async () => driver });
+  const fixture = await setup(false, { browserLaunch: async () => driver });
   const service = fixture.daemon.service;
   const role = service.board.get<Role>('role', 'writer');
   service.board.record(
@@ -81,7 +81,7 @@ afterEach(async () => {
 it.each(['job', 'conversation'] as const)(
   'returns control of a %s browser independently of another manually controlled session for the same agent',
   async (kind) => {
-    const { service, request, run, driver } = await fixture(14521);
+    const { service, request, run, driver } = await fixture();
     const card =
       kind === 'job'
         ? service.createCard({ company: 'Fictional Company', title: 'Engineer' })
@@ -145,7 +145,7 @@ it.each(['job', 'conversation'] as const)(
   },
 );
 it('protects browser frames, manual input and task permissions with the user session and conversation membership', async () => {
-  const { daemon, request, cookie, service, driver, run } = await fixture(14516);
+  const { daemon, request, cookie, service, driver, run } = await fixture();
   const path = '/browser/writer/control?threadId=writer';
   const denied = await fetch(`${daemon.url}/api${path}`, {
     method: 'POST',
@@ -219,7 +219,7 @@ it('protects browser frames, manual input and task permissions with the user ses
   expect(service.controllers.get(run.id)?.signal.aborted).toBe(true);
 });
 it('keeps scheduled routines supervised and applies conversation browser overrides only to future runs', async () => {
-  const { service, run } = await fixture(14517);
+  const { service, run } = await fixture();
   await service.computer.stop(run.id);
   service.board.record(
     'run',
@@ -268,7 +268,7 @@ it('keeps scheduled routines supervised and applies conversation browser overrid
 });
 
 it('captures the originating conversation browser mode for a workflow follow-up', async () => {
-  const { service, run, request } = await fixture(14518);
+  const { service, run, request } = await fixture();
   service.board.record('run', { ...run, status: 'completed' }, 'user', 'Completed parent fixture');
   service.controllers.delete(run.id);
   await service.computer.stop(run.id);
@@ -325,7 +325,7 @@ it('captures the originating conversation browser mode for a workflow follow-up'
 });
 
 it('lets users choose browser permissions without installing or changing a runtime', async () => {
-  const { daemon, request } = await setup(14519);
+  const { daemon, request } = await setup();
   for (const runtime of daemon.service.runtimes) runtime.available = false;
   const changed = await request<Conversation>('/conversations/writer', 'PUT', {
     configurations: { writer: { browserMode: 'autonomous' } },
@@ -335,7 +335,7 @@ it('lets users choose browser permissions without installing or changing a runti
 });
 
 it('bounds viewport resizing and allows only the manual controller while protecting approval evidence', async () => {
-  const { request, driver, service } = await fixture(14520);
+  const { request, driver, service } = await fixture();
   const path = '/browser/writer/viewport?threadId=writer';
   const viewport = { width: 390, height: 920 };
   expect((await request(path, 'POST', viewport)).result).toEqual({ applied: true });

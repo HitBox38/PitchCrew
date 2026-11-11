@@ -9,7 +9,7 @@ afterEach(cleanup);
 
 describe('profile explorer organization', () => {
   it('persists nested folders and note moves without changing note identities, contents or events', async () => {
-    const { request, directory, daemon } = await setup(4591);
+    const { request, directory, daemon } = await setup();
     await request('/profile', 'PUT', {
       name: 'project.md',
       content: '# Exact evidence\n\n- Built a fictional planner.',
@@ -51,7 +51,7 @@ describe('profile explorer organization', () => {
   });
 
   it('rejects invalid folder paths and note names without changing saved organization', async () => {
-    const { request, daemon } = await setup(4592);
+    const { request, daemon } = await setup();
     for (const path of [
       '../outside',
       '/absolute',
@@ -85,7 +85,7 @@ describe('profile explorer organization', () => {
   });
 
   it('requires the user session and protects internal state from returned snapshot mutation', async () => {
-    const { daemon } = await setup(4593);
+    const { daemon } = await setup();
     const rejected = await fetch(`${daemon.url}/api/profile/organization`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },

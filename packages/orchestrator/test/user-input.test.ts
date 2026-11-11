@@ -44,7 +44,7 @@ const begin = async () => {
 };
 
 afterEach(cleanup);
-const fixture = () => setup(19544);
+const fixture = () => setup();
 const questionBody = {
   question: 'Which achievement should I emphasize?',
   reason: 'The draft needs a clear focus.',
@@ -328,7 +328,7 @@ it('cancels the full blocked continuation chain when a later question is cancell
   expect(cancelled.userInputs?.every((q) => q.status === 'cancelled')).toBe(true);
 });
 it('restores a pending question after a real daemon restart without starting dependent work', async () => {
-  const { daemon, directory, request, token, turns } = await begin();
+  const { daemon, directory, request, token, turns, port } = await begin();
   await daemon.service.agentCall(token, 'invoke', {
     roleId: 'tracker',
     content: 'Use the completed draft.',
@@ -341,7 +341,7 @@ it('restores a pending question after a real daemon restart without starting dep
   const { resources } = await import('./helpers/daemon.ts');
   const restored = await createDaemon({
     directory,
-    port: 19544,
+    port,
     dev: true,
     ui: false,
     seedSkills: false,

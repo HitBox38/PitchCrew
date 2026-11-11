@@ -13,7 +13,7 @@ it('streams, sanitizes and saves an ordinary board workflow turn in its job conv
       complete = () => resolve({ role: 'scout', fit: 82, reasons: ['Fictional fit'] });
     });
   });
-  const { daemon, request } = await setup(14632);
+  const { daemon, request } = await setup();
   await daemon.service.saveProfile('experience.md', '# Experience\n\nBuilt fictional interfaces.');
   const card = daemon.service.createCard({
     company: 'Fictional Studio',
@@ -80,7 +80,7 @@ it('gives source extraction a job conversation and retains its public progress',
         });
     });
   });
-  const { daemon, request } = await setup(14633);
+  const { daemon, request } = await setup();
   const card = daemon.service.createCard({
     company: 'Fictional Source',
     title: 'Engineer',
@@ -115,7 +115,7 @@ it('gives source extraction a job conversation and retains its public progress',
 });
 
 it('serves a job’s saved history after it leaves the recent workspace events', async () => {
-  const { daemon, request } = await setup(14771);
+  const { daemon, request } = await setup();
   const card = daemon.service.createCard({ company: 'Fictional Studio', title: 'Engineer' });
   daemon.service.board.move(card.id, 'shortlisted', 'user', 'Shortlisted the job');
   for (let index = 0; index < 101; index++)

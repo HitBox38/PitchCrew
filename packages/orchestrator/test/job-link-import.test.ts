@@ -19,7 +19,7 @@ import { postingLinks, recordedPostings } from './helpers/job-links.ts';
 import { rewind } from './helpers/rewind.ts';
 
 const withImport = async () => {
-  const context = await setup(15631);
+  const context = await setup();
   const service = context.daemon.service;
   const boards = recordedPostings();
   service.jobSources.fetch = boards.fetcher;

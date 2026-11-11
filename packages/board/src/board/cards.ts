@@ -95,7 +95,15 @@ export const crewMove = (context: BoardContext, next: Card, actor: string, messa
     return next;
   })();
 export const hasActiveRun = (context: BoardContext, cardId: string): boolean => {
-  return context
-    .list<Run>('run')
-    .some((run) => run.cardId === cardId && run.status === 'running' && run.mode !== 'chat');
+  // Select running rows through the status index before parsing: every historical run carries its
+  // role and skill snapshot, and this check sits on board moves, approvals and bulk job tools.
+  const rows = context.db
+    .prepare(
+      "SELECT json FROM entities WHERE kind='run' AND json_extract(json,'$.status')='running'",
+    )
+    .all() as { json: string }[];
+  return rows.some((row) => {
+    const run = JSON.parse(row.json) as Run;
+    return run.cardId === cardId && run.mode !== 'chat';
+  });
 };

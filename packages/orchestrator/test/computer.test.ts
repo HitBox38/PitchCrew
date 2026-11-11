@@ -4,7 +4,7 @@ import { cleanup, setup } from './helpers/daemon.ts';
 
 afterEach(cleanup);
 it('enforces computer capability and user-only decisions and expires approvals on restart', async () => {
-  const { daemon, request } = await setup(14467, false, {
+  const { daemon, request } = await setup(false, {
     browserLaunch: async () => ({
       snapshot: async () => ({
         url: 'https://example.com',
@@ -137,7 +137,7 @@ it('enforces computer capability and user-only decisions and expires approvals o
   ).toBe('rejected');
 });
 it('keeps each browser action in one latest row through intervening calls and duplicate executions', async () => {
-  const { daemon } = await setup(14468, false, {
+  const { daemon } = await setup(false, {
     browserLaunch: async () => ({
       snapshot: async () => ({
         url: 'https://example.com',

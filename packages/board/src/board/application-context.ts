@@ -10,11 +10,11 @@ import {
   type ExtractedJob,
   type Approval,
   type ComputerApproval,
-  type Run,
   type SubmissionAttempt,
 } from '@pitchcrew/core';
 import { createHash } from 'node:crypto';
 import { digestPacket } from './helpers.ts';
+import { runsWithStatus } from './runs.ts';
 import type { BoardContext } from './types.ts';
 export const jobSourceRevision = (card: Card) => {
   return digest([
@@ -88,7 +88,7 @@ export const saveApplicationContext = (
     if (board.hasActiveRun(cardId))
       throw new Error('Wait for the active application run to finish.');
     if (
-      board.list<Run>('run').some((run) => run.cardId === cardId && run.status === 'running') ||
+      runsWithStatus(board, ['running']).some((run) => run.cardId === cardId) ||
       board
         .list<SubmissionAttempt>('submission_attempt')
         .some((attempt) => attempt.cardId === cardId && attempt.status === 'uncertain')

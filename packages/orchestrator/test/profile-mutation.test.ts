@@ -4,7 +4,11 @@ import { changeProfile } from '../src/profile-sources/mutation.ts';
 
 const context = (proposals: { id: string; status: string }[]) =>
   ({
-    board: { list: (kind: string) => (kind === 'profile_proposal' ? proposals : []) },
+    board: {
+      list: (kind: string) => (kind === 'profile_proposal' ? proposals : []),
+      // No saved runs: the running-run check selects through SQL.
+      db: { prepare: () => ({ all: () => [] }) },
+    },
     controllers: new Map(),
     profileWriting: false,
     profileRevision: 0,

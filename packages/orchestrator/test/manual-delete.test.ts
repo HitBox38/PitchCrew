@@ -6,7 +6,7 @@ afterEach(cleanup);
 
 describe('user job deletion API', () => {
   it('deletes every status, preserves history after replay, and does not launch work', async () => {
-    const { daemon, request } = await setup(14601);
+    const { daemon, request } = await setup();
     for (const state of states) {
       const card = daemon.service.createCard({ company: 'Fictional Studio', title: state });
       daemon.service.board.record('card', { ...card, state }, 'user', 'Fixture status');
@@ -27,7 +27,7 @@ describe('user job deletion API', () => {
   });
 
   it('requires a UI session and rejects owners, workflow runs and attached chat runs without writes', async () => {
-    const { daemon, request } = await setup(14602);
+    const { daemon, request } = await setup();
     const card = daemon.service.createCard({ company: 'Fictional Studio', title: 'Engineer' });
     const path = `/cards/${card.id}`;
     const before = daemon.service.board.events();
@@ -63,7 +63,7 @@ describe('user job deletion API', () => {
   });
 
   it('cancels queued follow-ups and pauses only the deleted job’s routines', async () => {
-    const { daemon, request } = await setup(14603);
+    const { daemon, request } = await setup();
     const card = daemon.service.createCard({ company: 'Fictional Studio', title: 'Engineer' });
     const other = daemon.service.createCard({ company: 'Other Studio', title: 'Engineer' });
     for (const id of [card.id, other.id]) {

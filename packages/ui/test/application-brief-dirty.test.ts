@@ -11,7 +11,7 @@ let card: Card;
 const errors: string[] = [];
 
 beforeAll(async () => {
-  host = await setup(24639);
+  host = await setup();
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
   browser = await chromium.launch({ headless: true });
 }, 60000);

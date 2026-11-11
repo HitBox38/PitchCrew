@@ -43,7 +43,7 @@ export const GoogleCliConnectionDialog = ({
               >
                 Install Google Workspace CLI
               </a>
-              <p className="quiet">Restart PitchCrew after installing so it can find gws.</p>
+              <p className="quiet">Restart Pitchcrew after installing so it can find gws.</p>
             </li>
             <li>
               Follow the CLI’s setup guide to configure its Google Cloud app, then run:
@@ -57,7 +57,7 @@ export const GoogleCliConnectionDialog = ({
           </ol>
         </AccordionSection>
         <p className="quiet">
-          Credentials stay with gws. PitchCrew only makes read requests and checks that the account
+          Credentials stay with gws. Pitchcrew only makes read requests and checks that the account
           still matches. Disconnecting here keeps your CLI login. Enable services per agent in Crew.
         </p>
         {error ? (

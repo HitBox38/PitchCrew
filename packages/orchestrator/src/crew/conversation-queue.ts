@@ -33,7 +33,12 @@ import {
 import { z } from 'zod';
 import { saveAttachments, removeAttachments } from './attachments/storage.ts';
 import { conversation, conversations, canReadConversation } from './conversations.ts';
-import { openRoundRoots, refreshOpenRounds, startRound } from './delegation-rounds.ts';
+import {
+  openRoundRoots,
+  refreshOpenRounds,
+  runIsDelegate,
+  startRound,
+} from './delegation-rounds.ts';
 import { userDelegationInput } from '@pitchcrew/core';
 import type { CrewContext } from './types.ts';
 export const saveRequest = (context: CrewContext, request: ChatRequest, publish = true): void => {
@@ -650,11 +655,17 @@ const finishQueueRun = (context: CrewContext, run: Run): void => {
   )
     return;
   const scope = runLane(context, run);
-  if (['waiting', 'failed', 'cancelled'].includes(finished.status))
+  // A failed or stopped delegate is a result for the lead: the round keeps its admitted chain and
+  // the lane stays running so the collection turn can start once every delegate settles.
+  const delegate = runIsDelegate(context, finished);
+  if (
+    finished.status === 'waiting' ||
+    (['failed', 'cancelled'].includes(finished.status) && !delegate)
+  )
     context.queueChains.delete(scope);
   if (scope.startsWith('routine:')) return;
   const queue = ensureQueue(context, thread, run.rootRunId);
-  if (finished.status === 'failed')
+  if (finished.status === 'failed' && !delegate)
     patchQueue(context, queue.id, { paused: true, pauseKind: 'failed', reason: finished.message });
   else if (!activeQueues(context).has(queue.id))
     patchQueue(context, queue.id, { order: nextOrder(context) });

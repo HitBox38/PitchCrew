@@ -13,7 +13,7 @@ it('makes every support default usable through the generic creation and chat flo
     turns.push(context);
     return { reply: 'Fictional setup verified. No external action taken.' };
   });
-  const { daemon, directory, request } = await setup(14580);
+  const { daemon, directory, request } = await setup();
   const initial = (await request<Snapshot>('/snapshot')).result;
   expect(initial.roles).toHaveLength(8);
   expect(initial.routines).toEqual([]);

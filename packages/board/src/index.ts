@@ -68,6 +68,15 @@ export { updateJobDetails } from './board/job-details.ts';
 export { editJob } from './board/job-edit.ts';
 export { assertJobLinkRefresh, saveReadJobLink } from './board/job-link-refresh.ts';
 export { instructionRevision, normalizeInstructions } from './board/instruction-revisions.ts';
+export {
+  runsWithStatus,
+  tasksWithStatus,
+  runsForCard,
+  runsForThread,
+  runsForDeepReview,
+  findRun,
+  runHeaders,
+} from './board/runs.ts';
 export class Board {
   private readonly context: BoardContext;
   constructor(filename: string) {

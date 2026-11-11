@@ -16,7 +16,7 @@ export const usePdfDocument = ({ bytes, settings, onInfo, onPage }: PdfDocumentP
   const [naturalSize, setNaturalSize] = useState({ width: 612, height: 792 });
   const [searchable, setSearchable] = useState<boolean | null>(null);
   const container = useRef<HTMLDivElement>(null);
-  const lastRequested = useRef(settings.page);
+  const lastRequested = useRef(settings.pageRequest);
   useEffect(() => {
     let cancelled = false;
     let task: Awaited<ReturnType<typeof localPdfTask>> | undefined;
@@ -71,12 +71,12 @@ export const usePdfDocument = ({ bytes, settings, onInfo, onPage }: PdfDocumentP
     return () => resize.disconnect();
   }, []);
   useEffect(() => {
-    if (settings.page !== lastRequested.current)
+    if (settings.pageRequest !== lastRequested.current)
       container.current
         ?.querySelector(`[data-page="${settings.page}"]`)
         ?.scrollIntoView({ block: 'start' });
-    lastRequested.current = settings.page;
-  }, [settings.page]);
+    lastRequested.current = settings.pageRequest;
+  }, [settings.page, settings.pageRequest]);
   const visible = useCallback(
     (page: number) => {
       onPage(page);

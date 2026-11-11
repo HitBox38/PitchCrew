@@ -13,6 +13,7 @@ import { drainConversationQueue, saveRequest } from '../conversation-queue.ts';
 import { refreshRound } from '../delegation-rounds.ts';
 import { laneId, patchQueue, nextOrder, queueRequests, runLane } from './state.ts';
 import { taskLane } from './state.ts';
+import { taskAwaitsRecovery } from '../delegation-rounds.ts';
 
 export const configureQueue = (context: CrewContext, data: unknown) => {
   const { concurrency } = z.object({ concurrency: z.number().int().min(1).max(50) }).parse(data);
@@ -37,7 +38,7 @@ export const updateQueue = (context: CrewContext, id: string, data: unknown) => 
   const queue = context.board.get<WorkQueue>('work_queue', id);
   if (input.action === 'retry-follow-up' || input.action === 'skip-follow-up') {
     const task = context.board.get<AgentTask>('task', input.taskId!);
-    if (taskLane(context, task) !== id || task.status !== 'failed')
+    if (taskLane(context, task) !== id || !taskAwaitsRecovery(context, task))
       throw new Error('Choose a failed follow-up in this queue.');
     context.board.db.transaction(() => {
       context.board.record(
@@ -92,7 +93,7 @@ export const updateQueue = (context: CrewContext, id: string, data: unknown) => 
       ) ||
         context.board
           .list<AgentTask>('task')
-          .some((t) => t.status === 'failed' && taskLane(context, t) === id))
+          .some((t) => taskAwaitsRecovery(context, t) && taskLane(context, t) === id))
     )
       throw new Error('Retry or skip the interrupted request or follow-up before continuing.');
     const paused = input.action !== 'resume';

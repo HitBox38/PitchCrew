@@ -108,13 +108,13 @@ describe('development UI dependency cache', () => {
       expect(path).toBeTruthy();
       return path!;
     };
-    const first = await setup(15791, false, { dev: true, ui: 'dev', uiCache: 'temporary' });
+    const first = await setup(false, { dev: true, ui: 'dev', uiCache: 'temporary' });
     const firstModule = await reactModule(first.daemon.url);
     expect(firstModule).toMatch(/\/pitchcrew-temporary-[^/]+\/deps\//);
     const firstCache = resolve(uiRoot, firstModule.slice(1).split('/deps/')[0]);
     expect(resolve(firstCache, 'deps')).not.toBe(sharedDeps);
 
-    const second = await setup(15792, false, { dev: true, ui: 'dev', uiCache: 'temporary' });
+    const second = await setup(false, { dev: true, ui: 'dev', uiCache: 'temporary' });
     const secondModule = await reactModule(second.daemon.url);
     const secondCache = resolve(uiRoot, secondModule.slice(1).split('/deps/')[0]);
     expect(secondCache).not.toBe(firstCache);

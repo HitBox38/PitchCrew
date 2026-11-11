@@ -2,7 +2,7 @@ import { workspaceQueue } from './queue/projection.ts';
 import { ensureQueue, patchQueue } from './queue/state.ts';
 import { activeRuns } from './queue/queries.ts';
 import { workspaceCards, workspaceRuns, workspaceEvents } from './workspace-projection.ts';
-import { workspaceMessages } from '@pitchcrew/board';
+import { workspaceMessages, runsWithStatus } from '@pitchcrew/board';
 import { activityRuns, finishChatActivity, restoreActivityCheckpoints } from './chat-activity.ts';
 import { recordOperationalLog } from '../telemetry/logs.ts';
 import { endQuestionTurn } from './user-input/lifecycle.ts';
@@ -278,9 +278,7 @@ export const close = async (context: CrewContext): Promise<void> => {
   clearInterval(context.schedulerTimer);
   context.modelController.abort();
   context.jobSources.close();
-  for (const run of context.board
-    .list<Run>('run')
-    .filter((r) => r.status === 'running' && r.threadId)) {
+  for (const run of runsWithStatus(context.board, ['running']).filter((r) => r.threadId)) {
     const queue = ensureQueue(context, run.threadId!, run.rootRunId);
     if (!queue.id.startsWith('routine:'))
       patchQueue(context, queue.id, {

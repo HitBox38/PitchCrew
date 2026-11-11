@@ -45,7 +45,17 @@ export const MemoryEntryActions = ({
           </Button>
         </>
       ) : (
-        <Button className="text-button" size="xs" variant="ghost" onClick={() => setEditing(true)}>
+        <Button
+          className="text-button"
+          size="xs"
+          variant="ghost"
+          onClick={() => {
+            // Start from the note as it is now; the agent may have changed it since this row mounted.
+            setContent(note.content);
+            setTags(note.tags.join(', '));
+            setEditing(true);
+          }}
+        >
           Edit
         </Button>
       )}

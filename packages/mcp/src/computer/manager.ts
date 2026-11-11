@@ -76,6 +76,13 @@ export class ComputerManager {
     return session;
   };
 
+  /** Switching tabs while a request or approved action is in flight would move the page it was
+   * fingerprinted against, so tab targeting waits for that action. */
+  private assertTabIdle = (runId: string) => {
+    if (this.busyRoles.has(this.browsers.keyForRun(runId)))
+      throw new Error('A browser action is in progress.');
+  };
+
   inspect = async (
     runId: string,
     options: { includeImage?: boolean; references?: boolean; tabId?: string } = {
@@ -89,6 +96,7 @@ export class ComputerManager {
     const generation = this.browsers.forRole(runId).observationGeneration;
     if (options.tabId) {
       if (!driver.targetTab) throw new Error('Browser tab targeting is unavailable.');
+      this.assertTabIdle(runId);
       await driver.targetTab(options.tabId);
     }
     const page = await driver.snapshot(options);
@@ -106,6 +114,7 @@ export class ComputerManager {
     if (condition.tabId) {
       this.browsers.assertAgent(runId);
       if (!driver.targetTab) throw new Error('Browser tab targeting is unavailable.');
+      this.assertTabIdle(runId);
       await driver.targetTab(condition.tabId);
     }
     if (!driver.matches) throw new Error('Browser waits are unavailable.');

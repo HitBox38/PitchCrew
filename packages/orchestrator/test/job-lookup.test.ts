@@ -256,7 +256,7 @@ describe('posting lookups from recorded fixtures', () => {
 
 describe('posting lookups over HTTP', () => {
   it('keeps lookups behind the local UI session and out of agent reach', async () => {
-    const { daemon, cookie, request } = await setup(15531);
+    const { daemon, cookie, request } = await setup();
     const { calls, fetcher } = recordedPostings();
     daemon.service.jobSources.fetch = fetcher;
     const runId = 'lookup-boundary';
@@ -317,7 +317,7 @@ describe('posting lookups over HTTP', () => {
   });
 
   it('shows possible duplicates before the user saves', async () => {
-    const { daemon, request } = await setup(15532);
+    const { daemon, request } = await setup();
     daemon.service.jobSources.fetch = recordedPostings().fetcher;
     const manual = await request<Card>('/cards', 'POST', {
       company: 'Northwind Labs',
@@ -359,7 +359,7 @@ describe('posting lookups over HTTP', () => {
   });
 
   it('saves a fetched job with link provenance so discovery never adds it again', async () => {
-    const { daemon, request } = await setup(15533);
+    const { daemon, request } = await setup();
     const boards = recordedPostings();
     daemon.service.jobSources.fetch = boards.fetcher;
     const { prefill } = found(
@@ -419,7 +419,7 @@ describe('posting lookups over HTTP', () => {
   });
 
   it('rejects malformed provenance and keeps manual entry unchanged', async () => {
-    const { request } = await setup(15534);
+    const { request } = await setup();
     for (const provenance of [
       { provider: 'workday', board: 'acme', jobId: '1' },
       { provider: 'greenhouse', board: '../admin', jobId: '1' },
@@ -531,7 +531,7 @@ describe('Ashby, Comeet and Workable links', () => {
   });
 
   it('keeps successful office-only lookups token-free and deduplicates after saving', async () => {
-    const { daemon, request } = await setup(15536);
+    const { daemon, request } = await setup();
     let postings = [
       {
         uid: 'A1.00D-B3.C4D',
@@ -630,7 +630,7 @@ describe('Ashby, Comeet and Workable links', () => {
   });
 
   it('keeps the Comeet token out of lookups, saved cards and events over HTTP', async () => {
-    const { daemon, request } = await setup(15535);
+    const { daemon, request } = await setup();
     const boards = recordedPostings();
     daemon.service.jobSources.fetch = boards.fetcher;
     const before = await request<JobLookupResult>('/jobs/lookup', 'POST', {

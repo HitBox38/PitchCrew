@@ -72,6 +72,20 @@ it('reopening the previous app after a failed OS installation clears intent with
   });
 });
 
+it('clears an unreadable marker instead of failing every later launch', async () => {
+  for (const text of ['{"version":"0.2', 'null', '']) {
+    const directory = await fixture();
+    await writeFile(join(directory, 'update-restart.json'), text);
+    const fetcher = vi.fn();
+    vi.stubGlobal('fetch', fetcher);
+    await verifyUpdateRestart(directory, build, 'http://127.0.0.1:4417');
+    expect(fetcher).not.toHaveBeenCalled();
+    await expect(readFile(join(directory, 'update-restart.json'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
+  }
+});
+
 it('rejects invalid marker versions before writing', async () => {
   const directory = await fixture();
   await expect(markUpdateRestart(directory, '../../installer')).rejects.toThrow('Invalid update');

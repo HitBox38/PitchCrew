@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { assertConfirmedContext, digestPacket } from '@pitchcrew/board';
+import { assertConfirmedContext, digestPacket, runsWithStatus } from '@pitchcrew/board';
 import {
   approvalLifecycle,
   qualityAgentInput,
@@ -132,9 +132,9 @@ export const qualityAgentAction = async (
     if (workflowSeat(writer) !== 'writer')
       throw new Error('Choose an agent assigned to the Writer workflow.');
     if (
-      context.board
-        .list<Run>('run')
-        .some((r) => r.cardId === card.id && r.id !== run.id && r.status === 'running')
+      runsWithStatus(context.board, ['running']).some(
+        (r) => r.cardId === card.id && r.id !== run.id,
+      )
     )
       throw new Error('Another run owns this application.');
     const existing = context.board

@@ -10,7 +10,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, resources, setup } from './helpers/daemon.ts';
 import { sourceState } from '../src/crew/tracking/helpers.ts';
 const fixture = async () => {
-  const context = await setup(14586);
+  const context = await setup();
   const { daemon, request } = context;
   const current = daemon.service.board.get<Role>('role', 'scout');
   daemon.service.board.record(

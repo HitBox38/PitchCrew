@@ -1,4 +1,5 @@
 import { type Role, type Run, type Conversation } from '@pitchcrew/core';
+import { findRun } from '@pitchcrew/board';
 import { z } from 'zod';
 import type { CrewContext, RunCapability } from '../types.ts';
 
@@ -25,9 +26,7 @@ export const computerAction = async (
   };
   authorize();
   const active = context.board.get<Run>('run', capability.runId);
-  const root = context.board
-    .list<Run>('run')
-    .find((run) => run.id === (active.rootRunId ?? active.id));
+  const root = findRun(context.board, active.rootRunId ?? active.id);
   const role = active.configuration?.role ?? context.board.get<Role>('role', capability.roleId);
   const conversation = active.threadId
     ? context.board.list<Conversation>('conversation').find((item) => item.id === active.threadId)

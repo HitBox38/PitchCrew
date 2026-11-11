@@ -30,8 +30,10 @@ export const registerSessionSecurity = (
     const cookie = req.cookies.pitchcrew_session;
     if (path.startsWith('/api/')) {
       if (!cookie || !sessions.has(cookie) || req.headers['x-pitchcrew-client'] !== 'ui') {
+        // Sessions live in memory and end with the daemon; this header lets an open window renew.
         return res
           .status(403)
+          .header('x-pitchcrew-session', 'required')
           .send({ error: 'Open Pitchcrew in the browser to start a local session.' });
       }
     } else if (!cookie || !sessions.has(cookie)) {
@@ -43,7 +45,6 @@ export const registerSessionSecurity = (
           httpOnly: true,
           sameSite: 'strict',
           path: '/',
-          maxAge: 86400,
         }),
       );
     }

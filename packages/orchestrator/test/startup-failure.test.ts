@@ -6,10 +6,12 @@ import { join } from 'node:path';
 import { afterEach, expect, it, vi } from 'vitest';
 import { createDaemon } from '../src/server.ts';
 import { skillDirectory } from '../src/skills-directory.ts';
+import { isolateRuntimes, restoreRuntimes } from './helpers/daemon.ts';
 
 const directories: string[] = [];
 afterEach(async () => {
   vi.restoreAllMocks();
+  restoreRuntimes();
   await Promise.all(
     directories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })),
   );
@@ -18,14 +20,8 @@ afterEach(async () => {
 it('aborts overlapping starter reads when runtime setup fails and releases the data-directory lock', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-test-startup-failure-'));
   directories.push(directory);
-  for (const adapter of Object.values(adapters))
-    vi.spyOn(adapter, 'detect').mockResolvedValue({
-      id: adapter.id,
-      available: false,
-      version: '',
-      detail: 'Fixture.',
-    });
-  vi.mocked(adapters.codex.detect).mockRejectedValue(new Error('Fixture runtime check failed.'));
+  isolateRuntimes();
+  vi.spyOn(adapters.codex, 'detect').mockRejectedValue(new Error('Fixture runtime check failed.'));
   let aborted = 0;
   const preview = vi.spyOn(skillDirectory, 'preview').mockImplementation(
     (_url, signal) =>

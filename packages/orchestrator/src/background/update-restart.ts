@@ -12,7 +12,9 @@ export const markUpdateRestart = async (directory: string, version: unknown) => 
 export const verifyUpdateRestart = async (directory: string, build: AppBuild, url: string) => {
   const text = await readFile(join(directory, fileName), 'utf8').catch(() => null);
   if (text === null) return;
-  if (markedVersion(text) === build.version) {
+  // A truncated marker must not block every later launch; treat it as absent and clear it.
+  const expected = parseMarker(text);
+  if (expected?.version === build.version) {
     const response = await fetch(url, { redirect: 'error', signal: AbortSignal.timeout(2000) });
     const cookie = response.headers.get('set-cookie')?.split(';')[0];
     await response.body?.cancel();
@@ -37,15 +39,15 @@ export const verifyUpdateRestart = async (directory: string, build: AppBuild, ur
   await clearUpdateRestart(directory);
 };
 
-/** A truncated or damaged marker names no version, so it is cleared instead of blocking startup. */
-const markedVersion = (text: string): unknown => {
+const parseMarker = (text: string): { version?: unknown } | null => {
   try {
-    const marker: unknown = JSON.parse(text);
-    return typeof marker === 'object' && marker ? (marker as { version?: unknown }).version : null;
+    const value: unknown = JSON.parse(text);
+    return value && typeof value === 'object' ? (value as { version?: unknown }) : null;
   } catch {
     return null;
   }
 };
+
 const fileName = 'update-restart.json';
 const versionPattern = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 

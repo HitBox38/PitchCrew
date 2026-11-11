@@ -2,7 +2,7 @@ import type { BackgroundServiceInfo, BackgroundServiceStatus } from '@pitchcrew/
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { backgroundServiceInfo } from '../src/background/info.ts';
 import {
   acquireDaemonLock,
@@ -15,7 +15,7 @@ import {
 import { capLogFile, createRotatingLog } from '../src/background/log.ts';
 import { resolveDaemonSettings } from '../src/background/settings.ts';
 import { createDaemon } from '../src/server.ts';
-import { cleanup, resources, setup } from './helpers/daemon.ts';
+import { cleanup, isolateRuntimes, reservePort, resources, setup } from './helpers/daemon.ts';
 const folder = async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-test-'));
   folders.push(directory);
@@ -23,6 +23,8 @@ const folder = async () => {
 };
 
 const folders: string[] = [];
+// Direct daemons below start in production mode; keep installed provider CLIs out of them.
+beforeEach(() => isolateRuntimes());
 afterEach(async () => {
   await cleanup();
   for (const directory of folders.splice(0)) {
@@ -52,13 +54,13 @@ const lock = (overrides: Partial<DaemonLock> = {}): DaemonLock => ({
 
 describe('single daemon per data folder', () => {
   it('refuses a second daemon on the same data folder until the first closes', async () => {
-    const { daemon, directory } = await setup(15371);
+    const { daemon, directory, port } = await setup();
     await expect(
       createDaemon({ directory, port: 15372, seedSkills: false, dev: true, ui: false }),
     ).rejects.toBeInstanceOf(DaemonRunningError);
     await expect(
       createDaemon({ directory, port: 15372, seedSkills: false, dev: true, ui: false }),
-    ).rejects.toThrow('already running for this data folder at http://127.0.0.1:15371');
+    ).rejects.toThrow(`already running for this data folder at http://127.0.0.1:${port}`);
     // The refused daemon never opened the board, so the first one keeps working.
     expect(daemon.service.board.list('role').length).toBeGreaterThan(0);
     await daemon.close();
@@ -77,11 +79,12 @@ describe('single daemon per data folder', () => {
 
   it('removes its lock on close and reports whether the service started it', async () => {
     const directory = await folder();
-    const daemon = await createDaemon({ directory, port: 23971, seedSkills: false, service: true });
-    await new Promise<void>((resolve) => daemon.http.listen(23971, '127.0.0.1', resolve));
-    expect(await probeDaemon(23971)).toEqual({ app: 'pitchcrew', service: true });
+    const { port, listen } = await reservePort();
+    const daemon = await createDaemon({ directory, port, seedSkills: false, service: true });
+    await listen(daemon.http);
+    expect(await probeDaemon(port)).toEqual({ app: 'pitchcrew', service: true });
     await daemon.close();
-    expect(await probeDaemon(23971)).toBeNull();
+    expect(await probeDaemon(port)).toBeNull();
     await expect(readFile(join(directory, 'daemon.lock'))).rejects.toThrow();
   });
 
@@ -149,6 +152,7 @@ describe('single daemon per data folder', () => {
   });
 
   it('serves background service status only to a local UI session', async () => {
+    const { port, listen } = await reservePort();
     const status: BackgroundServiceStatus = {
       platform: 'linux',
       installed: true,
@@ -156,7 +160,7 @@ describe('single daemon per data folder', () => {
       running: true,
       pid: 4242,
       directory: '',
-      port: 15375,
+      port,
       definition: '/fixture/pitchcrew.service',
       logFile: '/fixture/daemon.log',
       detail: 'systemd reports active running.',
@@ -164,13 +168,13 @@ describe('single daemon per data folder', () => {
     const directory = await folder();
     const daemon = await createDaemon({
       directory,
-      port: 15375,
+      port,
       seedSkills: false,
       service: true,
       backgroundService: async () => ({ ...status, directory }),
     });
     resources.push({ daemon, directory });
-    await new Promise<void>((resolve) => daemon.http.listen(15375, '127.0.0.1', resolve));
+    await listen(daemon.http);
     const page = await fetch(daemon.url);
     const cookie = page.headers.get('set-cookie')!.split(';')[0];
     expect((await fetch(`${daemon.url}/api/background-service`)).status).toBe(403);

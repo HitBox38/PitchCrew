@@ -1,13 +1,12 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { adapters } from '../../adapters/src/index.ts';
 import type { Card, ChatMessage, ChatRequest, Conversation, Run } from '@pitchcrew/core';
 import { execFile } from 'node:child_process';
 import { readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, finish, setup, waitForSnapshot } from '../../orchestrator/test/helpers/daemon.ts';
 import { postingLinks, recordedPostings } from '../../orchestrator/test/helpers/job-links.ts';
 import { rewind } from '../../orchestrator/test/helpers/rewind.ts';
@@ -19,16 +18,6 @@ import {
 
 const execute = promisify(execFile);
 const clients: Client[] = [];
-beforeEach(() => {
-  // External MCP behavior is independent of installed provider CLIs; keep Demo real.
-  for (const adapter of Object.values(adapters).filter((adapter) => adapter.id !== 'demo'))
-    vi.spyOn(adapter, 'detect').mockResolvedValue({
-      id: adapter.id,
-      available: false,
-      version: '',
-      detail: 'Native runtime detection is outside this stdio fixture.',
-    });
-});
 afterEach(async () => {
   try {
     await Promise.all(clients.splice(0).map((client) => client.close()));
@@ -54,7 +43,7 @@ const connect = async (directory: string, port: number) => {
 };
 
 it('connects from another working directory, advertises read-only tools and revokes live connections', async () => {
-  const { daemon, directory } = await setup(15621);
+  const { daemon, directory } = await setup();
   expect(JSON.parse((await command(directory, 'status')).stdout)).toEqual({
     enabled: false,
     write: false,
@@ -96,7 +85,7 @@ it('connects from another working directory, advertises read-only tools and revo
 }, 30000);
 
 it('keeps host/origin, run, user and external credentials separate and rejects unadvertised actions', async () => {
-  const { daemon, directory, cookie, request } = await setup(15622);
+  const { daemon, directory, cookie, request } = await setup();
   await enableExternalAccess(directory, true);
   const access = (await readExternalAccess(directory))!;
   const authorization = `Bearer ${access.token}`;
@@ -129,7 +118,7 @@ it('keeps host/origin, run, user and external credentials separate and rejects u
   const { stdout } = await command(directory, 'config', '--port', new URL(daemon.url).port);
   expect(info.result.configuration).toEqual(JSON.parse(stdout));
   for (const extra of [
-    { host: 'localhost:15622' },
+    { host: `localhost:${new URL(daemon.url).port}` },
     { origin: 'https://example.invalid' },
     { 'sec-fetch-site': 'cross-site' },
     { authorization: '' },
@@ -195,7 +184,7 @@ it('keeps host/origin, run, user and external credentials separate and rejects u
 });
 
 it('manages jobs, preserves busy checks and delegates visible crew work through actual stdio', async () => {
-  const { daemon, directory, request } = await setup(15623);
+  const { daemon, directory, request } = await setup();
   await command(directory, 'enable', '--write');
   const client = await connect(directory, Number(new URL(daemon.url).port));
   expect((await client.listTools()).tools).toHaveLength(15);
@@ -303,7 +292,7 @@ it('manages jobs, preserves busy checks and delegates visible crew work through 
 
 // Loading examples exports real packet documents before the CLI and stdio children start.
 it('provides the stable read-only evidence for all ten example-workspace evaluation answers', async () => {
-  const { daemon, directory } = await setup(15624);
+  const { daemon, directory } = await setup();
   await daemon.service.loadExamples();
   await enableExternalAccess(directory);
   const client = await connect(directory, Number(new URL(daemon.url).port));
@@ -362,7 +351,7 @@ it('provides the stable read-only evidence for all ten example-workspace evaluat
 }, 30000);
 
 it('fetches external job links before supplied text and preserves provenance without adding duplicates', async () => {
-  const { daemon, directory } = await setup(15625);
+  const { daemon, directory } = await setup();
   const { fetcher, calls } = recordedPostings();
   daemon.service.jobSources.fetch = fetcher;
   await enableExternalAccess(directory, true);
@@ -407,7 +396,7 @@ it('fetches external job links before supplied text and preserves provenance wit
 });
 
 it('uses the public structured-page Fetch from link feature for external jobs', async () => {
-  const { daemon, directory } = await setup(15626);
+  const { daemon, directory } = await setup();
   const url = 'https://careers.example.com/jobs/frontend-engineer';
   daemon.service.jobSources.readPage = async () => ({
     url,
@@ -431,7 +420,7 @@ it('uses the public structured-page Fetch from link feature for external jobs', 
 });
 
 it('requests original text after a failed external fetch and saves the supplied description verbatim', async () => {
-  const { daemon, directory } = await setup(15627);
+  const { daemon, directory } = await setup();
   let reads = 0;
   daemon.service.jobSources.readPage = async () => {
     reads++;
@@ -470,7 +459,7 @@ it('requests original text after a failed external fetch and saves the supplied 
 });
 
 it('keeps one-use Comeet tokens out of failed-fetch results and fallback cards', async () => {
-  const { daemon, directory } = await setup(15628);
+  const { daemon, directory } = await setup();
   daemon.service.jobSources.fetch = async () =>
     new Response('{}', { status: 404, headers: { 'content-type': 'application/json' } });
   await enableExternalAccess(directory, true);
