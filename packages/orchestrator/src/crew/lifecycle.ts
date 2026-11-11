@@ -227,7 +227,6 @@ export const snapshot = async (
 ): Promise<Snapshot> => {
   // Finish filesystem reads before collecting board state, so no run can advance between entities.
   const profile = await readProfile(context.directory);
-  migrateConversations(context);
   const snapshot: Snapshot = {
     quality: qualitySnapshot(context, profile),
     queue: workspaceQueue(context),

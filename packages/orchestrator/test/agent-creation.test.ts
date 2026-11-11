@@ -56,6 +56,11 @@ describe('guided agent setup', () => {
       routine,
     });
     expect(result.response.status).toBe(201);
+    expect(daemon.service.board.get('conversation', agent.id)).toMatchObject({
+      kind: 'direct',
+      participants: [agent.id],
+      leadId: agent.id,
+    });
     expect(result.result).toMatchObject({
       workflow: 'chat',
       capabilities: {
