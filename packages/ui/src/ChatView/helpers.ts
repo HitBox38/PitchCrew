@@ -20,3 +20,7 @@ export const queuedChatRequests = (requests: ChatRequest[], thread: string) => {
     )
     .toSorted((a, b) => a.order - b.order);
 };
+
+/** The compact snapshot blanks a settled request's text; an open editor keeps the copy it had. */
+export const editorRequest = (kept: ChatRequest, fresh: ChatRequest | undefined): ChatRequest =>
+  !fresh ? kept : fresh.compact ? { ...kept, deliveries: fresh.deliveries } : fresh;

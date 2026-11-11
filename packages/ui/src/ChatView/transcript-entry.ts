@@ -24,9 +24,22 @@ const read = ['cards', 'roles', 'skills', 'profile', 'approvals', 'memories'] as
 /** Of the conversations (which change with every message's preview), only the attached job. */
 const jobOf = (props: TranscriptEntryProps) =>
   props.data.conversations?.find((item) => item.id === props.thread)?.cardId;
+/** One index per request array. The store keeps an unchanged array's identity across updates. */
+const indexes = new WeakMap<readonly ChatRequest[], Map<string, ChatRequest>>();
+const byMessage = (requests: readonly ChatRequest[]) => {
+  let index = indexes.get(requests);
+  if (!index) {
+    index = new Map();
+    // The first request for a message wins, as `find` did.
+    for (const request of requests)
+      if (!index.has(request.messageId)) index.set(request.messageId, request);
+    indexes.set(requests, index);
+  }
+  return index;
+};
 const requestOf = (data: Snapshot, message: ChatMessage): ChatRequest | undefined =>
-  message.from === 'user'
-    ? data.chatRequests?.find((request) => request.messageId === message.id)
+  message.from === 'user' && data.chatRequests
+    ? byMessage(data.chatRequests).get(message.id)
     : undefined;
 /** A user message whose every delivery was cancelled before it reached an agent. */
 export const cancelledUnsent = (data: Snapshot, message: ChatMessage) => {
