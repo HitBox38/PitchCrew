@@ -1,4 +1,5 @@
 import { queueMayStart } from './queue/dispatch.ts';
+import { reportDrainFailure } from './queue/drain-failure.ts';
 import { patchQueue, taskLane } from './queue/state.ts';
 import { launchProblem, QueueBusyError } from './queue/admission.ts';
 import { RuntimeHeldError } from '../runtime-maintenance/availability.ts';
@@ -208,8 +209,11 @@ export const drainTasks = async (context: CrewContext): Promise<void> => {
       )
         continue;
       if (!(await queueMayStart(context, taskLane(context, task), task.rootRunId))) continue;
+      // Admission awaited: Stop, deletion or retirement may have cancelled this follow-up.
+      const queued = context.board.get<AgentTask>('task', task.id);
+      if (queued.status !== 'queued') continue;
       try {
-        const launch = task.roundPart === 'collection' ? collectionTask(context, task) : task;
+        const launch = task.roundPart === 'collection' ? collectionTask(context, queued) : queued;
         const run =
           launch.mode === 'workflow'
             ? await context.startRun(launch.cardId!, launch.roleId, launch)
@@ -223,13 +227,17 @@ export const drainTasks = async (context: CrewContext): Promise<void> => {
         // The launch marked the task running when it saved the run (`startTaskRun`), and a fast
         // turn may already have settled it, so a stale copy is never written back here.
         startTaskRun(context, run);
+        // Stopped while the launch awaited: the run began for a cancelled follow-up, so end it.
+        if (context.board.get<AgentTask>('task', task.id).status === 'cancelled')
+          context.controllers.get(run.id)?.abort();
       } catch (error) {
         if (error instanceof RuntimeHeldError || error instanceof QueueBusyError) continue;
-        if (context.board.get<AgentTask>('task', task.id).status === 'cancelled') continue;
+        const latest = context.board.get<AgentTask>('task', task.id);
+        if (latest.status === 'cancelled') continue;
         const message = error instanceof Error ? error.message : 'Could not start crew task.';
         context.board.record(
           'task',
-          { ...task, status: 'failed', error: message },
+          { ...latest, status: 'failed', error: message },
           'system',
           message,
         );
@@ -252,6 +260,8 @@ export const drainTasks = async (context: CrewContext): Promise<void> => {
         );
       }
     }
+  } catch (error) {
+    reportDrainFailure(context, 'crew follow-ups', error);
   } finally {
     context.draining = false;
     void drainConversationQueue(context);

@@ -1,5 +1,6 @@
 import { launchProblem } from '../queue/admission.ts';
 import { queueMayStart } from '../queue/dispatch.ts';
+import { reportDrainFailure } from '../queue/drain-failure.ts';
 import { randomUUID } from 'node:crypto';
 import { saveRequest } from '../conversation-queue.ts';
 import { activeQueues, concurrency } from '../queue/state.ts';
@@ -16,7 +17,7 @@ import { routines } from './index.ts';
 export const startScheduler = (context: CrewContext): void => {
   if (context.schedulerTimer || context.closing) return;
   context.schedulerTimer = setInterval(() => {
-    void tickRoutines(context);
+    void tickRoutines(context).catch((error) => reportDrainFailure(context, 'scheduler', error));
   }, 1000);
   context.schedulerTimer.unref();
 };
