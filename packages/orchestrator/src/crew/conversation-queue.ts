@@ -1,5 +1,6 @@
 import { queueMayStart } from './queue/dispatch.ts';
 import { reportDrainFailure } from './queue/drain-failure.ts';
+import { findEntity, queuedChatRequests } from './queue/queries.ts';
 import { submitChatOnce } from './chat-submissions.ts';
 import { pauseForUnfinishedHead, resumeHeadRequest } from './queue/recovery.ts';
 import { QueueBusyError, launchProblem } from './queue/admission.ts';
@@ -46,7 +47,7 @@ import type { CrewContext } from './types.ts';
 export const saveRequest = (context: CrewContext, request: ChatRequest, publish = true): void => {
   const queue = ensureQueue(context, request.threadId, request.rootRunId);
   if (
-    !context.board.list<ChatRequest>('chat_request').some((r) => r.id === request.id) &&
+    !findEntity<ChatRequest>(context, 'chat_request', request.id) &&
     !queueRequests(context, queue.id).length &&
     !activeQueues(context).has(queue.id)
   )
@@ -217,13 +218,9 @@ export const drainConversationQueue = async (context: CrewContext): Promise<void
   }
   draining.add(context);
   try {
-    for (const request of context.board
-      .list<ChatRequest>('chat_request')
-      .filter(
-        (r) =>
-          r.deliveries.some((d) => d.status === 'queued') &&
-          conversations(context).some((c) => c.id === r.threadId),
-      )
+    const open = new Set(conversations(context).map((c) => c.id));
+    for (const request of queuedChatRequests(context)
+      .filter((r) => open.has(r.threadId))
       .sort(
         (a, b) =>
           ensureQueue(context, a.threadId, a.rootRunId).order -

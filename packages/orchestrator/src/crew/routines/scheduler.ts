@@ -1,6 +1,7 @@
 import { launchProblem } from '../queue/admission.ts';
 import { queueMayStart } from '../queue/dispatch.ts';
 import { reportDrainFailure } from '../queue/drain-failure.ts';
+import { unsettledChatRequests } from '../queue/queries.ts';
 import { randomUUID } from 'node:crypto';
 import { saveRequest } from '../conversation-queue.ts';
 import { activeQueues, concurrency } from '../queue/state.ts';
@@ -67,18 +68,7 @@ export const tickRoutines = async (context: CrewContext, now = new Date()): Prom
         !context.runtimes.some((runtime) => runtime.id === role.runtime && runtime.available)
       )
         continue;
-      if (
-        context.board
-          .list<ChatRequest>('chat_request')
-          .some(
-            (r) =>
-              r.routine?.routineId === routine.id &&
-              r.deliveries.some((d) =>
-                ['queued', 'running', 'waiting', 'paused', 'failed'].includes(d.status),
-              ),
-          )
-      )
-        continue;
+      if (unsettledChatRequests(context).some((r) => r.routine?.routineId === routine.id)) continue;
       if (
         runsWithStatus(context.board, runLifecycle.groups.live).some(
           (run) =>

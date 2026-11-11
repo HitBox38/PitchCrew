@@ -3,6 +3,7 @@ import { rewind } from './helpers/rewind.ts';
 import { Board } from '@pitchcrew/board';
 import type {
   AgentTask,
+  ChatRequest,
   Conversation,
   DelegationRound,
   Role,
@@ -11,7 +12,12 @@ import type {
   WorkQueue,
 } from '@pitchcrew/core';
 import type { CrewContext } from '../src/crew/types.ts';
-import { activeRuns } from '../src/crew/queue/queries.ts';
+import {
+  activeRuns,
+  findEntity,
+  queuedChatRequests,
+  unsettledChatRequests,
+} from '../src/crew/queue/queries.ts';
 import { activeQueues, queueWaiting, taskLane } from '../src/crew/queue/state.ts';
 import { workspaceQueue } from '../src/crew/queue/projection.ts';
 import { launchProblem } from '../src/crew/queue/admission.ts';
@@ -367,4 +373,43 @@ it('uses the status index and never parses unrelated settled run/task payloads i
     )
     .all('["queued"]') as { detail: string }[];
   expect(plan.some((entry) => entry.detail.includes('entities_queue_status'))).toBe(true);
+});
+
+it('looks up one entity and selects chat requests by delivery status without parsing settled ones', () => {
+  const context = fixture();
+  task(context, 'queued-task');
+  const request = (id: string, status: ChatRequest['deliveries'][number]['status']) =>
+    ({
+      id,
+      threadId: 'origin',
+      order: 1,
+      deliveries: [{ roleId: 'writer', status, runId: null, error: '' }],
+    }) as unknown as ChatRequest;
+  save(context, 'chat_request', request('queued-request', 'queued'));
+  save(context, 'chat_request', request('paused-request', 'paused'));
+  const insert = context.board.db.prepare('INSERT INTO entities(kind,id,json) VALUES (?,?,?)');
+  const sentinel = 'UNRELATED_SETTLED_HISTORY_MUST_NOT_BE_PARSED';
+  context.board.db.transaction(() => {
+    for (let index = 0; index < 2_000; index++) {
+      const id = `old-request-${index}`;
+      const status = index % 2 ? 'completed' : 'cancelled';
+      insert.run('task', `old-task-${index}`, JSON.stringify({ id, status, content: sentinel }));
+      insert.run('chat_request', id, JSON.stringify({ ...request(id, status), message: sentinel }));
+    }
+  })();
+  const original = JSON.parse;
+  vi.spyOn(JSON, 'parse').mockImplementation((text, reviver) => {
+    if (text.includes(sentinel)) throw new Error('Unrelated settled history was deserialized.');
+    return original(text, reviver);
+  });
+  const list = vi.spyOn(context.board, 'list');
+  expect(findEntity<AgentTask>(context, 'task', 'queued-task')?.id).toBe('queued-task');
+  expect(findEntity(context, 'task', 'missing')).toBeUndefined();
+  expect(findEntity(context, 'task', undefined)).toBeUndefined();
+  expect(queuedChatRequests(context).map((item) => item.id)).toEqual(['queued-request']);
+  expect(unsettledChatRequests(context).map((item) => item.id)).toEqual([
+    'queued-request',
+    'paused-request',
+  ]);
+  expect(list.mock.calls.some(([kind]) => kind === 'task' || kind === 'chat_request')).toBe(false);
 });
