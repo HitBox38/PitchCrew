@@ -427,6 +427,11 @@ test('uses the native surface and browser controls without screenshot or private
       .getByRole('textbox', { name: 'Browser address' })
       .evaluate((element) => (element as HTMLInputElement).selectionStart),
   ).toBe(0);
+  // Page shortcuts are ignored while a command is in flight (the fixture records the navigation
+  // before the panel's refresh finishes); the Reload button is disabled by the same gate.
+  await expect
+    .poll(() => page.getByRole('button', { name: 'Reload page', exact: true }).isEnabled())
+    .toBe(true);
   await page.keyboard.press(`${modifier}+r`);
   await vi.waitFor(() => expect(nativeCommand).toHaveBeenCalledWith({ kind: 'reload' }));
   await page.keyboard.press(`${modifier}+f`);
@@ -659,6 +664,11 @@ test('reopens visited and closed pages through the same leased native browser', 
       'https://example.com/live-events',
     ),
   );
+  // The fixture's state changes before the panel polls it. Visiting records the page once the
+  // panel shows it, which would repopulate the history after it was cleared.
+  await page
+    .locator('.browser-tab[data-active="true"] .browser-tab-select', { hasText: 'Fixture page' })
+    .waitFor();
   await page.getByRole('button', { name: 'Browser history', exact: true }).click();
   expect(
     await page
