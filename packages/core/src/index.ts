@@ -9,6 +9,7 @@ export type {
 } from './runtime-auth.ts';
 export * from './detectors.ts';
 export * from './work-queue.ts';
+export * from './lifecycles.ts';
 export * from './skill-updates.ts';
 export * from './application-context.ts';
 export * from './application-form.ts';

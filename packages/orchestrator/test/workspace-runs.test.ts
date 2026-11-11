@@ -35,7 +35,7 @@ it('reuses compact runs and refetches only runs named by newer events', () => {
   const board = new Board(filename);
   const other = new Board(filename);
   try {
-    board.record('run', run('a'), 'system', 'Fixture');
+    board.record('run', run('a', 'running'), 'system', 'Fixture');
     board.record('run', run('b'), 'system', 'Fixture');
     const first = workspaceRuns(board);
     expect(first.map((r) => r.id)).toEqual(['b', 'a']);

@@ -1,4 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest';
+import { rewind } from './helpers/rewind.ts';
 import { Board } from '@pitchcrew/board';
 import type {
   AgentTask,
@@ -253,7 +254,7 @@ it('keeps failed tasks visible only in their paused lane and preserves routine a
   expect(taskLane(context, collection)).toBe(`conversation:${other.id}`);
   expect(activeQueues(context).get(`conversation:${other.id}`)).toEqual(new Set([round.rootRunId]));
   const delegate = context.board.get<AgentTask>('task', 'round-delegate');
-  save(context, 'task', { ...delegate, status: 'waiting' });
+  rewind(context.board, 'task', { ...delegate, status: 'waiting' }, 'user', 'Synthetic question');
   expect(activeQueues(context).has(`conversation:${other.id}`)).toBe(false);
   save(context, 'task', delegate);
   save(context, 'delegation_round', { ...round, status: 'cancelled' });

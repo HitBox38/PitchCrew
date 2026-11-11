@@ -1,5 +1,5 @@
 import type { JobAgent } from '../types.ts';
-import { turnPreview } from '../helpers.ts';
+import { agentState, turnPreview } from '../helpers.ts';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@pitchcrew/design-system/tooltip';
 import { TurnDuration } from '@/ChatTurn/components/TurnDuration.tsx';
@@ -17,8 +17,10 @@ export const JobAgents = ({
       className="detail-agents flex flex-wrap items-center gap-2"
       aria-label="Agents on this job"
     >
-      {agents.map(({ run, name, detail }) => {
-        const preview = turnPreview(run);
+      {agents.map((agent) => {
+        const { run, name, detail } = agent;
+        const state = agentState(agent);
+        const preview = turnPreview(run, agent.handedOff);
         return (
           <Tooltip key={run.id}>
             <TooltipTrigger
@@ -30,7 +32,7 @@ export const JobAgents = ({
                 />
               }
               className="detail-agent max-w-full"
-              aria-label={`${name}${detail ? ` (${detail})` : ''}: ${run.status === 'waiting' ? 'Waiting for you' : 'Running'}. Open job chat`}
+              aria-label={`${name}${detail ? ` (${detail})` : ''}: ${state}. Open job chat`}
               aria-disabled={!run.threadId}
               onClick={(event) => {
                 if (!run.threadId) {
@@ -50,9 +52,7 @@ export const JobAgents = ({
                   {detail}
                 </span>
               ) : null}
-              <span className="detail-agent-status">
-                {run.status === 'waiting' ? 'Waiting for you' : 'Running'}
-              </span>
+              <span className="detail-agent-status">{state}</span>
             </TooltipTrigger>
             <TooltipContent
               side="bottom"

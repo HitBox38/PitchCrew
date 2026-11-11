@@ -11,7 +11,10 @@ import {
   type RuntimeConfiguration,
 } from '@pitchcrew/core';
 import { createBoardContext } from './board/context.ts';
+import type { LifecycleMode } from './board/lifecycle.ts';
 import type { BoardContext } from './board/types.ts';
+
+export type { LifecycleMode } from './board/lifecycle.ts';
 
 export { digestPacket, digestArtifacts } from './board/helpers.ts';
 export { setCardStatus } from './board/manual-status.ts';
@@ -82,6 +85,17 @@ export class Board {
   get db() {
     return this.context.db;
   }
+  /** How undeclared status moves are handled: refused, saved with a warning, or unchecked. */
+  get lifecycleMode() {
+    return this.context.lifecycleMode;
+  }
+  set lifecycleMode(mode: LifecycleMode) {
+    this.context.lifecycleMode = mode;
+  }
+  /** Called once per undeclared move saved in report mode, after the stderr warning. */
+  set onLifecycleReport(listener: BoardContext['onLifecycleReport']) {
+    this.context.onLifecycleReport = listener;
+  }
   close = (): void => {
     return this.context.close();
   };
@@ -137,6 +151,10 @@ export class Board {
   };
   move = (id: string, state: CardState, actor: string, message?: string): Card => {
     return this.context.move(id, state, actor, message);
+  };
+  /** Saves a job crew work moved, checked against the workflow graph plus its rework moves. */
+  crewMove = (next: Card, actor: string, message: string): Card => {
+    return this.context.crewMove(next, actor, message);
   };
   requestApproval = (
     cardId: string,

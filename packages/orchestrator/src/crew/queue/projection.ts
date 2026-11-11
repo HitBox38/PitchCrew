@@ -1,4 +1,10 @@
-import { type Card, type Conversation, type WorkQueue, type WorkspaceQueue } from '@pitchcrew/core';
+import {
+  taskLifecycle,
+  type Card,
+  type Conversation,
+  type WorkQueue,
+  type WorkspaceQueue,
+} from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 import { activeRuns, tasksWithStatus } from './queries.ts';
 import { taskAwaitsRecovery } from '../delegation-rounds.ts';
@@ -18,9 +24,7 @@ export const workspaceQueue = (context: CrewContext): WorkspaceQueue => {
   const workQueues = context.board.list<WorkQueue>('work_queue');
   const runs = activeRuns(context);
   const tasks = tasksWithStatus(context, [
-    'queued',
-    'running',
-    'waiting',
+    ...taskLifecycle.groups.live,
     ...(workQueues.some((queue) => queue.paused) ? ['failed' as const] : []),
   ]);
   const queues = workQueues
@@ -40,7 +44,7 @@ export const workspaceQueue = (context: CrewContext): WorkspaceQueue => {
       );
       const relatedTasks = tasks.filter(
         (t) =>
-          (['queued', 'running', 'waiting'].includes(t.status) ||
+          (taskLifecycle.is('live', t.status) ||
             (queue.paused && taskAwaitsRecovery(context, t))) &&
           taskLane(context, t) === queue.id,
       );

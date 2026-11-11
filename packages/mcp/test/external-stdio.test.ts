@@ -9,6 +9,7 @@ import { promisify } from 'node:util';
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, finish, setup, waitForSnapshot } from '../../orchestrator/test/helpers/daemon.ts';
 import { postingLinks, recordedPostings } from '../../orchestrator/test/helpers/job-links.ts';
+import { rewind } from '../../orchestrator/test/helpers/rewind.ts';
 import {
   disableExternalAccess,
   enableExternalAccess,
@@ -257,7 +258,8 @@ it('manages jobs, preserves busy checks and delegates visible crew work through 
       ).isError,
     ).toBe(true);
   daemon.service.board.updateCard(card.id, { owner: null }, 'system', 'Fixture unlock');
-  daemon.service.board.record(
+  rewind(
+    daemon.service.board,
     'run',
     { ...run, status: 'running' },
     'system',

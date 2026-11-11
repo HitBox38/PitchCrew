@@ -91,3 +91,18 @@ it('rejects invalid marker versions before writing', async () => {
   await expect(markUpdateRestart(directory, '../../installer')).rejects.toThrow('Invalid update');
   expect(await readFile(join(directory, 'update-restart.json'), 'utf8')).toContain('0.2.0');
 });
+
+it.each(['{"version":"0.2', 'null', ''])(
+  'clears a damaged restart marker instead of failing every launch (%j)',
+  async (text) => {
+    const directory = await fixture();
+    await writeFile(join(directory, 'update-restart.json'), text);
+    const fetcher = vi.fn();
+    vi.stubGlobal('fetch', fetcher);
+    await verifyUpdateRestart(directory, build, 'http://127.0.0.1:4417');
+    expect(fetcher).not.toHaveBeenCalled();
+    await expect(readFile(join(directory, 'update-restart.json'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
+  },
+);

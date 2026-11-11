@@ -3,6 +3,7 @@ import { RuntimeSetupManager } from '../runtime-setup/index.ts';
 import { RuntimeAuthManager } from '../runtime-setup/auth.ts';
 import { RuntimeConnections } from '../runtime-connections/index.ts';
 import { Board } from '@pitchcrew/board';
+import { recordOperationalLog } from '../telemetry/logs.ts';
 import { writingGuide, saveGuide } from '../quality/writing.ts';
 import { ProfileOrganizationStore } from '../profile-organization.ts';
 import { InstructionUpdatePreferences } from '../instruction-updates.ts';
@@ -65,6 +66,15 @@ export const createCrewContext = (
 ): CrewContext => {
   const onboarding = new OnboardingPreferences(directory);
   const board = new Board(join(directory, 'pitchcrew.db'));
+  // A move the lifecycle tables missed reaches consented diagnostics, not just stderr.
+  board.onLifecycleReport = (violation) =>
+    recordOperationalLog(diagnostics, {
+      code: 'daemon_lifecycle_violation',
+      area: 'daemon',
+      lifecycle: violation.lifecycle,
+      from_status: violation.from,
+      to_status: violation.to,
+    });
   const connectors = new ConnectorManager(directory);
   const context: CrewContext = {
     diagnostics,

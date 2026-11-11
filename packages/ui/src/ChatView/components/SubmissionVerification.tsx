@@ -1,3 +1,4 @@
+import { deliveryLifecycle } from '@pitchcrew/core/lifecycles';
 import { ManualSubmissionCompletion } from './ManualSubmissionCompletion.tsx';
 import { useState } from 'react';
 import { SubmissionReceipts } from '@/components/CardDetails/components/SubmissionReceipts.tsx';
@@ -31,7 +32,7 @@ export const SubmissionVerification = (
               (request) =>
                 request.id === approval.submission?.requestId &&
                 request.deliveries.some((delivery) =>
-                  ['queued', 'running', 'waiting'].includes(delivery.status),
+                  deliveryLifecycle.is('active', delivery.status),
                 ),
             ) ||
             data.runs.some((run) => run.cardId === card.id && run.status === 'running') ||

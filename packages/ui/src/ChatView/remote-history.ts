@@ -1,3 +1,4 @@
+import { runLifecycle } from '@pitchcrew/core/lifecycles';
 import type {
   ConversationHistoryPage,
   ChatMessage,
@@ -23,7 +24,7 @@ export const liveHistoryItems = (
     const previous = pageRuns.get(run.id);
     if (previous)
       pageRuns.set(run.id, { ...previous, ...run, activity: run.activity ?? previous.activity });
-    else if (['running', 'waiting'].includes(run.status)) pageRuns.set(run.id, run);
+    else if (runLifecycle.is('live', run.status)) pageRuns.set(run.id, run);
   }
   const messages = page.items.flatMap((item) => (item.kind === 'message' ? [item.message] : []));
   const saved = new Set(messages.map((message) => message.id));

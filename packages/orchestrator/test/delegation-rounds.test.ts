@@ -17,7 +17,7 @@ const held = () => {
   const turns: {
     context: ChatContext;
     complete: (reply?: string) => void;
-    fail: (message: string) => void;
+    fail: (message?: string) => void;
   }[] = [];
   vi.spyOn(adapters.demo, 'chat').mockImplementation(
     (context) =>
@@ -28,7 +28,7 @@ const held = () => {
         turns.push({
           context,
           complete: (reply = 'Done.') => resolve({ reply }),
-          fail: (message) => reject(new Error(message)),
+          fail: (message = 'Fixture runtime failed.') => reject(new Error(message)),
         });
       }),
   );
@@ -250,6 +250,101 @@ it('lets the user delegate from the composer, turns a stopped delegate into a ca
       roleIds: ['scout'],
     }),
   ).resolves.toMatchObject({ response: expect.objectContaining({ status: 400 }) });
+});
+
+it('keeps a round open while its failed collection can be retried, then collects', async () => {
+  const { request } = await setup();
+  const turns = held();
+  const group = (
+    await request<Conversation>('/conversations', 'POST', {
+      title: 'Retried collection',
+      participants: ['scout', 'writer'],
+      leadId: 'scout',
+    })
+  ).result;
+  const sent = (
+    await request<ChatRequest>(`/conversations/${group.id}/delegate`, 'POST', {
+      content: 'Summarize the posting.',
+      roleIds: ['writer'],
+    })
+  ).result;
+  await vi.waitFor(() => expect(turns).toHaveLength(1));
+  turns[0].complete('Writer summary: a backend role.');
+  await vi.waitFor(() => expect(turns).toHaveLength(2));
+  turns[1].fail();
+  const failed = await waitForSnapshot(
+    request,
+    (snapshot) =>
+      snapshot.queue?.queues.some((queue) =>
+        queue.tasks.some((task) => task.roundId === sent.roundId && task.status === 'failed'),
+      ) === true,
+  );
+  // A failed collection can still be retried, so the round has not settled.
+  expect(failed.delegationRounds?.find((round) => round.id === sent.roundId)?.status).toBe(
+    'collecting',
+  );
+  const queue = failed.queue!.queues.find((item) =>
+    item.tasks.some((task) => task.roundId === sent.roundId),
+  )!;
+  const collectionId = queue.tasks.find((task) => task.status === 'failed')!.id;
+  await request(`/queue/${encodeURIComponent(queue.id)}`, 'PUT', {
+    action: 'retry-follow-up',
+    taskId: collectionId,
+  });
+  await vi.waitFor(() => expect(turns).toHaveLength(3));
+  expect(turns[2].context.role.id).toBe('scout');
+  expect(turns[2].context.request).toContain('Writer summary: a backend role.');
+  turns[2].complete('Writer says it is a backend role.');
+  await waitForSnapshot(
+    request,
+    (snapshot) =>
+      snapshot.delegationRounds?.find((round) => round.id === sent.roundId)?.status === 'completed',
+  );
+});
+
+it('settles a round as cancelled when its failed collection is skipped', async () => {
+  const { daemon, request } = await setup();
+  const turns = held();
+  const group = (
+    await request<Conversation>('/conversations', 'POST', {
+      title: 'Skipped collection',
+      participants: ['scout', 'writer'],
+      leadId: 'scout',
+    })
+  ).result;
+  const sent = (
+    await request<ChatRequest>(`/conversations/${group.id}/delegate`, 'POST', {
+      content: 'Summarize the posting.',
+      roleIds: ['writer'],
+    })
+  ).result;
+  await vi.waitFor(() => expect(turns).toHaveLength(1));
+  turns[0].complete();
+  await vi.waitFor(() => expect(turns).toHaveLength(2));
+  turns[1].fail();
+  const failed = await waitForSnapshot(
+    request,
+    (snapshot) =>
+      snapshot.queue?.queues.some((queue) =>
+        queue.tasks.some((task) => task.roundId === sent.roundId && task.status === 'failed'),
+      ) === true,
+  );
+  const queue = failed.queue!.queues.find((item) =>
+    item.tasks.some((task) => task.roundId === sent.roundId),
+  )!;
+  await request(`/queue/${encodeURIComponent(queue.id)}`, 'PUT', {
+    action: 'skip-follow-up',
+    taskId: queue.tasks.find((task) => task.status === 'failed')!.id,
+  });
+  await waitForSnapshot(
+    request,
+    (snapshot) =>
+      snapshot.delegationRounds?.find((round) => round.id === sent.roundId)?.status === 'cancelled',
+  );
+  expect(
+    daemon.service.board.get<DelegationRound>('delegation_round', sent.roundId!).settledAt,
+  ).toBeTruthy();
+  expect(turns).toHaveLength(2);
 });
 
 it('cancels the collection with the rest of the lane on Stop and replays rounds from events', async () => {

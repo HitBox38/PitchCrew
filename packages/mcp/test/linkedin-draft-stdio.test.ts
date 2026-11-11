@@ -4,6 +4,7 @@ import type { Role, Run } from '@pitchcrew/core';
 import { fileURLToPath } from 'node:url';
 import { afterEach, expect, it } from 'vitest';
 import { cleanup, setup } from '../../orchestrator/test/helpers/daemon.ts';
+import { rewind } from '../../orchestrator/test/helpers/rewind.ts';
 
 afterEach(cleanup);
 
@@ -79,13 +80,13 @@ it('checks LinkedIn drafts over actual scoped stdio and rechecks active chat acc
     ).rejects.toThrow();
     for (const changed of [
       { ...run, mode: 'workflow' as const },
-      { ...run, status: 'completed' as const },
       { ...run, purpose: 'fit' as const },
+      { ...run, status: 'completed' as const },
     ]) {
       daemon.service.board.record('run', changed, 'user', 'Fixture unavailable execution');
       expect((await client.callTool({ name: tool!.name, arguments: args })).isError).toBe(true);
     }
-    daemon.service.board.record('run', run, 'user', 'Fixture resumed execution');
+    rewind(daemon.service.board, 'run', run, 'user', 'Fixture resumed execution');
     const role = daemon.service.board.get<Role>('role', run.roleId);
     daemon.service.board.record('role', { ...role, enabled: false }, 'user', 'Paused fixture');
     expect((await client.callTool({ name: tool!.name, arguments: args })).isError).toBe(true);

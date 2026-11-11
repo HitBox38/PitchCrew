@@ -1,9 +1,30 @@
+import { lifecycles } from './lifecycles.ts';
+
+/** A lifecycle name and two of its statuses, all from the tables; anything else drops the log. */
+const lifecycleMove = (input: Record<string, unknown>) => {
+  const lifecycle = lifecycles.find((entry) => entry.name === input.lifecycle);
+  const states: readonly string[] = lifecycle?.states ?? [];
+  return lifecycle &&
+    states.includes(input.from_status as string) &&
+    states.includes(input.to_status as string)
+    ? {
+        lifecycle: lifecycle.name,
+        from_status: input.from_status as string,
+        to_status: input.to_status as string,
+      }
+    : null;
+};
+
 /** Rebuild the entire log from fixed vocabulary, dropping all additional input. */
 export const sanitizeOperationalLog = (input: Record<string, unknown>): OperationalLog | null => {
   if (typeof input.code !== 'string' || !Object.hasOwn(operationalLogCodes, input.code))
     return null;
   const code = input.code as OperationalLogCode;
   const area = input.area;
+  if (code === 'daemon_lifecycle_violation') {
+    const move = area === 'daemon' ? lifecycleMove(input) : null;
+    return move ? { code, area: 'daemon', ...move } : null;
+  }
   if (
     (code.startsWith('daemon_') && area === 'daemon') ||
     (code.startsWith('http_') && area === 'http') ||
@@ -44,6 +65,7 @@ export const operationalLogCodes = {
   daemon_ready: { severity: 'INFO', number: 9, service: 'pitchcrew-daemon' },
   daemon_start_failed: { severity: 'ERROR', number: 17, service: 'pitchcrew-daemon' },
   daemon_run_recovered: { severity: 'WARN', number: 13, service: 'pitchcrew-daemon' },
+  daemon_lifecycle_violation: { severity: 'WARN', number: 13, service: 'pitchcrew-daemon' },
   http_request_failed: { severity: 'WARN', number: 13, service: 'pitchcrew-http' },
   runtime_run_failed: { severity: 'ERROR', number: 17, service: 'pitchcrew-runtime' },
   runtime_run_cancelled: { severity: 'INFO', number: 9, service: 'pitchcrew-runtime' },
@@ -59,6 +81,10 @@ export interface OperationalLog extends LogCorrelation {
   runtime_exit_code?: number;
   runtime_exit_signal?: RuntimeExitSignal;
   operation?: HttpOperation;
+  /** `daemon_lifecycle_violation` only: a table name and two of its statuses. */
+  lifecycle?: string;
+  from_status?: string;
+  to_status?: string;
 }
 
 export interface LogCorrelation {

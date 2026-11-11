@@ -6,8 +6,8 @@ import {
   queueAnswerThread,
   queueIdentity,
   queueStateLabels,
+  queueTone,
 } from '@/lib/work-queue.ts';
-import { queueBeadTone } from '../helpers.ts';
 import { QueueWidgetAgent } from './QueueWidgetAgent.tsx';
 
 /** One job or conversation: its bead, identity, what it is waiting on, and its running agents. */
@@ -25,7 +25,7 @@ export const QueueWidgetWork = ({
   const waiting = queue.state === 'waiting';
   const { open } = useQueueActions(queue, waiting ? queueAnswerThread(queue, data) : undefined);
   const request = queue.requests[0];
-  const tone = queueBeadTone(queue);
+  const tone = queueTone(queue);
   const detail =
     queue.state === 'ready' && request
       ? request.boardAction

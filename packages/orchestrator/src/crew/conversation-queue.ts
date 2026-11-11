@@ -15,7 +15,7 @@ import { requestProblem, requestIsHead } from './queue/requests.ts';
 import { moveQueueRequest } from './queue/commands.ts';
 import { RuntimeHeldError } from '../runtime-maintenance/availability.ts';
 import { messageRecipients, resolveChatReferences } from './chat-references.ts';
-import { chatReferenceInput } from '@pitchcrew/core';
+import { deliveryLifecycle, chatReferenceInput } from '@pitchcrew/core';
 import { failReviewContinuation } from './deep-reviews/state.ts';
 import { startDeepReview } from './deep-reviews/index.ts';
 import { isDeepReviewRequest, queueDeepReviewChat } from './deep-reviews/chat.ts';
@@ -511,7 +511,7 @@ const stopConversationBranch = (
     for (const delivery of request.deliveries)
       if (
         (!roleId || delivery.roleId === roleId) &&
-        ['queued', 'running'].includes(delivery.status)
+        deliveryLifecycle.is('moving', delivery.status)
       ) {
         delivery.status = 'paused';
         changed = true;
@@ -695,7 +695,7 @@ export const updateRequest = (context: CrewContext, id: string, data: unknown): 
   }
   const request = context.board.get<ChatRequest>('chat_request', id);
   const pending = request.deliveries.filter((delivery) =>
-    ['queued', 'paused', 'failed'].includes(delivery.status),
+    deliveryLifecycle.is('unsent', delivery.status),
   );
   if (!pending.length && input.action !== 'remove')
     throw new Error('This request has no pending deliveries.');
@@ -709,7 +709,7 @@ export const updateRequest = (context: CrewContext, id: string, data: unknown): 
       throw new Error('Your answer is already saved. Send a correction instead.');
     if (
       request.deliveries.some(
-        (delivery) => delivery.runId || !['queued', 'paused', 'failed'].includes(delivery.status),
+        (delivery) => delivery.runId || !deliveryLifecycle.is('unsent', delivery.status),
       )
     )
       throw new Error('This message has started. Send a correction instead.');
@@ -720,7 +720,7 @@ export const updateRequest = (context: CrewContext, id: string, data: unknown): 
     const targets = messageRecipients(input.content, item);
     if (!targets.length) throw new Error('Mention an agent participating in this conversation.');
     const paused = request.deliveries.some((delivery) =>
-      ['paused', 'failed'].includes(delivery.status),
+      deliveryLifecycle.is('stopped', delivery.status),
     );
     request.deliveries = targets.map((roleId) => ({
       roleId,
@@ -740,7 +740,7 @@ export const updateRequest = (context: CrewContext, id: string, data: unknown): 
   }
   if (input.action === 'remove')
     for (const delivery of request.deliveries)
-      if (['queued', 'paused', 'failed'].includes(delivery.status)) delivery.status = 'cancelled';
+      if (deliveryLifecycle.is('unsent', delivery.status)) delivery.status = 'cancelled';
   if (input.action === 'interrupt') {
     stopConversationWork(context, request.threadId);
     for (const saved of queueRequests(
@@ -761,7 +761,7 @@ export const updateRequest = (context: CrewContext, id: string, data: unknown): 
   if (input.action === 'interrupt')
     for (const delivery of request.deliveries)
       if (
-        ['paused', 'failed'].includes(delivery.status) &&
+        deliveryLifecycle.is('stopped', delivery.status) &&
         canReadConversation(context, delivery.roleId, request.threadId)
       )
         delivery.status = 'queued';

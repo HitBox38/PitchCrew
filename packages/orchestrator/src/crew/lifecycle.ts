@@ -7,6 +7,9 @@ import { activityRuns, finishChatActivity, restoreActivityCheckpoints } from './
 import { recordOperationalLog } from '../telemetry/logs.ts';
 import { endQuestionTurn } from './user-input/lifecycle.ts';
 import {
+  computerApprovalLifecycle,
+  deliveryLifecycle,
+  taskLifecycle,
   type PipelineReview,
   type AgentTask,
   type Approval,
@@ -44,7 +47,7 @@ export const initialize = async (
     await context.detectors.initialize();
     for (const approval of context.board
       .list<ComputerApproval>('computer_approval')
-      .filter((a) => ['pending', 'approved'].includes(a.status)))
+      .filter((a) => computerApprovalLifecycle.is('open', a.status)))
       context.board.record(
         'computer_approval',
         {
@@ -151,7 +154,7 @@ export const initialize = async (
       );
     for (const task of context.board
       .list<AgentTask>('task')
-      .filter((t) => ['queued', 'running'].includes(t.status))) {
+      .filter((t) => taskLifecycle.is('recoverable', t.status))) {
       const parent = task.runId
         ? context.board.get<Run>('run', task.runId)
         : (taskParentRun(context, task) ?? { status: 'completed' as const });
@@ -192,7 +195,7 @@ export const initialize = async (
     for (const request of context.board.list<import('@pitchcrew/core').ChatRequest>(
       'chat_request',
     )) {
-      if (!request.deliveries.some((delivery) => ['queued', 'running'].includes(delivery.status)))
+      if (!request.deliveries.some((delivery) => deliveryLifecycle.is('moving', delivery.status)))
         continue;
       for (const delivery of request.deliveries)
         if (delivery.status === 'running')

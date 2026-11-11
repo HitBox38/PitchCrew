@@ -18,7 +18,9 @@ import {
   taskParentRun,
 } from './delegation-rounds.ts';
 import { requireRole } from './roles.ts';
+import { startTaskRun } from './task-start.ts';
 import {
+  runLifecycle,
   defaultCapabilities,
   type AgentTask,
   type Role,
@@ -161,7 +163,7 @@ export const drainTasks = async (context: CrewContext): Promise<void> => {
       if (context.closing) break;
       const parent = taskParentRun(context, task);
       if (
-        ['running', 'waiting'].includes(parent?.status ?? 'completed') ||
+        runLifecycle.is('live', parent?.status ?? 'completed') ||
         waitingOnUser(context, task.threadId, task.roleId)
       )
         continue;
@@ -218,13 +220,9 @@ export const drainTasks = async (context: CrewContext): Promise<void> => {
                 launch.threadId,
                 launch,
               );
-        context.board.record(
-          'task',
-          { ...launch, status: 'running', runId: run.id },
-          'orchestrator',
-          `Started queued ${task.roleId} ${task.mode}`,
-        );
-        if (task.roundId) refreshRound(context, task.roundId);
+        // The launch marked the task running when it saved the run (`startTaskRun`), and a fast
+        // turn may already have settled it, so a stale copy is never written back here.
+        startTaskRun(context, run);
       } catch (error) {
         if (error instanceof RuntimeHeldError || error instanceof QueueBusyError) continue;
         if (context.board.get<AgentTask>('task', task.id).status === 'cancelled') continue;

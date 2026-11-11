@@ -45,7 +45,7 @@ describe('user job deletion API', () => {
     expect(daemon.service.board.events()).toEqual(owned);
     daemon.service.board.updateCard(card.id, { owner: null }, 'system', 'Release fixture');
     for (const mode of ['workflow', 'chat'] as const) {
-      const run = { id: 'fixture-active', cardId: card.id, status: 'running', mode } as Run;
+      const run = { id: `fixture-${mode}`, cardId: card.id, status: 'running', mode } as Run;
       daemon.service.board.record('run', run, 'scout', 'Fixture active run');
       const busy = daemon.service.board.events();
       expect((await request(path, 'DELETE')).response.status).toBe(400);

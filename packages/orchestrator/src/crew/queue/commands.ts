@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import {
+  deliveryLifecycle,
   queueSequenceProblems,
   type AgentTask,
   type Card,
@@ -9,6 +10,7 @@ import {
 } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 import { drainConversationQueue, saveRequest } from '../conversation-queue.ts';
+import { refreshRound } from '../delegation-rounds.ts';
 import { laneId, patchQueue, nextOrder, queueRequests, runLane } from './state.ts';
 import { taskLane } from './state.ts';
 import { taskAwaitsRecovery } from '../delegation-rounds.ts';
@@ -50,6 +52,7 @@ export const updateQueue = (context: CrewContext, id: string, data: unknown) => 
         'user',
         'Recovered crew follow-up',
       );
+      if (task.roundId) refreshRound(context, task.roundId);
       patchQueue(context, id, {
         paused: false,
         pauseKind: undefined,
@@ -131,7 +134,7 @@ export const moveQueueRequest = (context: CrewContext, id: string, beforeId: str
   if (
     position < 0 ||
     (beforeId &&
-      reordered[position].deliveries.some((d) => ['running', 'waiting'].includes(d.status)))
+      reordered[position].deliveries.some((d) => deliveryLifecycle.is('engaged', d.status)))
   )
     throw new Error('Choose a pending destination.');
   reordered.splice(position, 0, request);

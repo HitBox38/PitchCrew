@@ -1,3 +1,4 @@
+import { runLifecycle } from '@pitchcrew/core';
 import {
   changeJobState,
   conversationHistory,
@@ -39,7 +40,7 @@ const idleCard = (context: CrewContext, id: string) => {
   const card = context.board.get<Card>('card', id);
   if (
     card.owner ||
-    runsWithStatus(context.board, ['running', 'waiting']).some((run) => run.cardId === id)
+    runsWithStatus(context.board, runLifecycle.groups.live).some((run) => run.cardId === id)
   )
     throw new Error('Finish or cancel active job work before changing this job.');
   return card;

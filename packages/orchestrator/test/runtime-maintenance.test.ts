@@ -126,6 +126,27 @@ it('reserves before starting, deduplicates clicks and blocks only that runtime u
   expect(before.runtimeMaintenance?.updates[0].status).toBe('available');
 });
 
+it('refuses an update while sign-in or setup holds the runtime instead of silently ignoring it', async () => {
+  const { manager, request } = await fixture();
+  const run = vi.spyOn(manager.host, 'run').mockResolvedValue({ code: 0, stdout: '', stderr: '' });
+  await manager.check();
+  // Sign-in, installation, executable and credential changes hold the same per-runtime slot.
+  let release!: () => void;
+  const setupWork = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  manager.active.set('codex', setupWork);
+  const refused = await request<{ error?: string }>('/runtimes/codex/update', 'POST', {});
+  expect(refused.response.status).toBe(400);
+  expect(JSON.stringify(refused.result)).toMatch(/sign-in, installation or settings change/);
+  expect(manager.current().updates[0].operation).toBeFalsy();
+  expect(run).not.toHaveBeenCalled();
+  release();
+  manager.active.delete('codex');
+  expect((await request('/runtimes/codex/update', 'POST', {})).response.status).toBe(202);
+  await vi.waitFor(() => expect(run).toHaveBeenCalledTimes(1));
+  await manager.active.get('codex');
+});
 it('refuses stale installation ownership and refuses a false-success installer', async () => {
   const { manager } = await fixture();
   const run = vi.spyOn(manager.host, 'run').mockResolvedValue({ code: 0, stdout: '', stderr: '' });

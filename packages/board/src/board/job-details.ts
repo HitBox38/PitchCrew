@@ -1,4 +1,6 @@
 import {
+  approvalLifecycle,
+  computerApprovalLifecycle,
   jobDetailsChanges,
   type Approval,
   type Card,
@@ -50,7 +52,7 @@ export const recordJobSourceChange = (
   };
   board.record('card', saved, actor, reason);
   for (const approval of board.list<Approval>('approval'))
-    if (approval.cardId === card.id && ['pending', 'approved'].includes(approval.status))
+    if (approval.cardId === card.id && approvalLifecycle.is('open', approval.status))
       board.record(
         'approval',
         { ...approval, status: 'rejected', decidedAt: now },
@@ -58,7 +60,7 @@ export const recordJobSourceChange = (
         'Invalidated export approval after job details changed',
       );
   for (const approval of board.list<ComputerApproval>('computer_approval'))
-    if (approval.cardId === card.id && ['pending', 'approved'].includes(approval.status))
+    if (approval.cardId === card.id && computerApprovalLifecycle.is('open', approval.status))
       board.record(
         'computer_approval',
         { ...approval, status: 'rejected', decidedAt: now },

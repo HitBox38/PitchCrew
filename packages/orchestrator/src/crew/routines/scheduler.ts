@@ -3,7 +3,7 @@ import { queueMayStart } from '../queue/dispatch.ts';
 import { randomUUID } from 'node:crypto';
 import { saveRequest } from '../conversation-queue.ts';
 import { activeQueues, concurrency } from '../queue/state.ts';
-import { type ChatRequest } from '@pitchcrew/core';
+import { runLifecycle, taskLifecycle, type ChatRequest } from '@pitchcrew/core';
 import { drainConversationQueue } from '../conversation-queue.ts';
 import { relatedConversation, conversations } from '../conversations.ts';
 import { profileUpdateInterrupted } from '../../profile-sources/mutation.ts';
@@ -79,7 +79,7 @@ export const tickRoutines = async (context: CrewContext, now = new Date()): Prom
       )
         continue;
       if (
-        runsWithStatus(context.board, ['running', 'waiting']).some(
+        runsWithStatus(context.board, runLifecycle.groups.live).some(
           (run) =>
             run.routineId === routine.id ||
             (routine.lastRunId && run.rootRunId === routine.lastRunId),
@@ -89,7 +89,7 @@ export const tickRoutines = async (context: CrewContext, now = new Date()): Prom
       if (!routine.cardId && activeQueues(context).size >= concurrency(context)) continue;
       if (
         routine.lastRunId &&
-        tasksWithStatus(context.board, ['queued', 'running', 'waiting']).some(
+        tasksWithStatus(context.board, taskLifecycle.groups.live).some(
           (task) => task.rootRunId === routine.lastRunId,
         )
       )

@@ -1,4 +1,5 @@
 import {
+  approvalLifecycle,
   applicationQuery,
   externalApplicationInput,
   externalSubmissionInput,
@@ -168,7 +169,7 @@ export const registerExistingExternalSubmission = (
     };
     for (const approval of board
       .list<Approval>('approval')
-      .filter((value) => value.cardId === cardId && ['pending', 'approved'].includes(value.status)))
+      .filter((value) => value.cardId === cardId && approvalLifecycle.is('open', value.status)))
       board.record(
         'approval',
         { ...approval, status: 'rejected', decidedAt: new Date().toISOString() },

@@ -1,8 +1,9 @@
 import type { BoardEvent } from '@pitchcrew/core';
 import Database from 'better-sqlite3';
 import { consumeApproval, decideApproval, requestApproval } from './approvals.ts';
-import { createCard, hasActiveRun, move, updateCard } from './cards.ts';
+import { createCard, crewMove, hasActiveRun, move, updateCard } from './cards.ts';
 import { close, events, get, history, list, rebuild, record } from './events.ts';
+import { lifecycleMode } from './lifecycle.ts';
 import { seedRoles } from './roles.ts';
 import { defaultInstructionStatuses } from './default-instructions.ts';
 import type { BoardContext } from './types.ts';
@@ -11,6 +12,8 @@ export const createBoardContext = (filename: string): BoardContext => {
   const context: BoardContext = {
     filename,
     db: new Database(filename),
+    lifecycleMode: lifecycleMode(),
+    lifecycleReports: new Set(),
 
     close: (...args) => close(context, ...args),
     list: <T>(kind: BoardEvent['kind']) => list<T>(context, kind),
@@ -22,6 +25,7 @@ export const createBoardContext = (filename: string): BoardContext => {
     createCard: (...args) => createCard(context, ...args),
     updateCard: (...args) => updateCard(context, ...args),
     move: (...args) => move(context, ...args),
+    crewMove: (...args) => crewMove(context, ...args),
     requestApproval: (...args) => requestApproval(context, ...args),
     decideApproval: (...args) => decideApproval(context, ...args),
     consumeApproval: (...args) => consumeApproval(context, ...args),

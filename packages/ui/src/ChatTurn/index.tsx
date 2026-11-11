@@ -1,3 +1,4 @@
+import { questionAnswered } from '@/lib/question-wait.ts';
 import type { Run } from '@pitchcrew/core';
 import { runModel, turnStatus } from './helpers.ts';
 import { TurnActivity } from './components/TurnActivity.tsx';
@@ -21,11 +22,7 @@ export const ChatTurn = ({
     (state) => state.data?.runtimes.find((item) => item.id === run.runtime)?.models,
   );
   const active = run.status === 'running';
-  const answered = useWorkspaceStore((state) =>
-    state.data?.userInputs?.some(
-      (question) => question.runId === run.id && question.status === 'answered',
-    ),
-  );
+  const answered = useWorkspaceStore((state) => questionAnswered(run.id, state.data?.userInputs));
   const handedOff = run.status === 'waiting' && answered;
   const { status } = turnStatus(run, replying);
   const hasActivity = !!run.activity?.length || run.activityTruncated;

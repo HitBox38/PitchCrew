@@ -1,3 +1,4 @@
+import { deliveryLifecycle } from '@pitchcrew/core';
 import type { ChatRequest, AgentTask } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 import { canReadConversation } from '../conversations.ts';
@@ -19,7 +20,7 @@ export const resumeHeadRequest = (context: CrewContext, request: ChatRequest) =>
     throw new Error('Retry or skip the failed crew follow-up in Queue before continuing.');
   const eligible = request.deliveries.filter(
     (delivery) =>
-      ['paused', 'failed'].includes(delivery.status) &&
+      deliveryLifecycle.is('stopped', delivery.status) &&
       canReadConversation(context, delivery.roleId, request.threadId),
   );
   if (!eligible.length) throw new Error('This message has no unfinished replies to resume.');
@@ -50,11 +51,7 @@ export const resumeHeadRequest = (context: CrewContext, request: ChatRequest) =>
 
 /** A different failed attempt is still a user decision, never an implicit bulk retry. */
 export const pauseForUnfinishedHead = (context: CrewContext, request: ChatRequest) => {
-  if (
-    request.deliveries.some((delivery) =>
-      ['queued', 'running', 'waiting'].includes(delivery.status),
-    )
-  )
+  if (request.deliveries.some((delivery) => deliveryLifecycle.is('active', delivery.status)))
     return;
   const failed = request.deliveries.some((delivery) => delivery.status === 'failed');
   const paused = request.deliveries.filter((delivery) => delivery.status === 'paused');

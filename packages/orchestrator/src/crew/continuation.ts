@@ -1,3 +1,4 @@
+import { deliveryLifecycle, runLifecycle, taskLifecycle } from '@pitchcrew/core';
 import { runsForThread, runsWithStatus, tasksWithStatus } from '@pitchcrew/board';
 import { randomUUID } from 'node:crypto';
 import type { ChatRequest, ChatMessage, Run, UserInputRequest } from '@pitchcrew/core';
@@ -17,10 +18,10 @@ export const continueConversation = (context: CrewContext, id: string): ChatRequ
     throw new Error('Answer or cancel the pending questions before continuing with a summary.');
   const roots = new Set(runsForThread(context.board, id).map((run) => run.rootRunId ?? run.id));
   if (
-    runsWithStatus(context.board, ['running', 'waiting']).some((run) =>
+    runsWithStatus(context.board, runLifecycle.groups.live).some((run) =>
       roots.has(run.rootRunId ?? run.id),
     ) ||
-    tasksWithStatus(context.board, ['queued', 'running', 'waiting']).some((task) =>
+    tasksWithStatus(context.board, taskLifecycle.groups.live).some((task) =>
       roots.has(task.rootRunId),
     ) ||
     context.board
@@ -29,7 +30,7 @@ export const continueConversation = (context: CrewContext, id: string): ChatRequ
         (request) =>
           request.threadId === id &&
           request.summarize &&
-          request.deliveries.some((delivery) => ['queued', 'running'].includes(delivery.status)),
+          request.deliveries.some((delivery) => deliveryLifecycle.is('moving', delivery.status)),
       )
   )
     throw new Error('Wait for current work to finish before summarizing.');

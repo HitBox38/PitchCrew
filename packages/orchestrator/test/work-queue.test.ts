@@ -11,6 +11,7 @@ import type {
   AgentTask,
   Run,
 } from '@pitchcrew/core';
+import type { CrewContext } from '../src/crew/types.ts';
 import { setup, cleanup, waitForSnapshot } from './helpers/daemon.ts';
 import { confirmFixtureJob } from '../../board/test/fixtures/application-context.ts';
 const held = () => {
@@ -325,6 +326,40 @@ it('keeps a failed delegated follow-up in its initiating queue and exposes an ex
   await vi.waitFor(() => expect(turns).toHaveLength(4));
   expect(turns[3].context.request).toBe('Next user action');
   turns[3].complete();
+});
+it('keeps a follow-up completed when its turn finishes before the launch returns', async () => {
+  const { daemon, request } = await setup();
+  const turns = held();
+  const context = (daemon.service as unknown as { context: CrewContext }).context;
+  const start = context.startChatRun;
+  // Hold the launch until the turn has finished and settled its task, as a very fast turn can.
+  context.startChatRun = async (...args) => {
+    const run = await start(...args);
+    if (!args[4]) return run;
+    await vi.waitFor(() =>
+      expect(turns.some((turn) => turn.context.role.id === 'writer')).toBe(true),
+    );
+    turns.find((turn) => turn.context.role.id === 'writer')!.complete();
+    await vi.waitFor(() =>
+      expect(context.board.get<AgentTask>('task', args[4]!.id).status).toBe('completed'),
+    );
+    return run;
+  };
+  await request('/conversations/scout/messages', 'POST', { content: 'Ask Writer.' });
+  await vi.waitFor(() => expect(turns).toHaveLength(1));
+  await daemon.service.agentCall(turns[0].context.mcp.env.PITCHCREW_RUN_TOKEN, 'invoke', {
+    roleId: 'writer',
+    content: 'Quick check',
+    mode: 'chat',
+  });
+  const followUp = () =>
+    context.board.list<AgentTask>('task').find((task) => task.roleId === 'writer')!;
+  turns[0].complete();
+  await vi.waitFor(() => expect(followUp().runId).toBeTruthy());
+  // Give the launch's own write time to land after the turn settled.
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  expect(followUp().status).toBe('completed');
+  expect(context.board.get<Run>('run', followUp().runId!).status).toBe('completed');
 });
 it('replays saved ordering and capacity and pauses only requests interrupted at startup', async () => {
   const { daemon, request } = await setup();

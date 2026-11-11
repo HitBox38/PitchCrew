@@ -147,6 +147,10 @@ it('prioritizes live cancellation, user questions and uncertain submission outco
   const waiting = { ...run, status: 'waiting' as const, threadId: 'job-chat' };
   jobNextAction({ ...base, agents: [{ run: waiting, name: 'Writer' }] }).perform();
   expect(base.openChat).toHaveBeenCalledWith('job-chat', run.id);
+  // An answered question has handed the turn back; there is nothing left to answer.
+  expect(
+    jobNextAction({ ...base, agents: [{ run: waiting, name: 'Writer', handedOff: true }] }).label,
+  ).not.toBe('Answer in job chat');
   expect(
     jobNextAction({
       ...base,

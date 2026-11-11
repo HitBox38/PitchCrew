@@ -1,6 +1,7 @@
 import { expect, it } from 'vitest';
 import type { Card, Run, Snapshot, UserInputRequest } from '@pitchcrew/core';
 import {
+  agentState,
   jobAgents,
   turnPreview,
   launchBlocker,
@@ -142,6 +143,28 @@ it('supersedes a saved wait only with its answered question continuation', () =>
       userInputs: [{ ...question, status: 'pending' }],
     }),
   ).toHaveLength(2);
+});
+it('says an answered wait is handed back, not waiting for the user, until its continuation starts', () => {
+  const waiting: Run = { ...run, id: 'waiting', status: 'waiting', requestId: 'asked' };
+  const question = {
+    runId: waiting.id,
+    roleId: waiting.roleId,
+    status: 'answered',
+    continuationRequestId: 'answer',
+  } as UserInputRequest;
+  // The continuation is still queued, so the waiting turn stays listed.
+  const [agent] = jobAgents('job', { ...data, runs: [waiting], userInputs: [question] });
+  expect(agent).toMatchObject({ run: { id: 'waiting' }, handedOff: true });
+  expect(agentState(agent!)).toBe('Answer saved');
+  expect(turnPreview(waiting, agent!.handedOff).status).toBe('Answer saved');
+  const [asking] = jobAgents('job', {
+    ...data,
+    runs: [waiting],
+    userInputs: [{ ...question, status: 'pending' }],
+  });
+  expect(asking?.handedOff).toBeUndefined();
+  expect(agentState(asking!)).toBe('Waiting for you');
+  expect(agentState({ run, name: 'Writer' })).toBe('Running');
 });
 it('follows successive answered questions to the actual waiting turn', () => {
   const first: Run = { ...run, id: 'first', status: 'waiting' };
