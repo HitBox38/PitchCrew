@@ -10,7 +10,14 @@ cover the new edge with a test.
 
 ## Job
 
-Checked by `board.move`. User and `manageWorkflow` corrections may record any status.
+Checked by `board.move`. Crew work saves jobs through `board.crewMove`, which also allows these rework moves (`reworkTransitions`):
+
+- changes_requested → in_review
+- agreed → in_review
+- awaiting_approval → in_review
+- in_review → drafting
+
+User and `manageWorkflow` corrections may record any status.
 
 ```mermaid
 stateDiagram-v2

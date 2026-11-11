@@ -6,6 +6,7 @@ import {
   type Run,
 } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
+import { guardCrewMove } from './lifecycle.ts';
 import type { BoardContext } from './types.ts';
 
 export const createCard = (
@@ -82,6 +83,17 @@ export const move = (
   context.record('card', next, actor, message ?? `Moved to ${state.replaceAll('_', ' ')}`);
   return next;
 };
+/**
+ * Saves a job that crew work moved to a new status, checked against the workflow graph plus its
+ * rework moves (`crewTransitions`) inside the write transaction. Callers pass the whole next card
+ * because these writes also clear reviews or change the owner.
+ */
+export const crewMove = (context: BoardContext, next: Card, actor: string, message: string): Card =>
+  context.db.transaction(() => {
+    guardCrewMove(context, context.get<Card>('card', next.id).state, next.state);
+    context.record('card', next, actor, message);
+    return next;
+  })();
 export const hasActiveRun = (context: BoardContext, cardId: string): boolean => {
   return context
     .list<Run>('run')

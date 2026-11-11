@@ -80,8 +80,7 @@ export const executeDeepReview = async (context: CrewContext, live: LiveDeepRevi
         ['drafting', 'in_review', 'agreed', 'awaiting_approval'].includes(currentCard.state) &&
         status !== 'completed'
       )
-        context.board.record(
-          'card',
+        context.board.crewMove(
           {
             ...currentCard,
             state: 'changes_requested',

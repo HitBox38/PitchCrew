@@ -85,6 +85,10 @@ export class Board {
   set lifecycleMode(mode: LifecycleMode) {
     this.context.lifecycleMode = mode;
   }
+  /** Called once per undeclared move saved in report mode, after the stderr warning. */
+  set onLifecycleReport(listener: BoardContext['onLifecycleReport']) {
+    this.context.onLifecycleReport = listener;
+  }
   close = (): void => {
     return this.context.close();
   };
@@ -140,6 +144,10 @@ export class Board {
   };
   move = (id: string, state: CardState, actor: string, message?: string): Card => {
     return this.context.move(id, state, actor, message);
+  };
+  /** Saves a job crew work moved, checked against the workflow graph plus its rework moves. */
+  crewMove = (next: Card, actor: string, message: string): Card => {
+    return this.context.crewMove(next, actor, message);
   };
   requestApproval = (
     cardId: string,

@@ -125,8 +125,7 @@ const assessStage = async (
   live.stage = stage;
   const card = assertReviewCurrent(context, live);
   if (card.state !== 'in_review')
-    context.board.record(
-      'card',
+    context.board.crewMove(
       {
         ...card,
         state: 'in_review',
@@ -245,8 +244,7 @@ const writeStage = async (
 ) => {
   live.stage = stage;
   const card = assertReviewCurrent(context, live);
-  context.board.record(
-    'card',
+  context.board.crewMove(
     {
       ...card,
       state: 'drafting',

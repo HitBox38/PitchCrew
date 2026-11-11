@@ -19,6 +19,8 @@ export interface BoardContext {
   lifecycleMode: import('./lifecycle.ts').LifecycleMode;
   /** Undeclared moves already reported by this board, one entry per edge. */
   lifecycleReports: Set<string>;
+  /** Told once per reported edge, after the warning, so the daemon can record a diagnostic. */
+  onLifecycleReport?: (violation: import('@pitchcrew/core').LifecycleError) => void;
   close(): void;
   list<T>(kind: BoardEvent['kind']): T[];
   get<T>(kind: BoardEvent['kind'], id: string): T;
@@ -54,6 +56,7 @@ export interface BoardContext {
     message: string,
   ): Card;
   move(id: string, state: CardState, actor: string, message?: string): Card;
+  crewMove(next: Card, actor: string, message: string): Card;
   requestApproval(
     cardId: string,
     artifacts?: PacketArtifact[],

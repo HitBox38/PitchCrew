@@ -3,6 +3,7 @@
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { entityLifecycles, lifecycles, type Lifecycle } from '../packages/core/src/lifecycles.ts';
+import { reworkTransitions } from '../packages/core/src/states.ts';
 
 export const stateMachinesPath = fileURLToPath(
   new URL('../docs/state-machines.md', import.meta.url),
@@ -22,9 +23,16 @@ const diagram = (lifecycle: Lifecycle<string, string>): string =>
 
 const section = (lifecycle: Lifecycle<string, string>): string => {
   const groups = Object.entries(lifecycle.groups);
+  const rework = Object.entries(reworkTransitions).flatMap(([from, targets]) =>
+    (targets ?? []).map((to) => `- ${from} → ${to}`),
+  );
   const check =
     lifecycle.name === 'Job'
-      ? 'Checked by `board.move`. User and `manageWorkflow` corrections may record any status.'
+      ? [
+          'Checked by `board.move`. Crew work saves jobs through `board.crewMove`, which also allows these rework moves (`reworkTransitions`):',
+          rework.join('\n'),
+          'User and `manageWorkflow` corrections may record any status.',
+        ].join('\n\n')
       : lifecycle.name === 'Message delivery'
         ? 'Checked on every `chat_request` write, per recipient.'
         : enforced.has(lifecycle)

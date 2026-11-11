@@ -180,8 +180,7 @@ export const qualityAgentAction = async (
           'user',
           'Correction invalidated unused export approval',
         );
-      context.board.record(
-        'card',
+      context.board.crewMove(
         {
           ...card,
           state: 'changes_requested',

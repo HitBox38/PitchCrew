@@ -1,4 +1,11 @@
-import { LifecycleError, type Approval, type ChatRequest, type Run } from '@pitchcrew/core';
+import {
+  cardInput,
+  LifecycleError,
+  type Approval,
+  type Card,
+  type ChatRequest,
+  type Run,
+} from '@pitchcrew/core';
 import { afterEach, expect, it, vi } from 'vitest';
 import { Board } from '../src/index.ts';
 
@@ -82,6 +89,25 @@ it('saves and reports an undeclared move once outside tests', () => {
   );
 });
 
+it('tells its report listener once per edge and saves even when the listener throws', () => {
+  process.env.PITCHCREW_LIFECYCLES = 'report';
+  vi.spyOn(console, 'warn').mockImplementation(() => {});
+  const board = open();
+  const reported: LifecycleError[] = [];
+  board.onLifecycleReport = (violation) => {
+    reported.push(violation);
+    throw new Error('Fixture diagnostics failure.');
+  };
+  for (const id of ['run-1', 'run-2']) {
+    board.record('run', { ...run('completed'), id }, 'system', 'Finished');
+    board.record('run', { ...run('running'), id }, 'system', 'Restarted');
+  }
+  expect(reported.map(({ lifecycle, from, to }) => [lifecycle, from, to])).toEqual([
+    ['Run', 'completed', 'running'],
+  ]);
+  expect(board.get<Run>('run', 'run-2').status).toBe('running');
+});
+
 it('replays history that predates a table without checking it', () => {
   process.env.PITCHCREW_LIFECYCLES = 'report';
   vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -104,4 +130,30 @@ it('lets a fixture switch the check off for one deliberate rewind', () => {
   expect(() => board.record('run', run('running'), 'system', 'Resumed')).toThrow(
     'Run cannot go from waiting to running.',
   );
+});
+
+it('lets crew work make declared rework moves and refuses skipped workflow steps', () => {
+  const board = open();
+  const card = board.createCard(cardInput.parse({ company: 'Fixture', title: 'Engineer' }));
+  const save = (state: Card['state']) =>
+    board.crewMove({ ...board.get<Card>('card', card.id), state }, 'orchestrator', `To ${state}`);
+  board.move(card.id, 'shortlisted', 'user');
+  save('drafting');
+  save('in_review');
+  save('agreed');
+  // A fresh review of an agreed packet and a correction pass straight from review are rework.
+  save('in_review');
+  save('drafting');
+  expect(board.get<Card>('card', card.id).state).toBe('drafting');
+  const events = board.events(1000).length;
+  expect(() => save('submitted')).toThrow(
+    'Job cannot go from drafting to submitted. From drafting it can become: in_review, changes_requested.',
+  );
+  expect(board.events(1000)).toHaveLength(events);
+  // The normal graph used by board.move does not gain the rework moves.
+  board.move(card.id, 'in_review', 'orchestrator');
+  expect(() => board.move(card.id, 'drafting', 'orchestrator')).toThrow('Cannot move');
+  // User corrections still record any status directly.
+  board.record('card', { ...board.get<Card>('card', card.id), state: 'offer' }, 'user', 'Fix');
+  expect(board.get<Card>('card', card.id).state).toBe('offer');
 });

@@ -197,8 +197,7 @@ const startRunPrepared = async (
   crewContext.capabilities.set(token, { runId: run.id, cardId, roleId });
   if (seat === 'writer') crewContext.board.move(cardId, 'drafting', 'orchestrator');
   if (seat === 'reviewer' && card.state !== 'in_review')
-    crewContext.board.record(
-      'card',
+    crewContext.board.crewMove(
       { ...card, state: 'in_review', packetReview: undefined, updatedAt: new Date().toISOString() },
       'orchestrator',
       'Started fresh review of the existing packet',

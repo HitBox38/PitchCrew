@@ -1,8 +1,11 @@
 import {
+  cardLifecycle,
+  crewTransitions,
   deliveryLifecycle,
   entityLifecycles,
   LifecycleError,
   type BoardEvent,
+  type CardState,
   type ChatRequest,
 } from '@pitchcrew/core';
 import type { BoardContext } from './types.ts';
@@ -66,13 +69,32 @@ export const guardLifecycle = (
   context: BoardContext,
   kind: BoardEvent['kind'],
   data: BoardEvent['data'],
-): void => {
+): void => handleViolations(context, lifecycleViolations(context, kind, data));
+
+/**
+ * Checks a job status written by crew work against the workflow graph plus its rework moves.
+ * User and `manageWorkflow` corrections record jobs directly and are not checked here.
+ */
+export const guardCrewMove = (context: BoardContext, from: CardState, to: CardState): void =>
+  handleViolations(
+    context,
+    from === to || crewTransitions(from).includes(to)
+      ? []
+      : [new LifecycleError(cardLifecycle.name, from, to, crewTransitions(from))],
+  );
+
+const handleViolations = (context: BoardContext, violations: LifecycleError[]): void => {
   if (context.lifecycleMode === 'off') return;
-  for (const violation of lifecycleViolations(context, kind, data)) {
+  for (const violation of violations) {
     if (context.lifecycleMode === 'enforce') throw violation;
     const key = `${violation.lifecycle}:${violation.from}:${violation.to}`;
     if (context.lifecycleReports.has(key)) continue;
     context.lifecycleReports.add(key);
     console.warn(`Pitchcrew lifecycle: ${violation.message}`);
+    try {
+      context.onLifecycleReport?.(violation);
+    } catch {
+      /* Reporting is best effort and never blocks the write. */
+    }
   }
 };

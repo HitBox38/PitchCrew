@@ -100,8 +100,7 @@ const stagePrepared = async (
     const result = await ai.observe(() => adapters[role.runtime].run(launch), signal);
     if (endQuestionTurn(context, run)) {
       if (purpose === 'application-draft')
-        context.board.record(
-          'card',
+        context.board.crewMove(
           {
             ...context.board.get<Card>('card', card.id),
             state: 'changes_requested',
@@ -114,8 +113,7 @@ const stagePrepared = async (
     }
     signal.throwIfAborted();
     if (purpose === 'application-draft')
-      context.board.record(
-        'card',
+      context.board.crewMove(
         { ...context.board.get<Card>('card', card.id), state: 'drafting', packetReview: undefined },
         'orchestrator',
         'Started the single document correction pass',
@@ -255,8 +253,7 @@ export const documentReviewCycle = async (
     'Recorded document verification findings',
   );
   if (check.errors.length)
-    context.board.record(
-      'card',
+    context.board.crewMove(
       {
         ...context.board.get<Card>('card', card.id),
         state: 'changes_requested',

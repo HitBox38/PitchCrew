@@ -30,6 +30,11 @@
       "name": "Pitchcrew recovery",
       "logql": "{service_name=\"pitchcrew-daemon\"} |= \"daemon_run_recovered\"",
       "default_window": "7d"
+    },
+    {
+      "name": "Pitchcrew undeclared status moves",
+      "logql": "{service_name=\"pitchcrew-daemon\"} |= \"daemon_lifecycle_violation\"",
+      "default_window": "30d"
     }
   ],
   "dashboard_text": {
