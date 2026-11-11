@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import type { ChatMessage, Run, Snapshot } from '@pitchcrew/core';
-import { sameEntry, type TranscriptEntryProps } from '../transcript-entry.ts';
+import { cancelledUnsent, sameEntry, type TranscriptEntryProps } from '../transcript-entry.ts';
 import { shareEqual } from '@/lib/share-equal.ts';
 
 const message: ChatMessage = {
@@ -69,4 +69,15 @@ it('renders a changed turn and every question again', () => {
   const question = { ...message, userInput: { id: 'u1', kind: 'question' as const } };
   const asking = props({ item: { kind: 'message', id: 'm1', createdAt: '', message: question } });
   expect(sameEntry(asking, asking)).toBe(false);
+});
+
+it('uses the first request saved for a message and tolerates a missing request list', () => {
+  const requests = [
+    { id: 'q1', messageId: 'm1', deliveries: [{ runId: null, status: 'cancelled' }] },
+    { id: 'q2', messageId: 'm1', deliveries: [{ runId: null, status: 'completed' }] },
+  ];
+  const withRequests = { ...data, chatRequests: requests } as unknown as Snapshot;
+  expect(cancelledUnsent(withRequests, message)).toBe(true);
+  const without = { ...data, chatRequests: undefined } as unknown as Snapshot;
+  expect(cancelledUnsent(without, message)).toBe(false);
 });
