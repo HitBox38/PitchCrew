@@ -1,5 +1,6 @@
 import { queueMayStart } from './queue/dispatch.ts';
 import { reportDrainFailure } from './queue/drain-failure.ts';
+import { findEntity } from './queue/queries.ts';
 import { patchQueue, taskLane } from './queue/state.ts';
 import { launchProblem, QueueBusyError } from './queue/admission.ts';
 import { RuntimeHeldError } from '../runtime-maintenance/availability.ts';
@@ -279,9 +280,8 @@ const cardBusyFor = (context: CrewContext, task: AgentTask): boolean => {
   );
   if (!active.length) return false;
   if (task.roundPart !== 'delegate') return true;
-  const tasks = context.board.list<AgentTask>('task');
   return !active.every((run) => {
-    const sibling = tasks.find((entry) => entry.id === run.taskId);
+    const sibling = findEntity<AgentTask>(context, 'task', run.taskId);
     return !!sibling && sibling.roundId === task.roundId && sibling.roundPart === 'delegate';
   });
 };
