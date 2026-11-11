@@ -98,7 +98,7 @@ No unattended scheduler is added: routines still run only while the daemon is op
 
 ## Events and verification
 
-New records use version 24, which adds persisted work queues and workspace concurrency settings. Version 21 added managed deep-review reports and temporary review subagents. Earlier versions introduced card deletion tombstones, optional user chat attachment metadata, cards with dynamic owners and job-discovery provenance, chat, tasks, routines and assignments. Versions 1 through 23 remain decodable and replayable. Integration tests exercise safe IDs, unknown/retired targets, source gateway checks, skill snapshots, custom chat, workflow seats, retirement, busy settings, proposal boundaries, unrestricted board status corrections, deletion and replay. Live provider CLI runs remain outside automated verification.
+Version 24 added persisted work queues and workspace concurrency settings. Version 21 added managed deep-review reports and temporary review subagents. Earlier versions introduced card deletion tombstones, optional user chat attachment metadata, cards with dynamic owners and job-discovery provenance, chat, tasks, routines and assignments. New records use the current version (`currentEventVersion` in `packages/core/src/events.ts`); every earlier version remains decodable and replayable. Integration tests exercise safe IDs, unknown/retired targets, source gateway checks, skill snapshots, custom chat, workflow seats, retirement, busy settings, proposal boundaries, unrestricted board status corrections, deletion and replay. Live provider CLI runs remain outside automated verification.
 
 ## Application source review
 
