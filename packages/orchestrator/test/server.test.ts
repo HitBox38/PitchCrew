@@ -28,6 +28,34 @@ describe('HTTP framework contracts', () => {
     expect(snapshot.result.runtimes.some((runtime) => runtime.id === 'demo')).toBe(true);
   });
 
+  it('applies the session check to percent-encoded API paths the router still matches', async () => {
+    const { daemon, cookie } = await setup();
+    const host = new URL(daemon.url).host;
+    const encoded = (path: string) => path.replace('/api/', `/%${'a'.charCodeAt(0).toString(16)}pi/`);
+    const session = { host, cookie, 'x-pitchcrew-client': 'ui' };
+    const allowed = await daemon.app.inject({
+      method: 'GET',
+      url: encoded('/api/snapshot'),
+      headers: session,
+    });
+    expect(allowed.statusCode).toBe(200);
+    const rejected = await daemon.app.inject({
+      method: 'GET',
+      url: encoded('/api/snapshot'),
+      headers: { host },
+    });
+    expect(rejected.statusCode).toBe(403);
+    expect(rejected.json()).toHaveProperty('error');
+    expect(rejected.headers['x-pitchcrew-session']).toBe('required');
+    expect(rejected.headers['set-cookie']).toBeUndefined();
+    const health = await daemon.app.inject({
+      method: 'GET',
+      url: encoded('/api/health'),
+      headers: { host },
+    });
+    expect(health.statusCode).toBe(200);
+  });
+
   it('rejects untrusted requests before parsing and preserves session/security headers', async () => {
     const { daemon, cookie } = await setup(false, { dev: false });
     const page = await fetch(`${daemon.url}/chat/scout`);
