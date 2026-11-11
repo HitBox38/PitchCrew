@@ -25,4 +25,5 @@ export type JobPacketProps = Pick<CardDetailsModel, 'document' | 'setDocument' |
 export type JobTabsProps = CardDetailsModel;
 export type OutcomeActionsProps = Pick<CardDetailsModel, 'card' | 'working' | 'run' | 'act'>;
 export type PacketDocumentPickerProps = Pick<CardDetailsModel, 'document' | 'setDocument'>;
-export type JobAgent = { run: Run; name: string; detail?: string };
+/** `handedOff`: the run is waiting, but the user already answered its question. */
+export type JobAgent = { run: Run; name: string; detail?: string; handedOff?: boolean };

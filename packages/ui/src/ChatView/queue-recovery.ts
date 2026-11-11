@@ -1,9 +1,10 @@
+import { deliveryLifecycle } from '@pitchcrew/core/lifecycles';
 import type { ChatRequest, WorkQueueView } from '@pitchcrew/core';
 
 /** Recovery uses the existing request command: completed recipients are never retried. */
 export const requestRecovery = (request: ChatRequest) => {
   const unfinished = request.deliveries.filter((delivery) =>
-    ['paused', 'failed'].includes(delivery.status),
+    deliveryLifecycle.is('stopped', delivery.status),
   );
   if (!unfinished.length) return null;
   const retry = unfinished.some((delivery) => !!delivery.runId || delivery.status === 'failed');
@@ -21,7 +22,7 @@ export const requestRecovery = (request: ChatRequest) => {
 /** Choose one affected request, never turn a failed queue into an implicit bulk retry. */
 export const queueRecoveryRequest = (requests: readonly ChatRequest[]) => {
   const head = requests.find((request) =>
-    request.deliveries.some((delivery) => !['completed', 'cancelled'].includes(delivery.status)),
+    request.deliveries.some((delivery) => !deliveryLifecycle.is('done', delivery.status)),
   );
   return head && requestRecovery(head) ? head : undefined;
 };

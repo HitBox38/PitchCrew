@@ -1,3 +1,4 @@
+import { deliveryLifecycle } from '@pitchcrew/core/lifecycles';
 import type { ChatRequest, Snapshot } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/types.ts';
 import { QueueContents } from './QueueContents.tsx';
@@ -22,7 +23,7 @@ export const QueuedMessageList = ({
         canMoveEarlier={
           index > 0 &&
           !queued[index - 1]!.deliveries.some((delivery) =>
-            ['running', 'waiting'].includes(delivery.status),
+            deliveryLifecycle.is('engaged', delivery.status),
           )
         }
         canMoveLater={index < queued.length - 1}

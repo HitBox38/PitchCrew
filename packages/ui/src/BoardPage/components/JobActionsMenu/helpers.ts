@@ -1,3 +1,4 @@
+import { cardLifecycle } from '@pitchcrew/core/lifecycles';
 import type { Card, CardState, Snapshot } from '@pitchcrew/core';
 import { workflowSeat } from '@pitchcrew/core/states';
 import type { CrewShortcut } from './types.ts';
@@ -29,9 +30,9 @@ export const crewShortcut = (card: Card, data: Snapshot): CrewShortcut | null =>
   const seat =
     card.state === 'lead'
       ? 'scout'
-      : ['shortlisted', 'changes_requested'].includes(card.state)
+      : cardLifecycle.is('draftable', card.state)
         ? 'writer'
-        : ['in_review', 'agreed', 'awaiting_approval'].includes(card.state)
+        : cardLifecycle.is('reviewable', card.state)
           ? 'reviewer'
           : null;
   if (!seat) return null;

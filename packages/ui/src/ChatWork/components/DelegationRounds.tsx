@@ -1,3 +1,4 @@
+import { delegationRoundLifecycle } from '@pitchcrew/core/lifecycles';
 import { WorkSection } from '@/ChatWork/components/WorkSection.tsx';
 import { DelegationRoundCard } from '@/ChatWork/components/DelegationRoundCard.tsx';
 import type { DelegationRoundsProps } from '@/ChatWork/types.ts';
@@ -6,7 +7,7 @@ import { Users } from 'lucide-react';
 export const DelegationRounds = (props: DelegationRoundsProps) => {
   const { rounds } = props;
   if (!rounds.length) return null;
-  const open = rounds.filter((round) => !['completed', 'cancelled'].includes(round.status));
+  const open = rounds.filter((round) => !delegationRoundLifecycle.is('settled', round.status));
   return (
     <WorkSection className="chat-work-section">
       <div className="chat-work-heading">

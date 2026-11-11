@@ -22,6 +22,7 @@ import { runConfiguration, packetDigest } from './pipeline/snapshots.ts';
 import { adapters } from '@pitchcrew/adapters';
 import { beginAiRun } from '../telemetry/ai.ts';
 import {
+  cardLifecycle,
   runResultSchema,
   workflowSeat,
   type AgentTask,
@@ -104,11 +105,11 @@ const startRunPrepared = async (
           : 'application-review',
   );
   const allowed = {
-    scout: ['lead'],
-    writer: ['shortlisted', 'changes_requested'],
-    reviewer: ['in_review', 'agreed', 'awaiting_approval'],
+    scout: card.state === 'lead',
+    writer: cardLifecycle.is('draftable', card.state),
+    reviewer: cardLifecycle.is('reviewable', card.state),
   };
-  if (!packetEvaluation && !allowed[seat].includes(card.state))
+  if (!packetEvaluation && !allowed[seat])
     throw new Error(`The ${roleId} cannot run on a card in ${card.state}.`);
   const sourceThread =
     task?.threadId ??

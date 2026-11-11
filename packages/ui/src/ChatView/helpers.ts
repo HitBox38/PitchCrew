@@ -1,3 +1,4 @@
+import { deliveryLifecycle } from '@pitchcrew/core/lifecycles';
 import type { ChatRequest } from '@pitchcrew/core';
 
 export const messageDay = (date: string) => {
@@ -15,9 +16,7 @@ export const queuedChatRequests = (requests: ChatRequest[], thread: string) => {
     .filter(
       (request) =>
         request.threadId === thread &&
-        request.deliveries.some((delivery) =>
-          ['queued', 'paused', 'failed'].includes(delivery.status),
-        ),
+        request.deliveries.some((delivery) => deliveryLifecycle.is('unsent', delivery.status)),
     )
     .toSorted((a, b) => a.order - b.order);
 };

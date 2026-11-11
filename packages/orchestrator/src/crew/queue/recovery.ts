@@ -50,11 +50,7 @@ export const resumeHeadRequest = (context: CrewContext, request: ChatRequest) =>
 
 /** A different failed attempt is still a user decision, never an implicit bulk retry. */
 export const pauseForUnfinishedHead = (context: CrewContext, request: ChatRequest) => {
-  if (
-    request.deliveries.some((delivery) =>
-      ['queued', 'running', 'waiting'].includes(delivery.status),
-    )
-  )
+  if (request.deliveries.some((delivery) => deliveryLifecycle.is('active', delivery.status)))
     return;
   const failed = request.deliveries.some((delivery) => delivery.status === 'failed');
   const paused = request.deliveries.filter((delivery) => delivery.status === 'paused');

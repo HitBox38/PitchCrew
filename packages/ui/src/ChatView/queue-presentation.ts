@@ -1,3 +1,4 @@
+import { deliveryLifecycle } from '@pitchcrew/core/lifecycles';
 import type { ChatRequest, Conversation, WorkQueueView, WorkspaceQueue } from '@pitchcrew/core';
 
 export const conversationQueue = (
@@ -18,8 +19,8 @@ export const queueNeedsResume = (queue: WorkQueueView | undefined) => {
   const head = queue?.requests[0];
   return (
     !!head &&
-    head.deliveries.some((delivery) => ['paused', 'failed'].includes(delivery.status)) &&
-    !head.deliveries.some((delivery) => ['queued', 'running', 'waiting'].includes(delivery.status))
+    head.deliveries.some((delivery) => deliveryLifecycle.is('stopped', delivery.status)) &&
+    !head.deliveries.some((delivery) => deliveryLifecycle.is('active', delivery.status))
   );
 };
 
@@ -46,7 +47,7 @@ export const hasUnstartedMessages = (requests: readonly ChatRequest[]) =>
 export const canEditQueuedMessage = (request: ChatRequest) =>
   !request.userInputId &&
   request.deliveries.every(
-    (delivery) => !delivery.runId && ['queued', 'paused', 'failed'].includes(delivery.status),
+    (delivery) => !delivery.runId && deliveryLifecycle.is('unsent', delivery.status),
   );
 
 /** A partially delivered group request is pending, never labelled wholly unsent. */
@@ -97,7 +98,7 @@ export const queueAttentionKeys = (requests: readonly ChatRequest[]) =>
   requests
     .flatMap((request) =>
       request.deliveries
-        .filter((delivery) => ['paused', 'failed'].includes(delivery.status))
+        .filter((delivery) => deliveryLifecycle.is('stopped', delivery.status))
         .map((delivery) => {
           let hash = 0;
           for (const char of delivery.error) hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;

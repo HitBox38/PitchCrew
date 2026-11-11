@@ -41,7 +41,8 @@ export interface Lifecycle<S extends string, G extends string = never> {
   canStart: (status: S) => boolean;
   assert: (from: S, to: S) => void;
   isFinal: (status: S) => boolean;
-  is: (group: G, status: S) => boolean;
+  /** Whether a status is in a named set. Accepts any string, so loosely typed views can ask too. */
+  is: (group: G, status: string) => boolean;
 }
 
 /**
@@ -76,7 +77,7 @@ export const defineLifecycle = <const S extends string, const G extends string =
       if (!can(from, to)) throw new LifecycleError(name, from, to, next(from));
     },
     isFinal: (status) => final.includes(status),
-    is: (group, status) => groups[group].includes(status),
+    is: (group, status) => groups[group].includes(status as S),
   };
 };
 
@@ -98,6 +99,10 @@ export const cardLifecycle = defineLifecycle('Job', {
     /** Submitted and still moving through the employer's process. */
     applied: ['submitted', 'screening', 'interviewing', 'offer'],
     closed: ['rejected', 'withdrawn', 'ghosted'],
+    /** Writer may draft: a shortlisted job or one sent back for changes. */
+    draftable: ['shortlisted', 'changes_requested'],
+    /** Reviewer may review the current packet. */
+    reviewable: ['in_review', 'agreed', 'awaiting_approval'],
   },
 });
 
@@ -166,6 +171,8 @@ export const deliveryLifecycle = defineLifecycle('Message delivery', {
     engaged: ['running', 'waiting'],
     /** Will run, or is running, without the user doing anything. */
     moving: ['queued', 'running'],
+    /** Not finished and not stopped: waiting its turn, executing or parked on a question. */
+    active: ['queued', 'running', 'waiting'],
   },
 });
 
@@ -275,6 +282,10 @@ export const profileProposalLifecycle = defineLifecycle('Profile update', {
     applying: ['applied'],
     applied: [],
     rejected: [],
+  },
+  groups: {
+    /** Still needs the user's decision, or is being applied. */
+    open: ['pending', 'applying'],
   },
 });
 

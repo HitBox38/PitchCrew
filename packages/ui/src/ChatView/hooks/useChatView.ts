@@ -1,3 +1,4 @@
+import { delegationRoundLifecycle } from '@pitchcrew/core/lifecycles';
 import { useBrowserPresenceField } from '@/DesktopBrowserHost/presence.ts';
 import { chatRole, chatRoleState } from '../model.ts';
 import { queuedChatRequests } from '../helpers.ts';
@@ -159,7 +160,7 @@ export const useChatView = (props: ChatViewProps) => {
     proposals.length +
     skillProposals.length +
     tasks.filter((task) => ['queued', 'running'].includes(task.status)).length +
-    rounds.filter((round) => !['completed', 'cancelled'].includes(round.status)).length;
+    rounds.filter((round) => !delegationRoundLifecycle.is('settled', round.status)).length;
   const approving = data.computerApprovals.some(
     (approval) => approval.status === 'pending' && running.some((run) => run.id === approval.runId),
   );

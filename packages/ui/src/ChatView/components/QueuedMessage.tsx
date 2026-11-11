@@ -1,3 +1,4 @@
+import { deliveryLifecycle } from '@pitchcrew/core/lifecycles';
 import { QueuedMessageActions } from './QueuedMessageActions.tsx';
 import { RequestDeliveryStatus } from './RequestDeliveryStatus.tsx';
 import { useQueuedMessage } from '../hooks/useQueuedMessage.ts';
@@ -40,7 +41,7 @@ export const QueuedMessage = ({
         {hasMixedDeliveryState(request) ||
         occupying ||
         request.deliveries.some(
-          (delivery) => ['failed', 'paused'].includes(delivery.status) && !!delivery.runId,
+          (delivery) => deliveryLifecycle.is('stopped', delivery.status) && !!delivery.runId,
         ) ? (
           <RequestDeliveryStatus request={request} data={data} />
         ) : null}

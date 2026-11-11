@@ -63,6 +63,8 @@ Named sets:
 - `preparing`: lead, shortlisted, drafting, in_review, changes_requested, agreed, awaiting_approval
 - `applied`: submitted, screening, interviewing, offer
 - `closed`: rejected, withdrawn, ghosted
+- `draftable`: shortlisted, changes_requested
+- `reviewable`: in_review, agreed, awaiting_approval
 
 ## Run
 
@@ -154,6 +156,7 @@ Named sets:
 - `stopped`: paused, failed
 - `engaged`: running, waiting
 - `moving`: queued, running
+- `active`: queued, running, waiting
 
 ## Question
 
@@ -320,6 +323,10 @@ stateDiagram-v2
   applied --> [*]
   rejected --> [*]
 ```
+
+Named sets:
+
+- `open`: pending, applying
 
 ## Tracking signal
 
