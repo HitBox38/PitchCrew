@@ -4,6 +4,12 @@ import { z } from 'zod';
 import type { CrewService } from '../../service.ts';
 
 export const registerAgentRoutes = (app: FastifyInstance, service: CrewService) => {
+  // Authenticate before body parsing; the session hook leaves this route to its run capability.
+  app.addHook('onRequest', async (req, res) => {
+    const token = req.headers.authorization?.replace(/^Bearer /, '') ?? '';
+    if (!service.capabilities.has(token))
+      return res.status(403).send({ error: 'Invalid or expired run capability.' });
+  });
   app.post('/api/agent', async (req, res) => {
     const token = req.headers.authorization?.replace(/^Bearer /, '') ?? '';
     if (!service.capabilities.has(token))

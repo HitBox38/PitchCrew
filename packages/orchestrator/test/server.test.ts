@@ -31,7 +31,8 @@ describe('HTTP framework contracts', () => {
   it('applies the session check to percent-encoded API paths the router still matches', async () => {
     const { daemon, cookie } = await setup();
     const host = new URL(daemon.url).host;
-    const encoded = (path: string) => path.replace('/api/', `/%${'a'.charCodeAt(0).toString(16)}pi/`);
+    const encoded = (path: string) =>
+      path.replace('/api/', `/%${'a'.charCodeAt(0).toString(16)}pi/`);
     const session = { host, cookie, 'x-pitchcrew-client': 'ui' };
     const allowed = await daemon.app.inject({
       method: 'GET',
@@ -97,6 +98,14 @@ describe('HTTP framework contracts', () => {
     });
     expect(agent.statusCode).toBe(403);
     expect(agent.json().error).toContain('capability');
+    const agentMalformed = await daemon.app.inject({
+      method: 'POST',
+      url: '/api/agent',
+      headers: { host: base.host, 'content-type': 'application/json' },
+      payload: '{',
+    });
+    expect(agentMalformed.statusCode).toBe(403);
+    expect(agentMalformed.json().error).toContain('capability');
     const snapshot = await daemon.app.inject({
       method: 'GET',
       url: '/api/snapshot',
