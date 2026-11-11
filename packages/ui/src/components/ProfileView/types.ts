@@ -13,7 +13,7 @@ export interface ProfileViewProps {
 export type ProfileViewModel = NonNullable<ReturnType<typeof useProfileView>>;
 export type ProfileTreeModel = ReturnType<typeof useProfileNotes>;
 export type ProfileWorkspaceModel = ReturnType<typeof useProfileWorkspace>;
-export type ProfileCitationsModel = ReturnType<typeof useProfileCitations>;
+type ProfileCitationsModel = ReturnType<typeof useProfileCitations>;
 
 /** Shared props for the page sections composed by ProfileView. */
 export interface ProfileSectionProps {

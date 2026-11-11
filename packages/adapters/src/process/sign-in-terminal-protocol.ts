@@ -1,4 +1,4 @@
-export interface SignInTerminalStart {
+interface SignInTerminalStart {
   action: 'start';
   command: string;
   args: string[];

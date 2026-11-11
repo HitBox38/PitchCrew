@@ -48,7 +48,7 @@ export const sanitizeRunMetric = (
   if (duration_ms !== undefined) properties.duration_ms = duration_ms;
   return properties;
 };
-export const metricOperations = [
+const metricOperations = [
   'job_created',
   'application_registered',
   'applications_imported',

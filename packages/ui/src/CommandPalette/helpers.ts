@@ -20,7 +20,7 @@ export const matchingJobCommands = (cards: Card[], search: string) => {
  * Profile note text by palette value, lower-cased once per change. Notes match their text with
  * a plain search: fuzzy-scoring whole note bodies on every key press stalls the palette.
  */
-export const noteBodies = new Map<string, string>();
+const noteBodies = new Map<string, string>();
 
 let indexed: unknown = null;
 // The name and the first heading (at most 120 characters) are fuzzy-scored; the text is not.
@@ -53,7 +53,7 @@ const textHit = (body: string | undefined, search: string) => {
 /** The part of the search a note's text contains (see `textHit`), or ''. */
 export const noteTextHit = (value: string, search: string) =>
   textHit(noteBodies.get(value), search);
-export const noteTextMatches = (value: string, search: string) => !!noteTextHit(value, search);
+const noteTextMatches = (value: string, search: string) => !!noteTextHit(value, search);
 
 /** Some note's text contains the search. */
 export const anyNoteText = (search: string) => {
@@ -108,7 +108,7 @@ export const recentJobsFirst = <T extends { card: Pick<Card, 'id'> }>(
 type ConversationSource = Pick<Snapshot, 'cards' | 'roles'> & { conversations?: Conversation[] };
 
 /** Where a conversation lives: its job, or who is in it. */
-export const conversationContext = (conversation: Conversation, data: ConversationSource) => {
+const conversationContext = (conversation: Conversation, data: ConversationSource) => {
   const card = conversation.cardId
     ? data.cards.find((item) => item.id === conversation.cardId)
     : undefined;

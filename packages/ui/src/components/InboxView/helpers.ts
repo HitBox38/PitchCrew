@@ -3,14 +3,6 @@ export { packetNeedsAction } from '../../lib/inbox.ts';
 import type { ApprovalRequest, InboxTab } from './types.ts';
 import type { Approval, PacketArtifact, Snapshot } from '@pitchcrew/core';
 
-// PDF counts come from the frozen bytes. DOCX counts are the formatted layout's estimate.
-export const pageLabel = (artifact: PacketArtifact, pages: ArtifactPages) => {
-  const count = pages?.[artifact.digest];
-  if (count === undefined) return undefined;
-  const label = `${count} ${count === 1 ? 'page' : 'pages'}`;
-  return artifact.mimeType === 'application/pdf' ? label : `about ${label} in Word`;
-};
-
 export const resumePageWarning = (artifacts: PacketArtifact[], pages: ArtifactPages) => {
   const counts = artifacts
     .filter((artifact) => artifact.source === 'resume')
@@ -34,10 +26,6 @@ export const approvalRequests = (
       .filter((approval) => packetNeedsAction(approval, data.cards) === waiting)
       .map((approval) => ({ kind: 'packet' as const, key: `packet:${approval.id}`, approval })),
   ].sort((a, b) => b.approval.createdAt.localeCompare(a.approval.createdAt));
-};
-
-export const selectedApprovalRequest = (requests: ApprovalRequest[], key: string | null) => {
-  return requests.find((request) => request.key === key) ?? requests[0];
 };
 
 export const packetStatusLabel = (status: Approval['status']) => {

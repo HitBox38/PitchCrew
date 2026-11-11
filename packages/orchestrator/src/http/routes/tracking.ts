@@ -7,7 +7,6 @@ import {
   refreshTrackingSignal,
   registerExternalApplication,
   registerExistingExternalSubmission,
-  searchApplications,
   updateTrackingIdentifier,
 } from '@pitchcrew/board';
 import { importLimits } from '@pitchcrew/core';
@@ -28,15 +27,6 @@ export const registerTrackingRoutes = (app: FastifyInstance, service: CrewServic
       .parse(req.body);
     res.send(updateTrackingIdentifier(service.board, req.params.id, input.jobIdentifier));
   });
-  app.post('/api/tracking/applications/search', (req, res) =>
-    res.send(searchApplications(service.board, req.body)),
-  );
-  app.get('/api/tracking', (_req, res) =>
-    res.send({
-      evidence: service.board.list('tracking_signal'),
-      scans: service.board.list('tracking_scan'),
-    }),
-  );
   app.post('/api/tracking/external', (req, res) =>
     res.status(201).send(registerExternalApplication(service.board, req.body)),
   );

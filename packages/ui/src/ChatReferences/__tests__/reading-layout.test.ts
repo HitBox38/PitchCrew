@@ -25,7 +25,7 @@ beforeAll(async () => {
             response.end(
               await vite.transformIndexHtml(
                 '/__reading',
-                '<html data-interface="clay"><body><div id="root"></div><script type="module" src="/src/ChatReferences/__tests__/reading-fixture.tsx"></script></body></html>',
+                '<html><body><div id="root"></div><script type="module" src="/src/ChatReferences/__tests__/reading-fixture.tsx"></script></body></html>',
               ),
             );
           });

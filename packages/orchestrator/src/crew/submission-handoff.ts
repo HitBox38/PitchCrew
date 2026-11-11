@@ -29,7 +29,7 @@ export const completeSubmission = (context: CrewContext, id: string, data: unkno
   })();
 };
 
-export const assertSubmissionPacket = (context: CrewContext, approval: Approval): Card => {
+const assertSubmissionPacket = (context: CrewContext, approval: Approval): Card => {
   const card = context.board.get<Card>('card', approval.cardId);
   if (card.owner || context.board.hasActiveRun(card.id))
     throw new Error('Wait for active job work to finish.');

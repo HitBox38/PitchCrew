@@ -6,7 +6,7 @@ import type { WebContents } from 'electron';
  * Browser-process commands that resolve something the page is waiting on. They never need a
  * focused or painted guest, and must not queue behind focus emulation.
  */
-export const unblocksPage = (method: string) =>
+const unblocksPage = (method: string) =>
   method === 'Page.handleJavaScriptDialog' ||
   method === 'Fetch.continueRequest' ||
   method === 'Fetch.continueWithAuth' ||

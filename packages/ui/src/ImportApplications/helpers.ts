@@ -1,6 +1,6 @@
-import type { ApplicationImportReport, CardState, ImportRowStatus } from '@pitchcrew/core';
+import type { CardState, ImportRowStatus } from '@pitchcrew/core';
 import { stateLabels } from '../lib/labels.ts';
-import { importStatusLabels, maxImportBytes } from './constants.ts';
+import { maxImportBytes } from './constants.ts';
 import type { ImportUpload } from './types.ts';
 
 export const importFormat = (name: string): 'json' | 'csv' | 'sqlite' | null => {
@@ -24,12 +24,6 @@ export const readImportFile = async (
     return { name: file.name, format: 'json', sourceFormat: 'sqlite', ...converted };
   }
   return { name: file.name, format, content: await file.text() };
-};
-export const importCounts = (report: ApplicationImportReport): string => {
-  return (Object.keys(importStatusLabels) as (keyof typeof importStatusLabels)[])
-    .filter((status) => report.counts[status])
-    .map((status) => `${report.counts[status]} ${importStatusLabels[status].toLowerCase()}`)
-    .join(' · ');
 };
 export const importPath = (path: CardState[]): string => {
   return path.map((state) => stateLabels[state]).join(' → ');

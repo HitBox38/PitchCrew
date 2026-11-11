@@ -18,7 +18,7 @@ import {
 } from './helpers.ts';
 import { listTrash, moveToTrash, pruneTrash, readTrash } from './trash.ts';
 
-export { ProfileConflictError, noteNameSchema } from './helpers.ts';
+export { ProfileConflictError } from './helpers.ts';
 
 /** Undefined keeps unconditional saves; null expects a new note; a digest expects that content. */
 export const checkBaseline = async (

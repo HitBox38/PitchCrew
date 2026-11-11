@@ -22,6 +22,4 @@ export type CommandItemProps = React.ComponentProps<typeof CommandPrimitive.Item
 
 export type CommandListProps = React.ComponentProps<typeof CommandPrimitive.List>;
 
-export type CommandSeparatorProps = React.ComponentProps<typeof CommandPrimitive.Separator>;
-
 export type CommandShortcutProps = React.ComponentProps<'span'>;

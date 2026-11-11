@@ -1,7 +1,7 @@
 import type { ProfileImportFile, ProfileSource } from './profile-sources.ts';
 import type { RoleId } from './states.ts';
 
-export interface ProfileMaintenanceChange extends ProfileImportFile {
+interface ProfileMaintenanceChange extends ProfileImportFile {
   before: string | null;
 }
 

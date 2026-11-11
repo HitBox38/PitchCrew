@@ -10,7 +10,7 @@ export const PromptInput = ({ className, onSubmit, children, ...props }: PromptI
       const text = String(new FormData(event.currentTarget).get('message') ?? '');
       // Controlled text is cleared by the caller after success, retained on failure.
       try {
-        await onSubmit({ text, files: [] }, event);
+        await onSubmit({ text }, event);
       } catch {
         // The caller presents its request error and retains the controlled draft.
       }

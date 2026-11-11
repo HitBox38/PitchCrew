@@ -73,7 +73,7 @@ const readPage = async (value: string, signal: AbortSignal) => {
   });
 };
 
-export interface PublicJobPage {
+interface PublicJobPage {
   url: string;
   html: string;
 }

@@ -29,7 +29,7 @@ export const roundOf = (context: CrewContext, task: AgentTask): DelegationRound 
     .get(task.roundId) as { json: string } | undefined;
   return row ? (JSON.parse(row.json) as DelegationRound) : undefined;
 };
-export const roundDelegateTasks = (context: CrewContext, round: DelegationRound): AgentTask[] =>
+const roundDelegateTasks = (context: CrewContext, round: DelegationRound): AgentTask[] =>
   round.delegates.flatMap((delegate) => {
     const row = context.board.db
       .prepare("SELECT json FROM entities WHERE kind='task' AND id=?")

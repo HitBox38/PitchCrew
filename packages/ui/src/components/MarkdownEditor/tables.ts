@@ -9,7 +9,7 @@ import { renderInline } from './inline.ts';
 const shownRows = 200;
 
 /** A row's cells as offsets in the line: unescaped pipes split cells; outer pipes are optional. */
-export const rowCells = (line: string) => {
+const rowCells = (line: string) => {
   const pipes: number[] = [];
   for (let at = 0; at < line.length; at++)
     if (line[at] === '\\') at++;

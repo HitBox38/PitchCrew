@@ -28,7 +28,7 @@ const groupPrefixEnd = (source: string, open: number) => {
  * Detects a repeated group that itself contains a repeat, such as `(a+)+` or `(\w+\s?)*`.
  * These shapes can take exponential time on near-miss input in a backtracking engine.
  */
-export const hasNestedQuantifier = (source: string): boolean => {
+const hasNestedQuantifier = (source: string): boolean => {
   const groups: boolean[] = [];
   let inClass = false;
   let closedGroupRepeats: boolean | null = null;
@@ -135,7 +135,7 @@ export const describePacketRules = (rules: PacketRules): string => {
 };
 
 /** Packet documents that house rules can check. Claims are always checked separately. */
-export const packetDocuments = ['resume', 'coverLetter', 'formAnswers', 'note'] as const;
+const packetDocuments = ['resume', 'coverLetter', 'formAnswers', 'note'] as const;
 export type PacketDocument = (typeof packetDocuments)[number];
 export const packetDocumentLabels: Record<PacketDocument, string> = {
   resume: 'Resume',
@@ -176,7 +176,7 @@ const ruleBase = {
   message: z.string().trim().min(1).max(packetRuleLimits.messageLength).optional(),
 };
 
-export const packetRuleSchema = z.discriminatedUnion('kind', [
+const packetRuleSchema = z.discriminatedUnion('kind', [
   z
     .object({
       ...ruleBase,

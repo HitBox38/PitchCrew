@@ -2,7 +2,7 @@ import type { RunContext, RunResult } from '@pitchcrew/core';
 import { runResultSchema, workflowSeat } from '@pitchcrew/core';
 
 /** Why a workflow result was rejected; never carries runtime output or values. */
-export type ResultProblem = 'missing' | 'invalid_json' | 'schema' | 'wrong_role';
+type ResultProblem = 'missing' | 'invalid_json' | 'schema' | 'wrong_role';
 
 // Field names come from Pitchcrew's own result schema. Anything else (including keys a runtime
 // invented) is never echoed, so a diagnostic cannot carry provider output into run history.
@@ -46,7 +46,7 @@ const knownFields = new Set([
 const maxFields = 4;
 
 /** Dotted schema paths for rejected fields, dropping array indexes and unknown keys. */
-export const rejectedFields = (error: {
+const rejectedFields = (error: {
   issues: ReadonlyArray<{ code: string; path: readonly PropertyKey[] }>;
 }) => {
   const fields = new Set<string>();
@@ -69,7 +69,7 @@ const detail = (problem: ResultProblem, seat: string, fields: string[]) => {
 };
 
 /** A rejected result: fixed wording, a category and known field names only. */
-export const runtimeResultError = (resultProblem: ResultProblem, fields: string[], seat: string) =>
+const runtimeResultError = (resultProblem: ResultProblem, fields: string[], seat: string) =>
   Object.assign(
     new Error(
       `The runtime did not return a valid structured result: ${detail(resultProblem, seat, fields)}. Nothing was saved from this run. Retry the step.`,

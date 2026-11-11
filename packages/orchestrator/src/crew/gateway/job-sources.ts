@@ -84,4 +84,4 @@ export const jobSourceAction = async (
 };
 
 /** Agent scans of a source wait this long after its last successful scan. */
-export const agentScanIntervalMs = 15 * 60 * 1000;
+const agentScanIntervalMs = 15 * 60 * 1000;

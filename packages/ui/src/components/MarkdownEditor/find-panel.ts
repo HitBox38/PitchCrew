@@ -32,7 +32,7 @@ const element = <K extends keyof HTMLElementTagNameMap>(
 };
 
 /** "3 of 12" for the match under the selection, "12 matches" otherwise; counting stops at 999. */
-export const matchCount = (state: EditorState, query: SearchQuery) => {
+const matchCount = (state: EditorState, query: SearchQuery) => {
   if (!query.search || !query.valid) return '';
   const { from, to } = state.selection.main;
   let total = 0;

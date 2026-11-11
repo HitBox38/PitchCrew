@@ -18,7 +18,7 @@ export const canonicalJobUrl = (value: string): string => {
   }
 };
 
-export const trackedStates = [
+const trackedStates = [
   'submitted',
   'screening',
   'interviewing',
