@@ -1,4 +1,4 @@
-import type { AgentTask, Run } from '@pitchcrew/core';
+import { deliveryLifecycle, type AgentTask, type ChatRequest, type Run } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 
 /** Terminal runs remain active while their controller owns asynchronous cleanup. */
@@ -38,3 +38,41 @@ export const tasksWithStatus = (
     .sort((a, b) => a.position - b.position)
     .map((row) => JSON.parse(row.json) as AgentTask);
 };
+
+/** One stored entity by primary key, or undefined; never deserializes the rest of its kind. */
+export const findEntity = <T>(
+  context: CrewContext,
+  kind: string,
+  id: string | undefined,
+): T | undefined => {
+  if (!id) return undefined;
+  const row = context.board.db
+    .prepare('SELECT json FROM entities WHERE kind=? AND id=?')
+    .get(kind, id) as { json: string } | undefined;
+  return row ? (JSON.parse(row.json) as T) : undefined;
+};
+
+const requestsWithDelivery = (
+  context: CrewContext,
+  condition: string,
+  value: string,
+): ChatRequest[] => {
+  const rows = context.board.db
+    .prepare(
+      `SELECT e.json FROM entities e WHERE e.kind='chat_request' AND EXISTS (SELECT 1 FROM json_each(e.json,'$.deliveries') d WHERE ${condition}) ORDER BY e.rowid`,
+    )
+    .all(value) as { json: string }[];
+  return rows.map((row) => JSON.parse(row.json) as ChatRequest);
+};
+
+/** Chat requests with a delivery that is not done, in insertion order. */
+export const unsettledChatRequests = (context: CrewContext): ChatRequest[] =>
+  requestsWithDelivery(
+    context,
+    "json_extract(d.value,'$.status') NOT IN (SELECT value FROM json_each(?))",
+    JSON.stringify(deliveryLifecycle.groups.done),
+  );
+
+/** Chat requests with at least one queued delivery, in insertion order. */
+export const queuedChatRequests = (context: CrewContext): ChatRequest[] =>
+  requestsWithDelivery(context, "json_extract(d.value,'$.status')=?", 'queued');
