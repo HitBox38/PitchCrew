@@ -56,6 +56,7 @@ const catalog = {
 const runtime: RuntimeInfo = {
   id: 'codex',
   available: true,
+  customReasoning: true,
   version: '1.0.0',
   detail: 'Fixture installation',
   ...catalog,
