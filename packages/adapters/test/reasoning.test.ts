@@ -24,14 +24,24 @@ afterEach(async () => {
   await cleanup();
 });
 
-it.each([
+const reasoningRuntimes = [
   ['codex', '-c', 'model_reasoning_effort="high"'],
   ['claude-code', '--effort', 'high'],
   ['copilot-cli', '--reasoning-effort', 'high'],
   ['opencode', '--variant', 'high'],
   ['pi', '--thinking', 'high'],
   ['oh-my-pi', '--thinking', 'high'],
-] as const)(
+] as const;
+
+it('declares custom reasoning support on exactly the adapters that forward reasoning', () => {
+  const declared = Object.values(adapters)
+    .filter((adapter) => adapter.customReasoning)
+    .map((adapter) => adapter.id)
+    .sort();
+  expect(declared).toEqual(reasoningRuntimes.map(([runtime]) => runtime as string).sort());
+});
+
+it.each(reasoningRuntimes)(
   '%s forwards reasoning for workflows and chats and leaves CLI default unset',
   async (runtime, flag, value) => {
     const base = await contextFor('pi');

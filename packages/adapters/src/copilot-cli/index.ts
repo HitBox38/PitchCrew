@@ -5,6 +5,7 @@ import { withMcpConfigFile } from '../process/mcp-config.ts';
 import { copilotModelArgs, readCopilotModels } from './models.ts';
 
 export const copilotCli = withChat({
+  customReasoning: true,
   id: 'copilot-cli',
   // https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference#supported-models
   models: [

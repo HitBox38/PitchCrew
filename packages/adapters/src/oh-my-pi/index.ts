@@ -7,6 +7,7 @@ import { piResultExtractor } from '../pi/result.ts';
 import { detectCli, requireCliVersion, runCliText, withChat } from '../process.ts';
 
 export const ohMyPi = withChat({
+  customReasoning: true,
   id: 'oh-my-pi',
   models: apiModels,
   detect: async () => requireCliVersion(await detectCli('oh-my-pi', 'omp'), [18, 4, 9], 'omp'),

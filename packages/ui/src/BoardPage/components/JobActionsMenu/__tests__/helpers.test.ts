@@ -9,7 +9,10 @@ const data = {
   roles: [role],
   runs: [],
   profile: [{ name: 'experience', content: 'Fictional experience' }],
-  runtimes: [{ id: 'codex', available: true } as RuntimeInfo],
+  runtimes: [
+    { id: 'codex', available: true, applicationIsolation: true },
+    { id: 'gemini-cli', available: true },
+  ] as RuntimeInfo[],
 } as unknown as Snapshot;
 const confirmed = {
   revision: 'context',
