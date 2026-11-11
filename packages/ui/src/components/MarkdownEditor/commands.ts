@@ -40,7 +40,7 @@ const prefixFor = (block: Block, index: number) =>
   })[block];
 
 /** Wraps each selection (or the word at an empty caret) in a marker, or removes it again. */
-export const toggleInline =
+const toggleInline =
   (marker: string): MarkdownEdit =>
   (state) => {
     const size = marker.length;
@@ -78,7 +78,7 @@ export const toggleInline =
   };
 
 /** Links the selection; a selected URL becomes the target and the caret waits for the label. */
-export const insertLink: MarkdownEdit = (state) =>
+const insertLink: MarkdownEdit = (state) =>
   state.changeByRange((range) => {
     const text = state.sliceDoc(range.from, range.to);
     if (/^https?:\/\/\S+$/.test(text))
@@ -99,7 +99,7 @@ export const insertLink: MarkdownEdit = (state) =>
   });
 
 /** Sets every touched line to one block kind, or back to a paragraph when all already are. */
-export const setBlock =
+const setBlock =
   (block: Block): MarkdownEdit =>
   (state) => {
     const lines = new Set<number>();

@@ -4,7 +4,6 @@
 export { Toaster } from './components/Toaster.tsx';
 export { Toast } from './components/Toast.tsx';
 export { ToastContent, ToastTitle, ToastDescription } from './components/ToastContent.tsx';
-export { ToastAction, ToastClose } from './components/ToastActions.tsx';
-export { ToastPortal, ToastViewport } from './components/ToastViewport.tsx';
-export { ToastProvider, createToastManager, useToastManager, toast } from './manager.ts';
-export type { ToastObject, ToastManager } from '@base-ui/react/toast';
+export { ToastClose } from './components/ToastActions.tsx';
+export { createToastManager, useToastManager } from './manager.ts';
+export type { ToastObject } from '@base-ui/react/toast';

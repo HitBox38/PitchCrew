@@ -16,7 +16,7 @@ export const smokeSheetBounds = `(async () => {
 })()`;
 
 /** Checks a real portaled dialog stays inside the desktop's usable viewport below the title bar. */
-export const smokeDialogBounds = `(async () => {
+const smokeDialogBounds = `(async () => {
   await new Promise((resolve) => setTimeout(resolve, 350));
   const dialog = document.querySelector('[data-slot="dialog-content"]');
   const overlay = document.querySelector('[data-slot="dialog-overlay"]');

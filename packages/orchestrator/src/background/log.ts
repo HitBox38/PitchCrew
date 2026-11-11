@@ -43,7 +43,7 @@ export const captureServiceOutput = (log: ReturnType<typeof createRotatingLog>) 
   });
 };
 
-export const maxLogBytes = 5 * 1024 * 1024;
+const maxLogBytes = 5 * 1024 * 1024;
 
 const sizeOf = (file: string) => {
   try {

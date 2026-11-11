@@ -1,7 +1,7 @@
 import type { AgentTask, ChatMessage, ChatRequest, Run, UserInputRequest } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 /** Follow saved answer provenance instead of nesting earlier continuation prompts into new ones. */
-export const questionTaskOrigin = (context: CrewContext, initial: Run): Run => {
+const questionTaskOrigin = (context: CrewContext, initial: Run): Run => {
   let run = initial;
   const visited = new Set<string>();
   while (!visited.has(run.id)) {

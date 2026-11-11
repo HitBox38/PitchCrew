@@ -1,10 +1,8 @@
-/* Clay interface preview: clay-panels. Scoped under [data-interface='clay'].
- * Chat side panels share one sheet: an identifying pebble, the title with a one-line description,
+/* Chat side panels share one sheet: an identifying pebble, the title with a one-line description,
  * grooved off from a body of recessed trays, with decisions pinned to the panel's foot. */
 
-/* Sheet header. Agent defaults (role settings) docked in the same panel matches it. */
-[data-interface='clay'] .chat-side-panel-heading,
-[data-interface='clay'] .chat-side-panel .role-settings-heading {
+/* Sheet header. */
+.chat-side-panel-heading {
   position: relative;
   justify-content: flex-start;
   gap: 12px;
@@ -12,8 +10,7 @@
   padding: 16px 14px 16px 20px;
   border-bottom: 0;
 }
-[data-interface='clay'] .chat-side-panel-heading::after,
-[data-interface='clay'] .chat-side-panel .role-settings-heading::after {
+.chat-side-panel-heading::after {
   position: absolute;
   inset: auto 20px 0;
   height: 3px;
@@ -33,8 +30,7 @@
   box-shadow: var(--clay);
   color: var(--ink-soft);
 }
-.chat-side-panel-icon > .role-avatar,
-[data-interface='clay'] .chat-side-panel .role-settings-heading > .role-avatar {
+.chat-side-panel-icon > .role-avatar {
   width: 36px;
   height: 36px;
 }
@@ -48,8 +44,7 @@
   gap: 2px;
   min-width: 0;
 }
-[data-interface='clay'] .chat-side-panel-heading h2,
-[data-interface='clay'] .chat-side-panel .role-settings-heading h2 {
+.chat-side-panel-heading h2 {
   overflow: hidden;
   font:
     650 17px/1.3 'Source Sans 3',
@@ -57,15 +52,13 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-[data-interface='clay'] .chat-side-panel-titles > p,
-[data-interface='clay'] .chat-side-panel .role-settings-heading p {
+.chat-side-panel-titles > p {
   margin: 0;
   color: var(--muted);
   font-size: var(--text-caption);
   line-height: 1.4;
 }
-[data-interface='clay'] .chat-side-panel-heading > [data-slot='button'],
-[data-interface='clay'] .chat-side-panel .role-settings-heading > .icon-button {
+.chat-side-panel-heading > [data-slot='button'] {
   flex: none;
   width: 32px;
   height: 32px;
@@ -74,21 +67,15 @@
   box-shadow: var(--clay);
   color: var(--ink-soft);
 }
-[data-interface='clay'] .chat-side-panel-heading > [data-slot='button']:hover,
-[data-interface='clay'] .chat-side-panel .role-settings-heading > .icon-button:hover {
+.chat-side-panel-heading > [data-slot='button']:hover {
   background: var(--clay-fill-hover);
   box-shadow: var(--clay-hover);
 }
-[data-interface='clay'] .chat-side-panel-heading > [data-slot='button']:active,
-[data-interface='clay'] .chat-side-panel .role-settings-heading > .icon-button:active {
+.chat-side-panel-heading > [data-slot='button']:active {
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
 }
-[data-interface='clay'] .chat-side-panel .role-settings-heading > .icon-button svg {
-  width: 18px;
-  height: 18px;
-}
-[data-interface='clay'] .chat-side-panel-body {
+.chat-side-panel-body {
   gap: 18px;
   padding: 18px 20px 20px;
 }
@@ -106,9 +93,9 @@
 .chat-panel-section .field {
   min-width: 0;
 }
-[data-interface='clay'] .chat-side-panel .field > label,
-[data-interface='clay'] .chat-side-panel .model-field-heading label,
-[data-interface='clay'] .chat-side-panel .chat-panel-form section > h3 {
+.chat-side-panel .field > label,
+.chat-side-panel .model-field-heading label,
+.chat-side-panel .chat-panel-form section > h3 {
   color: var(--ink-soft);
   font:
     600 var(--text-label) / 1.4 'Source Sans 3',
@@ -146,23 +133,17 @@
     inset 0 1px 0 var(--border),
     0 -8px 16px -12px var(--shadow-color);
 }
-[data-interface='clay'] .chat-side-panel .role-settings-footer {
-  border-top: 0;
-  box-shadow:
-    inset 0 1px 0 var(--border),
-    0 -8px 16px -12px var(--shadow-color);
-}
 
 /* Agent memory: the filters in a tray, each note a raised card with tag chips and a quiet foot. */
 .chat-memory-filters {
   gap: 10px;
   padding: 10px;
 }
-[data-interface='clay'] .chat-memory-list {
+.chat-memory-list {
   gap: 12px;
   overflow: visible;
 }
-[data-interface='clay'] .chat-memory-entry {
+.chat-memory-entry {
   gap: 10px;
   padding: 14px 14px 10px;
   border-radius: 13px 14px 12px 13px;
@@ -170,14 +151,14 @@
   box-shadow: var(--clay);
   line-height: 1.5;
 }
-[data-interface='clay'] .chat-memory-entry[data-editing] {
+.chat-memory-entry[data-editing] {
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
 }
-[data-interface='clay'] .chat-memory-entry[data-editing] :is(input, textarea) {
+.chat-memory-entry[data-editing] :is(input, textarea) {
   background: var(--surface-bright);
 }
-[data-interface='clay'] .chat-memory-entry[data-deleting] {
+.chat-memory-entry[data-deleting] {
   box-shadow:
     var(--clay),
     0 0 0 1.5px color-mix(in srgb, var(--rose) 45%, transparent);
@@ -199,23 +180,23 @@
   font-size: var(--text-detail);
   font-weight: 500;
 }
-[data-interface='clay'] .chat-memory-entry > small {
+.chat-memory-entry > small {
   color: var(--faint);
   font-size: var(--text-detail);
 }
-[data-interface='clay'] .chat-memory-actions {
+.chat-memory-actions {
   gap: 2px 4px;
   margin-inline: -6px;
   padding-top: 8px;
   border-top: 1px solid var(--border);
 }
-[data-interface='clay'] .chat-memory-actions > .text-button {
+.chat-memory-actions > .text-button {
   padding-inline: 6px;
 }
-[data-interface='clay'] .chat-memory-actions > :not(.text-button) {
+.chat-memory-actions > :not(.text-button) {
   margin-inline: 6px 2px;
 }
-[data-interface='clay'] .chat-memory-notebook .chat-memory-list > .quiet {
+.chat-memory-notebook .chat-memory-list > .quiet {
   padding: 28px 18px;
   border-radius: 13px;
   background: var(--sunken-fill);
@@ -223,14 +204,14 @@
 }
 
 /* Transcript: files a message carries show their kind in a pressed-in tile. */
-[data-interface='clay'] .chat-message-attachments [data-slot='attachment-media'] {
+.chat-message-attachments [data-slot='attachment-media'] {
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
   color: var(--ink-soft);
 }
 
 /* Memory used: a quiet notebook marker that opens onto a recessed tray of the notes. */
-[data-interface='clay'] .chat-memory-used [data-slot='accordion-trigger'] {
+.chat-memory-used [data-slot='accordion-trigger'] {
   width: fit-content;
   min-height: 24px;
   padding: 2px 8px;
@@ -239,17 +220,17 @@
   font-size: var(--text-detail);
   font-weight: 600;
 }
-[data-interface='clay'] .chat-memory-used [data-slot='accordion-trigger']:hover {
+.chat-memory-used [data-slot='accordion-trigger']:hover {
   background: var(--clay-fill);
   box-shadow: var(--clay);
   color: var(--ink-soft);
 }
-[data-interface='clay'] .chat-memory-used [data-slot='accordion-trigger'] > span {
+.chat-memory-used [data-slot='accordion-trigger'] > span {
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
-[data-interface='clay'] .chat-memory-used [data-slot='accordion-trigger'] > span > span {
+.chat-memory-used [data-slot='accordion-trigger'] > span > span {
   display: inline-grid;
   min-width: 18px;
   height: 18px;
@@ -260,11 +241,11 @@
   box-shadow: var(--clay-sunken);
   font-size: 11px;
 }
-[data-interface='clay'] .chat-memory-used [data-slot='accordion-content'] > * {
+.chat-memory-used [data-slot='accordion-content'] > * {
   display: grid;
   gap: 6px;
 }
-[data-interface='clay'] .chat-memory-used p {
+.chat-memory-used p {
   margin-top: 6px;
   padding: 8px 12px;
   border-radius: 11px;
@@ -272,24 +253,24 @@
   box-shadow: var(--clay-sunken);
   color: var(--ink-soft);
 }
-[data-interface='clay'] .chat-memory-used p + p {
+.chat-memory-used p + p {
   margin-top: 0;
 }
-[data-interface='clay'] .chat-memory-used p[data-deleted] {
+.chat-memory-used p[data-deleted] {
   color: var(--faint);
   font-style: italic;
 }
 
-[data-interface='clay'] .chat-workspace .chat-related {
+.chat-workspace .chat-related {
   gap: 6px;
   padding-block: 6px;
   color: var(--muted);
 }
-[data-interface='clay'] .chat-workspace .chat-related > span {
+.chat-workspace .chat-related > span {
   margin-right: 2px;
   font-weight: 600;
 }
-[data-interface='clay'] .chat-workspace .chat-related-link {
+.chat-workspace .chat-related-link {
   height: 24px;
   padding-inline: 10px;
   border-radius: 999px;
@@ -297,48 +278,45 @@
   box-shadow: var(--clay);
   color: var(--ink-soft);
 }
-[data-interface='clay'] .chat-workspace .chat-related-link:hover {
+.chat-workspace .chat-related-link:hover {
   background: var(--clay-fill-hover);
   box-shadow: var(--clay-hover);
 }
 /* Inline questions: a pending question is raised clay waiting on you; once answered or cancelled
  * it settles into the page as a recessed tray and its bead alone carries the outcome. */
-[data-interface='clay'] .chat-workspace .user-question-message {
+.chat-workspace .user-question-message {
   gap: 6px;
   padding: 12px 14px 13px;
   border: 0;
   border-radius: 14px 15px 13px 14px;
 }
-[data-interface='clay'] .chat-workspace .user-question-message > p {
+.chat-workspace .user-question-message > p {
   font-weight: 600;
   line-height: 1.45;
 }
-[data-interface='clay'] .chat-workspace .user-question-message > small {
+.chat-workspace .user-question-message > small {
   font-size: var(--text-caption);
   line-height: 1.45;
 }
-[data-interface='clay'] .chat-workspace .user-question-message > [data-slot='button'] {
+.chat-workspace .user-question-message > [data-slot='button'] {
   margin-top: 4px;
 }
-[data-interface='clay'] .chat-workspace .user-question-status {
+.chat-workspace .user-question-status {
   gap: 7px;
   font-size: var(--text-detail);
 }
-[data-interface='clay'] .chat-workspace .user-question-message:not([data-status='pending']) {
+.chat-workspace .user-question-message:not([data-status='pending']) {
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
 }
-[data-interface='clay']
-  .chat-workspace
-  .user-question-message:not([data-status='pending'])
-  .user-question-status {
+.chat-workspace .user-question-message:not([data-status='pending']) .user-question-status {
   color: var(--muted);
 }
-[data-interface='clay'] .chat-workspace .user-question-message:not([data-status='pending']) > p {
+.chat-workspace .user-question-message:not([data-status='pending']) > p {
   color: var(--ink-soft);
   font-weight: 500;
 }
-[data-interface='clay'] .chat-workspace .user-question-message[data-status='cancelled'] > p {
+.chat-workspace .user-question-message[data-status='cancelled'] > p {
   color: var(--muted);
 }
 .user-question-resume {
@@ -346,13 +324,13 @@
   align-items: center;
   gap: 7px;
 }
-[data-interface='clay'] .chat-workspace .user-question-message > .user-question-resume {
+.chat-workspace .user-question-message > .user-question-resume {
   color: var(--ink-soft);
   font-weight: 600;
 }
 
 /* The user's answer: chosen options as small pressed-in chips, each checked off. */
-[data-interface='clay'] .chat-workspace .user-answer-choices > span {
+.chat-workspace .user-answer-choices > span {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -362,7 +340,7 @@
   box-shadow: var(--clay-sunken);
   font-weight: 500;
 }
-[data-interface='clay'] .chat-workspace .user-answer-choices > span > svg {
+.chat-workspace .user-answer-choices > span > svg {
   flex: none;
   color: var(--moss);
 }

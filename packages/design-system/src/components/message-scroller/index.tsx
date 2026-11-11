@@ -6,8 +6,4 @@ export { MessageScrollerViewport } from './components/MessageScrollerViewport.ts
 export { MessageScrollerContent } from './components/MessageScrollerContent.tsx';
 export { MessageScrollerItem } from './components/MessageScrollerItem.tsx';
 export { MessageScrollerButton } from './components/MessageScrollerButton.tsx';
-export {
-  useMessageScroller,
-  useMessageScrollerScrollable,
-  useMessageScrollerVisibility,
-} from '@shadcn/react/message-scroller';
+export { useMessageScroller } from '@shadcn/react/message-scroller';

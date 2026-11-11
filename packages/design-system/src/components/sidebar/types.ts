@@ -1,6 +1,3 @@
-import { Button } from '../button/components/Button.tsx';
-import { Input } from '../input/components/Input.tsx';
-import { Separator } from '../separator/components/Separator.tsx';
 import { sidebarMenuButtonVariants } from './constants.ts';
 import { TooltipContent } from '../tooltip/components/TooltipContent.tsx';
 import { useRender } from '@base-ui/react/use-render';
@@ -29,15 +26,12 @@ export type SidebarContentProps = React.ComponentProps<'div'>;
 export type SidebarFooterProps = React.ComponentProps<'div'>;
 
 export type SidebarGroupProps = React.ComponentProps<'div'>;
-export type SidebarGroupActionProps = useRender.ComponentProps<'button'> &
-  React.ComponentProps<'button'>;
 
 export type SidebarGroupContentProps = React.ComponentProps<'div'>;
 
 export type SidebarGroupLabelProps = useRender.ComponentProps<'div'> & React.ComponentProps<'div'>;
 
 export type SidebarHeaderProps = React.ComponentProps<'div'>;
-export type SidebarInputProps = React.ComponentProps<typeof Input>;
 
 export type SidebarInsetProps = React.ComponentProps<'main'>;
 
@@ -56,10 +50,6 @@ export type SidebarMenuButtonProps = useRender.ComponentProps<'button'> &
   } & VariantProps<typeof sidebarMenuButtonVariants>;
 
 export type SidebarMenuItemProps = React.ComponentProps<'li'>;
-
-export type SidebarMenuSkeletonProps = React.ComponentProps<'div'> & {
-  showIcon?: boolean;
-};
 
 export type SidebarMenuSubProps = React.ComponentProps<'ul'>;
 
@@ -80,5 +70,3 @@ export type SidebarProviderProps = React.ComponentProps<'div'> & {
 };
 
 export type SidebarRailProps = React.ComponentProps<'button'>;
-export type SidebarSeparatorProps = React.ComponentProps<typeof Separator>;
-export type SidebarTriggerProps = React.ComponentProps<typeof Button>;

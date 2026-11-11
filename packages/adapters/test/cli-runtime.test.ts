@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { runAcp, runAcpText } from '../src/acp.ts';
+import { runAcpText } from '../src/acp.ts';
 import { adapters } from '../src/index.ts';
 import { detectCli, runCliText } from '../src/process.ts';
 import { cleanup, contextFor, requestFor } from './helpers/runtime.ts';
@@ -41,7 +41,6 @@ describe.each([
       ...(runtime === 'hermes' ? [expect.any(Function)] : []),
     );
     expect(runCliText).not.toHaveBeenCalled();
-    expect(runAcp).not.toHaveBeenCalled();
     expect(runAcpText).not.toHaveBeenCalled();
   });
   it('normalizes provider events and passes the model, prompt and scoped MCP configuration', async () => {
@@ -395,7 +394,6 @@ describe.each([
     context.signal = AbortSignal.abort();
     await expect(adapters[runtime].run(context)).rejects.toThrow('Run cancelled');
     expect(runCliText).not.toHaveBeenCalled();
-    expect(runAcp).not.toHaveBeenCalled();
   });
 });
 describe.each(['grok', 'pi', 'oh-my-pi'] as const)('%s terminal validation', (runtime) => {

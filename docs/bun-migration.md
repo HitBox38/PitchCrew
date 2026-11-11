@@ -6,7 +6,7 @@ Pitchcrew uses pinned Bun 1.4.4 for package management, application scripts, the
 
 ## Local measurements
 
-Measured on macOS ARM64 / Apple M4 Pro with Node 24.22.0, pnpm 11.22.0 and Bun 1.4.4. Values are medians; the complete samples and methodology are in [the raw results](benchmarks/bun-migration.json).
+Measured on macOS ARM64 / Apple M4 Pro with Node 24.22.0, pnpm 11.22.0 and Bun 1.4.4. Values are medians. The benchmark harness and raw samples were removed after the migration; they remain in git history.
 
 | Measurement                                  | Node / pnpm |        Bun | Reduction |
 | -------------------------------------------- | ----------: | ---------: | --------: |
@@ -15,7 +15,7 @@ Measured on macOS ARM64 / Apple M4 Pro with Node 24.22.0, pnpm 11.22.0 and Bun 1
 | Daemon RSS after that snapshot               |  152.30 MiB | 102.13 MiB |    32.94% |
 | Fresh dependency install, warm package cache |     9.747 s |    2.390 s |    75.48% |
 
-An [initial batch](benchmarks/bun-migration-initial.json) and [second batch](benchmarks/bun-migration-repeat.json) also measured roughly half the startup time. Fresh-install speedups ranged from 2.7× to 4.1× across the three batches. Those earlier reports used runtime-reported RSS; the current table samples both processes with the same OS `ps` command. This revises the memory improvement to about 33%. Install timings vary with host/cache conditions and do not establish CI savings.
+An initial batch and a second batch also measured roughly half the startup time. Fresh-install speedups ranged from 2.7× to 4.1× across the three batches. Those earlier reports used runtime-reported RSS; the current table samples both processes with the same OS `ps` command. This revises the memory improvement to about 33%. Install timings vary with host/cache conditions and do not establish CI savings.
 
 Runtime measurements use seven alternating fresh processes and empty temporary workspaces per runtime. They include module imports, disable optional UI/skill loading and replace installed-agent detection with deterministic unavailable fixtures. Filesystem caches remain warm. The parent samples memory with `ps -o rss` after the first snapshot while the fixture remains open briefly; that wait follows both startup timestamps. Memory is a point sample, not peak or sustained memory, and excludes Electron, Chromium and document helpers.
 
@@ -25,7 +25,7 @@ These results establish local daemon and install improvements. They do not estab
 
 ## Observed CI measurements
 
-A single comparison of a [prior full-installer pnpm run](https://github.com/HitBox38/PitchCrew/actions/runs/40571998154) with the [Bun manual run](https://github.com/HitBox38/PitchCrew/actions/runs/40598096132) **did not show an end-to-end pipeline improvement**. Complete job/step durations, commit identities and definitions are in [the CI observations](benchmarks/bun-ci-observed.json).
+A single comparison of a [prior full-installer pnpm run](https://github.com/HitBox38/PitchCrew/actions/runs/40571998154) with the [Bun manual run](https://github.com/HitBox38/PitchCrew/actions/runs/40598096132) **did not show an end-to-end pipeline improvement**.
 
 | Measurement                                           |       Prior pnpm run |              Bun run |
 | ----------------------------------------------------- | -------------------: | -------------------: |
@@ -46,11 +46,11 @@ The full manual CI run at `9380af06` passed all 13 jobs, including every install
 
 A late local UI rerun hit the existing 10-second cold Vite setup deadline. The unchanged pnpm baseline at `e3f7ed03` failed the same isolated Profile import test on the same host and Node version. A diagnostic run with extra setup time loaded the migrated page successfully; all diagnostic changes were removed, and the original test and deadline remain intact. The final local Bun smoke also hit the existing five-second database-helper deadline before reaching development checks. These local reruns are recorded as failures, not passing validation; final-head CI on clean runners remains required.
 
-The landing framework was separately patched from Next.js 16.4.0 to 16.4.3 after its build reported known advisories. The official [16.4.1 release](https://github.com/vercel/next.js/releases/tag/v16.4.1) identifies the security fixes included in the later patch. Other pre-existing dependency advisories are outside this change; this is not a repository-wide security assessment. The install benchmark uses the earlier Bun manifest commit to hold package versions constant across tools.
+The landing framework was separately patched from Next.js 16.4.0 to 16.4.3 after its build reported known advisories. The official [16.4.1 release](https://github.com/vercel/next.js/releases/tag/v16.4.1) identifies the security fixes included in the later patch. Other pre-existing dependency advisories are outside this change; this is not a repository-wide security assessment.
 
-## Reproduce
+## Verify
 
-Use the pinned Bun and a supported Node installation. The benchmark needs pnpm 11.22.0 for the historical install comparison; it does not change the repository's active package manager or use the real workspace data folder.
+Use the pinned Bun and a supported Node installation.
 
 ```sh
 bun install --frozen-lockfile
@@ -60,11 +60,4 @@ bun run test:bun
 bun run test:desktop
 bun run desktop:package
 bun run test:packaged
-PITCHCREW_BENCHMARK_NODE=/absolute/path/to/node \
-PITCHCREW_BENCHMARK_BUN=/absolute/path/to/bun \
-PITCHCREW_BENCHMARK_PNPM=/absolute/path/to/pnpm \
-  bun --no-env-file --no-install scripts/performance/bun-migration.ts \
-  --baseline=e3f7ed03d0f374e739f12a56180c952faa2462c8 \
-  --candidate-manifests=aa5401e323ddfd302322a66090ea2871dd643eb2 \
-  --output=/tmp/pitchcrew-bun-migration/performance.json
 ```

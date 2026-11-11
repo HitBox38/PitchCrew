@@ -88,9 +88,6 @@ export const activityGroups = (entries: RunActivity[]) => {
   return groups;
 };
 
-export const durationLabel = (startedAt: string, finishedAt: string | null, now: number) => {
-  return elapsedLabel((finishedAt ? Date.parse(finishedAt) : now) - Date.parse(startedAt));
-};
 export const elapsedLabel = (milliseconds: number) => {
   const elapsed = Math.max(0, Math.floor(milliseconds / 1000));
   if (!Number.isFinite(elapsed)) return '0s';

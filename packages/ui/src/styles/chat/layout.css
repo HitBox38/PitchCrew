@@ -8,7 +8,6 @@
   width: 100%;
   overflow: hidden;
 }
-.chat-page > .workspace-notice,
 .chat-page > .error-banner {
   flex-shrink: 0;
 }
@@ -35,23 +34,6 @@
   --chat-tone: var(--primary);
   --chat-soft: var(--primary-soft);
 }
-.chat-role-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  flex: 0 0 6px;
-  border-radius: 50%;
-  background: var(--moss);
-}
-.chat-role-dot.working,
-.chat-role-state.working .chat-role-dot {
-  background: var(--ochre);
-}
-.chat-role-dot.paused,
-.chat-role-state.paused .chat-role-dot,
-.chat-role-state.unavailable .chat-role-dot {
-  background: var(--faint);
-}
 .chat-count {
   display: inline-flex;
   align-items: center;
@@ -66,30 +48,11 @@
   background: var(--ochre-soft);
   font-weight: 600;
 }
-.crew-chat-icon {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
-  border-radius: 10px;
-  background: var(--primary-soft);
-  color: var(--primary);
-}
 .chat-panel {
   display: flex;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-}
-.chat-role-state {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-right: 6px;
-  font-size: 12px;
-  color: var(--muted);
-  white-space: nowrap;
 }
 .chat-runtime {
   display: flex;
@@ -105,13 +68,6 @@
 .chat-runtime > span {
   color: var(--muted);
   font-size: 11px;
-}
-.chat-settings {
-  height: 30px;
-  padding: 5px 8px;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--muted);
 }
 @variant max-mobile {
   .page.chat-page {

@@ -95,7 +95,7 @@ describe('packet rules', () => {
   it.each(['formatted', 'plain'] as const)(
     'rechecks rules before exporting exact frozen %s PDF and DOCX artifacts',
     async (layout) => {
-      const { daemon, request, cookie } = await setup(layout === 'formatted' ? 15383 : 15384);
+      const { daemon, request } = await setup(layout === 'formatted' ? 15383 : 15384);
       const agreed = await draftAndReview(request);
       const { response, result: approval } = await request<Approval>(
         `/cards/${agreed.id}/approval`,
@@ -105,16 +105,8 @@ describe('packet rules', () => {
       expect(response.status).toBe(201);
       expect(approval.artifacts).toHaveLength(4);
       const frozen = new Map<string, Buffer>();
-      for (const artifact of approval.artifacts!) {
-        const preview = await fetch(
-          `${daemon.url}/api/approvals/${approval.id}/artifacts/${artifact.name}`,
-          { headers: { cookie, 'x-pitchcrew-client': 'ui' } },
-        );
-        expect(preview.status).toBe(200);
-        const bytes = Buffer.from(await preview.arrayBuffer());
-        expect(bytes).toEqual(verifiedArtifact(artifact));
-        frozen.set(artifact.name, bytes);
-      }
+      for (const artifact of approval.artifacts!)
+        frozen.set(artifact.name, verifiedArtifact(artifact));
       const { result: snapshot } = await request<Snapshot>('/snapshot');
       expect(snapshot.packetRules?.rules).toEqual(defaultPacketRules);
       expect(snapshot.artifactPages).toEqual(

@@ -25,7 +25,7 @@ export const jobSourceRevision = (card: Card) => {
     card.sourceHtml ?? null,
   ]);
 };
-export const applicationRevision = (sourceRevision: string, data: ExtractedJob) => {
+const applicationRevision = (sourceRevision: string, data: ExtractedJob) => {
   const parsed = extractedJobSchema.parse(data);
   const parts: unknown[] = [sourceRevision, parsed.brief, parsed.requirements, parsed.flagged];
   if (parsed.form) parts.push(parsed.form);

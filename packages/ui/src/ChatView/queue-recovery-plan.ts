@@ -26,7 +26,7 @@ export type QueueRecoveryPlan = RecoveryBase &
   );
 
 /** Mirrors the existing global Resume command; attempted failures still require individual review. */
-export const canResumeQueue = (queue: WorkQueueView | undefined) =>
+const canResumeQueue = (queue: WorkQueueView | undefined) =>
   !!queue?.paused &&
   queue.pauseKind === 'user' &&
   hasUnstartedMessages(queue.requests) &&

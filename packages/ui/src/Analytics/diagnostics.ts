@@ -13,14 +13,12 @@ export const sanitizeDiagnostic = (event: string, properties: Record<string, unk
   }
 };
 
-export type DiagnosticSanitizer = (
-  properties: Record<string, unknown>,
-) => Record<string, unknown> | null;
+type DiagnosticSanitizer = (properties: Record<string, unknown>) => Record<string, unknown> | null;
 
 /** Static allowlist: feature sanitizers must rebuild properties from fixed enums and numbers.
  * Register reviewed feature modules here, never from SDK payloads or remote configuration.
  */
-export const diagnosticSanitizers: Readonly<Record<string, DiagnosticSanitizer>> = Object.freeze({
+const diagnosticSanitizers: Readonly<Record<string, DiagnosticSanitizer>> = Object.freeze({
   $exception: sanitizeException,
   api_request_finished: sanitizeRequestMetric,
   run_finished: sanitizeRunMetric,

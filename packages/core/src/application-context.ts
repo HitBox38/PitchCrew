@@ -55,7 +55,7 @@ export const draftingCard = (card: Card, purpose = 'application-review'): Card =
 };
 
 const lines = z.array(z.string().trim().min(1).max(1500)).max(30);
-export const jobBriefSchema = z
+const jobBriefSchema = z
   .object({
     companyContext: z.string().trim().max(3000),
     responsibilities: lines,
@@ -63,7 +63,7 @@ export const jobBriefSchema = z
     constraints: lines,
   })
   .strict();
-export const applicationRequirementSchema = z
+const applicationRequirementSchema = z
   .object({
     id: z.string().regex(/^[a-z0-9-]{1,80}$/),
     question: z.string().trim().min(1).max(2000),

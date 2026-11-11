@@ -8,7 +8,6 @@ export const getConnectorTool = (name: string) => {
   return connectorTools[name as ConnectorToolName];
 };
 
-export type { ConnectorRequest } from './tools/helpers.ts';
 export const connectorTools = {
   ...githubTools,
   ...gmailTools,
@@ -16,4 +15,4 @@ export const connectorTools = {
   ...sheetsTools,
   ...calendarTools,
 };
-export type ConnectorToolName = keyof typeof connectorTools;
+type ConnectorToolName = keyof typeof connectorTools;

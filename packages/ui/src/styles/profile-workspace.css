@@ -10,7 +10,6 @@
   max-width: none;
   overflow: hidden;
 }
-.profile-page > .workspace-notice,
 .profile-page > .error-banner {
   flex-shrink: 0;
 }

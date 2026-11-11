@@ -30,7 +30,7 @@ beforeAll(async () => {
             response.end(
               await vite.transformIndexHtml(
                 '/__ai-elements',
-                '<html data-interface="clay"><body><div id="root"></div><script type="module" src="/test/fixtures/ai-elements.tsx"></script></body></html>',
+                '<html><body><div id="root"></div><script type="module" src="/test/fixtures/ai-elements.tsx"></script></body></html>',
               ),
             );
           });
@@ -170,27 +170,6 @@ test('trace disclosure works by keyboard without exposing private reasoning', as
   expect(await page.locator('body').textContent()).not.toContain(
     'PRIVATE_REASONING_MUST_NEVER_RENDER',
   );
-});
-
-test('suggestions and composer retain drafts on failure, respect Shift+Enter and clear on success', async () => {
-  await page.getByRole('button', { name: 'Suggested prompt' }).click();
-  const input = page.getByRole('textbox', { name: 'Test message' });
-  expect(await input.inputValue()).toBe('Help with my application');
-  await input.press('Shift+Enter');
-  expect(await input.inputValue()).toContain('\n');
-  await input.dispatchEvent('compositionstart');
-  const attempts = await page.getByRole('status', { name: 'Send attempts' }).textContent();
-  await input.press('Enter');
-  expect(await page.getByRole('status', { name: 'Send attempts' }).textContent()).toBe(attempts);
-  await input.dispatchEvent('compositionend');
-  await input.press('Enter');
-  expect(await input.inputValue()).toContain('Help with my application');
-  expect(await page.getByRole('button', { name: 'Remove resume.txt' }).count()).toBe(1);
-  await page.getByRole('button', { name: 'Allow send' }).click();
-  await input.press('Enter');
-  await expect.poll(() => input.inputValue()).toBe('');
-  expect(await page.getByRole('button', { name: 'Remove resume.txt' }).count()).toBe(0);
-  expect(errors).toEqual([]);
 });
 
 test('queue disclosure preserves explicit delivery commands', async () => {

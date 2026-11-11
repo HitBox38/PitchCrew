@@ -2,7 +2,7 @@ import type { Role, Snapshot } from '@pitchcrew/core';
 import type { RoutineDraft } from '@/RoutinesPage/types.ts';
 import type { useAgentCreation } from './hooks/useAgentCreation.ts';
 
-export interface SkillReference {
+interface SkillReference {
   id: string;
   updatedAt: string;
 }

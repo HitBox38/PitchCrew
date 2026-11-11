@@ -1,6 +1,6 @@
 import { useDocxFrame } from '../hooks/useDocxFrame.ts';
 import { useEffect, useState } from 'react';
-import { renderDocx } from '@/PacketDocxPreview/api.ts';
+import { renderDocx } from '../docx-render.ts';
 import type { ViewerSettings } from '../types.ts';
 const DocxDocument = ({
   bytes,

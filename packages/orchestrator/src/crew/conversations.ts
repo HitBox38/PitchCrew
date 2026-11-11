@@ -8,7 +8,6 @@ import {
   type Card,
   type ChatMessage,
   type ChatRequest,
-  type Run,
 } from '@pitchcrew/core';
 import { requireRole } from './roles.ts';
 import type { CrewContext } from './types.ts';
@@ -301,7 +300,4 @@ export const agentDm = (
       { parentId },
     )
   );
-};
-export const runConversation = (context: CrewContext, run: Run): Conversation | undefined => {
-  return conversations(context).find((item) => item.id === run.threadId);
 };

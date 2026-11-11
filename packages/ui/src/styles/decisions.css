@@ -1060,31 +1060,6 @@
   color: var(--ink-faint);
   font-weight: 400;
 }
-.detector-consent .source-block {
-  max-height: 40vh;
-}
-.detector-settings {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.detector-settings > li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px 16px;
-}
-.detector-settings-copy {
-  display: flex;
-  flex: 1 1 24rem;
-  flex-direction: column;
-  gap: 2px;
-}
-.detector-settings-actions {
-  display: flex;
-  gap: 8px;
-}
 .detector-key-form {
   flex-basis: 100%;
 }

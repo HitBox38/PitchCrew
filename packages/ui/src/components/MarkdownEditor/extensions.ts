@@ -32,7 +32,7 @@ import type { MarkdownCursor, MarkdownEditorProps, MarkdownFormat } from './type
 import { syncChange } from './helpers.ts';
 
 /** Marks transactions that mirror the controlled value rather than the user's typing. */
-export const externalSync = Annotation.define<boolean>();
+const externalSync = Annotation.define<boolean>();
 export const settings = new Compartment();
 
 /**
@@ -112,7 +112,7 @@ const inlineFormats: Record<string, MarkdownFormat> = {
 };
 
 /** The syntax around the caret, as the formats a toolbar would show pressed. */
-export const formatsAt = (state: EditorState, position: number): MarkdownFormat[] => {
+const formatsAt = (state: EditorState, position: number): MarkdownFormat[] => {
   const formats = new Set<MarkdownFormat>();
   for (let node = syntaxTree(state).resolveInner(position, -1); ; node = node.parent!) {
     const format = inlineFormats[node.name];

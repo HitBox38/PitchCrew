@@ -1,13 +1,13 @@
 import type { ConversationWelcomeProps } from './types.ts';
 
-export const rolePurpose: Record<string, string> = {
+const rolePurpose: Record<string, string> = {
   scout: 'Find the right opportunities',
   writer: 'Write a stronger application',
   reviewer: 'Check the details',
   'career-coach': 'Prepare for your next career step',
 };
 
-export const conversationStarters: Record<string, { label: string; prompt: string }[]> = {
+const conversationStarters: Record<string, { label: string; prompt: string }[]> = {
   'career-coach': [
     {
       label: 'Research a company',

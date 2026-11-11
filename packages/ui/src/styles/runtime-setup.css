@@ -112,14 +112,6 @@
   overflow-wrap: anywhere;
   font: var(--text-caption) / var(--text-caption--line-height) var(--font-mono);
 }
-.runtime-sign-in-link {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  min-height: 44px;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
 .runtime-assignments {
   display: grid;
   gap: 12px;

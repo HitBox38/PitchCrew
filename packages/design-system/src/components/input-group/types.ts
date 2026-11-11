@@ -10,9 +10,3 @@ export type InputGroupButtonProps = Omit<React.ComponentProps<typeof Button>, 's
   VariantProps<typeof inputGroupButtonVariants> & {
     type?: 'button' | 'submit' | 'reset';
   };
-
-export type InputGroupInputProps = React.ComponentProps<'input'>;
-
-export type InputGroupTextProps = React.ComponentProps<'span'>;
-
-export type InputGroupTextareaProps = React.ComponentProps<'textarea'>;
