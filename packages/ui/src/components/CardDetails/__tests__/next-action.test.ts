@@ -8,7 +8,7 @@ const model = (patch: Partial<CardDetailsModel> = {}): CardDetailsModel => {
     data: {
       roles: [{ id: 'writer', enabled: true, runtime: 'codex' }],
       runs: [],
-      runtimes: [{ id: 'codex', available: true }],
+      runtimes: [{ id: 'codex', available: true, applicationIsolation: true }],
       profile: [{ content: 'Fictional experience' }],
       approvals: [],
     },
