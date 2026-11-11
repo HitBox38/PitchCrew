@@ -28,6 +28,7 @@ import {
   type Run,
   type AgentTask,
   type ChatMessage,
+  type Conversation,
   type Role,
 } from '@pitchcrew/core';
 import { z } from 'zod';
@@ -90,6 +91,12 @@ const requestOrder = (context: CrewContext, intent: 'queue' | 'interrupt') => {
     ? Math.min(now, bound?.position ?? now) - 1
     : Math.max(now, (bound?.position ?? 0) + 1);
 };
+/**
+ * What a send reads from its conversation. Activity fields (`updatedAt`, `archived`) change with
+ * every saved message, so comparing the whole record rejected sends that nothing had invalidated.
+ */
+const sendIdentity = (item: Conversation): string =>
+  JSON.stringify([item.kind, item.participants, item.leadId, item.cardId, item.configurations]);
 export const sendConversation = async (
   context: CrewContext,
   id: string,
@@ -142,7 +149,7 @@ const sendConversationPrepared = async (
   const files = await saveAttachments(context.directory, input.attachments);
   let committed = false;
   try {
-    if (JSON.stringify(conversation(context, id)) !== JSON.stringify(item))
+    if (sendIdentity(conversation(context, id)) !== sendIdentity(item))
       throw new Error('The conversation changed. Try sending again.');
     if (isDeepReviewRequest(input.content)) {
       const effects: (() => void)[] = [];
@@ -547,7 +554,7 @@ export const sendDelegation = async (
       return context.runtimeMaintenance.refreshOnRetry({ ...role, ...item.configurations[roleId] });
     }),
   );
-  if (JSON.stringify(conversation(context, id)) !== JSON.stringify(item))
+  if (sendIdentity(conversation(context, id)) !== sendIdentity(item))
     throw new Error('The conversation changed. Try sending again.');
   const request: ChatRequest = {
     id: randomUUID(),
