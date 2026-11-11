@@ -175,7 +175,7 @@ export const requestIsHead = (context: CrewContext, request: ChatRequest): boole
   return entries[0]?.id === request.id;
 };
 
-export const queueBoardInput = z.object({
+const queueBoardInput = z.object({
   cardId: z.uuid(),
   action: z.enum(['fit', 'draft', 'review', 'deep-review', 'reevaluate']),
   roleId: z.string().optional(),

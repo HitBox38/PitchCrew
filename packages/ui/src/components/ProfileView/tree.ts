@@ -119,7 +119,7 @@ export const visibleProfileTree = (
  * What of a search a note's text contains: the whole phrase, or, when every word appears but
  * not side by side, the longest word (to show and reveal). Empty for no match.
  */
-export const textTerm = (content: string, search: string) => {
+const textTerm = (content: string, search: string) => {
   const body = content.toLocaleLowerCase();
   if (body.includes(search)) return search;
   const words = search.split(' ');

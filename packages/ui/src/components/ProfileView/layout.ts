@@ -24,7 +24,7 @@ const key = 'pitchcrew.profile.layout';
 export const clampExplorerWidth = (width: number) =>
   Math.round(Math.max(explorerBounds.min, Math.min(explorerBounds.max, width)));
 
-export const defaultLayout = (wide: boolean): ProfileLayout => ({
+const defaultLayout = (wide: boolean): ProfileLayout => ({
   explorerWidth: explorerBounds.initial,
   explorerOpen: wide,
   citationsOpen: false,

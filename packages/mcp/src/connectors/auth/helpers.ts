@@ -33,7 +33,7 @@ export const googleScopes = {
   calendar: 'https://www.googleapis.com/auth/calendar.readonly',
   sheets: 'https://www.googleapis.com/auth/spreadsheets.readonly',
 };
-export const googleTokenSchema = z.object({
+const googleTokenSchema = z.object({
   account: z.string(),
   accessToken: z.string().min(1),
   refreshToken: z.string().min(1),
@@ -42,7 +42,7 @@ export const googleTokenSchema = z.object({
   clientId: z.string().min(1),
   clientSecret: z.string(),
 });
-export const githubTokenSchema = z.union([
+const githubTokenSchema = z.union([
   z.object({ account: z.string(), accessToken: z.string().min(1) }),
   z.object({ account: z.string(), mode: z.literal('cli') }),
 ]);

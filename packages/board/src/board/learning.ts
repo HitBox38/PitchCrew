@@ -115,7 +115,7 @@ const enteredState = (board: Board, card: Card): { actor: string; createdAt: str
   }
 };
 /** Effective time of the last status change, following the tracking effective-time rules. */
-export const statusSince = (
+const statusSince = (
   board: Board,
   card: Card,
   signals: TrackingSignal[] = board.list<TrackingSignal>('tracking_signal'),

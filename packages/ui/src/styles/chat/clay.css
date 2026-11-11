@@ -1,9 +1,9 @@
-/* Clay interface preview for chat. One recessed thread runs from each agent turn's avatar
+/* One recessed thread runs from each agent turn's avatar
  * through its steps to its reply; beads on it carry outcomes, never decoration. */
-[data-interface='clay'] .chat-workspace {
+.chat-workspace {
   --chat-thread-x: 9px;
 }
-[data-interface='clay'] .chat-workspace .chat-transcript {
+.chat-workspace .chat-transcript {
   --chat-gap: 24px;
   gap: var(--chat-gap);
 }
@@ -59,12 +59,12 @@
 }
 
 /* Transcript: the turn thread, joined by a reply that follows its own turn. */
-[data-interface='clay'] .chat-workspace .chat-turn,
-[data-interface='clay'] .chat-workspace .chat-message[data-continued] {
+.chat-workspace .chat-turn,
+.chat-workspace .chat-message[data-continued] {
   position: relative;
 }
-[data-interface='clay'] .chat-workspace .chat-turn::before,
-[data-interface='clay'] .chat-workspace .chat-message[data-continued]::before {
+.chat-workspace .chat-turn::before,
+.chat-workspace .chat-message[data-continued]::before {
   position: absolute;
   left: var(--chat-thread-x);
   width: 4px;
@@ -73,7 +73,7 @@
   box-shadow: var(--clay-sunken);
   content: '';
 }
-[data-interface='clay'] .chat-workspace .chat-turn::before {
+.chat-workspace .chat-turn::before {
   top: 30px;
   bottom: 0;
   border-end-start-radius: 0;
@@ -81,29 +81,25 @@
 }
 /* Transcript items contain their own painting, so the reply's item closes the gap to its turn
  * and the space moves inside the reply, where the thread can run through it. */
-[data-interface='clay'] .chat-workspace .chat-transcript > :has(> .chat-message[data-continued]) {
+.chat-workspace .chat-transcript > :has(> .chat-message[data-continued]) {
   margin-top: calc(-1 * var(--chat-gap));
 }
-[data-interface='clay'] .chat-workspace .chat-message[data-continued] {
+.chat-workspace .chat-message[data-continued] {
   padding-top: calc(var(--chat-gap) - 6px);
 }
-[data-interface='clay'] .chat-workspace .chat-message[data-continued]::before {
+.chat-workspace .chat-message[data-continued]::before {
   top: 0;
   bottom: 6px;
   border-start-start-radius: 0;
   border-start-end-radius: 0;
 }
-[data-interface='clay'] .chat-workspace .chat-message[data-continued] .chat-message-meta {
+.chat-workspace .chat-message[data-continued] .chat-message-meta {
   padding-left: 30px;
 }
-[data-interface='clay']
-  .chat-workspace
-  .chat-message[data-continued]
-  .chat-message-meta
-  > .role-avatar {
+.chat-workspace .chat-message[data-continued] .chat-message-meta > .role-avatar {
   display: none;
 }
-[data-interface='clay'] .chat-workspace .chat-message[data-continued] .chat-message-meta > strong {
+.chat-workspace .chat-message[data-continued] .chat-message-meta > strong {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -113,50 +109,44 @@
 }
 
 /* Day dividers sit in a groove. */
-[data-interface='clay'] .chat-workspace .chat-day::before,
-[data-interface='clay'] .chat-workspace .chat-day::after {
+.chat-workspace .chat-day::before,
+.chat-workspace .chat-day::after {
   height: 2px;
   border-radius: 999px;
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
 }
-[data-interface='clay'] .chat-workspace .chat-day > span {
+.chat-workspace .chat-day > span {
   padding: 2px 8px;
   font-size: var(--text-detail);
   font-weight: 400;
 }
 /* Dark grooves remain quiet guides rather than near-black bands behind the writing. */
-[data-interface='clay'][data-theme='dark']
-  .chat-workspace
-  :is(.chat-turn, .chat-message[data-continued])::before,
-[data-interface='clay'][data-theme='dark'] .chat-workspace .chat-day::before,
-[data-interface='clay'][data-theme='dark'] .chat-workspace .chat-day::after {
+[data-theme='dark'] .chat-workspace :is(.chat-turn, .chat-message[data-continued])::before,
+[data-theme='dark'] .chat-workspace .chat-day::before,
+[data-theme='dark'] .chat-workspace .chat-day::after {
   background: color-mix(in srgb, var(--muted) 25%, var(--paper));
   box-shadow: 0 1px 0 rgb(255 255 255 / 0.035);
 }
-[data-interface='clay'][data-theme='dark'] .chat-workspace .chat-day::before,
-[data-interface='clay'][data-theme='dark'] .chat-workspace .chat-day::after {
+[data-theme='dark'] .chat-workspace .chat-day::before,
+[data-theme='dark'] .chat-workspace .chat-day::after {
   height: 1px;
 }
-[data-interface='clay'][data-theme='dark'] .chat-workspace .clay-bead[data-empty] {
+[data-theme='dark'] .chat-workspace .clay-bead[data-empty] {
   border: 1px solid color-mix(in srgb, var(--muted) 65%, var(--paper));
   box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.12);
 }
 
 /* Crew work: empty states are recessed trays and follow-ups sit on a groove with outcome beads. */
-[data-interface='clay'] .chat-workspace .chat-work-empty {
+.chat-workspace .chat-work-empty {
   border-radius: 12px;
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
 }
-[data-interface='clay'] .chat-workspace .chat-work-section + .chat-work-section {
+.chat-workspace .chat-work-section + .chat-work-section {
   border-top: 0;
 }
-[data-interface='clay'] .chat-workspace .chat-task-marker {
-  border: 0;
-  background: none;
-}
-[data-interface='clay'] .chat-workspace .chat-task:not(:last-child)::before {
+.chat-workspace .chat-task:not(:last-child)::before {
   left: 7.5px;
   width: 4px;
   border-radius: 999px;
@@ -166,27 +156,23 @@
 
 /* Narrow chats keep the track but name only the current stage. */
 @variant max-chat {
-  [data-interface='clay']
-    .chat-workspace
-    .clay-chat-stage
-    .clay-stage-labels
-    > span:not([data-current]) {
+  .chat-workspace .clay-chat-stage .clay-stage-labels > span:not([data-current]) {
     visibility: hidden;
   }
 }
 
 /* A job chat names its job in the header and composer, so per-message job links only repeat it. */
-[data-interface='clay'] .chat-job-link[data-same-job] {
+.chat-job-link[data-same-job] {
   display: none;
 }
 
 /* The question card's header carries the ochre bead that marks anything waiting on the user. */
-[data-interface='clay'] .pending-question-trigger > .clay-bead {
+.pending-question-trigger > .clay-bead {
   margin-inline: 2px;
 }
 
 /* Read-only conversations end in a recessed tray instead of a ruled footer. */
-[data-interface='clay'] .chat-workspace .chat-readonly {
+.chat-workspace .chat-readonly {
   margin: 10px 20px 12px;
   border-top: 0;
   border-radius: 12px;
@@ -195,12 +181,12 @@
 }
 
 /* Participant pickers: chosen agents are raised pebbles, the rest stay pressed into the page. */
-[data-interface='clay'] .chat-participant-choice {
+.chat-participant-choice {
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
   transition: var(--motion);
 }
-[data-interface='clay'] .chat-participant-choice:has([data-checked]) {
+.chat-participant-choice:has([data-checked]) {
   background: var(--clay-fill);
   box-shadow: var(--clay);
 }
@@ -238,11 +224,11 @@
 
 /* Composer: one toolbar with context, the model, browser mode and a round send. The runtime
  * moves here from the header. */
-[data-interface='clay'] .chat-heading .chat-runtime {
+.chat-heading .chat-runtime {
   display: none;
 }
-[data-interface='clay'] .chat-add-context > span,
-[data-interface='clay'] .chat-send > span {
+.chat-add-context > span,
+.chat-send > span {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -250,7 +236,7 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
-[data-interface='clay'] .chat-add-context {
+.chat-add-context {
   width: 32px;
   padding: 0;
 }
@@ -265,7 +251,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-[data-interface='clay'] .chat-send {
+.chat-send {
   width: 34px;
   height: 34px;
   padding: 0;
@@ -274,7 +260,7 @@
 
 /* Browser panel: a status pill in the header, the address as host and path, and approvals in a
  * raised tray under the page. The tray keeps its reserved height so the page never reflows. */
-[data-interface='clay'] .browser-panel-heading output {
+.browser-panel-heading output {
   max-width: 170px;
   padding: 3px 10px;
   border-radius: 999px;
@@ -284,10 +270,10 @@
 .browser-address-display {
   display: none;
 }
-[data-interface='clay'] .browser-address[data-display] {
+.browser-address[data-display] {
   position: relative;
 }
-[data-interface='clay'] .browser-address[data-display]:not(:focus-within) .browser-address-display {
+.browser-address[data-display]:not(:focus-within) .browser-address-display {
   position: absolute;
   inset: 0 8px 0 28px;
   display: flex;
@@ -309,22 +295,21 @@
   color: var(--muted);
   text-overflow: ellipsis;
 }
-[data-interface='clay']
-  .browser-address[data-display]:has(> [data-slot='button']):not(:focus-within)
+.browser-address[data-display]:has(> [data-slot='button']):not(:focus-within)
   .browser-address-display {
   right: 34px;
 }
-[data-interface='clay'] .browser-address[data-display]:not(:focus-within) input {
+.browser-address[data-display]:not(:focus-within) input {
   color: transparent;
 }
-[data-interface='clay'] .browser-approvals {
+.browser-approvals {
   margin: 8px;
   border-top: 0;
   border-radius: 14px;
   background: var(--clay-fill);
   box-shadow: var(--clay);
 }
-[data-interface='clay'] .browser-placeholder-icon {
+.browser-placeholder-icon {
   border-radius: 999px;
   box-shadow: var(--clay);
 }
@@ -370,72 +355,61 @@
 
 /* Browser chrome stays in two rows (tabs, then address with tools) and approvals reserve only
  * what a request needs, so the page keeps most of the panel's height. */
-[data-interface='clay'] .browser-tabs {
+.browser-tabs {
   gap: 4px;
   padding: 4px 8px;
 }
-[data-interface='clay'] .browser-tab .browser-tab-select {
+.browser-tab .browser-tab-select {
   height: 28px;
 }
-[data-interface='clay'] .browser-tab .browser-tab-close {
+.browser-tab .browser-tab-close {
   width: 22px;
   height: 22px;
 }
 /* Inactive tabs show their close button on hover or focus, like other browsers; until then its
  * slot folds away so the title uses the room. */
-[data-interface='clay'] .browser-tab:not([data-active='true']) .browser-tab-close {
+.browser-tab:not([data-active='true']) .browser-tab-close {
   width: 0;
   min-width: 0;
   overflow: hidden;
   opacity: 0;
   transition: opacity 120ms ease;
 }
-[data-interface='clay']
-  .browser-tab:not([data-active='true']):is(:hover, :focus-within)
-  .browser-tab-close {
+.browser-tab:not([data-active='true']):is(:hover, :focus-within) .browser-tab-close {
   width: 22px;
   opacity: 1;
 }
 @media (pointer: coarse) {
-  [data-interface='clay'] .browser-tab:not([data-active='true']) .browser-tab-close {
+  .browser-tab:not([data-active='true']) .browser-tab-close {
     width: 22px;
     opacity: 1;
   }
 }
-[data-interface='clay'] .browser-tab-select > svg.browser-tab-failed {
-  color: var(--rose);
-}
-[data-interface='clay'] .browser-chrome {
+.browser-chrome {
   display: flex;
   flex-shrink: 0;
   flex-wrap: wrap;
   align-items: center;
-  border-bottom: 1px solid var(--border);
-  background: var(--clay-fill);
-  box-shadow: inset 0 1px 0 var(--rim);
 }
-[data-interface='clay'] .browser-chrome > .browser-toolbar {
+.browser-chrome > .browser-toolbar {
   flex: 1 1 20rem;
   min-width: 0;
-  min-height: 44px;
-  padding: 5px 4px 5px 8px;
   border-bottom: 0;
   background: none;
   box-shadow: none;
 }
-[data-interface='clay'] .browser-chrome > .browser-tools {
+.browser-chrome > .browser-tools {
   padding: 0 8px 0 0;
   border-bottom: 0;
   background: none;
 }
-[data-interface='clay'] .browser-chrome .browser-tools-actions:not([data-recording]),
-[data-interface='clay']
-  .browser-chrome
+.browser-chrome .browser-tools-actions:not([data-recording]),
+.browser-chrome
   .browser-tools-actions[data-recording]
   > :not([aria-label='Stop browser recording']) {
   display: none;
 }
-[data-interface='clay'] .browser-chrome .browser-tool-label {
+.browser-chrome .browser-tool-label {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -445,28 +419,28 @@
 }
 /* Page settings is a quiet menu: a tools row, a zoom row and grouped icon rows separated by
  * hairlines, with small labels. No outlined full-width buttons. */
-[data-interface='clay'] .browser-settings-menu {
+.browser-settings-menu {
   display: grid;
   gap: 0;
 }
-[data-interface='clay'] .browser-menu-label {
+.browser-menu-label {
   margin: 0;
   padding: 6px 8px 4px;
   color: var(--muted);
   font-size: var(--text-caption);
   font-weight: 600;
 }
-[data-interface='clay'] .browser-settings-tools {
+.browser-settings-tools {
   display: block;
   padding: 2px 0 6px;
   border-bottom: 1px solid var(--border);
 }
-[data-interface='clay'] .browser-settings-tools .browser-tools-actions {
+.browser-settings-tools .browser-tools-actions {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 2px;
 }
-[data-interface='clay'] .browser-settings-tools [data-slot='button'] {
+.browser-settings-tools [data-slot='button'] {
   flex-direction: column;
   gap: 4px;
   height: auto;
@@ -475,35 +449,35 @@
   font-weight: 500;
   font-size: var(--text-caption);
 }
-[data-interface='clay'] .browser-settings-tools .browser-tool-label {
+.browser-settings-tools .browser-tool-label {
   white-space: nowrap;
 }
-[data-interface='clay'] .browser-menu-zoom {
+.browser-menu-zoom {
   display: flex;
   align-items: center;
   gap: 2px;
   padding: 4px 4px 4px 8px;
   border-bottom: 1px solid var(--border);
 }
-[data-interface='clay'] .browser-menu-zoom-label {
+.browser-menu-zoom-label {
   flex: 1;
   color: var(--ink);
 }
-[data-interface='clay'] .browser-menu-zoom output {
+.browser-menu-zoom output {
   min-width: 3.25rem;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
-[data-interface='clay'] .browser-menu-group {
+.browser-menu-group {
   display: grid;
   padding: 4px 0;
   border-bottom: 1px solid var(--border);
 }
-[data-interface='clay'] .browser-menu-group:last-child {
+.browser-menu-group:last-child {
   border-bottom: 0;
 }
-[data-interface='clay'] .browser-menu-row {
+.browser-menu-row {
   justify-content: flex-start;
   width: 100%;
   height: 32px;
@@ -511,46 +485,46 @@
   color: var(--ink);
   font-weight: 400;
 }
-[data-interface='clay'] .browser-menu-row > svg {
+.browser-menu-row > svg {
   color: var(--muted);
 }
-[data-interface='clay'] .browser-menu-row > kbd {
+.browser-menu-row > kbd {
   margin-left: auto;
   color: var(--muted);
   font: 500 var(--text-caption) / 1 var(--font-sans);
 }
-[data-interface='clay'] .browser-menu-note {
+.browser-menu-note {
   margin: -2px 0 2px;
   padding: 0 8px 0 30px;
   color: var(--muted);
   font-size: var(--text-caption);
 }
-[data-interface='clay'] .browser-menu-group .browser-profiles {
+.browser-menu-group .browser-profiles {
   padding: 0 4px 4px;
 }
 /* The panel is the container for browser layout queries. */
-[data-interface='clay'] .agent-browser-panel {
+.agent-browser-panel {
   container: browser-panel / inline-size;
 }
 
 /* The address bar's lock marks HTTPS; its system-browser action appears on hover or focus. */
-[data-interface='clay'] .browser-address > svg[aria-label='Secure connection'] {
+.browser-address > svg[aria-label='Secure connection'] {
   color: var(--moss, var(--muted));
 }
-[data-interface='clay'] .browser-address-external {
+.browser-address-external {
   opacity: 0;
   transition: opacity 120ms ease;
 }
-[data-interface='clay'] .browser-address:is(:hover, :focus-within) .browser-address-external,
-[data-interface='clay'] .browser-address-external:focus-visible {
+.browser-address:is(:hover, :focus-within) .browser-address-external,
+.browser-address-external:focus-visible {
   opacity: 1;
 }
 @media (pointer: coarse) {
-  [data-interface='clay'] .browser-address-external {
+  .browser-address-external {
     opacity: 1;
   }
 }
-[data-interface='clay'] .browser-settings-menu fieldset {
+.browser-settings-menu fieldset {
   min-inline-size: 0;
   margin: 0;
 }

@@ -105,7 +105,7 @@ beforeAll(async () => {
             res.end(
               await vite.transformIndexHtml(
                 '/chat/fixture',
-                `<!doctype html><html data-interface="clay"><head><link rel="icon" href="data:,"><style>[hidden]{display:none!important}#root{max-width:1100px;margin:auto}</style></head><body><div id="root"></div><script type="module" src="/question-fixture"></script></body></html>`,
+                `<!doctype html><html><head><link rel="icon" href="data:,"><style>[hidden]{display:none!important}#root{max-width:1100px;margin:auto}</style></head><body><div id="root"></div><script type="module" src="/question-fixture"></script></body></html>`,
               ),
             );
           });

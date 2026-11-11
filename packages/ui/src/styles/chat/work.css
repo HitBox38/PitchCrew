@@ -142,20 +142,14 @@
   flex: 0 0 19px;
   height: 19px;
   margin-top: 1px;
-  border: 1px solid var(--border-strong);
-  background: var(--paper-deep);
   color: var(--muted);
   border-radius: 50%;
 }
 .chat-task.completed .chat-task-marker {
-  background: var(--moss-soft);
   color: var(--moss);
-  border-color: transparent;
 }
 .chat-task.failed .chat-task-marker {
-  background: var(--rose-soft);
   color: var(--rose);
-  border-color: transparent;
 }
 .chat-task header {
   display: flex;

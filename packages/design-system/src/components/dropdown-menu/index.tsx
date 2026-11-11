@@ -6,7 +6,6 @@ export { DropdownMenuContent } from './components/DropdownMenuContent.tsx';
 export { DropdownMenuGroup } from './components/DropdownMenuGroup.tsx';
 export { DropdownMenuItem } from './components/DropdownMenuItem.tsx';
 export { DropdownMenuLabel } from './components/DropdownMenuLabel.tsx';
-export { DropdownMenuPortal } from './components/DropdownMenuPortal.tsx';
 export { DropdownMenuRadioGroup } from './components/DropdownMenuRadioGroup.tsx';
 export { DropdownMenuRadioItem } from './components/DropdownMenuRadioItem.tsx';
 export { DropdownMenuSeparator } from './components/DropdownMenuSeparator.tsx';

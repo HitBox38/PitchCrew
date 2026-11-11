@@ -106,7 +106,7 @@ export const jobBeadTone = (
 /** A recorded status move: applied and later are positive outcomes, earlier moves completed steps. */
 export const moveTone = (state: CardState) => (trackIndex(state) === 5 ? 'moss' : 'done');
 
-export type TimelineRun = { id: string; left: number; width: number; live: boolean };
+type TimelineRun = { id: string; left: number; width: number; live: boolean };
 
 /**
  * Places today's runs on a 0–100 track that starts at 08:00 (or the first earlier run)

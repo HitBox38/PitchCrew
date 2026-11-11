@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { RoleId } from './states.ts';
 
 const date = z.iso.datetime({ offset: true }).transform((value) => new Date(value).toISOString());
-export const pipelineScope = z
+const pipelineScope = z
   .object({
     cardIds: z.array(z.uuid()).max(50).default([]),
     from: date.optional(),
@@ -29,7 +29,7 @@ export const pipelineQuery = z.object({
   cursor: z.number().int().nonnegative().default(0),
   limit: z.number().int().min(1).max(50).default(20),
 });
-export const pipelineFinding = z.object({
+const pipelineFinding = z.object({
   id: z.string().regex(/^[a-zA-Z0-9_-]{1,40}$/),
   targetRoleId: z.string().min(1).max(64),
   criterion: z.string().trim().min(1).max(500),

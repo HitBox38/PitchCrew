@@ -354,10 +354,7 @@
   }
 }
 .chat-stop-response {
-  width: 32px;
-  height: 32px;
   border-radius: 8px;
-  color: var(--ink-soft);
   background: var(--clay-fill);
   box-shadow: var(--clay);
 }

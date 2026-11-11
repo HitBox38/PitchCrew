@@ -69,7 +69,7 @@ export const digest = (text: string) => createHash('sha256').update(text).digest
 export const sourceId = (input: ProfileSourceInput) => digest(JSON.stringify(input)).slice(0, 24);
 export const MAX_FILES = 100;
 export const MAX_FOLDERS = 30;
-export const MAX_CHARACTERS = 1000000;
+const MAX_CHARACTERS = 1000000;
 export interface RemoteFile {
   key: string;
   path: string;

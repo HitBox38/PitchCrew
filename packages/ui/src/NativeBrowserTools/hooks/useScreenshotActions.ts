@@ -3,7 +3,7 @@ import { browserCanvasBlob, browserBlobBase64 } from '../media.ts';
 import { chatAttachmentLimits } from '@pitchcrew/core/chat-attachments';
 
 /** "browser-element-apply-now-….png" for a picked element, "browser-screenshot-….png" otherwise. */
-export const screenshotFileName = (label?: string, now = Date.now()) => {
+const screenshotFileName = (label?: string, now = Date.now()) => {
   const slug = (label ?? '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')

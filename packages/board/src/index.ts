@@ -16,7 +16,6 @@ import type { BoardContext } from './board/types.ts';
 export { digestPacket, digestArtifacts } from './board/helpers.ts';
 export { setCardStatus } from './board/manual-status.ts';
 export {
-  applicationRevision,
   jobSourceRevision,
   assertExtractedContext,
   assertConfirmedContext,
@@ -44,7 +43,6 @@ export {
   removeCardLesson,
   mergeTags,
   boardInsights,
-  statusSince,
   staleSubmissions,
   markStaleSubmissions,
 } from './board/learning.ts';

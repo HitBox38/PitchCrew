@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import { localPdfTask } from '@/PacketPdfPreview/api.ts';
+import { localPdfTask } from '../pdf-task.ts';
 import type { ViewerSettings } from '../types.ts';
 export interface PdfDocumentProps {
   bytes: string;

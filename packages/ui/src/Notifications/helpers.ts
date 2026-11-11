@@ -236,7 +236,7 @@ export class NotificationTracker {
 export const notificationGroup = (item: Pick<CrewNotification, 'context'>): NotificationGroupId =>
   item.context === 'message' ? 'messages' : notificationShouldAlert(item) ? 'needs' : 'updates';
 
-export const notificationGroupTitles: Record<NotificationGroupId, string> = {
+const notificationGroupTitles: Record<NotificationGroupId, string> = {
   needs: 'Needs you',
   updates: 'Updates',
   messages: 'Messages',

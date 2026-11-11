@@ -46,7 +46,6 @@ export const delegationRoundInput = z
       .max(delegationRoundLimits.delegates),
   })
   .strict();
-export type DelegationRoundInput = z.infer<typeof delegationRoundInput>;
 
 export const userDelegationInput = z
   .object({

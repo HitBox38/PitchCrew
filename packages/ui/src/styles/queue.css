@@ -75,7 +75,6 @@
   color: var(--muted);
   font-size: var(--text-label);
 }
-
 .queue-state {
   color: var(--muted);
 }

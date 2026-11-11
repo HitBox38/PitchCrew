@@ -1,4 +1,4 @@
-/* Clay interface preview: beads, grooves and pebbles carry state, so every
+/* Beads, grooves and pebbles carry state, so every
  * shape here encodes something (a stage, a run or a slot), never decoration. */
 
 .clay-bead {

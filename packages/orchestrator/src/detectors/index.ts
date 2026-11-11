@@ -13,8 +13,8 @@ import type { FetchLike } from '../job-sources/fetch.ts';
 import { DetectorKeyStore } from './keys.ts';
 import { detectorAdapters, type DetectorRequest } from './providers.ts';
 
-export const detectorTimeoutMs = 30_000;
-export const detectorMaxResponseBytes = 1024 * 1024;
+const detectorTimeoutMs = 30_000;
+const detectorMaxResponseBytes = 1024 * 1024;
 
 export const digestDocument = (text: string) =>
   createHash('sha256').update(text, 'utf8').digest('hex');

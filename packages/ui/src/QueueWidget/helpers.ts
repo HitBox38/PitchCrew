@@ -6,7 +6,7 @@ export const queueActivityDescription = (agents: number, running: number) => {
 };
 
 /** Failed or interrupted work waits for Retry or Skip; other held work waits on the user. */
-export const queueFailed = (queue: Pick<WorkQueueView, 'state' | 'paused' | 'pauseKind'>) =>
+const queueFailed = (queue: Pick<WorkQueueView, 'state' | 'paused' | 'pauseKind'>) =>
   queue.state === 'blocked' ||
   (queue.paused && (queue.pauseKind === 'failed' || queue.pauseKind === 'interrupted'));
 

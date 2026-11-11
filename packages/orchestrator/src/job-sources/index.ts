@@ -38,7 +38,7 @@ import {
   truncatedResponse,
 } from './providers.ts';
 
-export const scanDeadlineMs = 180_000;
+const scanDeadlineMs = 180_000;
 // Files saved before Comeet and Workable have no token and still parse unchanged.
 const storedSources = z.array(
   jobSourceFields

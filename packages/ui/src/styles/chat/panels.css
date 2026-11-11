@@ -43,27 +43,15 @@
 .chat-side-panel-heading {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 18px 20px;
-  min-height: 68px;
-  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
-}
-.chat-side-panel-heading h2 {
-  font:
-    600 18px/1.4 'Source Sans 3',
-    sans-serif;
 }
 .chat-side-panel-body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
 }
 .chat-side-panel-body .modal-intro {
   margin-bottom: 0;
@@ -100,6 +88,5 @@
 }
 .chat-submission-verification {
   max-height: 36vh;
-  padding: 0 20px;
   overflow-y: auto;
 }

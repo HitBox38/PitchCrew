@@ -17,9 +17,6 @@
   overflow: hidden;
   gap: 0;
   border-left: 1px solid var(--border-strong);
-  background: var(--clay-fill);
-  box-shadow: inset 1px 0 0 var(--rim);
-  container-type: inline-size;
 }
 .agent-browser-panel.browser-sheet {
   position: fixed;
@@ -35,19 +32,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
   flex-shrink: 0;
-  min-height: 50px;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
-  background: var(--clay-fill);
 }
 .browser-heading-identity {
   display: flex;
-  flex: 1;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 4px 8px;
   min-width: 0;
 }
 .browser-agent-picker,
@@ -69,7 +58,6 @@
   align-items: center;
   gap: 5px;
   min-width: 0;
-  max-width: 140px;
   color: var(--muted);
   font-size: var(--text-caption);
   white-space: nowrap;
@@ -78,7 +66,6 @@
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: 2px;
 }
 .browser-task-details .browser-sites {
   padding-inline: 0;
@@ -104,18 +91,11 @@
   border-bottom: 1px solid var(--border);
   background: var(--clay-fill);
 }
-.browser-chrome {
-  display: contents;
-}
 .browser-tools-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-}
-/* Page settings lists the tools only in the clay preview, where the toolbar row is folded away. */
-.browser-settings-tools {
-  display: none;
 }
 .browser-screenshot-editor {
   max-height: 55dvh;
@@ -247,10 +227,8 @@
   place-items: center;
   width: 64px;
   height: 64px;
-  border-radius: 20px 22px 20px 18px;
   color: var(--primary);
   background: var(--clay-fill);
-  box-shadow: var(--clay);
 }
 .browser-placeholder-icon svg {
   width: 28px;
@@ -274,9 +252,7 @@
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: 6px;
   overflow-x: auto;
-  padding: 8px 10px;
   background: var(--paper-deep);
   box-shadow: var(--clay-sunken);
   scrollbar-width: thin;
@@ -307,10 +283,11 @@
 .browser-tab[data-active='true'] .browser-tab-select > svg {
   color: var(--primary);
 }
+.browser-tab .browser-tab-select > svg.browser-tab-failed {
+  color: var(--rose);
+}
 .browser-tab .browser-tab-close {
   flex-shrink: 0;
-  width: 26px;
-  height: 26px;
   margin-right: 3px;
 }
 .browser-tab-new {
@@ -338,14 +315,8 @@
   padding-top: 8px;
 }
 .browser-history-entry {
-  display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
-  width: 100%;
-  height: auto;
-  padding: 8px;
-  text-align: left;
 }
 .browser-history-entry span {
   width: 100%;
@@ -380,10 +351,6 @@
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: 4px;
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--border);
-  background: var(--clay-fill);
 }
 .browser-find input {
   min-width: 0;
@@ -443,8 +410,6 @@
   flex-shrink: 0;
   max-height: min(46dvh, calc(var(--browser-viewport-height, 100dvh) * 0.46));
   overflow-y: auto;
-  border-top: 1px solid var(--border-strong);
-  background: var(--surface);
   overscroll-behavior: contain;
 }
 /* Approval presentation must not reflow the page it reviews; the clay chrome sets the height. */
@@ -459,10 +424,6 @@
 .browser-approvals[data-reserved] .approval-footer {
   flex-shrink: 0;
 }
-.browser-pending-action {
-  display: flex;
-  flex-direction: column;
-}
 .browser-approval-body {
   padding: 10px 12px 0;
   overflow-y: auto;
@@ -474,37 +435,7 @@
   overflow-wrap: anywhere;
 }
 .browser-pending-action .approval-footer {
-  position: sticky;
   bottom: 0;
-  margin: 0;
-  padding: 8px 12px;
-  background: var(--surface);
-}
-.browser-evidence {
-  margin: 8px 0;
-  font-size: var(--text-caption);
-}
-.browser-evidence
-  > [data-slot='accordion-item']
-  > [data-slot='accordion-header']
-  [data-slot='accordion-trigger'] {
-  cursor: pointer;
-  color: var(--primary);
-}
-.browser-evidence:has(> [data-slot='accordion-item'][data-open]) {
-  padding-bottom: 12px;
-}
-.browser-evidence h2 {
-  font-size: 16px;
-}
-.browser-dialog {
-  padding: 10px;
-  border-radius: 8px;
-  background: var(--ochre-soft);
-  color: var(--ink);
-}
-.browser-dialog {
-  margin: 10px 12px;
 }
 .browser-sites {
   padding: 6px 12px;
@@ -518,8 +449,6 @@
 .browser-manual-input {
   flex-shrink: 0;
   padding: 6px 12px;
-  border-top: 1px solid var(--border);
-  background: var(--paper-deep);
   max-height: min(38dvh, calc(var(--browser-viewport-height, 100dvh) * 0.38));
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -550,8 +479,6 @@
 }
 .browser-resizer:hover,
 .browser-resizer:focus-visible {
-  background: var(--teal-soft);
-  outline: 2px solid var(--teal);
   outline-offset: -2px;
 }
 .chat-workspace[data-has-browser-panel] .chat-heading,
@@ -578,7 +505,4 @@
   .browser-address input {
     font-size: 16px;
   }
-}
-.browser-tab-failed {
-  color: var(--rose);
 }

@@ -31,7 +31,7 @@ let cache: { doc: Text; blocks: Block[] | null } | null = null;
  * the parse is not ready yet (never cached, so a later call can succeed), or the note has raw
  * HTML blocks, which the preview may drop or split into several elements.
  */
-export const sourceBlocks = (state: EditorState) => {
+const sourceBlocks = (state: EditorState) => {
   if (cache?.doc === state.doc) return cache.blocks;
   const length = state.doc.length;
   // Never force a long parse from the scroll path: use the tree once the editor has it.

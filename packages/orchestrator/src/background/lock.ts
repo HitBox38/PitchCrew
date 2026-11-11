@@ -154,7 +154,7 @@ export class DaemonRunningError extends Error {
   }
 }
 
-export const defaultLockChecks: LockChecks = {
+const defaultLockChecks: LockChecks = {
   isAlive: isProcessAlive,
   answers: async (port) => !!(await probeDaemon(port)),
   now: () => Date.now(),

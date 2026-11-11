@@ -182,7 +182,7 @@ export const warningFeedback = (warnings: string[]): string[] => {
   return warnings.map((warning) => `Warning: ${warning}`);
 };
 
-export interface PacketFinding {
+interface PacketFinding {
   ruleId: string;
   severity: PacketRuleSeverity;
   document: PacketDocument | 'claims' | 'rules';

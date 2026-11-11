@@ -644,7 +644,7 @@ export const stopConversationWork = (
   }
   effect(() => context.publishChat(true));
 };
-export const finishQueueRun = (context: CrewContext, run: Run): void => {
+const finishQueueRun = (context: CrewContext, run: Run): void => {
   const finished = context.board.get<Run>('run', run.id);
   const thread = run.threadId;
   if (

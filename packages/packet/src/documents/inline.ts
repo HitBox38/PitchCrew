@@ -1,6 +1,6 @@
 import type { Run } from './types.ts';
 
-export const safeHref = (target: string): string | undefined => {
+const safeHref = (target: string): string | undefined => {
   const url = target.trim();
   if (/^(https?:\/\/|mailto:|tel:)\S+$/i.test(url)) return url;
   if (/^[\w.+-]+@[\w-]+(\.[\w-]+)+$/.test(url)) return `mailto:${url}`;
@@ -100,7 +100,7 @@ const destination = (text: string, index: number): Destination | undefined => {
   return text[cursor] === ')' ? { href, end: cursor + 1 } : undefined;
 };
 
-export const mergeRuns = (runs: Run[]): Run[] => {
+const mergeRuns = (runs: Run[]): Run[] => {
   const output: Run[] = [];
   for (const run of runs) {
     const last = output.at(-1);

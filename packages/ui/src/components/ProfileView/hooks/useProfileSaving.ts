@@ -13,7 +13,7 @@ const autosaveDelay = 800;
  * Updates one note in the shared snapshot. Other notes keep whatever the snapshot last observed,
  * so an older save response can never roll back a newer observation of a different note.
  */
-export const patchNote = (note: ProfileFile) =>
+const patchNote = (note: ProfileFile) =>
   useWorkspaceStore.setState((state) => {
     if (!state.data) return state;
     const profile = state.data.profile.some((file) => file.name === note.name)
