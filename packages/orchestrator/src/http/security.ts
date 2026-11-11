@@ -1,6 +1,9 @@
 import type { FastifyInstance } from 'fastify';
 import { randomUUID } from 'node:crypto';
 
+/** Routes that authenticate themselves (or need no session) instead of using the UI session. */
+const openRoutes = new Set(['/api/health', '/api/agent', '/api/external-mcp']);
+
 export const registerSessionSecurity = (
   app: FastifyInstance,
   options: { port: number; dev?: boolean; analyticsHost?: string },
@@ -26,9 +29,12 @@ export const registerSessionSecurity = (
     res.raw.setHeader('X-Content-Type-Options', 'nosniff');
     res.raw.setHeader('Referrer-Policy', 'no-referrer');
     const path = req.url.split('?')[0];
-    if (path === '/api/health' || path === '/api/agent' || path === '/api/external-mcp') return;
+    // The router percent-decodes the path before matching, so the matched route decides which
+    // checks apply. The raw path still covers requests that matched no route or the static wildcard.
+    const route = req.routeOptions.url ?? path;
+    if (openRoutes.has(route) || openRoutes.has(path)) return;
     const cookie = req.cookies.pitchcrew_session;
-    if (path.startsWith('/api/')) {
+    if (route.startsWith('/api/') || path.startsWith('/api/')) {
       if (!cookie || !sessions.has(cookie) || req.headers['x-pitchcrew-client'] !== 'ui') {
         // Sessions live in memory and end with the daemon; this header lets an open window renew.
         return res
