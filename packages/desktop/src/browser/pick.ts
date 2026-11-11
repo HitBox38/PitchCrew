@@ -79,7 +79,7 @@ const roles: Record<string, string> = {
 };
 
 /** "Heading “Open Roles”": what a picked element is, in words rather than its tag. */
-export const pickedLabel = (node: Pick<PickedNode, 'localName' | 'attributes'>, name: string) => {
+const pickedLabel = (node: Pick<PickedNode, 'localName' | 'attributes'>, name: string) => {
   const attributes = node.attributes ?? [];
   const index = attributes.findIndex((value, position) => position % 2 === 0 && value === 'role');
   const role = index >= 0 ? (attributes[index + 1] ?? '').trim() : '';

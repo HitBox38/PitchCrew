@@ -15,7 +15,7 @@ const codePoint = (code: string) => {
  * preview: images as the preview shows them ("Image: alt"), link targets, tags, Markdown marks
  * and brackets removed, entities decoded, spaces folded.
  */
-export const readableTask = (text: string) =>
+const readableTask = (text: string) =>
   text
     .replace(/!\[([^\]]*)\]\([^)]*\)/g, (_, alt: string) => `Image: ${alt || 'image'}`)
     .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
@@ -38,7 +38,7 @@ let cached: { content: string; markers: Marker[] } | null = null;
  * read from the same GFM parse the editor uses, so quoted and ordered tasks count and code that
  * only looks like a task does not.
  */
-export const taskMarkers = (content: string): Marker[] => {
+const taskMarkers = (content: string): Marker[] => {
   if (cached?.content === content) return cached.markers;
   const markers: Marker[] = [];
   markdownLanguage.parser.parse(content).iterate({
@@ -71,10 +71,4 @@ export const toggleTaskAt = (content: string, at: number) => {
   if (content[at] !== '[') return content;
   const mark = content[at + 1] === ' ' ? 'x' : ' ';
   return `${content.slice(0, at + 1)}${mark}${content.slice(at + 2)}`;
-};
-
-/** Checks or unchecks the nth of the rendered boxes (see `mapTasks`); unchanged if unsafe. */
-export const toggleTaskNumber = (content: string, index: number, rendered?: string[]) => {
-  const at = rendered ? mapTasks(content, rendered)[index] : taskMarkers(content)[index]?.from;
-  return at === undefined ? content : toggleTaskAt(content, at);
 };

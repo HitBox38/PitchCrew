@@ -49,8 +49,8 @@ export const operationalLogCodes = {
   runtime_run_cancelled: { severity: 'INFO', number: 9, service: 'pitchcrew-runtime' },
 } as const;
 
-export type OperationalLogCode = keyof typeof operationalLogCodes;
-export type OperationalLogArea = 'daemon' | 'http' | 'chat' | 'workflow';
+type OperationalLogCode = keyof typeof operationalLogCodes;
+type OperationalLogArea = 'daemon' | 'http' | 'chat' | 'workflow';
 export interface OperationalLog extends LogCorrelation {
   code: OperationalLogCode;
   area: OperationalLogArea;

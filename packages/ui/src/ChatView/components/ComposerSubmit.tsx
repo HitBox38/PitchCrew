@@ -49,7 +49,6 @@ export const ComposerSubmit = ({
                 ? interruptLabel
                 : 'Enter to send · Shift + Enter for a new line'
       }
-      status={props.sending ? 'submitted' : 'ready'}
       disabled={!hasInput || props.working || props.sending || !props.available}
     >
       <Send size={15} />

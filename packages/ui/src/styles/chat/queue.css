@@ -85,13 +85,6 @@
     min-height: 44px;
   }
 }
-.chat-queue-chevron {
-  margin-left: auto;
-  transition: transform 140ms var(--ease);
-}
-[data-panel-open] > .chat-queue-chevron {
-  transform: rotate(180deg);
-}
 .chat-queue-content {
   max-height: min(14rem, 28dvh);
   overflow-y: auto;
@@ -361,10 +354,7 @@
   }
 }
 .chat-stop-response {
-  width: 32px;
-  height: 32px;
   border-radius: 8px;
-  color: var(--ink-soft);
   background: var(--clay-fill);
   box-shadow: var(--clay);
 }
@@ -373,7 +363,6 @@
   box-shadow: var(--clay-hover);
 }
 @media (prefers-reduced-motion: reduce) {
-  .chat-queue-chevron,
   .chat-queue-details-trigger > svg,
   .chat-queued-preview > svg {
     transition: none;

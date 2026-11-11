@@ -26,7 +26,7 @@ const scopesSchema = z
   .max(2);
 const digestSchema = z.string().regex(/^[a-f0-9]{64}$/);
 const timeSchema = z.number().int().positive();
-export const stateSchema = z
+const stateSchema = z
   .object({
     version: z.literal(1),
     clients: z.array(z.object({ info: clientSchema, expiresAt: timeSchema }).strict()).max(100),

@@ -6,7 +6,7 @@
   padding: 0;
   overflow: hidden;
 }
-.settings-workspace-body > :is(.workspace-notice, .error-banner) {
+.settings-workspace-body > .error-banner {
   flex-shrink: 0;
   margin: 12px 24px 0;
 }

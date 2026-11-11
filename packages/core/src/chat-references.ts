@@ -29,7 +29,7 @@ export const skillToken = (name: string, id?: string): string => {
 };
 
 /** Code, links and URLs cannot accidentally select instructions or recipients. */
-export const protectedChatRanges = (text: string): [number, number][] => {
+const protectedChatRanges = (text: string): [number, number][] => {
   const ranges: [number, number][] = [];
   const pattern = /(`+|~{3,})|!?\[[^\]\n]*\]\([^\n)]*\)|https?:\/\/\S+/g;
   for (let match = pattern.exec(text); match; match = pattern.exec(text)) {

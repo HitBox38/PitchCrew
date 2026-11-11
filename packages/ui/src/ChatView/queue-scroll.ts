@@ -1,5 +1,5 @@
 /** Reveal the reading text inside its own bounded queue, without moving the chat or focus. */
-export const revealQueuedText = (reading: HTMLElement) => {
+const revealQueuedText = (reading: HTMLElement) => {
   const viewport = reading.closest<HTMLElement>('.chat-queue-content');
   const text = reading.querySelector<HTMLElement>('.chat-queued-full-text');
   if (!viewport || !text || !viewport.clientHeight) return;

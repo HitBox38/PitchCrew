@@ -106,11 +106,11 @@ export const checkLayout = async (
 };
 
 export const digestBytes = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
-export const resumePageTarget = 1;
+const resumePageTarget = 1;
 export const resumePageWarning = (pages: number) =>
   `The resume runs to ${pages} pages in the formatted layout. The target is one page.`;
 
-export { systemFonts, type FontLocation, type FontSearch } from './documents/font-search.ts';
+export { systemFonts, type FontSearch } from './documents/font-search.ts';
 
 export interface RenderOptions {
   /** Fallback fonts for characters the bundled fonts lack. Defaults to installed system fonts. */

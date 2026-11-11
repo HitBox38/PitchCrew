@@ -3,7 +3,6 @@ import { expect, it } from 'vitest';
 import {
   instructionUpdateExplanation,
   instructionUpdateFor,
-  joinNames,
   pendingInstructionUpdates,
 } from '../instruction-updates.ts';
 
@@ -44,11 +43,4 @@ it('explains each update state in plain words', () => {
   );
   for (const state of ['unedited', 'customized', 'unknown_base'] as const)
     expect(instructionUpdateExplanation({ ...update, state })).not.toContain('—');
-});
-
-it('joins role names', () => {
-  expect(joinNames([])).toBe('');
-  expect(joinNames(['Scout'])).toBe('Scout');
-  expect(joinNames(['Scout', 'Writer'])).toBe('Scout and Writer');
-  expect(joinNames(['Scout', 'Writer', 'Tracker'])).toBe('Scout, Writer and Tracker');
 });

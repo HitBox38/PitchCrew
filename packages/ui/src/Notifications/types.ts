@@ -23,6 +23,3 @@ export interface CrewNotification {
   createdAt: string;
 }
 export type NotificationGroupId = 'needs' | 'updates' | 'messages';
-export interface NotificationPreferences {
-  sound: boolean;
-}

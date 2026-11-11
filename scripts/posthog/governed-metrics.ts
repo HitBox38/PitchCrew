@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { buildSqlPlan } from './sql-library.ts';
 
-export interface InventoryEntry {
+interface InventoryEntry {
   name: string;
   query?: unknown;
   definition?: unknown;
@@ -29,7 +29,7 @@ export interface GovernanceOptions {
   [key: string]: unknown;
 }
 
-export const definitionHash = (value: unknown) => {
+const definitionHash = (value: unknown) => {
   return createHash('sha256').update(JSON.stringify(value)).digest('hex');
 };
 

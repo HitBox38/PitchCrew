@@ -1,12 +1,14 @@
 import type { RunActivity } from '@pitchcrew/core';
 import { activityPresentation, outcomes } from '../constants.ts';
-import { Tool, ToolTrigger, ToolContent } from '@/components/ai-elements/tool/index.tsx';
 import {
-  Reasoning,
-  ReasoningTrigger,
-  ReasoningContent,
-} from '@/components/ai-elements/reasoning/index.tsx';
-import { TraceLine, TraceIcon, TraceTitle, TraceDescription } from '@pitchcrew/design-system/trace';
+  TraceCollapsible,
+  TraceCollapsibleContent,
+  TraceCollapsibleTrigger,
+  TraceDescription,
+  TraceIcon,
+  TraceLine,
+  TraceTitle,
+} from '@pitchcrew/design-system/trace';
 import { TurnDuration } from './TurnDuration.tsx';
 import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
 /**
@@ -21,12 +23,9 @@ export const ActivityStep = ({
   waiting?: boolean;
 }) => {
   const { status } = activityPresentation[entry.status];
-  const Root = entry.kind === 'reasoning' ? Reasoning : Tool;
-  const Trigger = entry.kind === 'reasoning' ? ReasoningTrigger : ToolTrigger;
-  const Content = entry.kind === 'reasoning' ? ReasoningContent : ToolContent;
   return (
-    <Root className="chat-activity-step" data-status={entry.status}>
-      <Trigger className="chat-activity-step-trigger">
+    <TraceCollapsible className="chat-activity-step" data-status={entry.status}>
+      <TraceCollapsibleTrigger className="chat-activity-step-trigger">
         <TraceLine className="flex-1" status={status}>
           <TraceIcon>
             <StatusBead status={waiting ? 'waiting' : entry.status} />
@@ -43,8 +42,8 @@ export const ActivityStep = ({
             )}
           </TraceDescription>
         </TraceLine>
-      </Trigger>
-      <Content className="chat-activity-step-details">
+      </TraceCollapsibleTrigger>
+      <TraceCollapsibleContent className="chat-activity-step-details">
         <p>{outcomes[entry.status]}</p>
         <p>
           Started{' '}
@@ -57,7 +56,7 @@ export const ActivityStep = ({
           </time>
         </p>
         {entry.kind === 'reasoning' ? <p>Thinking text is kept private.</p> : null}
-      </Content>
-    </Root>
+      </TraceCollapsibleContent>
+    </TraceCollapsible>
   );
 };

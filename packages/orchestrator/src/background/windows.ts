@@ -3,7 +3,7 @@ import { daemonArguments, serviceFiles, serviceName } from './paths.ts';
 import { escapeXml, parseWindowsArguments, quoteWindowsArgument, unescapeXml } from './quote.ts';
 import type { Inspection, PlatformDriver, ServiceHost, ServiceSpec } from './types.ts';
 
-export const taskArguments = (spec: ServiceSpec) => {
+const taskArguments = (spec: ServiceSpec) => {
   return ['--headless', spec.node, ...daemonArguments(spec)].map(quoteWindowsArgument).join(' ');
 };
 
@@ -140,5 +140,4 @@ export const windowsDriver = (spec: ServiceSpec, host: ServiceHost): PlatformDri
 };
 
 /** conhost --headless runs the console daemon without opening a window at logon. */
-export const conhostPath = (spec: ServiceSpec) =>
-  win32.join(spec.systemRoot, 'System32', 'conhost.exe');
+const conhostPath = (spec: ServiceSpec) => win32.join(spec.systemRoot, 'System32', 'conhost.exe');

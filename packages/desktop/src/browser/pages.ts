@@ -24,7 +24,7 @@ import type { createDomBrowserHost } from './dom-host.ts';
 const configured = new WeakSet<Session>();
 
 /** A plain sentence for a Chromium main-frame failure; the raw code stays in the details. */
-export const navigationFailure = (code: number) => {
+const navigationFailure = (code: number) => {
   if (code === -105 || code === -137) return 'The address couldn’t be found. Check it for typos.';
   if (code === -106) return 'You appear to be offline. Check your connection, then try again.';
   if (code === -102) return 'The site refused the connection. Try again later.';

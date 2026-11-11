@@ -10,30 +10,20 @@ import { AppMotion } from '@/AppMotion/index.tsx';
 import { ConversationHistory } from '@/ChatView/components/ConversationHistory.tsx';
 import { ConversationQueue } from '@/ChatView/components/ConversationQueue.tsx';
 import { ClaySteps } from '@/ChatTurn/components/ClaySteps.tsx';
-import { ComposerAttachments } from '@/ChatView/components/ComposerAttachments.tsx';
-import { Suggestion } from '@/components/ai-elements/suggestion/index.tsx';
-import { PromptInput } from '@/components/ai-elements/prompt-input/components/PromptInput.tsx';
-import { PromptInputTextarea } from '@/components/ai-elements/prompt-input/components/PromptInputTextarea.tsx';
-import { PromptInputSubmit } from '@/components/ai-elements/prompt-input/components/PromptInputSubmit.tsx';
 import { Button } from '@pitchcrew/design-system/button';
-import { NotificationCenter, Notifications } from '@/Notifications/index.tsx';
+import { NotificationBell, NotificationCenter } from '@/Notifications/index.tsx';
 import { LinkConfirmation } from '@/components/MarkdownContent/components/LinkConfirmation.tsx';
 import '@/styles.css';
 
 const Fixture = () => {
   const [messages, setMessages] = useState(initial);
-  const [draft, setDraft] = useState('');
-  const [files, setFiles] = useState([new File(['fictional'], 'resume.txt')]);
-  const [submitted, setSubmitted] = useState('');
-  const [fail, setFail] = useState(true);
-  const [attempts, setAttempts] = useState(0);
   const [queueAction, setQueueAction] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [unsafeLinkOpen, setUnsafeLinkOpen] = useState(false);
   const [unsafeLinkOpened, setUnsafeLinkOpened] = useState(false);
   return (
     <AppMotion>
-      <Notifications />
+      <NotificationBell />
       <NotificationCenter />
       <Button onClick={() => setUnsafeLinkOpen(true)}>Preview blocked link</Button>
       <output aria-label="Unsafe link opened">{String(unsafeLinkOpened)}</output>
@@ -99,33 +89,6 @@ const Fixture = () => {
           }}
         />
         <output aria-label="Queue action">{queueAction}</output>
-        <Suggestion suggestion="Help with my application" onClick={setDraft}>
-          Suggested prompt
-        </Suggestion>
-        <PromptInput
-          onSubmit={({ text }) => {
-            setAttempts((previous) => previous + 1);
-            if (fail) throw new Error('Simulated request failure');
-            setSubmitted(text);
-            setDraft('');
-            setFiles([]);
-          }}
-        >
-          <ComposerAttachments
-            files={files}
-            removeFile={(index) => setFiles((previous) => previous.filter((_, i) => i !== index))}
-            disabled={false}
-          />
-          <PromptInputTextarea
-            aria-label="Test message"
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-          />
-          <PromptInputSubmit />
-        </PromptInput>
-        <Button onClick={() => setFail(false)}>Allow send</Button>
-        <output aria-label="Send attempts">{attempts}</output>
-        <output aria-label="Submitted text">{submitted}</output>
         <section
           aria-label="Source preview examples"
           style={{ width: 320, maxWidth: '100%', margin: '24px auto' }}

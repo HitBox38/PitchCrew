@@ -722,14 +722,6 @@
   border-radius: 8px;
   margin-block: 12px;
 }
-.computer-action-preview {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  padding: 12px;
-  background: var(--paper-deep);
-  color: var(--ink);
-  border-radius: 8px;
-}
 
 /* Narrow work areas: the list pushes into one skill (or the editor) with Back. */
 @container skills (width < 47.5rem) {

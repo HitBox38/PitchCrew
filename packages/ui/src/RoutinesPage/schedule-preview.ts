@@ -86,7 +86,7 @@ export const runLimitLabel = (routine: Pick<Routine, 'runCount' | 'maxRuns'>) =>
 
 const scheduleFields = ['startLocal', 'timezone', 'frequency', 'interval', 'unit', 'cron'] as const;
 
-export const formatInZone = (instant: string, timezone: string) =>
+const formatInZone = (instant: string, timezone: string) =>
   new Intl.DateTimeFormat(undefined, {
     timeZone: timezone,
     weekday: 'short',

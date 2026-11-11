@@ -4,7 +4,13 @@ import { describe, expect, it } from 'vitest';
 import { markdownEdits, tableCell, toggleTaskAt } from '../commands.ts';
 import { externalChange } from '../extensions.ts';
 import { markdownOutline, proseWordCount, syncChange } from '../helpers.ts';
-import { toggleTaskNumber } from '../tasks.ts';
+import { mapTasks, toggleTaskAt as toggleSourceTask } from '../tasks.ts';
+
+/** Checks or unchecks the nth rendered box the way the preview does; unchanged if unsafe. */
+const toggleTaskNumber = (content: string, index: number, rendered: string[]) => {
+  const at = mapTasks(content, rendered)[index];
+  return at === undefined ? content : toggleSourceTask(content, at);
+};
 
 /** Applies a formatting edit to `doc` with the selection between `[` and `]` (or at `|`). */
 const apply = (doc: string, edit: (state: EditorState) => unknown) => {
@@ -231,12 +237,17 @@ describe('tables', () => {
 describe('preview task boxes', () => {
   it('toggles the nth task the way the preview counts them', () => {
     const note = '- [ ] One\n```\n- [ ] not a task\n```\n1. [x] Two\n> - [ ] Three';
-    expect(toggleTaskNumber(note, 0)).toBe(note.replace('- [ ] One', '- [x] One'));
-    expect(toggleTaskNumber(note, 1)).toBe(note.replace('1. [x] Two', '1. [ ] Two'));
-    expect(toggleTaskNumber(note, 2)).toBe(note.replace('> - [ ] Three', '> - [x] Three'));
-    expect(toggleTaskNumber(note, 3)).toBe(note);
+    const rendered = ['One', 'Two', 'Three'];
+    expect(toggleTaskNumber(note, 0, rendered)).toBe(note.replace('- [ ] One', '- [x] One'));
+    expect(toggleTaskNumber(note, 1, rendered)).toBe(note.replace('1. [x] Two', '1. [ ] Two'));
+    expect(toggleTaskNumber(note, 2, rendered)).toBe(
+      note.replace('> - [ ] Three', '> - [x] Three'),
+    );
+    expect(toggleTaskNumber(note, 3, rendered)).toBe(note);
     const indented = '    - [ ] Code example\n\n- [ ] Real task';
-    expect(toggleTaskNumber(indented, 0)).toBe('    - [ ] Code example\n\n- [x] Real task');
+    expect(toggleTaskNumber(indented, 0, ['Real task'])).toBe(
+      '    - [ ] Code example\n\n- [x] Real task',
+    );
   });
 
   it('never toggles a task unless the rendered and source task lists agree', () => {

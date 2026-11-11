@@ -38,7 +38,7 @@ const jsonRows = (content: string): RawRow[] => {
   if (!Array.isArray(value)) throw new Error('A JSON import must be an array of applications.');
   return value.map((item, index) => ({ row: index + 1, value: item }));
 };
-export const parseCsv = (content: string): string[][] => {
+const parseCsv = (content: string): string[][] => {
   const rows: string[][] = [];
   let row: string[] = [];
   let cell = '';
@@ -111,7 +111,7 @@ const csvRows = (content: string): RawRow[] => {
   });
 };
 
-export const importCardState = (state: ImportState): CardState => {
+const importCardState = (state: ImportState): CardState => {
   return state === 'draft' || state === 'ready' ? 'lead' : state;
 };
 
@@ -318,7 +318,7 @@ export const importLimits = {
   tags: 10,
   tagLength: 40,
 } as const;
-export const importStates = [
+const importStates = [
   'lead',
   'shortlisted',
   'draft',
@@ -331,8 +331,8 @@ export const importStates = [
   'withdrawn',
   'ghosted',
 ] as const;
-export type ImportState = (typeof importStates)[number];
-export const importColumns = [
+type ImportState = (typeof importStates)[number];
+const importColumns = [
   'company',
   'title',
   'titleDerived',
@@ -364,7 +364,7 @@ const importTime = z
     }
     return new Date(text).toISOString();
   });
-export const importHistoryEntry = z
+const importHistoryEntry = z
   .object({
     state: z.enum(importStates),
     at: importTime,

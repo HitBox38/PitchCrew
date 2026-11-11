@@ -20,7 +20,7 @@ export const browserTabSensors = [
 ];
 
 // Keep the preview level with the tabs and inside the visible, scrollable strip.
-export class BrowserTabRow extends RestrictToElement {
+class BrowserTabRow extends RestrictToElement {
   constructor(manager: ConstructorParameters<typeof RestrictToElement>[0]) {
     super(manager, {
       element: ({ source }) => source?.element?.closest('.browser-tabs') ?? null,

@@ -27,7 +27,7 @@ export const updateJobInput = z
   })
   .strict();
 
-export const maxJobBatchSize = 100;
+const maxJobBatchSize = 100;
 export const bulkDeleteJobsInput = z
   .object({
     cardIds: z

@@ -2,7 +2,7 @@ import type { Snapshot } from '@pitchcrew/core';
 import { stateLabels } from '../../lib/labels.ts';
 import type { ApprovalRequest } from './types.ts';
 
-export type OutcomeTone = 'teal' | 'quiet' | 'rose';
+type OutcomeTone = 'teal' | 'quiet' | 'rose';
 export type DecisionOutcome = { label: string; tone: OutcomeTone };
 
 const packetOutcomes: Record<string, DecisionOutcome> = {
