@@ -1,4 +1,11 @@
-import { decodeEvent, type BoardEvent, type Card, type Run } from '@pitchcrew/core';
+import {
+  decodeEvent,
+  type BoardEvent,
+  type Card,
+  deliveryLifecycle,
+  type ChatRequest,
+  type Run,
+} from '@pitchcrew/core';
 import type { Board } from '@pitchcrew/board';
 
 /** Large source documents and saved turn bodies are fetched only by their open views. */
@@ -74,4 +81,25 @@ export const workspaceEvents = (board: Board): BoardEvent[] => {
     )
     .all() as { id: number; json: string }[];
   return rows.map((row) => ({ ...decodeEvent(row.json), id: row.id }));
+};
+
+/**
+ * Settled requests (every delivery completed or cancelled) keep identity, order and delivery
+ * outcomes; the UI reads request text only while a delivery is still pending.
+ */
+export const workspaceChatRequests = (board: Board): ChatRequest[] => {
+  const done = deliveryLifecycle.groups.done;
+  return (
+    (
+      board.db
+        // `entities.json` is qualified because json_each has its own hidden `json` column.
+        .prepare(`SELECT CASE WHEN EXISTS (SELECT 1 FROM json_each(entities.json,'$.deliveries') d
+        WHERE json_extract(d.value,'$.status') NOT IN (${done.map(() => '?').join(',')}))
+      THEN json
+      ELSE json_set(json_remove(json,'$.references'),
+        '$.content','','$.attachments',json('[]'),'$.compact',json('true')) END AS json
+    FROM entities WHERE kind='chat_request' ORDER BY rowid`)
+        .all(...done) as { json: string }[]
+    ).map((row) => JSON.parse(row.json) as ChatRequest)
+  );
 };

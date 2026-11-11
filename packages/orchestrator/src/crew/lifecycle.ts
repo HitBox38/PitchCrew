@@ -1,7 +1,12 @@
 import { workspaceQueue } from './queue/projection.ts';
 import { ensureQueue, patchQueue } from './queue/state.ts';
 import { activeRuns } from './queue/queries.ts';
-import { workspaceCards, workspaceRuns, workspaceEvents } from './workspace-projection.ts';
+import {
+  workspaceCards,
+  workspaceChatRequests,
+  workspaceRuns,
+  workspaceEvents,
+} from './workspace-projection.ts';
 import { workspaceMessages, runsWithStatus } from '@pitchcrew/board';
 import { activityRuns, finishChatActivity, restoreActivityCheckpoints } from './chat-activity.ts';
 import { recordOperationalLog } from '../telemetry/logs.ts';
@@ -228,7 +233,9 @@ export const snapshot = async (
     queue: workspaceQueue(context),
     userInputs: context.board.list('user_input'),
     conversations: conversations(context),
-    chatRequests: context.board.list('chat_request'),
+    chatRequests: options?.workspace
+      ? workspaceChatRequests(context.board)
+      : context.board.list('chat_request'),
     memories: context.board
       .list<import('@pitchcrew/core').AgentMemory>('agent_memory')
       .filter((memory) => !memory.deleted),
