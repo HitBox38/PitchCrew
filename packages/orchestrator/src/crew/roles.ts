@@ -17,6 +17,7 @@ import { join } from 'node:path';
 import type { CrewContext } from './types.ts';
 import { roleSetup, validateRoleSetup } from './role-setup.ts';
 import { saveRoutine } from './routines/index.ts';
+import { ensureDirectConversation } from './conversations.ts';
 import { validateReasoning } from './reasoning.ts';
 
 export const writeRunInstructions = async (
@@ -130,6 +131,8 @@ export const createRole = async (context: CrewContext, data: unknown): Promise<R
     context.board.db.transaction(() => {
       const skills = validateRoleSetup(context, setup);
       context.board.record('role', role, 'user', `Created ${role.name}`);
+      // The agent's own chat is part of creating it; snapshot reads never create it.
+      ensureDirectConversation(context, role);
       for (const skill of skills.filter((item) => item.scope === 'roles'))
         context.board.record(
           'skill',

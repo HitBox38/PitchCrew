@@ -30,6 +30,42 @@ export const canReadConversation = (context: CrewContext, roleId: string, id: st
     )
     .get(id);
 };
+/** An agent's own chat shares its role ID. The caller checks it does not already exist. */
+export const recordDirectConversation = (
+  context: Pick<CrewContext, 'board'>,
+  role: Pick<Role, 'id' | 'name'>,
+  now = new Date().toISOString(),
+): void => {
+  context.board.record(
+    'conversation',
+    {
+      id: role.id,
+      title: `${role.name} chat`,
+      kind: 'direct',
+      participants: [role.id],
+      leadId: role.id,
+      cardId: null,
+      createdBy: 'user',
+      createdAt: now,
+      updatedAt: now,
+      archived: false,
+      pinned: false,
+      configurations: {},
+    },
+    'system',
+    'Preserved agent conversation',
+  );
+};
+/** Create the agent's own chat unless any conversation, deleted or not, already has that ID. */
+export const ensureDirectConversation = (
+  context: Pick<CrewContext, 'board'>,
+  role: Pick<Role, 'id' | 'name'>,
+): void => {
+  const exists = context.board.db
+    .prepare("SELECT 1 FROM entities WHERE kind='conversation' AND id=?")
+    .get(role.id);
+  if (!exists) recordDirectConversation(context, role);
+};
 export const migrateConversations = (context: Pick<CrewContext, 'board'>): void => {
   const existing = new Set(
     (
@@ -41,26 +77,7 @@ export const migrateConversations = (context: Pick<CrewContext, 'board'>): void 
   const now = new Date().toISOString();
   const roles = context.board.list<Role>('role');
   for (const role of roles) {
-    if (existing.has(role.id)) continue;
-    context.board.record(
-      'conversation',
-      {
-        id: role.id,
-        title: `${role.name} chat`,
-        kind: 'direct',
-        participants: [role.id],
-        leadId: role.id,
-        cardId: null,
-        createdBy: 'user',
-        createdAt: now,
-        updatedAt: now,
-        archived: false,
-        pinned: false,
-        configurations: {},
-      },
-      'system',
-      'Preserved agent conversation',
-    );
+    if (!existing.has(role.id)) recordDirectConversation(context, role, now);
   }
   if (!existing.has('crew'))
     context.board.record(
