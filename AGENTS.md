@@ -146,6 +146,7 @@ bun run test:installer # Windows: verify compiled NSIS process handling with iso
 bun run browser:install # install Chromium for browser tools and tests
 bun --no-env-file scripts/convert-legacy-tracker.ts <tracker.db> [applications.json] # legacy SQLite tracker to import JSON
 bun run test         # Node Vitest: fixtures, loopback HTTP, MCP and isolated Chromium; no provider calls
+bun x --no-install vitest run <path> # one test file; add --project unit-and-api or --project ui to pick a project
 bun run test:bun     # actual Bun daemon, MCP and bounded Node-helper integration
 bun run test:e2e     # built UI, real Bun daemon, Electron guests and scoped MCP browser journeys
 bun run test:desktop # E2E journeys, hidden Electron smoke and native-browser integration checks
@@ -155,7 +156,7 @@ bun run format       # Oxfmt
 bun run format:check
 bun run typecheck
 bun run docs:state-machines # regenerate docs/state-machines.md from the lifecycle tables
-bun run check        # lint, typecheck, tests, app build and landing page build
+bun run check        # lint, format check, typecheck, tests, app build and landing page build
 ```
 
 The UI has hot reload; restart the daemon after backend changes. The default data directory is ~/.pitchcrew, optionally PITCHCREW_HOME outside the repository. PITCHCREW_PORT defaults to 4417. Tests use temporary directories outside the repository and fictional fixtures under packages/*/test/fixtures/.

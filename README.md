@@ -266,9 +266,10 @@ bun run format:check
 bun run typecheck
 bun run browser:install # once, for browser tools and tests
 bun run test
+bun x --no-install vitest run <path> # one test file
 bun run test:bun      # actual Bun daemon, MCP and bounded-helper integration
 bun run build
-bun run check           # lint, typecheck, tests, app build and landing build
+bun run check           # lint, format check, typecheck, tests, app build and landing build
 bun run test:e2e        # built UI, real Bun daemon, Electron guests and scoped MCP browser journeys
 bun run test:desktop    # E2E journeys plus hidden Electron and native browser checks
 ```
