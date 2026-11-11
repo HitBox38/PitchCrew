@@ -1,12 +1,14 @@
 # AGENTS.md
 
-Instructions for coding agents and contributors working on Pitchcrew. If a change makes anything here false, update this file with the change.
+Instructions for coding agents and contributors working on Pitchcrew. If a change makes anything here or in a linked `docs/` topic file false, update it in the same change. Before changing a feature, read its topic doc from the list at the end of this file.
 
 ## What Pitchcrew is
 
 A local-first job-search app with a crew of role agents. Pitchcrew starts runtime CLIs, gives them scoped MCP tools, and keeps shared state on a board. It does not implement a provider agent loop. See [README.md](README.md) for setup and the product view.
 
 ## Status
+
+See [docs/status.md](docs/status.md) for the current feature inventory and [docs/external-mcp.md](docs/external-mcp.md) for external and remote agent access.
 
 ## Branch and release workflow
 
@@ -69,7 +71,12 @@ docs/             # design decisions
 - Keep components focused on rendering. Put pure transformations in helpers, network operations in API modules, and reusable stateful behavior in hooks. Name handlers as actions; reserve `use` prefixes for hooks.
 - Share repeated domain labels, formatting and status calculations under `packages/ui/src/lib/`. Keep reusable shadcn primitives in `packages/design-system/src/components/` with explicit per-family package exports; app-specific AI Elements compositions stay under `packages/ui/src/components/ai-elements/`. The design system must not depend on app state, routes, daemon or domain models. Both app and landing import `@pitchcrew/design-system/styles.css` for Tailwind, shared tokens, primitive materials and source scanning; each owns its feature styles and font loading. See [packages/design-system/README.md](packages/design-system/README.md).
 - Backend entry points preserve their public contracts and compose private modules by domain: `board/`, orchestrator `crew/` and `http/`, adapter `process/`, MCP `tools/`, connector `auth/` and computer modules. Keep transactions and approval checks together.
-- Use ordinary Tailwind utilities for routine feature layout and spacing. App and landing base layers default borders (including pseudo-elements) to the theme hairline; shared border recipes must still specify a border color, and meaningful warning/error colors and keyboard focus stay explicit. Keep app-specific materials and complex selectors in ordered feature files under `packages/ui/src/styles/`; reusable primitive materials and shared motion live in `packages/design-system/src/styles/`. Never style descendants through a `:has()` on an ancestor (Tailwind `group-has-*`, `:root:has(…) …`, `.a:has(…) .b`) or test emptiness inside `:has()` (`:has(…:empty)`, `:not(:has(> *))`): Chrome rechecks such rules after DOM changes anywhere on the page, which once made every chat update restyle 350–850 elements. A `:has()` that styles the element it is on (`has-*` utilities) is fine. Use `:empty` or sibling selectors, or a rendered attribute: `createPresence` (`design-system/src/lib/presence.ts`) sets `data-has-<slot>` on a group's root (menu item action, code block header, an inset sidebar on its wrapper; in chat, `ChatView/presence.ts` marks the workspace's side panel and docked browser and the panel's question dock, welcome and hidden composer; apps import it from `@pitchcrew/design-system/presence`), `useRootFlag` (`lib/use-root-flag.ts`) sets page-wide flags on the document element (`data-app-bar`, `data-browser-expanded`), and `TabsList` sets `data-indicator` when it holds a `TabsIndicator`. Shared UI and AI Elements defaults use the `primitive:` variant: `styles.css` orders `base`, `primitives` and `components` below ordinary, unlayered caller utilities. Keep the utility import unlayered so the variant emits into the top-level `primitives` layer. Feature files load in the `components` layer, so they lose to unlayered third-party styles whatever their specificity: overrides of CodeMirror theme rules and Streamdown utilities must use `!important`. Theme tokens and named responsive thresholds live in `packages/design-system/src/styles/theme.css`; remaining feature CSS uses those thresholds through `@variant`. Oxfmt sorts classes, including `cn` and CVA arguments. See [docs/code-organization.md](docs/code-organization.md).
+- Use ordinary Tailwind utilities for routine feature layout and spacing. App and landing base layers default borders (including pseudo-elements) to the theme hairline; shared border recipes must still specify a border color, and meaningful warning/error colors and keyboard focus stay explicit.
+- Keep app-specific materials and complex selectors in ordered feature files under `packages/ui/src/styles/`; reusable primitive materials and shared motion live in `packages/design-system/src/styles/`.
+- Never style descendants through a `:has()` on an ancestor (Tailwind `group-has-*`, `:root:has(…) …`, `.a:has(…) .b`) or test emptiness inside `:has()` (`:has(…:empty)`, `:not(:has(> *))`): Chrome rechecks such rules after DOM changes anywhere on the page, which once made every chat update restyle 350–850 elements. A `:has()` that styles the element it is on (`has-*` utilities) is fine.
+- Use `:empty` or sibling selectors, or a rendered attribute: `createPresence` (`design-system/src/lib/presence.ts`) sets `data-has-<slot>` on a group's root (menu item action, code block header, an inset sidebar on its wrapper; in chat, `ChatView/presence.ts` marks the workspace's side panel and docked browser and the panel's question dock, welcome and hidden composer; apps import it from `@pitchcrew/design-system/presence`), `useRootFlag` (`lib/use-root-flag.ts`) sets page-wide flags on the document element (`data-app-bar`, `data-browser-expanded`), and `TabsList` sets `data-indicator` when it holds a `TabsIndicator`.
+- Shared UI and AI Elements defaults use the `primitive:` variant: `styles.css` orders `base`, `primitives` and `components` below ordinary, unlayered caller utilities. Keep the utility import unlayered so the variant emits into the top-level `primitives` layer. Feature files load in the `components` layer, so they lose to unlayered third-party styles whatever their specificity: overrides of CodeMirror theme rules and Streamdown utilities must use `!important`.
+- Theme tokens and named responsive thresholds live in `packages/design-system/src/styles/theme.css`; remaining feature CSS uses those thresholds through `@variant`. Oxfmt sorts classes, including `cn` and CVA arguments. See [docs/code-organization.md](docs/code-organization.md).
 
 ## Commands
 
@@ -110,9 +117,11 @@ The UI has hot reload; restart the daemon after backend changes. The default dat
 
 Local desktop and packaged smoke checks must stay hidden and never take focus. They use a hidden, non-focusable Electron window, background macOS activation and `capturePage` with `stayHidden`; evidence asserts the window was never shown or focused. Use `PITCHCREW_SMOKE_VISIBLE=1` only when the user explicitly requests a visible debugging run. Startup failures in hidden smoke mode go to stderr and exit with failure instead of opening a native dialog. Ordinary `bun run test` Chromium checks remain headless. Desktop smoke checks record native quit phases separately from parent-observed process exit and fail after a 10-second shutdown deadline; forced cleanup applies only to failed test children and never counts as success. See [docs/desktop-shutdown-performance.md](docs/desktop-shutdown-performance.md) for the isolated native exit diagnosis.
 
-Vitest defaults to two workers, matching each CI shard, to keep browser and bounded-worker fixtures within host resources; `--maxWorkers` can override it. `expect.poll` waits up to 5 seconds, since fixtures that boot, reload or reopen a page share the host. Start slow fixtures in `beforeAll` rather than inside a test's 15-second budget: production daemons, first visits to Vite fixture pages and the first import of a route's page module. Test daemons from `packages/orchestrator/test/helpers/daemon.ts` listen on OS-assigned ports (`setup()` returns `port`; `reservePort()` holds one for direct `createDaemon` calls), so parallel files never share a fixed port; never hard-code a listening port. `setup()` also replaces every non-Demo adapter's `detect`/`listModels` with an unavailable fixture (`isolateRuntimes()`, undone by `cleanup()`/`restoreRuntimes()`), so no test runs an installed provider CLI; adapters a test already mocked keep that mock, and `nativeRuntimes` names runtimes a test deliberately detects from fixture executables. Vitest builds the production UI once when UI test files are selected. Full-app browser suites serve that build through the shared UI test fixture; backend fixtures serve APIs only, preserving the same Host, Origin and session checks. Development UI serving remains covered by dedicated Vite tests. The Vitest-only Demo fixture removes presentation delays while retaining asynchronous streaming and aborts; tests requiring in-flight work use explicit deferred gates. Ordinary development Demo timing is unchanged.
+Vitest defaults to two workers, matching each CI shard, to keep browser and bounded-worker fixtures within host resources; `--maxWorkers` can override it. `expect.poll` waits up to 5 seconds, since fixtures that boot, reload or reopen a page share the host. Start slow fixtures in `beforeAll` rather than inside a test's 15-second budget: production daemons, first visits to Vite fixture pages and the first import of a route's page module.
 
-## Core concepts
+Test daemons from `packages/orchestrator/test/helpers/daemon.ts` listen on OS-assigned ports (`setup()` returns `port`; `reservePort()` holds one for direct `createDaemon` calls), so parallel files never share a fixed port; never hard-code a listening port. `setup()` also replaces every non-Demo adapter's `detect`/`listModels` with an unavailable fixture (`isolateRuntimes()`, undone by `cleanup()`/`restoreRuntimes()`), so no test runs an installed provider CLI; adapters a test already mocked keep that mock, and `nativeRuntimes` names runtimes a test deliberately detects from fixture executables.
+
+Vitest builds the production UI once when UI test files are selected. Full-app browser suites serve that build through the shared UI test fixture; backend fixtures serve APIs only, preserving the same Host, Origin and session checks. Development UI serving remains covered by dedicated Vite tests. The Vitest-only Demo fixture removes presentation delays while retaining asynchronous streaming and aborts; tests requiring in-flight work use explicit deferred gates. Ordinary development Demo timing is unchanged.
 
 ## Invariants
 
@@ -149,3 +158,113 @@ lead -> shortlisted -> drafting -> in_review -> agreed -> awaiting_approval
 Scout evaluates an existing lead; the user shortlists it. Writer drafts, Reviewer agrees or requests changes. Packet approval authorizes local export; choosing a submission method exports the files. The user submits independently or explicitly starts agent preparation, approves the exact browser submission, then verifies confirmation and records the outcome. Keep active-run ownership, revised-packet approvals, cancellation and interrupted-run recovery covered when modifying this flow.
 
 An uncertain submission can continue through a separately approved browser dialog only when `submissionAttemptId` binds the same run, card, current exported packet and observed dialog. The consumed continuation approval is saved on the attempt. No click, keypress or navigation retry is allowed.
+
+## Topic docs
+
+Read the matching file before changing the area; it holds the contributor rules for that feature.
+
+### Workflow and board
+
+| Before changing…                                                                                | Read                                                     |
+| ----------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Board layout, drag, Move to… and the Needs you deck                                             | [docs/board.md](docs/board.md)                           |
+| Board card menus, drag and status changes                                                       | [docs/board-card-actions.md](docs/board-card-actions.md) |
+| Decisions, packet approval and history                                                          | [docs/inbox-redesign.md](docs/inbox-redesign.md)         |
+| Job details sheet                                                                               | [docs/job-details.md](docs/job-details.md)               |
+| Queue and workspace slots                                                                       | [docs/board-action-queue.md](docs/board-action-queue.md) |
+| Roles, card states, workflow transitions and the execution budget                               | [docs/roles.md](docs/roles.md)                           |
+| Job discovery, saved sources and Fetch from link                                                | [docs/job-discovery.md](docs/job-discovery.md)           |
+| Application tracking and Gmail reconciliation                                                   | [docs/tracking.md](docs/tracking.md)                     |
+| Learning signals and Insights                                                                   | [docs/insights.md](docs/insights.md)                     |
+| Pipeline reviews and crew change proposals                                                      | [docs/pipeline-reviews.md](docs/pipeline-reviews.md)     |
+| Routines and scheduled actions                                                                  | [docs/routines.md](docs/routines.md)                     |
+| Background service                                                                              | [docs/background-service.md](docs/background-service.md) |
+| Deep resume reviews                                                                             | [docs/deep-resume-review.md](docs/deep-resume-review.md) |
+| Delegation rounds                                                                               | [docs/delegation-rounds.md](docs/delegation-rounds.md)   |
+| Event log versions and decoding                                                                 | [docs/event-log.md](docs/event-log.md)                   |
+| Persisted statuses, lifecycle tables and allowed moves                                          | [docs/lifecycles.md](docs/lifecycles.md)                 |
+| Generated state-machine diagrams (generated by bun run docs:state-machines; never edit by hand) | [docs/state-machines.md](docs/state-machines.md)         |
+
+### Chat
+
+| Before changing…                                               | Read                                                               |
+| -------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Chat sends, receipts, reconnection and uncertain drafts        | [docs/orchestrator-comparison.md](docs/orchestrator-comparison.md) |
+| Conversations, groups, queued messages, files and agent memory | [docs/chat-redesign.md](docs/chat-redesign.md)                     |
+| Chat references: @, $ and /                                    | [docs/chat-references.md](docs/chat-references.md)                 |
+| Chat turn activity, questions and the composer                 | [docs/chat-turn-activity.md](docs/chat-turn-activity.md)           |
+| Notifications, toasts and sounds                               | [docs/notifications.md](docs/notifications.md)                     |
+
+### Browser and computer use
+
+| Before changing…                                           | Read                                                                               |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Browser tools, native guests, approvals and manual control | [docs/computer-use.md](docs/computer-use.md)                                       |
+| Browser journeys end to end                                | [docs/browser-e2e.md](docs/browser-e2e.md)                                         |
+| Browser panel responsiveness                               | [docs/browser-interaction-performance.md](docs/browser-interaction-performance.md) |
+| Browser benchmark                                          | [docs/browser-benchmark.md](docs/browser-benchmark.md)                             |
+| Browser review notes                                       | [docs/browser-t3code-review.md](docs/browser-t3code-review.md)                     |
+| Native desktop browser decision                            | [docs/adr/0003-native-desktop-browser.md](docs/adr/0003-native-desktop-browser.md) |
+
+### Runtimes and models
+
+| Before changing…                               | Read                                                             |
+| ---------------------------------------------- | ---------------------------------------------------------------- |
+| Runtime adapters, launches and compatibility   | [docs/runtimes.md](docs/runtimes.md)                             |
+| Runtime installation, sign-in and models setup | [docs/runtime-setup.md](docs/runtime-setup.md)                   |
+| Runtime authentication and credentials         | [docs/runtime-authentication.md](docs/runtime-authentication.md) |
+| Runtime health checks                          | [docs/runtime-checks.md](docs/runtime-checks.md)                 |
+| Model discovery                                | [docs/model-discovery.md](docs/model-discovery.md)               |
+
+### Skills, connectors and external access
+
+| Before changing…                   | Read                                             |
+| ---------------------------------- | ------------------------------------------------ |
+| Skills, imports and starter skills | [docs/skills.md](docs/skills.md)                 |
+| Bundled career skills              | [docs/hunter-skills.md](docs/hunter-skills.md)   |
+| Agent and skill updates            | [docs/agent-updates.md](docs/agent-updates.md)   |
+| Connectors (GitHub, Google)        | [docs/connectors.md](docs/connectors.md)         |
+| External and remote agent access   | [docs/external-mcp.md](docs/external-mcp.md)     |
+| Career Coach and career support    | [docs/career-support.md](docs/career-support.md) |
+
+### Profile and packets
+
+| Before changing…                                   | Read                                                                       |
+| -------------------------------------------------- | -------------------------------------------------------------------------- |
+| Profile workspace, notes and the editor            | [docs/profile.md](docs/profile.md)                                         |
+| Profile sources dialog and imports                 | [docs/profile-sources-dialog.md](docs/profile-sources-dialog.md)           |
+| Profile maintenance proposals                      | [docs/profile-maintenance.md](docs/profile-maintenance.md)                 |
+| Packet files, rendering and export                 | [docs/packet-exports.md](docs/packet-exports.md)                           |
+| Packet rules                                       | [docs/packet-rules.md](docs/packet-rules.md)                               |
+| Application source safety and context confirmation | [docs/application-source-safety.md](docs/application-source-safety.md)     |
+| Application writing quality and AI-text detectors  | [docs/application-writing-quality.md](docs/application-writing-quality.md) |
+| Application process quality and career plans       | [docs/application-process-quality.md](docs/application-process-quality.md) |
+
+### UI and desktop
+
+| Before changing…                                      | Read                                                                         |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Design language and clay materials                    | [docs/design-language.md](docs/design-language.md)                           |
+| UI architecture, routing, app bar and chat components | [docs/ui-architecture.md](docs/ui-architecture.md)                           |
+| Workspace snapshots and synchronization               | [docs/workspace-synchronization.md](docs/workspace-synchronization.md)       |
+| Settings pages                                        | [docs/settings-redesign.md](docs/settings-redesign.md)                       |
+| Context menus                                         | [docs/context-menus.md](docs/context-menus.md)                               |
+| Onboarding and setup checklist                        | [docs/onboarding.md](docs/onboarding.md)                                     |
+| Electron desktop shell                                | [docs/desktop-shell.md](docs/desktop-shell.md)                               |
+| Desktop shutdown performance                          | [docs/desktop-shutdown-performance.md](docs/desktop-shutdown-performance.md) |
+| Public landing page                                   | [docs/landing-page.md](docs/landing-page.md)                                 |
+
+### Tooling, release and analytics
+
+| Before changing…          | Read                                                                 |
+| ------------------------- | -------------------------------------------------------------------- |
+| Current feature inventory | [docs/status.md](docs/status.md)                                     |
+| Code organization         | [docs/code-organization.md](docs/code-organization.md)               |
+| Tests and fixtures        | [docs/testing.md](docs/testing.md)                                   |
+| CI and desktop packaging  | [docs/ci-and-packaging.md](docs/ci-and-packaging.md)                 |
+| App updates               | [docs/app-updates.md](docs/app-updates.md)                           |
+| Usage analytics           | [docs/analytics.md](docs/analytics.md)                               |
+| Error tracking reports    | [docs/analytics/error-tracking.md](docs/analytics/error-tracking.md) |
+| Operational logs          | [docs/analytics/logs.md](docs/analytics/logs.md)                     |
+
+These files carry the same authority as this one.
