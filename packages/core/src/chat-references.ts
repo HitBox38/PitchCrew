@@ -59,6 +59,15 @@ export const chatTokens = (text: string): ChatToken[] => {
   }
   return tokens;
 };
+/** @mentions of participants address only them; an unaddressed message goes to every participant. */
+export const mentionedParticipants = (content: string, participants: string[]): string[] => {
+  const mentions = new Set(
+    chatTokens(content)
+      .filter((token) => token.symbol === '@')
+      .map((token) => token.query),
+  );
+  return mentions.size ? participants.filter((id) => mentions.has(id)) : participants;
+};
 
 export const chatTrigger = (text: string, caret: number): ChatToken | null => {
   const prefix = text.slice(0, caret);

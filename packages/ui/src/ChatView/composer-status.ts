@@ -1,4 +1,4 @@
-import { chatTokens } from '@pitchcrew/core/chat-references';
+import { mentionedParticipants } from '@pitchcrew/core/chat-references';
 import type { QueueHold } from './queue-recovery-plan.ts';
 
 export const queueHoldWording = (hold: QueueHold) =>
@@ -21,16 +21,11 @@ export const nameList = (names: string[]) => {
 };
 
 /**
- * Mirrors the daemon's routing: @mentions of participants address only them, and an unaddressed
- * message goes to every participant. Mentions of non-participants leave no target.
+ * Shares the daemon's routing rule: @mentions of participants address only them, and an
+ * unaddressed message goes to every participant. Mentions of non-participants leave no target.
  */
 export const messageTargets = (draft: string, participants: string[]) => {
-  const mentions = new Set(
-    chatTokens(draft)
-      .filter((token) => token.symbol === '@')
-      .map((token) => token.query),
-  );
-  return mentions.size ? participants.filter((id) => mentions.has(id)) : participants;
+  return mentionedParticipants(draft, participants);
 };
 
 export const recipientLabel = (

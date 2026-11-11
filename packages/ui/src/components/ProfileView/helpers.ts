@@ -66,6 +66,7 @@ export const proposalNotice = (proposal: {
 
 /** Mirrors the daemon's simple Markdown filename rule and refuses to overwrite another note. */
 export const filenameProblem = (name: string, taken: string[]) => {
+  if (name.length > 100) return 'Use a filename of at most 100 characters.';
   if (!/^[\w.-]+\.md$/.test(name) || name.includes('..'))
     return 'Use letters, numbers, dots, dashes or underscores, ending in .md.';
   // Case-insensitive, as on macOS and Windows disks.
