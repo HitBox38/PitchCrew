@@ -47,6 +47,7 @@ const extract = (event: Record<string, unknown>): string | null => {
 };
 export const claudeCode: RuntimeAdapter = {
   applicationIsolation: true,
+  customReasoning: true,
   reviewSubagents: { maxConcurrent: 4 },
   id: 'claude-code',
   sessionSupport: 'resume',

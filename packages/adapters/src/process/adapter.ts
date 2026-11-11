@@ -12,6 +12,7 @@ import { cleanResult, parseWorkflowResult } from './results.ts';
 export const withChat = (adapter: {
   applicationIsolation?: true;
   reviewSubagents?: { maxConcurrent: number };
+  customReasoning?: true;
   id: RuntimeId;
   models: RuntimeAdapter['models'];
   listModels?: RuntimeAdapter['listModels'];
@@ -21,6 +22,7 @@ export const withChat = (adapter: {
   return {
     applicationIsolation: adapter.applicationIsolation,
     reviewSubagents: adapter.reviewSubagents,
+    customReasoning: adapter.customReasoning,
     id: adapter.id,
     models: adapter.models,
     listModels: adapter.listModels,
