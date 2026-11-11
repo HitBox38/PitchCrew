@@ -1,4 +1,5 @@
 import { queueMayStart } from './queue/dispatch.ts';
+import { reportDrainFailure } from './queue/drain-failure.ts';
 import { submitChatOnce } from './chat-submissions.ts';
 import { pauseForUnfinishedHead, resumeHeadRequest } from './queue/recovery.ts';
 import { QueueBusyError, launchProblem } from './queue/admission.ts';
@@ -226,8 +227,9 @@ export const drainConversationQueue = async (context: CrewContext): Promise<void
         // Another turn may delete a later queued conversation while setup awaits.
         if (!conversations(context).some((item) => item.id === request.threadId)) continue;
         const current = context.board.get<ChatRequest>('chat_request', request.id);
-        const delivery = current.deliveries.find((entry) => entry.roleId === queued.roleId)!;
-        if (delivery.status !== 'queued') continue;
+        // An edit can replace the recipients while an earlier request in this pass was starting.
+        const delivery = current.deliveries.find((entry) => entry.roleId === queued.roleId);
+        if (!delivery || delivery.status !== 'queued') continue;
         const item = conversation(context, request.threadId);
         if (!current.deepReviewRequest && !item.participants.includes(delivery.roleId)) {
           delivery.status = 'cancelled';
@@ -297,6 +299,16 @@ export const drainConversationQueue = async (context: CrewContext): Promise<void
         )
           continue;
         if (!(await queueMayStart(context, queue.id, current.rootRunId ?? current.id))) continue;
+        // Setup awaited: a Remove, Edit, Stop or deletion may have been saved meanwhile.
+        // Launch only the request as it is saved now; a changed one gets a fresh pass.
+        if (!conversations(context).some((entry) => entry.id === request.threadId)) continue;
+        if (
+          JSON.stringify(context.board.get<ChatRequest>('chat_request', request.id)) !==
+          JSON.stringify(current)
+        ) {
+          drainAgain.add(context);
+          continue;
+        }
         patchQueue(context, queue.id, { reason: '' });
         // Reserve delivery before setup awaits; another drain cannot duplicate it.
         delivery.status = 'running';
@@ -413,6 +425,8 @@ export const drainConversationQueue = async (context: CrewContext): Promise<void
         }
       }
     }
+  } catch (error) {
+    reportDrainFailure(context, 'chat requests', error);
   } finally {
     draining.delete(context);
     if (drainAgain.has(context)) {

@@ -266,7 +266,7 @@ const startRunPrepared = async (
       crewContext.board.record(
         'run',
         {
-          ...run,
+          ...crewContext.board.get<Run>('run', run.id),
           status: 'completed',
           outputPacketDigest: packetDigest(crewContext.board.get<Card>('card', cardId)),
           message: `${role.name} finished`,
@@ -290,7 +290,7 @@ const startRunPrepared = async (
       crewContext.board.record(
         'run',
         {
-          ...run,
+          ...crewContext.board.get<Run>('run', run.id),
           status: controller.signal.aborted ? 'cancelled' : 'failed',
           message,
           finishedAt: new Date().toISOString(),
