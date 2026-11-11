@@ -58,8 +58,7 @@
 .chat-heading-identity > .clay-participants {
   order: 1;
 }
-.chat-heading-identity > .role-avatar,
-.chat-heading-identity > .crew-chat-icon {
+.chat-heading-identity > .role-avatar {
   flex-shrink: 0;
 }
 .chat-heading-copy {
@@ -164,8 +163,6 @@
   .chat-heading h1 {
     font-size: 16px;
   }
-  .chat-heading-actions .chat-role-state,
-  .chat-settings > span,
   .chat-browser > span:not(.chat-role-dot),
   .chat-runtime > span {
     display: none;

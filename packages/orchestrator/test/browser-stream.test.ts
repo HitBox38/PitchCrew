@@ -23,7 +23,7 @@ afterEach(async () => {
   for (const controller of controllers.splice(0)) controller.abort();
   await cleanup();
 });
-const fixture = async (port: number) => {
+const fixture = async () => {
   const listeners = new Set<Listener>();
   const stops = vi.fn();
   const driver = {
@@ -40,7 +40,7 @@ const fixture = async (port: number) => {
       };
     }),
   };
-  const host = await setup(port, false, { browserLaunch: async () => driver });
+  const host = await setup(false, { browserLaunch: async () => driver });
   const service = host.daemon.service;
   const role = service.board.get<Role>('role', 'writer');
   service.board.record(
@@ -63,7 +63,7 @@ const fixture = async (port: number) => {
 };
 
 it('streams push frames and heartbeats without polling and cleans up on viewer disconnect', async () => {
-  const { connect, driver, listeners, stops } = await fixture(14527);
+  const { connect, driver, listeners, stops } = await fixture();
   const { response, controller } = await connect();
   expect(response.status).toBe(200);
   expect(response.headers.get('cache-control')).toBe('no-store');
@@ -84,7 +84,7 @@ it('streams push frames and heartbeats without polling and cleans up on viewer d
 });
 
 it('rechecks capability revocation on a static page without waiting for another image', async () => {
-  const { connect, service, stops } = await fixture(14528);
+  const { connect, service, stops } = await fixture();
   const { response } = await connect();
   const reader = response.body!.getReader();
   await reader.read();
@@ -101,7 +101,7 @@ it('rechecks capability revocation on a static page without waiting for another 
 });
 
 it('rejects conversation membership changes before forwarding another frame', async () => {
-  const { connect, service, listeners, stops } = await fixture(14529);
+  const { connect, service, listeners, stops } = await fixture();
   const { response } = await connect();
   const reader = response.body!.getReader();
   await reader.read();
@@ -120,7 +120,7 @@ it('rejects conversation membership changes before forwarding another frame', as
 });
 
 it('requires the UI session and client header before subscribing', async () => {
-  const { connect, driver } = await fixture(14530);
+  const { connect, driver } = await fixture();
   expect((await connect({ cookie: '' })).response.status).toBe(403);
   expect((await connect({ 'x-pitchcrew-client': '' })).response.status).toBe(403);
   expect(driver.subscribeFrames).not.toHaveBeenCalled();

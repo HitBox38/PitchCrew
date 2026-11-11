@@ -11,8 +11,8 @@ import {
 } from './helpers/daemon.ts';
 import * as documents from '../src/quality/documents.ts';
 import { reviewSummary } from './helpers/review-summary.ts';
-const prepared = async (port: number) => {
-  const env = await setup(port);
+const prepared = async () => {
+  const env = await setup();
   await env.request('/profile', 'PUT', { name: 'profile.md', content: 'Built React interfaces.' });
   const card = env.daemon.service.createCard({
     company: 'Fictional quality review',
@@ -28,7 +28,7 @@ afterEach(cleanup);
 const clearDocuments = { reports: [], errors: [], warnings: [], repairable: [] };
 
 it('queues a current user correction into an isolated draft, preserving before/after and guide provenance', async () => {
-  const { daemon, request, card } = await prepared(24631);
+  const { daemon, request, card } = await prepared();
   vi.spyOn(documents, 'inspectPacketDocuments').mockResolvedValue(clearDocuments);
   const writer = daemon.service.board.get<Role>('role', 'writer');
   const before = { ...packet, resume: packet.resume + '\n\nA long generic opening.' };
@@ -101,7 +101,7 @@ it('queues a current user correction into an isolated draft, preserving before/a
 });
 
 it('runs at most one document correction plus Reviewer recheck, with scoped tools usable in both stages', async () => {
-  const { daemon, request, card } = await prepared(24632);
+  const { daemon, request, card } = await prepared();
   const record = vi.spyOn(daemon.service.diagnostics!, 'record');
   vi.spyOn(documents, 'inspectPacketDocuments').mockResolvedValue({
     ...clearDocuments,
@@ -138,7 +138,7 @@ it('runs at most one document correction plus Reviewer recheck, with scoped tool
 });
 
 it('records both failed document-correction and parent traces with content-free linked errors', async () => {
-  const { daemon, request, card } = await prepared(24636);
+  const { daemon, request, card } = await prepared();
   const record = vi.spyOn(daemon.service.diagnostics!, 'record');
   vi.spyOn(documents, 'inspectPacketDocuments').mockResolvedValue({
     ...clearDocuments,
@@ -168,7 +168,7 @@ it('records both failed document-correction and parent traces with content-free 
 });
 
 it('keeps quality mutations behind the local session and rejects stale guide writes', async () => {
-  const { daemon, request } = await setup(24633);
+  const { daemon, request } = await setup();
   const denied = await fetch(`${daemon.url}/api/quality`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -197,7 +197,7 @@ it('keeps quality mutations behind the local session and rejects stale guide wri
 });
 
 it('offers verified DOCX files for approval and export when PDF rendering fails', async () => {
-  const { daemon, request, card } = await prepared(24634);
+  const { daemon, request, card } = await prepared();
   const board = daemon.service.board;
   board.move(card.id, 'drafting', 'user');
   await daemon.service.applyResult(
@@ -244,7 +244,7 @@ it('offers verified DOCX files for approval and export when PDF rendering fails'
 });
 
 it('does not start a document repair stage after the user pauses its job queue', async () => {
-  const { daemon, request, card } = await prepared(24635);
+  const { daemon, request, card } = await prepared();
   vi.spyOn(documents, 'inspectPacketDocuments').mockResolvedValue({
     ...clearDocuments,
     repairable: ['Possible stranded heading'],

@@ -74,9 +74,6 @@
   font-size: var(--text-caption);
   white-space: nowrap;
 }
-.browser-task-elsewhere {
-  color: var(--teal);
-}
 .browser-heading-actions {
   display: flex;
   flex-shrink: 0;
@@ -266,17 +263,12 @@
   letter-spacing: -0.3px;
   color: var(--ink);
 }
-.browser-placeholder-copy p,
-.browser-placeholder-note {
+.browser-placeholder-copy p {
   margin: 0;
   color: var(--muted);
   font-size: var(--text-label);
   line-height: 1.6;
   text-wrap: pretty;
-}
-.browser-placeholder-note {
-  max-width: 220px;
-  font-size: var(--text-caption);
 }
 .browser-tabs {
   display: flex;
@@ -505,16 +497,11 @@
 .browser-evidence h2 {
   font-size: 16px;
 }
-.browser-site-request,
 .browser-dialog {
   padding: 10px;
   border-radius: 8px;
   background: var(--ochre-soft);
   color: var(--ink);
-}
-.browser-site-request p {
-  margin: 0 0 8px;
-  overflow-wrap: anywhere;
 }
 .browser-dialog {
   margin: 10px 12px;

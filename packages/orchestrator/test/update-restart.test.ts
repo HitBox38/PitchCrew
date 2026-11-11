@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { markUpdateRestart, verifyUpdateRestart } from '../src/background/update-restart.ts';
@@ -70,6 +70,20 @@ it('reopening the previous app after a failed OS installation clears intent with
   await expect(readFile(join(directory, 'update-restart.json'))).rejects.toMatchObject({
     code: 'ENOENT',
   });
+});
+
+it('clears an unreadable marker instead of failing every later launch', async () => {
+  for (const text of ['{"version":"0.2', 'null', '']) {
+    const directory = await fixture();
+    await writeFile(join(directory, 'update-restart.json'), text);
+    const fetcher = vi.fn();
+    vi.stubGlobal('fetch', fetcher);
+    await verifyUpdateRestart(directory, build, 'http://127.0.0.1:4417');
+    expect(fetcher).not.toHaveBeenCalled();
+    await expect(readFile(join(directory, 'update-restart.json'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
+  }
 });
 
 it('rejects invalid marker versions before writing', async () => {

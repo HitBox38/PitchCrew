@@ -28,5 +28,3 @@ export const joinNames = (names: string[]): string => {
   if (names.length < 2) return names.join('');
   return `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
 };
-
-export const instructionUpdateTitle = 'Instructions update available';

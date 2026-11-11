@@ -13,7 +13,7 @@ const packet = (resume: string) => ({
 });
 
 it('pages a job’s status moves and drafts from its saved events', async () => {
-  const { daemon, request } = await setup(14995);
+  const { daemon, request } = await setup();
   const board = daemon.service.board;
   const card = daemon.service.createCard({ company: 'Fictional Studio', title: 'Engineer' });
   board.move(card.id, 'shortlisted', 'user', 'User changed status to shortlisted');
@@ -39,7 +39,7 @@ it('pages a job’s status moves and drafts from its saved events', async () => 
 });
 
 it('rejects unknown jobs, invalid cursors and requests without the user session', async () => {
-  const { daemon, request } = await setup(14996);
+  const { daemon, request } = await setup();
   const card = daemon.service.createCard({ company: 'Fictional Studio', title: 'Engineer' });
   expect((await request(`/cards/${card.id}/changes?before=0`)).response.status).toBe(400);
   expect(

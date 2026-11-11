@@ -57,6 +57,8 @@ describe.each([
     expect(request.prompt).toContain(context.role.instructions);
     expect(request.prompt).toContain(context.profile[0].content.replaceAll('\n', '\\n'));
     expect(request.environment.PITCHCREW_RUN_TOKEN).toBe('fictional-token');
+    // Process arguments are visible to other local users; the scoped token stays off argv.
+    expect(request.args.some((arg) => arg.includes('fictional-token'))).toBe(false);
     if (runtime === 'gemini-cli') {
       expect(request.args).toEqual([
         '--output-format',
@@ -115,9 +117,15 @@ describe.each([
       expect(request.args[request.args.indexOf('--deny-tool') + 1]).toBe(
         'shell,write,read,url,memory',
       );
-      expect(JSON.parse(request.args[request.args.indexOf('--additional-mcp-config') + 1])).toEqual(
-        { mcpServers: { pitchcrew: { ...context.mcp, type: 'local', tools: ['*'] } } },
-      );
+      const configFlag = request.args[request.args.indexOf('--additional-mcp-config') + 1];
+      expect(configFlag).toBe(`@${request.mcpConfig?.path}`);
+      expect(request.mcpConfig?.path.startsWith(resolve(context.directory))).toBe(true);
+      expect(request.mcpConfig?.content).toEqual({
+        mcpServers: { pitchcrew: { ...context.mcp, type: 'local', tools: ['*'] } },
+      });
+      if (process.platform !== 'win32') expect(request.mcpConfig?.mode).toBe(0o600);
+      // The token-bearing file is removed once the CLI exits.
+      await expect(readFile(request.mcpConfig!.path, 'utf8')).rejects.toThrow();
       expect(request.environment.COPILOT_HOME.startsWith(context.directory)).toBe(true);
       expect(
         JSON.parse(await readFile(join(request.environment.COPILOT_HOME, 'settings.json'), 'utf8')),

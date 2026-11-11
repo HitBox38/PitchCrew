@@ -57,16 +57,6 @@ export const lockHeld = async (lock: DaemonLock, checks: LockChecks = defaultLoc
   return checks.answers(lock.port);
 };
 
-/** The daemon currently holding the data folder, if any. */
-export const readDaemonLock = async (directory: string, checks: LockChecks = defaultLockChecks) => {
-  try {
-    const lock = parseDaemonLock(await readFile(join(directory, lockFileName), 'utf8'));
-    return lock && (await lockHeld(lock, checks)) ? lock : null;
-  } catch {
-    return null;
-  }
-};
-
 /**
  * Claims the data folder for one daemon. A second daemon on the same folder is refused before it
  * opens the board, so it cannot mark the first daemon's active runs as interrupted. Locks left by

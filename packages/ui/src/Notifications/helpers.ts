@@ -144,9 +144,13 @@ export const collectNotifications = (data: Snapshot): CrewNotification[] => {
         '1970-01-01T00:00:00.000Z',
     });
   }
-  return notifications
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id))
-    .filter((item, index) => index < 100 || !notificationShouldAlert(item));
+  return (
+    notifications
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id))
+      // Only saved messages are capped: a request still waiting on the user never drops out of the
+      // bell behind newer messages.
+      .filter((item, index) => index < 100 || !item.id.startsWith('message:'))
+  );
 };
 /** A message notice names who wrote and, in a job's conversation, the job. */
 const messageTitle = (from: string, asks: boolean, company?: string) =>

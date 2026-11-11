@@ -1,5 +1,6 @@
+import { runsForThread, runsWithStatus, tasksWithStatus } from '@pitchcrew/board';
 import { randomUUID } from 'node:crypto';
-import type { ChatRequest, ChatMessage, Run, AgentTask, UserInputRequest } from '@pitchcrew/core';
+import type { ChatRequest, ChatMessage, Run, UserInputRequest } from '@pitchcrew/core';
 import { conversation } from './conversations.ts';
 import { saveRequest, drainConversationQueue, sendConversation } from './conversation-queue.ts';
 import type { CrewContext } from './types.ts';
@@ -14,24 +15,14 @@ export const continueConversation = (context: CrewContext, id: string): ChatRequ
       .some((q) => q.status === 'pending' && q.threadId === id)
   )
     throw new Error('Answer or cancel the pending questions before continuing with a summary.');
-  const roots = new Set(
-    context.board
-      .list<Run>('run')
-      .filter((run) => run.threadId === id)
-      .map((run) => run.rootRunId ?? run.id),
-  );
+  const roots = new Set(runsForThread(context.board, id).map((run) => run.rootRunId ?? run.id));
   if (
-    context.board
-      .list<Run>('run')
-      .some(
-        (run) => ['running', 'waiting'].includes(run.status) && roots.has(run.rootRunId ?? run.id),
-      ) ||
-    context.board
-      .list<AgentTask>('task')
-      .some(
-        (task) =>
-          roots.has(task.rootRunId) && ['queued', 'running', 'waiting'].includes(task.status),
-      ) ||
+    runsWithStatus(context.board, ['running', 'waiting']).some((run) =>
+      roots.has(run.rootRunId ?? run.id),
+    ) ||
+    tasksWithStatus(context.board, ['queued', 'running', 'waiting']).some((task) =>
+      roots.has(task.rootRunId),
+    ) ||
     context.board
       .list<import('@pitchcrew/core').ChatRequest>('chat_request')
       .some(

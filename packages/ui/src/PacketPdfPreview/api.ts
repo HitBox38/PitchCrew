@@ -1,36 +1,6 @@
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import fontUrl from 'pdfjs-dist/standard_fonts/LiberationSans-Regular.ttf?url';
 
-export const renderPdf = async (bytes: string, signal: AbortSignal) => {
-  const task = await localPdfTask(bytes);
-  const abort = () => {
-    void task.destroy().catch(() => {});
-  };
-  signal.addEventListener('abort', abort, { once: true });
-  try {
-    const document = await task.promise;
-    const pages: string[] = [];
-    for (let number = 1; number <= document.numPages; number++) {
-      signal.throwIfAborted();
-      // react-doctor-disable-next-line react-doctor/async-await-in-loop -- Sequential page rendering bounds canvas memory and preserves page order.
-      const page = await document.getPage(number);
-      const viewport = page.getViewport({ scale: 1.35 });
-      const canvas = window.document.createElement('canvas');
-      canvas.width = Math.ceil(viewport.width);
-      canvas.height = Math.ceil(viewport.height);
-      // react-doctor-disable-next-line react-doctor/async-await-in-loop -- Release this page before allocating the next canvas.
-      await page.render({ canvas, viewport }).promise;
-      pages.push(canvas.toDataURL('image/png'));
-      page.cleanup();
-    }
-    signal.throwIfAborted();
-    return pages;
-  } finally {
-    signal.removeEventListener('abort', abort);
-    await task.destroy();
-  }
-};
-
 class LocalBinaryData {
   fetch = async ({ kind, filename }: { kind: string; filename: string }) => {
     if (kind !== 'standardFontDataUrl' || filename !== 'LiberationSans-Regular.ttf')

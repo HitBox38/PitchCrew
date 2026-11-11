@@ -11,7 +11,7 @@ afterEach(cleanup);
 it.each(['completed', 'cancelled'] as const)(
   'preserves extraction %s outcomes',
   async (outcome) => {
-    const { daemon } = await setup(14623);
+    const { daemon } = await setup();
     const context = daemon.service;
     const record = vi.spyOn(context.diagnostics!, 'record');
     const adapter = vi.spyOn(adapters.demo, 'chat');
@@ -50,7 +50,7 @@ it.each(['completed', 'cancelled'] as const)(
 it.each(['setup', 'runtime', 'result'] as const)(
   'records a safe extraction failure at the %s boundary',
   async (boundary) => {
-    const { daemon } = await setup(14621);
+    const { daemon } = await setup();
     const context = daemon.service;
     const record = vi.spyOn(context.diagnostics!, 'record');
     const secret = 'Private posting /Users/fictional/profile.md phx_private';
@@ -92,7 +92,7 @@ it.each(['setup', 'runtime', 'result'] as const)(
 it.each(['runtime', 'result'] as const)(
   'finishes deep-review stage and orchestration traces on %s failure',
   async (boundary) => {
-    const { daemon, request, card } = await deepReviewFixture(14622);
+    const { daemon, request, card } = await deepReviewFixture();
     const record = vi.spyOn(daemon.service.diagnostics!, 'record');
     const adapter = vi.spyOn(adapters.demo, 'run');
     if (boundary === 'runtime')
@@ -125,7 +125,7 @@ it.each(['runtime', 'result'] as const)(
 );
 
 it('records waiting deep-review traces without reporting a workflow failure', async () => {
-  const { daemon, request, card } = await deepReviewFixture(14624);
+  const { daemon, request, card } = await deepReviewFixture();
   const record = vi.spyOn(daemon.service.diagnostics!, 'record');
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {
     await daemon.service.agentCall(context.mcp.env.PITCHCREW_RUN_TOKEN!, 'ask_user', {

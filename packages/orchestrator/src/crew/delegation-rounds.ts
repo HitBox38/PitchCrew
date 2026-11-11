@@ -4,8 +4,10 @@ import {
   type AgentTask,
   type ChatMessage,
   type DelegationRound,
+  type ChatRequest,
   type RoleId,
   type Run,
+  type UserInputRequest,
 } from '@pitchcrew/core';
 import { agentDm, conversation } from './conversations.ts';
 import { requireRole } from './roles.ts';
@@ -35,13 +37,50 @@ export const roundDelegateTasks = (context: CrewContext, round: DelegationRound)
       .get(delegate.taskId) as { json: string } | undefined;
     return row ? [JSON.parse(row.json) as AgentTask] : [];
   });
-/** The run is a delegate's subtask turn, which cannot delegate, message or invite further. */
-export const runIsDelegate = (context: CrewContext, run: Run | undefined): boolean => {
-  if (!run?.taskId) return false;
+const entity = <T>(context: CrewContext, kind: string, id: string): T | undefined => {
   const row = context.board.db
-    .prepare("SELECT json FROM entities WHERE kind='task' AND id=?")
-    .get(run.taskId) as { json: string } | undefined;
-  return row ? (JSON.parse(row.json) as AgentTask).roundPart === 'delegate' : false;
+    .prepare('SELECT json FROM entities WHERE kind=? AND id=?')
+    .get(kind, id) as { json: string } | undefined;
+  return row ? (JSON.parse(row.json) as T) : undefined;
+};
+/**
+ * The run is a delegate's subtask turn, which cannot delegate, message or invite further. A
+ * delegate that asked the user continues in a run queued by the answer, which carries only the
+ * continuation request, so follow answered questions back to the subtask's own run.
+ */
+export const runIsDelegate = (context: CrewContext, run: Run | undefined): boolean => {
+  const visited = new Set<string>();
+  while (run && !visited.has(run.id)) {
+    visited.add(run.id);
+    if (run.taskId) {
+      const row = context.board.db
+        .prepare("SELECT json FROM entities WHERE kind='task' AND id=?")
+        .get(run.taskId) as { json: string } | undefined;
+      return row ? (JSON.parse(row.json) as AgentTask).roundPart === 'delegate' : false;
+    }
+    if (!run.requestId) return false;
+    const question = context.board.db
+      .prepare(
+        "SELECT json FROM entities WHERE kind='user_input' AND json_extract(json,'$.continuationRequestId')=?",
+      )
+      .get(run.requestId) as { json: string } | undefined;
+    if (!question) return false;
+    const asked = (JSON.parse(question.json) as UserInputRequest).runId;
+    run = asked ? entity<Run>(context, 'run', asked) : undefined;
+  }
+  return false;
+};
+/**
+ * A failed task the user must retry or skip. A failed delegate is a result for the lead instead,
+ * once its round has moved past it; before the collection starts (for example after a daemon
+ * restart interrupted the delegate) it follows the ordinary follow-up recovery.
+ */
+export const taskAwaitsRecovery = (context: CrewContext, task: AgentTask): boolean => {
+  if (task.status !== 'failed') return false;
+  if (task.roundPart !== 'delegate') return true;
+  const round = roundOf(context, task);
+  if (!round || ['completed', 'cancelled'].includes(round.status)) return false;
+  return context.board.get<AgentTask>('task', round.collectionTaskId).status === 'queued';
 };
 /**
  * Parent readiness for follow-ups, including round members: delegates wait for the lead's run,
@@ -178,27 +217,58 @@ export const startRound = (context: CrewContext, input: RoundRequest): Delegatio
   return round;
 };
 
-const delegateReply = (context: CrewContext, task: AgentTask): string => {
-  if (!task.runId) return '';
+/**
+ * The delegate's final run: a delegate that asked the user a question answers in the continuation
+ * run queued by that answer, possibly after further questions, so follow each answered question.
+ */
+const delegateFinalRun = (context: CrewContext, task: AgentTask): Run | undefined => {
+  let run = task.runId ? entity<Run>(context, 'run', task.runId) : undefined;
+  const visited = new Set<string>();
+  while (run && !visited.has(run.id)) {
+    visited.add(run.id);
+    const runId = run.id;
+    const question = context.board
+      .list<UserInputRequest>('user_input')
+      .find((q) => q.runId === runId && q.status === 'answered' && q.continuationRequestId);
+    if (!question) return run;
+    const request = entity<ChatRequest>(context, 'chat_request', question.continuationRequestId!);
+    const next = request?.deliveries.find((delivery) => delivery.roleId === task.roleId)?.runId;
+    if (!next) return run;
+    run = entity<Run>(context, 'run', next) ?? run;
+  }
+  return run;
+};
+const delegateResult = (
+  context: CrewContext,
+  task: AgentTask,
+): { reply: string; status: AgentTask['status']; error: string } => {
+  const run = delegateFinalRun(context, task);
+  if (!run) return { reply: '', status: task.status, error: task.error };
   const reply = context.board
     .list<ChatMessage>('message')
-    .findLast((message) => message.runId === task.runId && message.from === task.roleId);
-  return reply?.content ?? '';
+    .findLast((message) => message.runId === run.id && message.from === task.roleId);
+  const continued = run.id !== task.runId;
+  const status =
+    continued && ['completed', 'failed', 'cancelled'].includes(run.status)
+      ? (run.status as AgentTask['status'])
+      : task.status;
+  const error = status === 'completed' ? '' : task.error || (continued ? run.message : '');
+  return { reply: reply?.content ?? '', status, error };
 };
 /** The lead's collection prompt: every delegate result, bounded, with pointers to the full DMs. */
 export const collectionPrompt = (context: CrewContext, round: DelegationRound): string => {
   const limit = delegationRoundLimits.resultCharacters;
   const results = roundDelegateTasks(context, round).map((task) => {
     const name = requireRole(context, task.roleId).name;
-    const reply = delegateReply(context, task);
+    const { reply, status, error } = delegateResult(context, task);
     const truncated = reply.length > limit;
     const body =
-      task.status === 'completed'
+      status === 'completed'
         ? reply
           ? `${reply.slice(0, limit)}${truncated ? `\n[Truncated after ${limit} characters. Read conversation ${task.threadId} for the rest.]` : ''}`
           : '(no reply text)'
-        : `Result unavailable: ${task.error || (task.status === 'cancelled' ? 'stopped before finishing' : 'the subtask failed')}.`;
-    return `### ${name} (${task.roleId}) — ${task.status}\nSubtask: ${task.content}\nConversation: ${task.threadId}\n${body}`;
+        : `Result unavailable: ${error || (status === 'cancelled' ? 'stopped before finishing' : 'the subtask failed')}.`;
+    return `### ${name} (${task.roleId}) — ${status}\nSubtask: ${task.content}\nConversation: ${task.threadId}\n${body}`;
   });
   return `Delegation round results. Every delegate has finished. Synthesize these for the user in this conversation, state plainly which delegates failed or were stopped, and read a listed conversation with pitchcrew_read_conversation only if you need details beyond what is here.\n\n${results.join('\n\n')}`;
 };

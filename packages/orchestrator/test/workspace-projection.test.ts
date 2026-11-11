@@ -5,7 +5,7 @@ import { cleanup, setup } from './helpers/daemon.ts';
 
 afterEach(cleanup);
 it('keeps the full API compatible while the UI loads bounded previews, history pages and full job details', async () => {
-  const { daemon, request, cookie } = await setup(15091);
+  const { daemon, request, cookie } = await setup();
   const card = daemon.service.board.createCard({
     company: 'Fictional',
     title: 'Engineer',
@@ -72,7 +72,7 @@ it('keeps the full API compatible while the UI loads bounded previews, history p
   expect(c.json().messages).toHaveLength(125);
 });
 it('does not send saved history through the compact event stream or weaken local session checks', async () => {
-  const { daemon, cookie } = await setup(15092);
+  const { daemon, cookie } = await setup();
   for (let i = 0; i < 80; i++)
     daemon.service.board.record(
       'message',

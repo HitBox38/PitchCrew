@@ -36,7 +36,9 @@ export const ManualSubmissionCompletion = ({
             active
               ? 'Preparation stopped; record submission after it settles.'
               : 'Recorded your manual submission',
-          ).catch((reason: unknown) => setError(String(reason)));
+          ).catch((reason: unknown) =>
+            setError(reason instanceof Error ? reason.message : 'Could not record the submission.'),
+          );
         }}
       >
         {active ? 'Stop preparation to record submission' : 'I’ve submitted manually'}

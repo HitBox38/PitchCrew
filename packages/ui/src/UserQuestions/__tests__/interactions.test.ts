@@ -736,7 +736,7 @@ it('drops a failed single choice when a custom answer is edited', async () => {
 
 const prepareRejectionFixture = async () => {
   if (rejectionHost) return rejectionHost;
-  rejectionHost = await setup(23973, false, { dev: false, ui: false });
+  rejectionHost = await setup(false, { dev: false, ui: false });
   const service = rejectionHost.daemon.service;
   const role = service.board.get<Role>('role', 'writer');
   service.board.record(

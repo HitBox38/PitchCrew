@@ -115,19 +115,23 @@ const enteredState = (board: Board, card: Card): { actor: string; createdAt: str
   }
 };
 /** Effective time of the last status change, following the tracking effective-time rules. */
-export const statusSince = (board: Board, card: Card): number => {
-  const effective = latestTrackingTime(board, card);
+export const statusSince = (
+  board: Board,
+  card: Card,
+  signals: TrackingSignal[] = board.list<TrackingSignal>('tracking_signal'),
+): number => {
+  const effective = latestTrackingTime(board, card, signals);
   const entered = enteredState(board, card);
   // User changes and accepted tracking evidence carry their own effective time.
   if (!entered || entered.actor === 'user') return effective || Date.parse(card.createdAt);
-  const signalled = board
-    .list<TrackingSignal>('tracking_signal')
-    .some(
-      (signal) =>
-        signal.cardId === card.id && signal.status === 'applied' && signal.state === card.state,
-    );
+  const signalled = signals.some(
+    (signal) =>
+      signal.cardId === card.id && signal.status === 'applied' && signal.state === card.state,
+  );
   return signalled && effective ? effective : Math.max(effective, Date.parse(entered.createdAt));
 };
+const appliedSignals = (board: Board): TrackingSignal[] =>
+  board.list<TrackingSignal>('tracking_signal').filter((signal) => signal.status === 'applied');
 const blocked = (board: Board, card: Card): string => {
   return card.owner || board.hasActiveRun(card.id) ? 'Application has active workflow work.' : '';
 };
@@ -137,11 +141,13 @@ export const staleSubmissions = (
   now: number = Date.now(),
 ): { days: number; checkedAt: string; cards: StaleSubmission[] } => {
   const threshold = staleDays.parse(days);
+  // Read the applied tracking signals once rather than twice per card.
+  const signals = appliedSignals(board);
   const cards = board
     .list<Card>('card')
     .filter((card) => card.state === 'submitted' && !card.sample)
     .map((card) => {
-      const since = statusSince(board, card);
+      const since = statusSince(board, card, signals);
       return {
         id: card.id,
         company: card.company,
@@ -163,6 +169,7 @@ export const markStaleSubmissions = (board: Board, data: unknown): Card[] => {
   return board.db.transaction(() => {
     const now = Date.now();
     const ids = new Set<string>();
+    const signals = appliedSignals(board);
     return input.cards.map(({ id, updatedAt }) => {
       if (ids.has(id)) throw new Error('Select each application once.');
       ids.add(id);
@@ -173,7 +180,7 @@ export const markStaleSubmissions = (board: Board, data: unknown): Card[] => {
       assertTransition(card.state, 'ghosted');
       const reason = blocked(board, card);
       if (reason) throw new Error(`${card.company}: ${reason}`);
-      const since = statusSince(board, card);
+      const since = statusSince(board, card, signals);
       const staleAt = since + input.days * day;
       if (staleAt > now)
         throw new Error(`${card.company} has had a status change in the last ${input.days} days.`);

@@ -13,7 +13,7 @@ let capacity = 10;
 let active = 0;
 
 beforeAll(async () => {
-  host = await setup(14629);
+  host = await setup();
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
   host.daemon.service.board.record(
     'queue_settings',

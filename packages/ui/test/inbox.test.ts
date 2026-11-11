@@ -18,7 +18,7 @@ let card: Card;
 const errors: string[] = [];
 
 beforeAll(async () => {
-  host = await setup(14679);
+  host = await setup();
   await host.request('/profile', 'PUT', {
     name: 'profile.md',
     content: '# Example Candidate\n\n- Built React interfaces.\n',

@@ -8,18 +8,28 @@ import {
   type Conversation,
   type DelegationRound,
   type Snapshot,
+  type UserInputRequest,
+  type WorkQueue,
 } from '@pitchcrew/core';
 import { setup, cleanup, waitForSnapshot } from './helpers/daemon.ts';
 
 const held = () => {
-  const turns: { context: ChatContext; complete: (reply?: string) => void }[] = [];
+  const turns: {
+    context: ChatContext;
+    complete: (reply?: string) => void;
+    fail: (message: string) => void;
+  }[] = [];
   vi.spyOn(adapters.demo, 'chat').mockImplementation(
     (context) =>
       new Promise<ChatResult>((resolve, reject) => {
         context.signal.addEventListener('abort', () => reject(new Error('Run cancelled.')), {
           once: true,
         });
-        turns.push({ context, complete: (reply = 'Done.') => resolve({ reply }) });
+        turns.push({
+          context,
+          complete: (reply = 'Done.') => resolve({ reply }),
+          fail: (message) => reject(new Error(message)),
+        });
       }),
   );
   return turns;
@@ -40,7 +50,7 @@ const makeCard = (daemon: Awaited<ReturnType<typeof setup>>['daemon']) =>
 afterEach(cleanup);
 
 it('runs a lead-started round concurrently on one job and collects every result in one turn', async () => {
-  const { daemon, request } = await setup(19571);
+  const { daemon, request } = await setup();
   const turns = held();
   const card = makeCard(daemon);
   const group = (
@@ -155,7 +165,7 @@ it('runs a lead-started round concurrently on one job and collects every result 
 });
 
 it('queues delegation rounds after six follow-ups and cancels every branch with the conversation', async () => {
-  const { daemon, request } = await setup(19571);
+  const { daemon, request } = await setup();
   const turns = held();
   await request('/conversations/scout/messages', 'POST', { content: 'Coordinate this work.' });
   await vi.waitFor(() => expect(turns).toHaveLength(1));
@@ -187,7 +197,7 @@ it('queues delegation rounds after six follow-ups and cancels every branch with 
 });
 
 it('lets the user delegate from the composer, turns a stopped delegate into a cancelled result and still collects', async () => {
-  const { daemon, request } = await setup(19572);
+  const { daemon, request } = await setup();
   const turns = held();
   const group = (
     await request<Conversation>('/conversations', 'POST', {
@@ -243,7 +253,7 @@ it('lets the user delegate from the composer, turns a stopped delegate into a ca
 });
 
 it('cancels the collection with the rest of the lane on Stop and replays rounds from events', async () => {
-  const { daemon, request } = await setup(19573);
+  const { daemon, request } = await setup();
   const turns = held();
   const group = (
     await request<Conversation>('/conversations', 'POST', {
@@ -276,4 +286,129 @@ it('cancels the collection with the rest of the lane on Stop and replays rounds 
   expect(rebuilt.delegationRounds).toHaveLength(1);
   expect(rebuilt.delegationRounds?.[0].status).toBe('cancelled');
   expect(rebuilt.tasks.filter((task) => task.roundId === sent.roundId)).toHaveLength(3);
+});
+
+it('turns a failed delegate into a result without pausing the lane and still collects', async () => {
+  const { daemon, request } = await setup();
+  const turns = held();
+  const card = makeCard(daemon);
+  const group = (
+    await request<Conversation>('/conversations', 'POST', {
+      title: 'Failed delegate',
+      participants: ['scout', 'writer', 'tracker'],
+      leadId: 'scout',
+      cardId: card.id,
+    })
+  ).result;
+  await request(`/conversations/${group.id}/messages`, 'POST', { content: '@scout Plan this.' });
+  await vi.waitFor(() => expect(turns).toHaveLength(1));
+  const started = (await daemon.service.agentCall(
+    turns[0].context.mcp.env.PITCHCREW_RUN_TOKEN,
+    'delegate_round',
+    {
+      input: {
+        delegates: [
+          { roleId: 'writer', content: 'Draft three bullets.' },
+          { roleId: 'tracker', content: 'Check the application status.' },
+        ],
+      },
+    },
+  )) as { round: { id: string } };
+  turns[0].complete('I asked Writer and Tracker.');
+  await vi.waitFor(() => expect(turns).toHaveLength(3));
+  roleTurn(turns, 'writer').fail('Writer runtime crashed.');
+  await waitForSnapshot(request, (snapshot) =>
+    snapshot.tasks.some((task) => task.roleId === 'writer' && task.status === 'failed'),
+  );
+  const lane = daemon.service.queue().queues.find((queue) => queue.cardId === card.id)!;
+  expect(lane).toMatchObject({ paused: false, state: 'running' });
+  roleTurn(turns, 'tracker').complete('Tracker findings: no reply yet.');
+  await vi.waitFor(() => expect(turns).toHaveLength(4));
+  const collection = turns[3];
+  expect(collection.context.delegation).toMatchObject({ part: 'collection' });
+  expect(collection.context.request).toContain('Tracker findings: no reply yet.');
+  expect(collection.context.request).toMatch(/writer\) — failed/i);
+  expect(collection.context.request).toContain('Writer runtime crashed.');
+  collection.complete('Tracker answered; Writer failed.');
+  const settled = await waitForSnapshot(
+    request,
+    (snapshot) =>
+      snapshot.delegationRounds?.find((round) => round.id === started.round.id)?.status ===
+      'completed',
+  );
+  expect(settled.queue?.queues.find((queue) => queue.cardId === card.id)?.paused ?? false).toBe(
+    false,
+  );
+  // The consumed failure never asks for Retry or Skip, so a later pause can resume.
+  const queueId = `job:${card.id}`;
+  await request(`/queue/${encodeURIComponent(queueId)}`, 'PUT', { action: 'pause' });
+  const paused = daemon.service.queue().queues.find((queue) => queue.id === queueId);
+  expect(paused?.tasks.some((task) => task.status === 'failed') ?? false).toBe(false);
+  const resumed = await request<WorkQueue>(`/queue/${encodeURIComponent(queueId)}`, 'PUT', {
+    action: 'resume',
+  });
+  expect(resumed.response.status).toBe(200);
+  expect(resumed.result.paused).toBe(false);
+});
+
+it('collects the answer a delegate gave after asking the user, not its question', async () => {
+  const { daemon, request } = await setup();
+  const turns = held();
+  const group = (
+    await request<Conversation>('/conversations', 'POST', {
+      title: 'Question round',
+      participants: ['scout', 'writer'],
+      leadId: 'scout',
+    })
+  ).result;
+  const sent = (
+    await request<ChatRequest>(`/conversations/${group.id}/delegate`, 'POST', {
+      content: 'Compare these two offers.',
+      roleIds: ['writer', 'reviewer'],
+    })
+  ).result;
+  await vi.waitFor(() => expect(turns).toHaveLength(2));
+  const writer = roleTurn(turns, 'writer');
+  const question = (
+    await daemon.service.agentCall(writer.context.mcp.env.PITCHCREW_RUN_TOKEN, 'ask_user', {
+      question: 'Which offer matters more to you?',
+    })
+  ).question as UserInputRequest;
+  await waitForSnapshot(request, (snapshot) =>
+    snapshot.runs.some((run) => run.roleId === 'writer' && run.status === 'waiting'),
+  );
+  roleTurn(turns, 'reviewer').complete('Reviewer notes: offer B pays more.');
+  await waitForSnapshot(request, (snapshot) =>
+    snapshot.tasks.some((task) => task.roleId === 'reviewer' && task.status === 'completed'),
+  );
+  // The question holds the round: no collection before the answer.
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  expect(turns).toHaveLength(2);
+  await request(`/user-input/${question.id}/answer`, 'POST', { text: 'Offer A' });
+  await vi.waitFor(() => expect(turns).toHaveLength(3));
+  const continuation = turns[2];
+  expect(continuation.context.role.id).toBe('writer');
+  // The continuation is still the delegate's turn: no nesting through it either.
+  const token = continuation.context.mcp.env.PITCHCREW_RUN_TOKEN;
+  await expect(
+    daemon.service.agentCall(token, 'message', { roleId: 'scout', content: 'Nested.' }),
+  ).rejects.toThrow('cannot message, invoke or delegate');
+  expect(await daemon.service.agentCall(token, 'execution_access', {})).toMatchObject({
+    delegate: true,
+  });
+  continuation.complete('Writer final answer: offer A fits better.');
+  await vi.waitFor(() => expect(turns).toHaveLength(4));
+  const collection = turns[3];
+  expect(collection.context.role.id).toBe('scout');
+  expect(collection.context.delegation).toMatchObject({ part: 'collection' });
+  expect(collection.context.request).toContain('Writer final answer: offer A fits better.');
+  expect(collection.context.request).not.toContain('Which offer matters more to you?');
+  expect(collection.context.request).toMatch(/writer\) — completed/i);
+  expect(collection.context.request).toContain('Reviewer notes: offer B pays more.');
+  collection.complete('Both delegates reported back.');
+  await waitForSnapshot(
+    request,
+    (snapshot) =>
+      snapshot.delegationRounds?.find((round) => round.id === sent.roundId)?.status === 'completed',
+  );
 });

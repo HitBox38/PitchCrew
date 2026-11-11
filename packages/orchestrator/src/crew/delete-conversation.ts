@@ -1,9 +1,9 @@
+import { runsForThread, runsWithStatus } from '@pitchcrew/board';
 import type {
   AgentTask,
   ChatRequest,
   DeepReview,
   Routine,
-  Run,
   UserInputRequest,
 } from '@pitchcrew/core';
 import { conversation } from './conversations.ts';
@@ -13,18 +13,13 @@ import type { CrewContext } from './types.ts';
 export const deleteConversation = (context: CrewContext, id: string): { ok: true } => {
   context.board.db.transaction(() => {
     const current = conversation(context, id);
-    const runs = context.board.list<Run>('run');
-    const roots = new Set(
-      runs.filter((run) => run.threadId === id).map((run) => run.rootRunId ?? run.id),
-    );
+    const roots = new Set(runsForThread(context.board, id).map((run) => run.rootRunId ?? run.id));
     const tasks = context.board
       .list<AgentTask>('task')
       .filter((task) => task.threadId === id || roots.has(task.rootRunId));
     if (
-      runs.some(
-        (run) =>
-          (run.threadId === id || roots.has(run.rootRunId ?? run.id)) &&
-          ['running', 'waiting'].includes(run.status),
+      runsWithStatus(context.board, ['running', 'waiting']).some(
+        (run) => run.threadId === id || roots.has(run.rootRunId ?? run.id),
       ) ||
       tasks.some((task) => ['running', 'waiting'].includes(task.status)) ||
       context.board

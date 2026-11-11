@@ -26,8 +26,6 @@ export type PromptInputHeaderProps = Omit<ComponentProps<typeof InputGroupAddon>
 
 export type PromptInputFooterProps = Omit<ComponentProps<typeof InputGroupAddon>, 'align'>;
 
-export type PromptInputToolsProps = HTMLAttributes<HTMLDivElement>;
-
 export type PromptInputSubmitProps = ComponentProps<typeof InputGroupButton> & {
   status?: ChatStatus;
   onStop?: () => void;

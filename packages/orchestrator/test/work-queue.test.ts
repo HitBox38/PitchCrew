@@ -33,7 +33,7 @@ const held = () => {
 
 afterEach(cleanup);
 it('runs five independent conversations through the same agent and honors manual global priority', async () => {
-  const { request } = await setup(23901);
+  const { request } = await setup();
   const turns = held();
   const threads: Conversation[] = [];
   for (let i = 0; i < 7; i++) {
@@ -62,7 +62,7 @@ it('runs five independent conversations through the same agent and honors manual
   turns[6].complete();
 });
 it('serializes every attached conversation for one job while other jobs use the same agent in parallel', async () => {
-  const { daemon, request } = await setup(23902);
+  const { daemon, request } = await setup();
   const turns = held();
   const makeCard = (name: string) =>
     daemon.service.board.createCard({
@@ -104,7 +104,7 @@ it('serializes every attached conversation for one job while other jobs use the 
   turns[2].complete();
 });
 it('pauses a failed queue without blocking another conversation and retries only on explicit request', async () => {
-  const { request } = await setup(23903);
+  const { request } = await setup();
   const turns = held();
   const a = (
     await request<Conversation>('/conversations', 'POST', { title: 'A', participants: ['scout'] })
@@ -137,7 +137,7 @@ it('pauses a failed queue without blocking another conversation and retries only
   turns[3].complete();
 });
 it('rejects invalid stage reordering, deduplicates shortcuts and permits explicit repeated stages', async () => {
-  const { daemon, request } = await setup(23904);
+  const { daemon, request } = await setup();
   const card = daemon.service.board.createCard({
     company: 'Sequence',
     title: 'Engineer',
@@ -176,7 +176,7 @@ it('rejects invalid stage reordering, deduplicates shortcuts and permits explici
   expect((await request<WorkspaceQueue>('/queue')).result.queues[0].requests[0].id).toBe(draft.id);
 });
 it('requires the local UI session and validates capacity changes', async () => {
-  const { request } = await setup(23905);
+  const { request } = await setup();
   expect((await request('/queue/settings', 'PUT', { concurrency: 0 })).response.status).toBe(400);
   expect(
     (
@@ -193,7 +193,7 @@ it('requires the local UI session and validates capacity changes', async () => {
 });
 
 it('holds missing Profile prerequisites without failure and uses notes saved while the action waits', async () => {
-  const { daemon, request } = await setup(23912);
+  const { daemon, request } = await setup();
   const inputs: Parameters<typeof adapters.demo.run>[0][] = [];
   vi.spyOn(adapters.demo, 'run').mockImplementation((context) => {
     inputs.push(context);
@@ -223,7 +223,7 @@ it('holds missing Profile prerequisites without failure and uses notes saved whi
 });
 
 it('releases capacity for a question and puts its answered continuation behind older ready work', async () => {
-  const { daemon, request } = await setup(23909);
+  const { daemon, request } = await setup();
   daemon.service.configureQueue({ concurrency: 1 });
   const turns = held();
   const threads = ['Question', 'Older', 'Newer'].map((title) =>
@@ -253,7 +253,7 @@ it('releases capacity for a question and puts its answered continuation behind o
 });
 
 it('stops only the selected job and resumes its remaining requests without restarting cancelled work', async () => {
-  const { daemon, request } = await setup(23906);
+  const { daemon, request } = await setup();
   const turns = held();
   const jobs = ['A', 'B'].map((company) =>
     daemon.service.createCard({ company, title: 'Engineer' }),
@@ -282,7 +282,7 @@ it('stops only the selected job and resumes its remaining requests without resta
   turns[2].complete();
 });
 it('keeps a failed delegated follow-up in its initiating queue and exposes an explicit retry', async () => {
-  const { daemon, request } = await setup(23907);
+  const { daemon, request } = await setup();
   const turns = held();
   const job = daemon.service.createCard({ company: 'Follow-up', title: 'Engineer' });
   const thread = daemon.service.createConversation({
@@ -327,7 +327,7 @@ it('keeps a failed delegated follow-up in its initiating queue and exposes an ex
   turns[3].complete();
 });
 it('replays saved ordering and capacity and pauses only requests interrupted at startup', async () => {
-  const { daemon, request } = await setup(23908);
+  const { daemon, request } = await setup();
   const a = daemon.service.createCard({ company: 'Recovery A', title: 'Engineer' }),
     b = daemon.service.createCard({ company: 'Recovery B', title: 'Engineer' });
   const first = daemon.service.queueBoardAction({ cardId: a.id, action: 'draft' });
@@ -373,7 +373,7 @@ it('replays saved ordering and capacity and pauses only requests interrupted at 
 });
 
 it('preserves unstarted follow-ups and exposes an interrupted child in its original queue after restart', async () => {
-  const { daemon } = await setup(23910);
+  const { daemon } = await setup();
   const job = daemon.service.createCard({ company: 'Recovery chain', title: 'Engineer' });
   const request = daemon.service.queueBoardAction({ cardId: job.id, action: 'draft' });
   const parent: Run = {
@@ -429,7 +429,7 @@ it('preserves unstarted follow-ups and exposes an interrupted child in its origi
 });
 
 it('shows job-linked routines in their job queue and keeps job-free routines outside the view while sharing capacity', async () => {
-  const { daemon, request } = await setup(23911);
+  const { daemon, request } = await setup();
   daemon.service.configureQueue({ concurrency: 1 });
   const turns = held();
   const job = daemon.service.createCard({ company: 'Scheduled job', title: 'Engineer' });

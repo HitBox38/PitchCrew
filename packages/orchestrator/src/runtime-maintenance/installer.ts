@@ -39,15 +39,18 @@ export const runRuntimeInstaller = (
       if (typeof message.error === 'string') error = message.error;
       if (message.code === null || typeof message.code === 'number') code = message.code;
     });
-    worker.once('error', () => {
-      error = 'Could not start the runtime installer worker.';
-    });
-    worker.once('exit', () => {
+    const settle = () => {
       clearTimeout(timer);
       options.signal?.removeEventListener('abort', cancel);
       if (error || code === undefined)
         reject(new Error(error ?? 'Runtime installer was interrupted.'));
       else resolve({ code, stdout: '', stderr: '' });
+    };
+    worker.once('error', () => {
+      error = 'Could not start the runtime installer worker.';
+      // A worker that never started emits no 'exit', which would leave the update reserved forever.
+      if (worker.pid === undefined) settle();
     });
+    worker.once('exit', settle);
   });
 };

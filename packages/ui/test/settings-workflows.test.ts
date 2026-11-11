@@ -45,7 +45,7 @@ const saveRules = async () => {
   await expect.poll(() => button.isDisabled()).toBe(true);
 };
 beforeAll(async () => {
-  host = await setup(15752, false, { dev: false });
+  host = await setup(false, { dev: false });
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
   browser = await chromium.launch({ headless: true });
 }, 60000);

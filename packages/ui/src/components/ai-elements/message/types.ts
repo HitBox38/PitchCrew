@@ -8,6 +8,4 @@ export type MessageProps = HTMLAttributes<HTMLDivElement> & {
 
 export type MessageContentProps = HTMLAttributes<HTMLDivElement>;
 
-export type MessageActionsProps = ComponentProps<'div'>;
-
 export type MessageResponseProps = ComponentProps<typeof Streamdown>;

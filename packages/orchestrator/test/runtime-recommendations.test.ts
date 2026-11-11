@@ -24,7 +24,7 @@ afterEach(cleanup);
 
 it('detects all runtimes and seeds paused production roles from native models and reasoning', async () => {
   installed(['codex', 'claude-code', 'opencode']);
-  const { daemon, directory, request } = await setup(14961, false, { dev: false });
+  const { daemon, directory, request } = await setup(false, { dev: false });
   const { result } = await request<Snapshot>('/snapshot');
   expect(
     result.roles.map(({ id, runtime, model, reasoning, enabled }) => ({
@@ -84,7 +84,7 @@ it('detects all runtimes and seeds paused production roles from native models an
 
 it('rechecks machine availability on every recommendation and leaves saved roles unchanged until settings are saved', async () => {
   installed(['codex', 'claude-code']);
-  const { daemon, request } = await setup(14962, false, { dev: false });
+  const { daemon, request } = await setup(false, { dev: false });
   const saved = daemon.service.board.get<Role>('role', 'reviewer');
   const before = daemon.service.board.events();
   vi.mocked(adapters.codex.detect).mockResolvedValue({
@@ -126,7 +126,7 @@ it('rechecks machine availability on every recommendation and leaves saved roles
 
 it('backfills only missing roles on restart without changing custom or retired defaults', async () => {
   installed(['codex', 'claude-code']);
-  const { daemon } = await setup(14963, false, { dev: false });
+  const { daemon } = await setup(false, { dev: false });
   const role = daemon.service.board.get<Role>('role', 'scout');
   const customized = {
     ...role,
@@ -145,7 +145,7 @@ it('backfills only missing roles on restart without changing custom or retired d
 
 it('keeps preferred setups paused when no runtime is installed and preserves deterministic Demo defaults', async () => {
   installed([]);
-  const production = await setup(14964, false, { dev: false });
+  const production = await setup(false, { dev: false });
   expect(production.daemon.service.board.list<Role>('role')).toHaveLength(defaultRoleIds.length);
   expect(production.daemon.service.board.get<Role>('role', 'scout')).toMatchObject({
     runtime: 'codex',
@@ -153,7 +153,7 @@ it('keeps preferred setups paused when no runtime is installed and preserves det
     reasoning: 'medium',
     enabled: false,
   });
-  const development = await setup(14965);
+  const development = await setup();
   expect(
     development.daemon.service.board
       .list<Role>('role')
@@ -166,7 +166,7 @@ it('keeps preferred setups paused when no runtime is installed and preserves det
 
 it('restricts recommendations to user sessions and rejects custom roles', async () => {
   installed([]);
-  const { daemon, request } = await setup(14966);
+  const { daemon, request } = await setup();
   const response = await fetch(`${daemon.url}/api/roles/scout/runtime-recommendation`, {
     method: 'POST',
     headers: { 'x-pitchcrew-client': 'ui', authorization: 'Bearer fictional-agent-token' },

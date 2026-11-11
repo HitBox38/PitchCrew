@@ -12,7 +12,7 @@ export const GithubConnectionDialog = (props: ConnectAccountDialogProps) => {
     <Modal title="Connect GitHub" onClose={close}>
       <div className="flex flex-col gap-5">
         <p className="modal-intro">
-          Already signed in to GitHub CLI? Connect below to use that account. PitchCrew reads your
+          Already signed in to GitHub CLI? Connect below to use that account. Pitchcrew reads your
           repositories, files, issues and pull requests.
         </p>
         <Button
@@ -42,7 +42,7 @@ export const GithubConnectionDialog = (props: ConnectAccountDialogProps) => {
                 Install GitHub CLI <ExternalLink size={14} />
               </a>
               <p className="quiet">
-                After installing, restart PitchCrew so it can find the command.
+                After installing, restart Pitchcrew so it can find the command.
               </p>
             </li>
             <li>
@@ -57,7 +57,7 @@ export const GithubConnectionDialog = (props: ConnectAccountDialogProps) => {
           </ol>
         </AccordionSection>
         <p className="quiet">
-          Credentials stay with GitHub CLI. PitchCrew only makes read requests. GitHub CLI access
+          Credentials stay with GitHub CLI. Pitchcrew only makes read requests. GitHub CLI access
           follows your login and can cover more than one repository.
         </p>
         {error ? (

@@ -1,5 +1,4 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { adapters } from '@pitchcrew/adapters';
 import { Board } from '@pitchcrew/board';
 import type { ChatMessage, ChatRequest, ExternalMcpInfo } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
@@ -12,11 +11,13 @@ import { addMessage } from '../src/crew/chat.ts';
 import { migrateConversations } from '../src/crew/conversations.ts';
 import type { CrewContext } from '../src/crew/types.ts';
 import { createDaemon } from '../src/server.ts';
+import { isolateRuntimes, restoreRuntimes } from './helpers/daemon.ts';
 
 const resources: (() => Promise<void>)[] = [];
 afterEach(async () => {
   for (const close of resources.splice(0).reverse()) await close();
   vi.restoreAllMocks();
+  restoreRuntimes();
 });
 
 it('coalesces external sends by client ID, preserves attribution and returns only receipt identity', async () => {
@@ -90,13 +91,7 @@ it('coalesces external sends by client ID, preserves attribution and returns onl
 });
 
 it('allows read-only receipt reconciliation and records only successful requests for the current access grant', async () => {
-  for (const adapter of Object.values(adapters).filter((entry) => entry.id !== 'demo'))
-    vi.spyOn(adapter, 'detect').mockResolvedValue({
-      id: adapter.id,
-      available: false,
-      version: '',
-      detail: 'Runtime execution is outside this production bridge fixture.',
-    });
+  isolateRuntimes();
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-external-bridge-'));
   resources.push(async () => {
     expect(directory.startsWith(join(tmpdir(), 'pitchcrew-external-bridge-'))).toBe(true);

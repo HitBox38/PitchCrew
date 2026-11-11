@@ -77,7 +77,7 @@ export const createGoogleCallback = (
         res
           .writeHead(200, { 'content-type': 'text/plain; charset=utf-8' })
           .end(
-            'Google Workspace connected to Pitchcrew. You can close this window. Enable the services for each role in Your crew.',
+            'Google Workspace connected to Pitchcrew. You can close this window. Enable the services for each agent in Crew.',
           );
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Google connection failed.';

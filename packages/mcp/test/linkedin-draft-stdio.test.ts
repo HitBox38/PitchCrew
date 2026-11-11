@@ -8,7 +8,7 @@ import { cleanup, setup } from '../../orchestrator/test/helpers/daemon.ts';
 afterEach(cleanup);
 
 it('checks LinkedIn drafts over actual scoped stdio and rechecks active chat access', async () => {
-  const { daemon } = await setup(22589);
+  const { daemon } = await setup();
   const run: Run = {
     id: 'linkedin-check',
     roleId: 'career-coach',

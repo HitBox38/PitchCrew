@@ -33,7 +33,7 @@ describe('AI runtime boundaries', () => {
   it.each(['workflow', 'chat'] as const)(
     'keeps safe exit details through the actual %s failure catch',
     async (mode) => {
-      const { daemon, request } = await setup(14589);
+      const { daemon, request } = await setup();
       const record = vi.spyOn(daemon.service.diagnostics!, 'record');
       const error = Object.assign(new Error('private provider stderr'), {
         code: 'PITCHCREW_RUNTIME_EXIT',
@@ -79,7 +79,7 @@ describe('AI runtime boundaries', () => {
     },
   );
   it('instruments actual workflow and chat launches without board IDs or private context', async () => {
-    const { daemon, request } = await setup(14589);
+    const { daemon, request } = await setup();
     const record = vi.spyOn(daemon.service.diagnostics!, 'record');
     await request('/profile', 'PUT', {
       name: 'profile.md',

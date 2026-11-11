@@ -14,7 +14,7 @@ let relatedThread: string;
 const inputs = vi.fn();
 const errors: string[] = [];
 beforeAll(async () => {
-  host = await setup(23951, false, {
+  host = await setup(false, {
     browserLaunch: async () => {
       const index = states.length;
       const state: NativeBrowserState = {

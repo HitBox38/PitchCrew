@@ -68,19 +68,6 @@
 .chat-side-panel-body .modal-intro {
   margin-bottom: 0;
 }
-.chat-side-panel .role-settings-heading {
-  padding: 18px 20px;
-  gap: 10px;
-}
-.chat-side-panel .role-settings-heading h2 {
-  font-size: 18px;
-}
-.chat-side-panel .role-settings-body {
-  padding: 20px;
-}
-.chat-side-panel .role-settings-footer {
-  padding: 16px 20px;
-}
 /* The panel body already scrolls, so the picker shows every agent without a nested scroller. */
 .chat-side-panel .chat-participant-picker {
   grid-template-columns: minmax(0, 1fr);

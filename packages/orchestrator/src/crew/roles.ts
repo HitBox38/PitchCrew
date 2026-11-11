@@ -1,5 +1,5 @@
 import { cancelUserQuestions } from './user-input/lifecycle.ts';
-import { defaultInstructionHistory, instructionRevision } from '@pitchcrew/board';
+import { defaultInstructionHistory, instructionRevision, runsWithStatus } from '@pitchcrew/board';
 import { skillInstructions } from '@pitchcrew/adapters';
 import {
   defaultCapabilities,
@@ -8,7 +8,6 @@ import {
   rolePatch,
   type Role,
   type RoleId,
-  type Run,
   type Skill,
   type Routine,
   type AgentTask,
@@ -68,7 +67,7 @@ export const configureRole = async (
   defaultInstructionBase?: Role['defaultInstructionBase'],
 ): Promise<Role> => {
   if (context.configuring.has(id)) throw new Error('This role’s settings are being updated.');
-  if (context.board.list<Run>('run').some((r) => r.roleId === id && r.status === 'running'))
+  if (runsWithStatus(context.board, ['running']).some((r) => r.roleId === id))
     throw new Error('Wait for this role’s active run or cancel it before changing settings.');
   const current = requireRole(context, id);
   const parsed = rolePatch.parse(data);
@@ -149,7 +148,7 @@ export const retireRole = async (context: CrewContext, id: RoleId): Promise<Role
   const current = requireRole(context, id);
   if (
     context.configuring.has(id) ||
-    context.board.list<Run>('run').some((run) => run.roleId === id && run.status === 'running')
+    runsWithStatus(context.board, ['running']).some((run) => run.roleId === id)
   )
     throw new Error('Wait for this role active run or settings update before retiring it.');
   const role = { ...current, enabled: false, retiredAt: new Date().toISOString() };
@@ -188,7 +187,7 @@ export const restoreRole = async (context: CrewContext, id: RoleId): Promise<Rol
   if (!current.retiredAt) throw new Error('This role is not retired.');
   if (
     context.configuring.has(id) ||
-    context.board.list<Run>('run').some((run) => run.roleId === id && run.status === 'running')
+    runsWithStatus(context.board, ['running']).some((run) => run.roleId === id)
   )
     throw new Error('Wait for this role active run or settings update before restoring it.');
   const role = { ...current, enabled: false, retiredAt: null };

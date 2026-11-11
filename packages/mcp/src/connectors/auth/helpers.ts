@@ -62,7 +62,6 @@ export const storeSchema = z.object({
 });
 export type Store = z.infer<typeof storeSchema>;
 export type GoogleToken = z.infer<typeof googleTokenSchema>;
-export type GithubConnection = z.infer<typeof githubTokenSchema>;
 export const tokenResponse = z.object({
   access_token: z.string().min(1),
   refresh_token: z.string().optional(),

@@ -19,7 +19,7 @@ afterEach(async () => {
 
 describe('HTTP framework contracts', () => {
   it('keeps API-only fixtures authenticated without serving the UI', async () => {
-    const { daemon, request } = await setup(15014);
+    const { daemon, request } = await setup();
     expect((await fetch(daemon.url)).status).toBe(404);
     expect((await fetch(`${daemon.url}/@vite/client`)).status).toBe(404);
     expect((await fetch(`${daemon.url}/api/snapshot`)).status).toBe(403);
@@ -29,9 +29,10 @@ describe('HTTP framework contracts', () => {
   });
 
   it('rejects untrusted requests before parsing and preserves session/security headers', async () => {
-    const { daemon, cookie } = await setup(15001, false, { dev: false });
+    const { daemon, cookie } = await setup(false, { dev: false });
     const page = await fetch(`${daemon.url}/chat/scout`);
-    expect(page.headers.get('set-cookie')).toMatch(/pitchcrew_session=.*Max-Age=86400/);
+    expect(page.headers.get('set-cookie')).toMatch(/^pitchcrew_session=/);
+    expect(page.headers.get('set-cookie')).not.toContain('Max-Age');
     expect(page.headers.get('set-cookie')).toContain('HttpOnly');
     expect(page.headers.get('set-cookie')).toContain('SameSite=Strict');
     expect(page.headers.get('content-security-policy')).toContain("default-src 'self'");
@@ -39,7 +40,7 @@ describe('HTTP framework contracts', () => {
     expect(page.headers.get('referrer-policy')).toBe('no-referrer');
     const base = { host: new URL(daemon.url).host, cookie, 'x-pitchcrew-client': 'ui' };
     for (const extra of [
-      { host: 'localhost:15001' },
+      { host: `localhost:${new URL(daemon.url).port}` },
       { origin: 'https://example.invalid' },
       { 'sec-fetch-site': 'cross-site' },
       { cookie: 'pitchcrew_session=expired' },
@@ -53,6 +54,10 @@ describe('HTTP framework contracts', () => {
       });
       expect(response.statusCode).toBe(403);
       expect(response.json()).toHaveProperty('error');
+      // Only a missing session invites the window to renew it.
+      expect(response.headers['x-pitchcrew-session']).toBe(
+        'cookie' in extra || 'x-pitchcrew-client' in extra ? 'required' : undefined,
+      );
     }
     expect((await fetch(`${daemon.url}/api/health`)).status).toBe(200);
     expect((await fetch(`${daemon.url}/api/chat/stream`)).status).toBe(403);
@@ -87,7 +92,7 @@ describe('HTTP framework contracts', () => {
   });
 
   it('accepts bodyless JSON actions and keeps parser and domain errors in the API envelope', async () => {
-    const { daemon, request, cookie } = await setup(15002);
+    const { daemon, request, cookie } = await setup();
     expect((await request('/runtimes/demo/models', 'POST')).response.status).toBe(200);
     const before = daemon.service.board.events();
     for (const body of ['{', 'null', '"text"']) {
@@ -129,7 +134,7 @@ describe('HTTP framework contracts', () => {
   });
 
   it('closes an open SSE connection and shuts down the service through Fastify', async () => {
-    const { daemon, cookie } = await setup(15003, false, { dev: false });
+    const { daemon, cookie } = await setup(false, { dev: false });
     const close = vi.spyOn(daemon.service, 'close');
     const response = await fetch(`${daemon.url}/api/chat/stream`, {
       headers: { cookie, 'x-pitchcrew-client': 'ui' },
@@ -151,7 +156,7 @@ describe('HTTP framework contracts', () => {
   });
 
   it('serves the exact reviewed PDF/DOCX bytes without consuming the export approval', async () => {
-    const { daemon, request, cookie } = await setup(15006);
+    const { daemon, request, cookie } = await setup();
     const card = daemon.service.createCard({ company: 'Fixture Co', title: 'Engineer' });
     daemon.service.board.record(
       'card',
@@ -198,7 +203,7 @@ describe('HTTP framework contracts', () => {
   });
 
   it('serves production assets and SPA deep links with the same security hooks', async () => {
-    const { directory } = await setup(15004);
+    const { directory } = await setup();
     const uiRoot = join(directory, 'ui-fixture');
     await mkdir(join(uiRoot, 'dist/assets'), { recursive: true });
     const html = '<!doctype html><html><body>Fixture workspace</body></html>';
@@ -234,7 +239,7 @@ describe('HTTP framework contracts', () => {
   });
 
   it('serves Vite deep links and assets without bypassing API or session checks', async () => {
-    const { daemon, request } = await setup(15005, false, {
+    const { daemon, request } = await setup(false, {
       dev: true,
       ui: 'dev',
       uiCache: 'temporary',

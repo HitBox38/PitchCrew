@@ -1,15 +1,13 @@
-import { states, type Approval, type Card, type CardState, type Run } from '@pitchcrew/core';
+import { states, type Approval, type Card, type CardState } from '@pitchcrew/core';
 import type { Board } from '../index.ts';
+import { runsWithStatus } from './runs.ts';
 
 /** User-only bookkeeping; never launches work, exports a packet or submits an application. */
 export const setCardStatus = (board: Board, id: string, state: CardState): Card => {
   if (!states.includes(state)) throw new Error('Unknown job status.');
   return board.db.transaction(() => {
     const card = board.get<Card>('card', id);
-    if (
-      card.owner ||
-      board.list<Run>('run').some((run) => run.cardId === id && run.status === 'running')
-    )
+    if (card.owner || runsWithStatus(board, ['running']).some((run) => run.cardId === id))
       throw new Error('Wait for the active run or cancel it before moving this card.');
     if (card.state === state) return card;
     const now = new Date().toISOString();

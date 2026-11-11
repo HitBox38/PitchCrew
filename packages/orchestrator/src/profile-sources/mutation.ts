@@ -1,3 +1,4 @@
+import { runsWithStatus } from '@pitchcrew/board';
 import type { CrewContext } from '../crew/types.ts';
 
 export const profileUpdateInterrupted = (context: CrewContext) => {
@@ -47,8 +48,7 @@ export const changeProfile = async <T>(
       assertProfileReady(context);
     if (
       !allowActive &&
-      (context.controllers.size ||
-        context.board.list<{ status: string }>('run').some((run) => run.status === 'running'))
+      (context.controllers.size || runsWithStatus(context.board, ['running']).length > 0)
     )
       throw new Error('Wait for active runs to finish before changing their source profile.');
     context.profileWriting = true;

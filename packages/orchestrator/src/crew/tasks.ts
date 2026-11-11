@@ -26,6 +26,7 @@ import {
   type Run,
   type Routine,
 } from '@pitchcrew/core';
+import { runsForCard, tasksWithStatus } from '@pitchcrew/board';
 import { randomUUID } from 'node:crypto';
 import type { CrewContext } from './types.ts';
 
@@ -156,7 +157,7 @@ export const drainTasks = async (context: CrewContext): Promise<void> => {
   }
   context.draining = true;
   try {
-    for (const task of context.board.list<AgentTask>('task').filter((t) => t.status === 'queued')) {
+    for (const task of tasksWithStatus(context.board, ['queued'])) {
       if (context.closing) break;
       const parent = taskParentRun(context, task);
       if (
@@ -265,11 +266,9 @@ export const drainTasks = async (context: CrewContext): Promise<void> => {
 
 /** Other work on the card blocks a follow-up unless every active run is a delegate of the same round. */
 const cardBusyFor = (context: CrewContext, task: AgentTask): boolean => {
-  const active = context.board
-    .list<Run>('run')
-    .filter(
-      (r) => r.cardId === task.cardId && (r.status === 'running' || context.controllers.has(r.id)),
-    );
+  const active = runsForCard(context.board, task.cardId!).filter(
+    (r) => r.status === 'running' || context.controllers.has(r.id),
+  );
   if (!active.length) return false;
   if (task.roundPart !== 'delegate') return true;
   const tasks = context.board.list<AgentTask>('task');

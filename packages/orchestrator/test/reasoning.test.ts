@@ -8,7 +8,7 @@ import {
 } from '@pitchcrew/core';
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, finish, setup, waitForSnapshot } from './helpers/daemon.ts';
-const reasoningSetup = async (port: number) => {
+const reasoningSetup = async () => {
   vi.spyOn(adapters['claude-code'], 'detect').mockResolvedValue({
     id: 'claude-code',
     available: true,
@@ -24,7 +24,7 @@ const reasoningSetup = async (port: number) => {
     turns.push(context);
     return { reply: 'Fixture reply' };
   });
-  const fixture = await setup(port);
+  const fixture = await setup();
   const role = fixture.daemon.service.board.get<Role>('role', 'scout');
   return {
     ...fixture,
@@ -36,7 +36,7 @@ const reasoningSetup = async (port: number) => {
 afterEach(cleanup);
 
 it('saves defaults, applies chat overrides and CLI default, and replays exact effective run settings', async () => {
-  const { daemon, request, role, turns } = await reasoningSetup(14951);
+  const { daemon, request, role, turns } = await reasoningSetup();
   expect((await request<Role>('/roles/scout', 'PUT', role)).response.status).toBe(200);
   for (const [override, expected] of [
     [undefined, 'high'],
@@ -77,7 +77,7 @@ it('saves defaults, applies chat overrides and CLI default, and replays exact ef
 });
 
 it('creates agents with reasoning and rejects unsupported models and levels before recording work', async () => {
-  const { daemon, request, role } = await reasoningSetup(14952);
+  const { daemon, request, role } = await reasoningSetup();
   const created = await request<Role>('/roles', 'POST', {
     ...role,
     id: 'research-helper',
@@ -106,7 +106,7 @@ it('creates agents with reasoning and rejects unsupported models and levels befo
 });
 
 it('keeps defaults for omitted settings and follow-ups and clears them when switching models', async () => {
-  const { daemon, request, role, turns } = await reasoningSetup(14953);
+  const { daemon, request, role, turns } = await reasoningSetup();
   await request('/roles/scout', 'PUT', role);
   const { reasoning: _reasoning, ...legacyInput } = role;
   expect((await request<Role>('/roles/scout', 'PUT', legacyInput)).result.reasoning).toBe('high');

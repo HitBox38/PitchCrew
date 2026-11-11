@@ -5,7 +5,7 @@ import { cleanup, setup } from './helpers/daemon.ts';
 afterEach(cleanup);
 describe('connector account settings', () => {
   it('requires a local user session for account changes and never gives agents a connection action', async () => {
-    const { daemon, request } = await setup(14433);
+    const { daemon, request } = await setup();
     const connect = vi.spyOn(daemon.service.connectors, 'connectGithub').mockResolvedValue([]);
     const googleCli = vi.spyOn(daemon.service.connectors, 'connectGoogleCli').mockResolvedValue([]);
     const disconnect = vi.spyOn(daemon.service.connectors, 'disconnect').mockResolvedValue([]);

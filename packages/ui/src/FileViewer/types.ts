@@ -16,6 +16,8 @@ export interface ViewerSettings {
   mode: 'rendered' | 'source';
   wrap: boolean;
   page: number;
+  /** Counts page jumps: the page alone cannot tell a repeated jump from a manual scroll back. */
+  pageRequest: number;
   thumbnails: boolean;
   expanded: boolean;
 }
@@ -26,6 +28,7 @@ export const defaultViewerSettings: ViewerSettings = {
   mode: 'rendered',
   wrap: true,
   page: 1,
+  pageRequest: 0,
   thumbnails: false,
   expanded: false,
 };

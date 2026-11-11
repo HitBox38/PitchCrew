@@ -937,24 +937,6 @@
   }
 }
 
-/* A short string of beads summarizing steps or queued requests, laid in a recessed groove. */
-.clay-step-beads {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 5px;
-  border-radius: 999px;
-  background: var(--sunken-fill);
-  box-shadow: var(--clay-sunken);
-}
-.clay-step-beads > .clay-bead[data-empty] {
-  box-shadow: inset 0 0 0 1.5px var(--border-strong);
-}
-.clay-step-beads > .clay-job-spinner {
-  width: 0.5625rem;
-  height: 0.5625rem;
-}
-
 /* ── Sidebar: conversations nested under their jobs ──────────────────────────
  * A live job folds out its conversations; the toggle carries the hidden count.
  * Rows keep the state language: ochre age waits on you, plum age is working. */

@@ -30,6 +30,11 @@ export const registerAgentRoutes = (app: FastifyInstance, service: CrewService) 
         routineId: z.uuid().optional(),
         messageId: z.uuid().optional(),
         attachmentId: z.uuid().optional(),
+        // Sent flat by pitchcrew_message_agent, pitchcrew_invoke_agent and
+        // pitchcrew_computer_inspect; unlisted keys are stripped before the gateway sees them.
+        conversationId: z.string().max(128).optional(),
+        includeImage: z.boolean().optional(),
+        tabId: z.string().min(1).max(100).optional(),
       })
       .parse(req.body);
     const { action, ...data } = body;

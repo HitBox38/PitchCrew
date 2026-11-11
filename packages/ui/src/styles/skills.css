@@ -701,18 +701,6 @@
 }
 
 /* Shared with role settings, proposals and browser approvals */
-.role-skill-list {
-  display: grid;
-  gap: 10px;
-  list-style: none;
-  padding: 0;
-}
-.role-skill-list li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
 .skill-source {
   overflow-wrap: anywhere;
 }
@@ -721,14 +709,6 @@
   width: 100%;
   border-radius: 8px;
   margin-block: 12px;
-}
-.computer-action-preview {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  padding: 12px;
-  background: var(--paper-deep);
-  color: var(--ink);
-  border-radius: 8px;
 }
 
 /* Narrow work areas: the list pushes into one skill (or the editor) with Back. */

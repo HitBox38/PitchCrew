@@ -119,7 +119,7 @@ export const registerCrewTools = (
     'pitchcrew_list_connectors',
     {
       description:
-        'List connector tools permitted for your role and their connection status. Ask the user to connect accounts or enable capabilities in Your crew when needed.',
+        'List connector tools permitted for your role and their connection status. Ask the user to connect accounts or enable capabilities in Crew when needed.',
       inputSchema: {},
       annotations: readOnly,
     },

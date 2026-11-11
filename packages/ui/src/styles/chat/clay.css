@@ -111,13 +111,6 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
-[data-interface='clay'] .chat-workspace .chat-activity-group,
-[data-interface='clay'] .chat-workspace .chat-activity-group-content {
-  border-left: 0;
-}
-[data-interface='clay'] .chat-workspace .chat-activity-group {
-  padding-left: 0;
-}
 
 /* Day dividers sit in a groove. */
 [data-interface='clay'] .chat-workspace .chat-day::before,
@@ -531,15 +524,6 @@
   padding: 0 8px 0 30px;
   color: var(--muted);
   font-size: var(--text-caption);
-}
-[data-interface='clay'] .browser-menu-field {
-  gap: 6px;
-  padding: 8px;
-}
-[data-interface='clay'] .browser-menu-field > label {
-  color: var(--muted);
-  font-size: var(--text-caption);
-  font-weight: 600;
 }
 [data-interface='clay'] .browser-menu-group .browser-profiles {
   padding: 0 4px 4px;

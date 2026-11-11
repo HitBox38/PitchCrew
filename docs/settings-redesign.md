@@ -63,5 +63,3 @@ The November settings pass borrows T3's grouped navigation, clear row hierarchy,
 Autosave feedback follows the actual user-targeted control and verifies known device storage values, including failures immediately after a successful save. A storage failure uses the existing toast so the setting stays under the pointer. Repeated search results carry a fresh navigation token, wait for modal focus restoration, and reveal a temporary outline. Runtime hashes use validated known runtime IDs. Mobile sections use labelled regions rather than orphaned tab panels, and all settings buttons/disclosures/switches receive 44px minimum touch targets. Runtime maintenance sorts attention-needed installations first without changing launch, authentication, update or approval gates.
 
 Detector key forms focus their first required field and return focus to the row action after closing; removing a key in another row preserves the open draft. Moving a background service explicitly warns when it immediately stops the other workspace's running service and interrupts its work.
-
-Independent review evidence and validation are recorded in [the settings review](reviews/settings-review.md).

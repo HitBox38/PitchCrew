@@ -117,21 +117,11 @@
 .skip-link:focus {
   top: 10px;
 }
-@variant max-wide {
-  .runtime-row small {
-    display: none;
-  }
-}
 @variant max-compact {
   .search-input {
     order: 2;
     width: 100%;
     margin-left: 0;
-  }
-  .runtime-row {
-    flex-wrap: wrap;
-    gap: 8px 12px;
-    padding: 13px 14px;
   }
   .approval-heading {
     flex-wrap: wrap;
@@ -152,9 +142,6 @@
   .activity-panel {
     padding: 4px 14px;
   }
-  .activity-actor {
-    grid-column: 2;
-  }
   .modal {
     padding: 18px;
   }
@@ -164,15 +151,6 @@
   }
   .role-settings-panel {
     border-radius: 0;
-  }
-  .role-settings-heading {
-    padding: 20px 18px;
-  }
-  .role-settings-body {
-    padding: 20px 18px 28px;
-  }
-  .role-settings-footer {
-    padding: 14px 18px;
   }
   .toast {
     right: 12px;
