@@ -1,6 +1,6 @@
 import type { RuntimeInfo } from '@pitchcrew/core';
 import { describe, expect, it } from 'vitest';
-import { resolveRuntime } from '../runtimes.ts';
+import { isolatesApplications, resolveRuntime } from '../runtimes.ts';
 
 const codex: RuntimeInfo = {
   id: 'codex',
@@ -36,5 +36,13 @@ describe('stored role runtime resolution', () => {
       available: false,
       models: [],
     });
+  });
+});
+
+describe('application isolation trait', () => {
+  it('follows the runtime entry and leaves a missing entry to the availability check', () => {
+    expect(isolatesApplications([{ ...codex, applicationIsolation: true }], 'codex')).toBe(true);
+    expect(isolatesApplications([codex], 'codex')).toBe(false);
+    expect(isolatesApplications([codex], 'demo')).toBe(true);
   });
 });

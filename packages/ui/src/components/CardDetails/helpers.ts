@@ -4,6 +4,7 @@ import { workflowSeat } from '@pitchcrew/core/states';
 import type { ApplicationSection, JobAgent } from './types.ts';
 import { packetNeedsReview } from '@/lib/job-step.ts';
 import { questionAnswered } from '@/lib/question-wait.ts';
+import { isolatesApplications } from '@/lib/runtimes.ts';
 
 /** Stream activity overrides persisted activity without losing run identity. */
 export const jobAgents = (cardId: string, data: Snapshot): JobAgent[] => {
@@ -96,7 +97,7 @@ export const jobRole = (data: Snapshot, seat: 'scout' | 'writer' | 'reviewer') =
 export const launchBlocker = (data: Snapshot, roleId: string | undefined) => {
   const role = data.roles.find((role) => role.id === roleId);
   if (!role?.enabled || role.retiredAt) return 'Enable an application agent in Crew.';
-  if (!['demo', 'codex', 'claude-code', 'opencode'].includes(role.runtime))
+  if (!isolatesApplications(data.runtimes, role.runtime))
     return 'Choose an isolated application runtime in Crew.';
   if (!data.runtimes.some((runtime) => runtime.id === role.runtime && runtime.available))
     return 'Install this agent’s runtime in Settings.';
