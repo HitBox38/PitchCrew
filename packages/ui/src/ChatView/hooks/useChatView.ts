@@ -8,7 +8,7 @@ import { useChatPreferences } from './useChatPreferences.ts';
 import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
 import type { ChatViewProps } from '@/ChatView/types.ts';
 import type { ChatMessage } from '@pitchcrew/core';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { focusAfterReveal, questionReturnFocus } from '@/UserQuestions/focus.ts';
 import type { QuestionFocusIntent } from '@/UserQuestions/types.ts';
 import {
@@ -45,13 +45,22 @@ export const useChatView = (props: ChatViewProps) => {
   const reduced = useAppReducedMotion();
   const inputRef = useRef<HTMLDivElement>(null);
   const composerDraft = useComposerDraft(thread);
-  const [recipient, setRecipient] = useState('');
+  // The view stays mounted across conversations, so a chosen recipient and a shown error belong
+  // to the conversation they came from.
+  const [recipientState, setRecipientState] = useState({ thread, value: '' });
+  const recipient = recipientState.thread === thread ? recipientState.value : '';
+  const setRecipient = useCallback(
+    (value: string) => setRecipientState({ thread, value }),
+    [thread],
+  );
   const [panes, setPanes] = useState<Record<string, 'conversation' | 'work'>>({});
   const pane = panes[thread] ?? 'conversation';
   const setPane = (next: 'conversation' | 'work') =>
     setPanes((current) => ({ ...current, [thread]: next }));
   const panels = useChatPanels(thread);
-  const [error, setError] = useState('');
+  const [errorState, setErrorState] = useState({ thread, value: '' });
+  const error = errorState.thread === thread ? errorState.value : '';
+  const setError = useCallback((value: string) => setErrorState({ thread, value }), [thread]);
   const questions = (data.userInputs ?? []).filter(
     (question) => question.threadId === thread && question.status === 'pending',
   );

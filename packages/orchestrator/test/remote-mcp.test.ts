@@ -2,12 +2,12 @@ import { createHash, randomUUID } from 'node:crypto';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
-import { adapters } from '@pitchcrew/adapters';
 import type { RemoteMcpInfo } from '@pitchcrew/core';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { RemoteMcpAccess } from '../src/remote-mcp/index.ts';
 import { findTunnelExecutable, openRemoteTunnel } from '../src/remote-mcp/tunnel.ts';
 import { createDaemon } from '../src/server.ts';
+import { isolateRuntimes, restoreRuntimes } from './helpers/daemon.ts';
 
 vi.mock('../src/remote-mcp/tunnel.ts', () => ({
   findTunnelExecutable: vi.fn(),
@@ -115,6 +115,7 @@ afterEach(async () => {
   plans.splice(0);
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
+  restoreRuntimes();
 });
 
 const directory = async () => {
@@ -274,13 +275,7 @@ it('finishes unexpected-exit cleanup before a restart can own a new listener', a
 });
 
 it('keeps every management route behind the local user session, before parsing anonymous or external-agent bodies', async () => {
-  for (const adapter of Object.values(adapters))
-    vi.spyOn(adapter, 'detect').mockResolvedValue({
-      id: adapter.id,
-      available: false,
-      version: '',
-      detail: 'Runtime execution is outside this management fixture.',
-    });
+  isolateRuntimes();
   const folder = await directory();
   const daemon = await createDaemon({
     directory: folder,

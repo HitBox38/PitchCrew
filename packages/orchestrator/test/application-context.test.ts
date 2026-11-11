@@ -47,7 +47,7 @@ const hiddenSource =
 
 describe('application source boundary', () => {
   it('preserves personal answers and confirmation during an identical source refresh', async () => {
-    const { daemon, request } = await setup(22384);
+    const { daemon, request } = await setup();
     const card = daemon.service.createCard({ company: 'Fixture', title: 'Engineer' });
     const source = (
       await request<{ sourceRevision: string }>(`/cards/${card.id}/application-context`)
@@ -89,7 +89,7 @@ describe('application source boundary', () => {
     });
   });
   it('resumes a custom isolated draft from the exact personal answer without source conversation prompts', async () => {
-    const { daemon, request } = await setup(22382);
+    const { daemon, request } = await setup();
     await request('/profile', 'PUT', {
       name: 'profile.md',
       content: '# Candidate\n- Built a React interface.',
@@ -242,7 +242,7 @@ describe('application source boundary', () => {
   });
 
   it('fails closed on malformed extraction and unsupported runtime isolation', async () => {
-    const { daemon, request } = await setup(22383);
+    const { daemon, request } = await setup();
     const card = daemon.service.createCard({
       company: 'Fixture',
       title: 'Engineer',
@@ -297,7 +297,7 @@ describe('application source boundary', () => {
   });
 
   it('isolates extraction, confirms the whole brief, then binds review and export to it', async () => {
-    const { daemon, request } = await setup(15891);
+    const { daemon, request } = await setup();
     await request('/profile', 'PUT', {
       name: 'profile.md',
       content: '# Candidate\n- Built a React interface.',
@@ -428,7 +428,7 @@ describe('application source boundary', () => {
   });
 
   it('blocks missing personal answers and stale/legacy reviews even if the reviewer says passed', async () => {
-    const { daemon, request } = await setup(15892);
+    const { daemon, request } = await setup();
     await request('/profile', 'PUT', {
       name: 'profile.md',
       content: '# Candidate\n- Built a React interface.',

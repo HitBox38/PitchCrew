@@ -74,6 +74,8 @@ Connect the CLI's native account in **Settings > Runtimes > Sign-in**, or save s
 
 Codex turns, including resumed conversations, require the scoped Pitchcrew MCP server to initialize before execution. A server startup failure fails the run instead of allowing a reply without Pitchcrew tools. The adapter approves native calls only for that server (`mcp_servers.pitchcrew.default_tools_approval_mode="approve"`), so local job deletion does not hit an unanswerable CLI approval prompt. Pitchcrew still checks current role capabilities on every call and enforces its own packet export, browser interaction and settings proposal approvals. The read-only sandbox and disabled native shell tools remain in place.
 
+The scoped run token never appears on a runtime's command line, where other local users could read it from the process list. Codex receives only the environment variable names (`mcp_servers.pitchcrew.env_vars`) with values in the child environment. Claude Code receives `--mcp-config <path>` pointing to a per-launch, owner-only (0600) file in the run's isolated folder; the file has a unique name, so concurrent launches sharing a folder never collide, and it is removed when the CLI exits. Resumed conversations get a fresh file and token each turn.
+
 Source extraction exposes no callable MCP tools. Its scoped server answers `tools/list` with an empty list so required-server discovery succeeds without granting access to profile, crew, browser or workflow actions.
 
 ### Gemini CLI and OpenCode
@@ -86,7 +88,7 @@ OpenCode receives an isolated configuration directory, a fresh session and `--pu
 
 ### GitHub Copilot CLI
 
-The adapter targets Copilot CLI 1.0.91. It uses an isolated `COPILOT_HOME`, exposes only `pitchcrew/*` tools, and disables built-in MCP, hooks and session export.
+The adapter targets Copilot CLI 1.0.91. It uses an isolated `COPILOT_HOME`, exposes only `pitchcrew/*` tools, and disables built-in MCP, hooks and session export. Its MCP server configuration is passed as `--additional-mcp-config @<path>`, a per-launch owner-only (0600) file in the run folder that is removed when the CLI exits, so the scoped run token never appears on the command line.
 
 Use the setup dialog's dedicated native sign-in terminal, native keychain authentication or supported token settings. Fallback tokens stored in the user's Copilot configuration file are not imported into isolated agent runs.
 

@@ -5,25 +5,34 @@ import type { Conversation } from '@pitchcrew/core';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { expect, it } from 'vitest';
+import { afterEach, expect, it } from 'vitest';
 import { createDaemon } from '../../orchestrator/src/server.ts';
+import {
+  isolateRuntimes,
+  reservePort,
+  restoreRuntimes,
+} from '../../orchestrator/test/helpers/daemon.ts';
 import { createAgentClient } from '../src/tools/client.ts';
-import { registerConversationTools } from '../src/tools/conversations.ts';
+import { registerCrewTools } from '../src/tools/crew.ts';
+
+afterEach(restoreRuntimes);
 
 // Registered tools -> agent client -> real /api/agent route -> gateway, so body schema stripping shows up.
 it('forwards conversation tool arguments through the agent HTTP route', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-mcp-test-'));
   expect(resolve(directory).startsWith(resolve(tmpdir(), 'pitchcrew-mcp-test-'))).toBe(true);
+  isolateRuntimes();
+  const reservation = await reservePort();
   const daemon = await createDaemon({
     dev: true,
     ui: false,
     directory,
-    port: 14621,
+    port: reservation.port,
     seedSkills: false,
   });
   const client = new Client({ name: 'pitchcrew-conversation-test', version: '1.0.0' });
   try {
-    await new Promise<void>((done) => daemon.http.listen(14621, '127.0.0.1', done));
+    await reservation.listen(daemon.http);
     const { service } = daemon;
     const shared = service.createConversation({ title: 'Fixture plan', participants: ['scout'] });
     const ids = ['First', 'Second', 'Third'].map(
@@ -53,7 +62,7 @@ it('forwards conversation tool arguments through the agent HTTP route', async ()
       cardId: null,
     });
     const server = new McpServer({ name: 'pitchcrew-fixture', version: '1.0.0' });
-    registerConversationTools(server, createAgentClient(daemon.url, 'reader-token'));
+    registerCrewTools(server, createAgentClient(daemon.url, 'reader-token'));
     const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
     await server.connect(serverSide);
     await client.connect(clientSide);
@@ -95,6 +104,16 @@ it('forwards conversation tool arguments through the agent HTTP route', async ()
     const created = (group.structuredContent as { conversation: Conversation }).conversation;
     expect(created).toMatchObject({ title: 'Fixture group', leadId: 'scout' });
     expect(created.participants).toEqual(['scout', 'writer']);
+
+    // Flat arguments must survive the route too: without conversationId this lands in the agent DM.
+    const message = await client.callTool({
+      name: 'pitchcrew_message_agent',
+      arguments: { roleId: 'writer', content: 'Fixture handoff', conversationId: created.id },
+    });
+    expect(message.isError).toBeFalsy();
+    expect(message.structuredContent).toMatchObject({
+      task: { roleId: 'writer', threadId: created.id },
+    });
   } finally {
     await client.close();
     daemon.service.controllers.delete('reader-fixture');

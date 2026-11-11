@@ -5,7 +5,7 @@ import { RuntimeHeldError } from '../src/runtime-maintenance/availability.ts';
 import { RuntimeMaintenance } from '../src/runtime-maintenance/index.ts';
 import { cleanup, setup } from './helpers/daemon.ts';
 const fixture = async () => {
-  const test = await setup(14991);
+  const test = await setup();
   const manager = test.daemon.service.runtimeMaintenance;
   manager.enabled = true;
   manager.authenticationEnabled = true;

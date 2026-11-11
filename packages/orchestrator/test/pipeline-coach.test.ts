@@ -15,8 +15,8 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { configRevision } from '../src/crew/pipeline/snapshots.ts';
 import { cleanup, finish, resources, setup } from './helpers/daemon.ts';
 import { packet, profile } from '../../mcp/test/fixtures/evaluation.ts';
-const fixture = async (port = 14800) => {
-  const state = await setup(port);
+const fixture = async () => {
+  const state = await setup();
   const { daemon } = state;
   const role = daemon.service.board.get<Role>('role', 'scout');
   await daemon.service.configureRole(role.id, {
@@ -122,7 +122,7 @@ it('requires explicit cross-application review permissions, scopes before pagina
 });
 
 it('persists criteria, evidence snapshots, distinct hypotheses and measurable follow-ups with notifications before adoption', async () => {
-  const { daemon, input, evidence, call, request } = await fixture(14801);
+  const { daemon, input, evidence, call, request } = await fixture();
   const writerInstructions = daemon.service.board.get<Role>('role', 'writer').instructions;
   await expect(
     call('save_pipeline_review', {
@@ -182,7 +182,7 @@ it('persists criteria, evidence snapshots, distinct hypotheses and measurable fo
 });
 
 it('binds targeted proposals to reviewed target revisions and checks source authority, target busy state and notice attribution', async () => {
-  const { daemon, input, call, request } = await fixture(14802);
+  const { daemon, input, call, request } = await fixture();
   const { review } = (await call('save_pipeline_review', input)) as { review: PipelineReview };
   const target = daemon.service.board.get<Role>('role', 'writer');
   const proposed = {
@@ -247,7 +247,7 @@ it('binds targeted proposals to reviewed target revisions and checks source auth
 });
 
 it('records immutable actual run configs and packet digests while future skill edits affect future runs', async () => {
-  const { daemon, request } = await setup(14803);
+  const { daemon, request } = await setup();
   for (const file of profile) await daemon.service.saveProfile(file.name, file.content);
   const skill = daemon.service.saveSkill({
     name: 'Fictional coverage',
@@ -296,7 +296,7 @@ it('records immutable actual run configs and packet digests while future skill e
 });
 
 it('retains old event decoders and replays version nine review/config records', async () => {
-  const { daemon, input, call } = await fixture(14804);
+  const { daemon, input, call } = await fixture();
   for (const version of [1, 2, 3, 4, 5, 6, 7, 8, 9])
     expect(
       decodeEvent(JSON.stringify({ version, kind: 'role', data: {}, entityId: 'fictional' }))
@@ -311,7 +311,7 @@ it('retains old event decoders and replays version nine review/config records', 
 });
 
 it('rejects finalized or missing-controller runs and requires coverage of every seat', async () => {
-  const { daemon, run, input, call } = await fixture(14806);
+  const { daemon, run, input, call } = await fixture();
   await expect(
     call('save_pipeline_review', { ...input, seats: input.seats.slice(0, 1) }),
   ).rejects.toThrow('every current crew seat');
@@ -323,7 +323,7 @@ it('rejects finalized or missing-controller runs and requires coverage of every 
 });
 
 it('accepts sibling seat evidence without exposing raw email/profile/browser payloads or global scans in card-scoped reviews', async () => {
-  const { daemon, input, call, card } = await fixture(14807);
+  const { daemon, input, call, card } = await fixture();
   const board = daemon.service.board;
   const insert = (kind: string, data: Record<string, unknown>) => {
     const createdAt = new Date().toISOString();

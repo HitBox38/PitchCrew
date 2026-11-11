@@ -10,7 +10,7 @@ const csv = [
 ].join('\n');
 
 it('imports past applications only through the user session with preview, digest and retry safety', async () => {
-  const { daemon, request } = await setup(19571);
+  const { daemon, request } = await setup();
   const body = { format: 'csv', content: csv };
   const outside = await fetch(`${daemon.url}/api/tracking/import/preview`, {
     method: 'POST',

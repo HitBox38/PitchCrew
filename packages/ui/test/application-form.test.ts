@@ -11,7 +11,7 @@ afterEach(async () => {
 });
 
 test('requires form inspection or explicit manual checking, then confirms the actual fields and files before drafting', async () => {
-  const host = await setup(24310);
+  const host = await setup();
   const card = host.daemon.service.createCard({
     company: 'Fixture Form Studio',
     title: 'Engineer',

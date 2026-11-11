@@ -25,7 +25,7 @@ it('inspects before drafting and carries confirmed fields through isolated extra
     perform: vi.fn(async () => {}),
     close: vi.fn(async () => {}),
   };
-  const { daemon, request } = await setup(24308, false, { browserLaunch: async () => driver });
+  const { daemon, request } = await setup(false, { browserLaunch: async () => driver });
   await daemon.service.saveProfile('profile.md', 'Built a React interface.');
   const card = daemon.service.board.createCard(
     cardInput.parse({
@@ -240,7 +240,7 @@ it('inspects before drafting and carries confirmed fields through isolated extra
 });
 
 it('does not grant browser/form permissions or start inspection for missing links and uncertain outcomes', async () => {
-  const { daemon, request } = await setup(24309);
+  const { daemon, request } = await setup();
   const card = daemon.service.createCard({
     company: 'Fixture',
     title: 'Engineer',

@@ -14,7 +14,7 @@ it('preserves every heading, paragraph and list item from the saved browser extr
     if (heading) expect(result).toContain(`\n\n${heading[1]}\n\n`);
     if (text) expect(result).toContain(text[1]!.startsWith('"') ? JSON.parse(text[1]!) : text[1]);
   }
-  expect(result.endsWith('Ranveer Chandra (Microsoft).')).toBe(true);
+  expect(result.endsWith('Ada Lindqvist (Harbor Works).')).toBe(true);
 });
 
 it.each([

@@ -8,7 +8,7 @@ let browser: Browser;
 let page: Page;
 
 beforeAll(async () => {
-  host = await setup(16754, false, { dev: false });
+  host = await setup(false, { dev: false });
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
   browser = await chromium.launch({ headless: true });
 }, 60000);

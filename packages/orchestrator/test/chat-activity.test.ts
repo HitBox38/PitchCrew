@@ -14,7 +14,7 @@ it('streams bounded activity, preserves outcomes on replay and keeps private pay
       complete = () => resolve({ reply: 'Here is the answer.' });
     });
   });
-  const { daemon, request } = await setup(14611);
+  const { daemon, request } = await setup();
   const { result: run } = await request<Run>('/roles/scout/chat', 'POST', {
     content: 'Check my profile.',
   });
@@ -90,7 +90,7 @@ it('bounds per-run history and text while retaining updates to existing steps', 
       complete = () => resolve({ reply: 'Done' });
     });
   });
-  const { daemon, request } = await setup(14612);
+  const { daemon, request } = await setup();
   const { result: run } = await request<Run>('/roles/scout/chat', 'POST', { content: 'Check' });
   await vi.waitFor(() => expect(context).toBeDefined());
   for (let i = 0; i < 90; i++)
@@ -134,7 +134,7 @@ it('retains interrupted steps after user cancellation and rejects late activity'
     );
     return { reply: 'Late answer' };
   });
-  const { daemon, request } = await setup(14613);
+  const { daemon, request } = await setup();
   const { result: run } = await request<Run>('/roles/scout/chat', 'POST', { content: 'Check' });
   await vi.waitFor(() => expect(context).toBeDefined());
   await request(`/runs/${run.id}/cancel`, 'POST');

@@ -1,4 +1,5 @@
 import type { AgentTask, ChatRequest, DeepReview, Run, UserInputRequest } from '@pitchcrew/core';
+import { runHeaders } from '@pitchcrew/board';
 import type { CrewContext } from '../types.ts';
 
 export const questionForRun = (context: CrewContext, runId: string) => {
@@ -80,12 +81,19 @@ export const cancelUserQuestions = (
 ): void => {
   const questions = context.board.list<UserInputRequest>('user_input');
   const selected = new Set(questions.filter(matches).map((q) => q.id));
+  // The closure below compares request IDs across every question pair; read each run's header
+  // once instead of parsing its configuration snapshot per comparison. `get` reports a missing run.
+  const headers = runHeaders(
+    context.board,
+    questions.map((q) => q.runId),
+  );
+  const header = (id: string) => headers.get(id) ?? context.board.get<Run>('run', id);
   let changed = true;
   while (changed) {
     changed = false;
     for (const child of questions.filter((q) => selected.has(q.id))) {
       for (const descendant of questions) {
-        const descendantRun = context.board.get<Run>('run', descendant.runId);
+        const descendantRun = header(descendant.runId);
         if (
           child.continuationRequestId &&
           descendantRun.requestId === child.continuationRequestId &&
@@ -95,7 +103,7 @@ export const cancelUserQuestions = (
           changed = true;
         }
       }
-      const origin = context.board.get<Run>('run', child.runId);
+      const origin = header(child.runId);
       const parent = questions.find(
         (q) => q.continuationRequestId === origin.requestId && origin.requestId,
       );
@@ -106,13 +114,10 @@ export const cancelUserQuestions = (
     }
   }
   for (const q of questions) {
+    if (!selected.has(q.id) || q.status === 'cancelled') continue;
+    // Read fresh: earlier iterations may have cancelled this run.
     const run = context.board.get<Run>('run', q.runId);
-    if (
-      !selected.has(q.id) ||
-      q.status === 'cancelled' ||
-      (q.status === 'answered' && run.status === 'completed')
-    )
-      continue;
+    if (q.status === 'answered' && run.status === 'completed') continue;
     context.board.record(
       'user_input',
       { ...q, status: 'cancelled', cancellationReason: reason },

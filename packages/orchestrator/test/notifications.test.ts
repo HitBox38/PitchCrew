@@ -13,7 +13,7 @@ it('persists bounded, scoped user requests, replays priority and expires run acc
         complete = resolve;
       }),
   );
-  const { daemon, request } = await setup(14520);
+  const { daemon, request } = await setup();
   const { result: run } = await request<Run>('/roles/scout/chat', 'POST', {
     content: 'Research a fictional role.',
   });

@@ -308,9 +308,6 @@ export class CrewService {
   deleteSkill = (id: string): { ok: boolean } => {
     return this.context.deleteSkill(id);
   };
-  writeRole = (role: Role): Promise<void> => {
-    return this.context.writeRole(role);
-  };
   createRole = (data: unknown): Promise<Role> => {
     return this.context.createRole(data);
   };

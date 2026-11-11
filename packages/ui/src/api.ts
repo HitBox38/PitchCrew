@@ -3,8 +3,8 @@ import { actionEvent } from './Analytics/helpers.ts';
 import { apiErrorAction, reportErrorDiagnostic } from './Analytics/error-tracking.ts';
 import type { ErrorCategory } from './Analytics/error-sanitizer.ts';
 import { beginApiMetric } from './Analytics/metrics/runtime.ts';
-import { diagnosticRequestHeaders } from './Analytics/request-context.ts';
 import { ApiHttpError } from './api-errors.ts';
+import { sessionFetch } from './session.ts';
 
 export { ApiHttpError } from './api-errors.ts';
 
@@ -27,13 +27,11 @@ export const api = (async <T>(
   let category: ErrorCategory | undefined = 'request_network';
   let httpStatus: number | undefined;
   try {
-    const response = await fetch(`/api${path}`, {
+    const response = await sessionFetch(`/api${path}`, {
       method,
       signal,
       ...(conditional ? ({ cache: 'no-store' } as const) : {}),
       headers: {
-        'x-pitchcrew-client': 'ui',
-        ...diagnosticRequestHeaders(),
         ...(conditional?.etag ? { 'if-none-match': conditional.etag } : {}),
         ...(body !== undefined ? { 'content-type': 'application/json' } : {}),
       },

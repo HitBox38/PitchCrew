@@ -58,7 +58,7 @@ const registerBridge = (
     if (!(await authorizeExternalAccess(service.directory, req.headers.authorization)))
       return res.status(403).send({
         error:
-          'External MCP access is disabled or revoked. Check Settings > Accounts > External agents in Pitchcrew, then reconnect this app.',
+          'External MCP access is disabled or revoked. Check Settings > Accounts > Local agent apps in Pitchcrew, then reconnect this app.',
       });
   });
   app.post('/api/external-mcp', async (req, res) => {

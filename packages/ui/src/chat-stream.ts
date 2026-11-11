@@ -1,4 +1,4 @@
-import { diagnosticRequestHeaders } from './Analytics/request-context.ts';
+import { sessionFetch } from './session.ts';
 import type { ChatStreamState, ChatStreamUpdate } from '@pitchcrew/core';
 
 export const readChatStream = async (
@@ -78,9 +78,8 @@ export const subscribeChatStream = (
     const establishment = setTimeout(abortConnection, 15_000);
     try {
       if (controller.signal.aborted) return;
-      const response = await fetch('/api/chat/stream?view=workspace', {
+      const response = await sessionFetch('/api/chat/stream?view=workspace', {
         signal: connection.signal,
-        headers: { 'x-pitchcrew-client': 'ui', ...diagnosticRequestHeaders() },
       });
       clearTimeout(establishment);
       if (!response.ok || !response.body) {

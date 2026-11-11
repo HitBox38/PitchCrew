@@ -13,7 +13,7 @@ const quote = 'Led the fictional migration with a verified reduction in processi
 const errors: string[] = [];
 
 beforeAll(async () => {
-  host = await setup(14620);
+  host = await setup();
   await host.daemon.service.saveProfile(
     name,
     `# Fictional career background\n\n${'A documented project with supporting evidence.\n\n'.repeat(80)}${quote}`,

@@ -10,7 +10,7 @@ import { afterEach, expect, it } from 'vitest';
 import { cleanup, resources, setup } from './helpers/daemon.ts';
 
 const context = async () => {
-  const { daemon, request } = await setup(15633);
+  const { daemon, request } = await setup();
   const service = daemon.service;
   const card = service.board.createCard(
     cardInput.parse({ company: 'Wrong Fixture', title: 'Engineer', salary: 'Saved salary' }),

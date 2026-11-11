@@ -33,7 +33,7 @@ const upload = (
 
 it('persists attachments outside events, prepares isolated copies, serves exact bytes and restores history', async () => {
   const turns = holdChats();
-  const { daemon, request, cookie, directory } = await setup(19670);
+  const { daemon, request, cookie, directory } = await setup();
   try {
     const file = upload('Résumé.md');
     const { response, result: run } = await request<Run>('/roles/scout/chat', 'POST', {
@@ -99,7 +99,7 @@ it('persists attachments outside events, prepares isolated copies, serves exact 
 
 it('scopes reads to own and joined group conversations, returns images, and rejects changed files and expired runs', async () => {
   const turns = holdChats();
-  const { daemon, request, directory } = await setup(19671);
+  const { daemon, request, directory } = await setup();
   try {
     await request('/roles/scout/chat', 'POST', {
       content: 'Private file',
@@ -151,7 +151,7 @@ it('scopes reads to own and joined group conversations, returns images, and reje
 
 it('rejects invalid or oversized uploads before recording messages and cleans files when a role is busy', async () => {
   const turns = holdChats();
-  const { daemon, request, directory } = await setup(19672);
+  const { daemon, request, directory } = await setup();
   try {
     for (const body of [
       { content: ' ' },

@@ -29,10 +29,9 @@ const DocxDocument = ({
       .catch((reason: unknown) => {
         if (!controller.signal.aborted) setError(String(reason));
       });
-    return () => {
-      controller.abort();
-      onRoot(null);
-    };
+    // The root is not cleared here: this cleanup runs after the next view's ref has attached, so
+    // clearing it would leave Find and Copy selection without a document.
+    return () => controller.abort();
   }, [bytes, onRoot]);
   return (
     <div className="file-docx-document">

@@ -15,7 +15,7 @@ const menu = () => page.getByRole('button', { name: menuName(), exact: true });
 const focusedLabel = () => page.evaluate(() => document.activeElement?.getAttribute('aria-label'));
 
 beforeAll(async () => {
-  host = await setup(14609);
+  host = await setup();
   browser = await chromium.launch({ headless: true });
   page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   page.setDefaultTimeout(10000);

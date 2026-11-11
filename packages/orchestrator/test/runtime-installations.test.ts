@@ -59,7 +59,11 @@ it.skipIf(process.platform === 'win32')(
     vi.mocked(os.homedir).mockReturnValue(home);
     vi.stubEnv('PATH', join(home, 'empty-bin'));
     vi.stubEnv('GOOSE_PROVIDER', 'openai');
-    const { request } = await setup(14968, false, { dev: false });
+    // Detection runs for real here, against the fixture executables installed below.
+    const { request } = await setup(false, {
+      dev: false,
+      nativeRuntimes: Object.keys(commands) as RuntimeId[],
+    });
     const before = (await request<Snapshot>('/snapshot')).result;
     expect(before.runtimes.every((runtime) => !runtime.available)).toBe(true);
     for (const command of Object.values(commands))

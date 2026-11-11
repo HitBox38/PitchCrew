@@ -53,8 +53,8 @@ Event version 34 adds a `delegation_round` entity (lead, initiator, chain root, 
 
 ## Implementation notes
 
-- `packages/orchestrator/src/crew/delegation-rounds.ts` validates and saves a round with its tasks in one transaction, decides task readiness (`taskParentReady`), builds the collection prompt, recomputes round status and lists open round roots so Stop reaches user-started rounds.
-- `tasks.ts` lets delegates of one round share a job while blocking other work on that card, fills the collection task's prompt just before launch and never pauses the queue for a failed delegate.
+- `packages/orchestrator/src/crew/delegation-rounds.ts` validates and saves a round with its tasks in one transaction, decides task readiness (`taskParentReady`), builds the collection prompt (following an answered question's continuation runs to the delegate's final reply), recomputes round status and lists open round roots so Stop reaches user-started rounds. A failed delegate needs Retry or Skip only while its collection has not started (for example after a restart interrupted it); afterwards it is a settled result that never blocks Resume or appears as a failed follow-up.
+- `tasks.ts` lets delegates of one round share a job while blocking other work on that card, fills the collection task's prompt just before launch and never pauses the queue for a failed delegate, whether it failed to launch or failed while running (`finishQueueRun` in `conversation-queue.ts` also keeps the round's admitted chain).
 - The gateway reports `delegate: true` from `execution_access`, the MCP CLI then omits delegation, grouping and deep-review tools, and the gateway rejects those actions regardless.
 - User-initiated rounds are a chat request with empty deliveries and a `roundId`; its tasks use the request ID as parent anchor and the user's authority replaces the originating-role permission check.
 - The shared chat prompt explains rounds to leads, tells delegates their boundaries and tells the collection turn what it received.

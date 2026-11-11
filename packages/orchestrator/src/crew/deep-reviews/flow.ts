@@ -1,7 +1,7 @@
 import { recordMissingRequestedOpinions, prepareRequestedOpinions } from './requested-opinions.ts';
 import { inspectPacketDocuments } from '../../quality/documents.ts';
-import { digestPacket } from '@pitchcrew/board';
-import type { Card, ReviewAssessment, Run } from '@pitchcrew/core';
+import { digestPacket, runsForDeepReview } from '@pitchcrew/board';
+import type { Card, ReviewAssessment } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 import { assertReviewCurrent, assertReviewEvidence, review, updateReview } from './state.ts';
 import { executeReviewStage } from './stages.ts';
@@ -160,16 +160,13 @@ const assessStage = async (
           'Input and returned assessments are saved in the Reviewer run folders. Start a fresh deep review after checking the Reviewer runtime/model.',
       );
     // The allowance survives question continuations and daemon projections.
-    const rejected = context.board
-      .list<Run>('run')
-      .filter(
-        (run) =>
-          run.deepReviewId === live.id &&
-          run.reviewStage === stage &&
-          !run.reviewSubagentId &&
-          run.status === 'failed' &&
-          run.message.startsWith('Reviewer quotation at '),
-      ).length;
+    const rejected = runsForDeepReview(context.board, live.id).filter(
+      (run) =>
+        run.reviewStage === stage &&
+        !run.reviewSubagentId &&
+        run.status === 'failed' &&
+        run.message.startsWith('Reviewer quotation at '),
+    ).length;
     if (rejected >= 2) throw repairFailure(error);
     updateReview(
       context,

@@ -7,7 +7,7 @@ import { reviewSummary } from './helpers/review-summary.ts';
 afterEach(cleanup);
 
 it('keeps each applied agent change description in job activity through replay', async () => {
-  const { daemon, request } = await setup(19911);
+  const { daemon, request } = await setup();
   const { service } = daemon;
   const card = service.createCard({ company: 'Fictional Activity', title: 'Engineer' });
   await confirmFixtureApplication(request, card.id);
@@ -98,7 +98,7 @@ it('keeps each applied agent change description in job activity through replay',
 });
 
 it('records factual summaries for older results and never logs rejected packet writes', async () => {
-  const { daemon, request } = await setup(19912);
+  const { daemon, request } = await setup();
   const { service } = daemon;
   const card = service.createCard({ company: 'Fictional Legacy', title: 'Engineer' });
   await confirmFixtureApplication(request, card.id);

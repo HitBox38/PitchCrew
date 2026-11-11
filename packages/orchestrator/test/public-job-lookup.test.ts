@@ -255,7 +255,7 @@ it('reads scoped microdata and rejects pages with multiple postings', async () =
 });
 
 it('keeps public lookups session-protected and saves reviewed fields without discovery metadata', async () => {
-  const { daemon, request } = await setup(15721);
+  const { daemon, request } = await setup();
   daemon.service.jobSources.readPage = async () => ({
     url: pageUrl,
     html: await fixture('structured'),

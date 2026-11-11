@@ -9,7 +9,7 @@ let page: Page;
 let card: Card;
 const errors: string[] = [];
 beforeAll(async () => {
-  host = await setup(14631);
+  host = await setup();
   await host.daemon.service.saveProfile(
     'experience.md',
     '# Experience\n\n- Built fictional React interfaces.',

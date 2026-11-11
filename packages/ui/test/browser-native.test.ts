@@ -126,7 +126,7 @@ const nativeCommand = vi.fn(async (command: NativeBrowserCommand) => {
   return state;
 });
 beforeAll(async () => {
-  host = await setup(23950, false, {
+  host = await setup(false, {
     browserLaunch: async () => ({
       native,
       nativeState: async () => state,

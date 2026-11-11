@@ -214,7 +214,13 @@ export const expectedDocumentText = (source: string, layout: ArtifactLayout) =>
 // Layout and reading-order judgments remain advisory; this is not an ATS compatibility test.
 const characters = (value: string) =>
   Array.from(
-    value.normalize('NFKC').replace(/[\s\u00ad\u200b-\u200f\u202a-\u202e\u2066-\u2069]/gu, ''),
+    value
+      .normalize('NFKC')
+      // The same invisible characters the renderer leaves out (cleanText), so they never count as missing.
+      .replace(
+        /[\s\u00ad\u200b-\u200f\u202a-\u202e\u2060\u2066-\u2069]|\p{Variation_Selector}/gu,
+        '',
+      ),
   );
 
 const verifiedCache = new Map<string, Promise<DocumentVerification>>();

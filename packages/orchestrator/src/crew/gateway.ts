@@ -1,3 +1,4 @@
+import { findRun } from '@pitchcrew/board';
 import { subagentCard } from './deep-reviews/inputs.ts';
 import { qualityAgentAction } from '../quality/agent.ts';
 import { inspectPacketDocuments } from '../quality/documents.ts';
@@ -91,9 +92,7 @@ const dispatchAgentCall = async (
   const role = requireRole(context, capability.roleId);
   if (!role.enabled) throw new Error('This role is paused.');
   const permissions = role.capabilities ?? defaultCapabilities;
-  const activeRun = context.board
-    .list<import('@pitchcrew/core').Run>('run')
-    .find((run) => run.id === capability.runId);
+  const activeRun = findRun(context.board, capability.runId);
   if (action === 'execution_access') {
     if (!activeRun || activeRun.status !== 'running')
       throw new Error('Run capability is invalid or expired.');
@@ -126,6 +125,7 @@ const dispatchAgentCall = async (
       'delegate_round',
       'create_group',
       'invite_agent',
+      'transfer_lead',
       'start_deep_review',
     ].includes(action) &&
     runIsDelegate(context, activeRun)

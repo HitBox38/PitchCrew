@@ -2,6 +2,7 @@ import type { ChatRequest, AgentTask } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 import { canReadConversation } from '../conversations.ts';
 import { saveRequest } from '../conversation-queue.ts';
+import { taskAwaitsRecovery } from '../delegation-rounds.ts';
 import { ensureQueue, nextOrder, patchQueue, queueRequests, taskLane } from './state.ts';
 
 /** Retry one reviewed head request, then continue messages that have never started. */
@@ -13,7 +14,7 @@ export const resumeHeadRequest = (context: CrewContext, request: ChatRequest) =>
   if (
     context.board
       .list<AgentTask>('task')
-      .some((task) => task.status === 'failed' && taskLane(context, task) === queue.id)
+      .some((task) => taskAwaitsRecovery(context, task) && taskLane(context, task) === queue.id)
   )
     throw new Error('Retry or skip the failed crew follow-up in Queue before continuing.');
   const eligible = request.deliveries.filter(

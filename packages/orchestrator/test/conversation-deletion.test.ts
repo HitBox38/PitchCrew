@@ -15,7 +15,7 @@ import { setup, cleanup } from './helpers/daemon.ts';
 import { migrateConversations } from '../src/crew/conversations.ts';
 
 afterEach(cleanup);
-const fixture = () => setup(19549);
+const fixture = () => setup();
 
 it('deletes transcripts, previews, searches and sessions while preserving history and other chats across replay', async () => {
   const { daemon, request } = await fixture();
@@ -157,6 +157,10 @@ it('cancels queued work, pauses routines and retains separately saved memories',
     enabled: false,
     nextRunAt: null,
   });
+  // The paused routine still names the deleted conversation; later ticks must keep working.
+  await expect(
+    daemon.service.tickRoutines(new Date('2035-01-01T09:00:00Z')),
+  ).resolves.toBeUndefined();
   expect(board.get<AgentMemory>('agent_memory', memory.id)).toEqual(memory);
 });
 

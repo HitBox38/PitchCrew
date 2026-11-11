@@ -13,7 +13,7 @@ const blocked: string[] = [];
 let reloads = 0;
 
 beforeAll(async () => {
-  host = await setup(14783);
+  host = await setup();
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
   ({ result: card } = await host.request<Card>('/cards', 'POST', {
     company: 'Recovery Fixture (fictional)',

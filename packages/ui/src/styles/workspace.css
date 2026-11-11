@@ -19,17 +19,6 @@
   padding: 0 16px 16px 8px;
   max-width: none;
 }
-@keyframes tray-flash {
-  0%,
-  40% {
-    outline: 2px solid color-mix(in srgb, var(--primary) 60%, transparent);
-    outline-offset: -2px;
-  }
-  100% {
-    outline: 2px solid transparent;
-    outline-offset: -2px;
-  }
-}
 
 /* Phones: menu, page title, the page's one primary action and the overflow in one 48px bar above
  * the page. The bell stands before the overflow only while no primary takes its place. */

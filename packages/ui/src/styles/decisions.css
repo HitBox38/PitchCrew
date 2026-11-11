@@ -1053,11 +1053,11 @@
   color: var(--moss);
 }
 .detector-results > li[data-outdated] {
-  color: var(--ink-faint);
+  color: var(--faint);
   font-weight: 400;
 }
 .detector-results time {
-  color: var(--ink-faint);
+  color: var(--faint);
   font-weight: 400;
 }
 .detector-key-form {

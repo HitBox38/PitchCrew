@@ -1,6 +1,6 @@
 import { sourceArguments } from '../process.ts';
 import { adapters } from '@pitchcrew/adapters';
-import { digestPacket, assertConfirmedContext } from '@pitchcrew/board';
+import { digestPacket, assertConfirmedContext, runsForCard } from '@pitchcrew/board';
 import {
   draftingCard,
   workflowSeat,
@@ -191,14 +191,9 @@ export const documentReviewCycle = async (
   if (!card.packet) return;
   let check = await inspectPacketDocuments(context.directory, card.packet);
   signal.throwIfAborted();
-  const alreadyCorrected = context.board
-    .list<Run>('run')
-    .some(
-      (run) =>
-        run.documentRepair &&
-        run.cardId === card.id &&
-        (run.rootRunId ?? run.id) === (parent.rootRunId ?? parent.id),
-    );
+  const alreadyCorrected = runsForCard(context.board, card.id).some(
+    (run) => run.documentRepair && (run.rootRunId ?? run.id) === (parent.rootRunId ?? parent.id),
+  );
   if (check.repairable.length && !alreadyCorrected) {
     const roles = context.board.list<Role>('role');
     const available = (r: Role) => r.enabled && adapters[r.runtime].applicationIsolation;

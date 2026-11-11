@@ -29,7 +29,7 @@ beforeAll(async () => {
     body{margin:0} #marker{position:fixed;left:0;top:0;width:64px;height:64px;background:rgb(0,0,0)}
     input{position:fixed;left:100px;top:80px;width:200px} main{height:20000px;background:repeating-linear-gradient(#fff 0 40px,#bbb 40px 80px)}
     </style><div id="marker"></div><input id="name" oninput="document.querySelector('#marker').style.background='rgb('+(this.value.length*10)+',0,0)'"><main></main>`);
-  host = await setup(23949, false, { browserLaunch: async () => driver });
+  host = await setup(false, { browserLaunch: async () => driver });
   const service = host.daemon.service;
   const role = service.board.get<Role>('role', 'writer');
   service.board.record(

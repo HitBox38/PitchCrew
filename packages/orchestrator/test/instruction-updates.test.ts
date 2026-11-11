@@ -4,22 +4,23 @@ import type { InstructionUpdate, Role, Snapshot } from '@pitchcrew/core';
 import { currentEventVersion } from '@pitchcrew/core';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { InstructionUpdatePreferences } from '../src/instruction-updates.ts';
 import { createDaemon } from '../src/server.ts';
-import { cleanup, finish, resources, setup } from './helpers/daemon.ts';
+import { cleanup, finish, reservePort, resources, setup } from './helpers/daemon.ts';
 
 /** Closes running daemons for this directory and starts a new one, as a restart does. */
-const restart = async (directory: string, port: number) => {
+const restart = async (directory: string) => {
   for (const entry of resources.splice(0)) await entry.daemon.close();
+  const { port, listen } = await reservePort();
   const daemon = await createDaemon({ directory, port, seedSkills: false, dev: true, ui: false });
   resources.push({ daemon, directory });
-  await new Promise<void>((resolve) => daemon.http.listen(port, '127.0.0.1', resolve));
+  await listen(daemon.http);
   return daemon;
 };
 
-const fixture = async (port: number) => {
-  const context = await setup(port);
+const fixture = async () => {
+  const context = await setup();
   const { daemon, request } = context;
   const seedOld = (id: string, instructions: string) => {
     const role = daemon.service.board.get<Role>('role', id);
@@ -30,16 +31,6 @@ const fixture = async (port: number) => {
   return { ...context, seedOld, updates };
 };
 
-beforeEach(() => {
-  // Instruction fixtures use Demo; installed provider CLIs are unrelated.
-  for (const adapter of Object.values(adapters).filter((adapter) => adapter.id !== 'demo'))
-    vi.spyOn(adapter, 'detect').mockResolvedValue({
-      id: adapter.id,
-      available: false,
-      version: '',
-      detail: 'Native runtime detection is outside this instruction fixture.',
-    });
-});
 afterEach(async () => {
   try {
     for (const { daemon } of resources) daemon.service.capabilities.delete('update-token');
@@ -60,7 +51,7 @@ const latest = (id: string) => defaultInstructionHistory[id].at(-1)!.revision;
 
 describe('default instruction updates', () => {
   it('lists updates for seeded defaults without changing any role', async () => {
-    const { daemon, seedOld, updates } = await fixture(15611);
+    const { daemon, seedOld, updates } = await fixture();
     expect(await updates()).toEqual([]);
     seedOld('scout', firstScout);
     seedOld('writer', firstWriter);
@@ -94,7 +85,7 @@ describe('default instruction updates', () => {
           complete = resolve;
         }),
     );
-    const { daemon, directory, request, seedOld, updates } = await fixture(15612);
+    const { daemon, directory, request, seedOld, updates } = await fixture();
     seedOld('scout', firstScout);
     const scout = daemon.service.board.get<Role>('role', 'scout');
     const run = await daemon.service.sendChat('scout', { content: 'Fictional question' });
@@ -150,7 +141,7 @@ describe('default instruction updates', () => {
   });
 
   it('saves an edited reviewed default with durable provenance and rejects stale bases', async () => {
-    const { daemon, directory, request, seedOld, updates } = await fixture(15618);
+    const { daemon, directory, request, seedOld, updates } = await fixture();
     seedOld('writer', firstWriter);
     const role = daemon.service.board.get<Role>('role', 'writer');
     const instructions = `${current.writer}\n\nKeep a fictional warm tone.`;
@@ -182,7 +173,7 @@ describe('default instruction updates', () => {
     expect(daemon.service.board.get<Role>('role', 'writer').defaultInstructionBase).toEqual(
       result.result.defaultInstructionBase,
     );
-    const restarted = await restart(directory, 15619);
+    const restarted = await restart(directory);
     expect(
       (await restarted.service.snapshot()).instructionUpdates?.find(
         (update) => update.roleId === 'writer',
@@ -191,7 +182,7 @@ describe('default instruction updates', () => {
   });
 
   it('clears an explicit source when the user restores an exact earlier default', async () => {
-    const { daemon, request, seedOld, updates } = await fixture(15610);
+    const { daemon, request, seedOld, updates } = await fixture();
     seedOld('writer', firstWriter);
     const role = daemon.service.board.get<Role>('role', 'writer');
     await request('/roles/writer', 'PUT', {
@@ -213,7 +204,7 @@ describe('default instruction updates', () => {
   });
 
   it('ignores forged default base metadata without a reviewed revision', async () => {
-    const { daemon, request, seedOld, updates } = await fixture(15620);
+    const { daemon, request, seedOld, updates } = await fixture();
     seedOld('writer', firstWriter);
     const role = daemon.service.board.get<Role>('role', 'writer');
     await request('/roles/writer', 'PUT', {
@@ -228,7 +219,7 @@ describe('default instruction updates', () => {
   });
 
   it('keeps a dismissal across restarts until a newer revision ships', async () => {
-    const { daemon, directory, request, seedOld } = await fixture(15614);
+    const { daemon, directory, request, seedOld } = await fixture();
     seedOld('writer', firstWriter);
     const dismissed = await request<InstructionUpdate>(
       '/roles/writer/instructions-update/dismiss',
@@ -243,13 +234,13 @@ describe('default instruction updates', () => {
       dismissed: { writer: latest('writer') },
     });
 
-    const writerUpdate = async (port: number) => {
-      const restarted = await restart(directory, port);
+    const writerUpdate = async () => {
+      const restarted = await restart(directory);
       return (await restarted.service.snapshot()).instructionUpdates?.find(
         (item) => item.roleId === 'writer',
       );
     };
-    expect(await writerUpdate(15616)).toMatchObject({ state: 'unedited', dismissed: true });
+    expect(await writerUpdate()).toMatchObject({ state: 'unedited', dismissed: true });
     // The user kept an older revision; the current default is newer, so it shows again.
     await writeFile(
       file,
@@ -258,13 +249,13 @@ describe('default instruction updates', () => {
         dismissed: { writer: defaultInstructionHistory.writer[1].revision },
       }),
     );
-    expect(await writerUpdate(15617)).toMatchObject({ state: 'unedited', dismissed: false });
+    expect(await writerUpdate()).toMatchObject({ state: 'unedited', dismissed: false });
     await writeFile(file, '{"broken"');
     expect(new InstructionUpdatePreferences(directory).dismissed()).toEqual({});
   });
 
   it('rejects decisions without a UI session, from agents and for retired roles', async () => {
-    const { daemon, request, seedOld } = await fixture(15615);
+    const { daemon, request, seedOld } = await fixture();
     seedOld('scout', firstScout);
     daemon.service.capabilities.set('update-token', {
       roleId: 'scout',
