@@ -3,7 +3,7 @@ import { queueMayStart } from '../queue/dispatch.ts';
 import { randomUUID } from 'node:crypto';
 import { saveRequest } from '../conversation-queue.ts';
 import { activeQueues, concurrency } from '../queue/state.ts';
-import { type ChatRequest } from '@pitchcrew/core';
+import { runLifecycle, taskLifecycle, type ChatRequest } from '@pitchcrew/core';
 import { drainConversationQueue } from '../conversation-queue.ts';
 import { relatedConversation, conversation } from '../conversations.ts';
 import { profileUpdateInterrupted } from '../../profile-sources/mutation.ts';
@@ -82,7 +82,7 @@ export const tickRoutines = async (context: CrewContext, now = new Date()): Prom
           .list<Run>('run')
           .some(
             (run) =>
-              ['running', 'waiting'].includes(run.status) &&
+              runLifecycle.is('live', run.status) &&
               (run.routineId === routine.id ||
                 (routine.lastRunId && run.rootRunId === routine.lastRunId)),
           )
@@ -94,9 +94,7 @@ export const tickRoutines = async (context: CrewContext, now = new Date()): Prom
         context.board
           .list<AgentTask>('task')
           .some(
-            (task) =>
-              task.rootRunId === routine.lastRunId &&
-              ['queued', 'running', 'waiting'].includes(task.status),
+            (task) => task.rootRunId === routine.lastRunId && taskLifecycle.is('live', task.status),
           )
       )
         continue;

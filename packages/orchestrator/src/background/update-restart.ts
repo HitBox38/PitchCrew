@@ -12,8 +12,7 @@ export const markUpdateRestart = async (directory: string, version: unknown) => 
 export const verifyUpdateRestart = async (directory: string, build: AppBuild, url: string) => {
   const text = await readFile(join(directory, fileName), 'utf8').catch(() => null);
   if (text === null) return;
-  const expected = JSON.parse(text) as { version?: unknown };
-  if (expected.version === build.version) {
+  if (markedVersion(text) === build.version) {
     const response = await fetch(url, { redirect: 'error', signal: AbortSignal.timeout(2000) });
     const cookie = response.headers.get('set-cookie')?.split(';')[0];
     await response.body?.cancel();
@@ -38,6 +37,15 @@ export const verifyUpdateRestart = async (directory: string, build: AppBuild, ur
   await clearUpdateRestart(directory);
 };
 
+/** A truncated or damaged marker names no version, so it is cleared instead of blocking startup. */
+const markedVersion = (text: string): unknown => {
+  try {
+    const marker: unknown = JSON.parse(text);
+    return typeof marker === 'object' && marker ? (marker as { version?: unknown }).version : null;
+  } catch {
+    return null;
+  }
+};
 const fileName = 'update-restart.json';
 const versionPattern = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 

@@ -1,3 +1,4 @@
+import { deliveryLifecycle } from '@pitchcrew/core';
 import type { ChatRequest, AgentTask } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 import { canReadConversation } from '../conversations.ts';
@@ -18,7 +19,7 @@ export const resumeHeadRequest = (context: CrewContext, request: ChatRequest) =>
     throw new Error('Retry or skip the failed crew follow-up in Queue before continuing.');
   const eligible = request.deliveries.filter(
     (delivery) =>
-      ['paused', 'failed'].includes(delivery.status) &&
+      deliveryLifecycle.is('stopped', delivery.status) &&
       canReadConversation(context, delivery.roleId, request.threadId),
   );
   if (!eligible.length) throw new Error('This message has no unfinished replies to resume.');

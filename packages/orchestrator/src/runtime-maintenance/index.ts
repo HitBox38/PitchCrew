@@ -40,7 +40,10 @@ export class RuntimeMaintenance {
   readonly store: RuntimeMaintenanceStore;
   readonly host: typeof runtimeMaintenanceHost;
   readonly controller = new AbortController();
+  /** One slot per runtime, shared by updates, installation, sign-in and setting changes. */
   readonly active = new Map<RuntimeId, Promise<void>>();
+  /** The slot entries that are updates, so a repeated Update click can be told apart from other work. */
+  private readonly updates = new WeakSet<Promise<void>>();
   readonly preparations = new Map<RuntimeId, number>();
   readonly installations = new Map<RuntimeId, RuntimeInstallation>();
   private readonly authentication = new Map<
@@ -375,7 +378,13 @@ export class RuntimeMaintenance {
   startUpdate = (id: RuntimeId) => {
     if (!this.enabled)
       throw new Error('Runtime release checks and in-app updates are disabled in this daemon.');
-    if (this.active.has(id)) return this.current();
+    const held = this.active.get(id);
+    // A repeated click on a running update is not an error; any other work holding the slot is.
+    if (held && this.updates.has(held)) return this.current();
+    if (held && !this.context().closing)
+      throw new Error(
+        'Wait for this runtime’s sign-in, installation or settings change to finish, then update.',
+      );
     if (this.context().closing || this.isUpdating(id))
       throw new Error('A runtime update is already in progress or awaiting recovery.');
     const reasons = this.busy(id);
@@ -399,6 +408,7 @@ export class RuntimeMaintenance {
     const operation = Promise.resolve()
       .then(() => this.scope(() => executeRuntimeUpdate(this, id)))
       .finally(() => this.active.delete(id));
+    this.updates.add(operation);
     this.active.set(id, operation);
     return this.current();
   };

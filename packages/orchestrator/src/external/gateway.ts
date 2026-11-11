@@ -1,3 +1,4 @@
+import { runLifecycle } from '@pitchcrew/core';
 import { changeJobState, conversationHistory, deleteJob, updateJobDetails } from '@pitchcrew/board';
 import type { Card, Conversation, Role, Run } from '@pitchcrew/core';
 import { externalTools } from '@pitchcrew/mcp/external/tools';
@@ -35,7 +36,7 @@ const idleCard = (context: CrewContext, id: string) => {
     card.owner ||
     context.board
       .list<Run>('run')
-      .some((run) => run.cardId === id && ['running', 'waiting'].includes(run.status))
+      .some((run) => run.cardId === id && runLifecycle.is('live', run.status))
   )
     throw new Error('Finish or cancel active job work before changing this job.');
   return card;

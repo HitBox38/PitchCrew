@@ -1,5 +1,7 @@
 import { waitingOnUser } from '../user-input/lifecycle.ts';
 import {
+  runLifecycle,
+  taskLifecycle,
   defaultCapabilities,
   type Routine,
   type Role,
@@ -57,15 +59,13 @@ export const routineReadyBefore = (
         .list<Run>('run')
         .some(
           (run) =>
-            ['running', 'waiting'].includes(run.status) &&
+            runLifecycle.is('live', run.status) &&
             (run.id === routine.lastRunId || run.rootRunId === routine.lastRunId),
         ) ||
         context.board
           .list<AgentTask>('task')
           .some(
-            (task) =>
-              task.rootRunId === routine.lastRunId &&
-              ['queued', 'running', 'waiting'].includes(task.status),
+            (task) => task.rootRunId === routine.lastRunId && taskLifecycle.is('live', task.status),
           ))
     )
       return false;

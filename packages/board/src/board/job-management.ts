@@ -1,5 +1,8 @@
 import { cancelDeletedJobReviews } from './deep-review-cleanup.ts';
 import {
+  approvalLifecycle,
+  computerApprovalLifecycle,
+  deliveryLifecycle,
   states,
   type AgentTask,
   type ChatRequest,
@@ -21,7 +24,7 @@ const availableCard = (board: Board, cardId: string): Card => {
 
 const invalidateApprovals = (board: Board, cardId: string, actor: string, now: string): void => {
   for (const approval of board.list<Approval>('approval'))
-    if (approval.cardId === cardId && ['pending', 'approved'].includes(approval.status))
+    if (approval.cardId === cardId && approvalLifecycle.is('open', approval.status))
       board.record(
         'approval',
         { ...approval, status: 'rejected', decidedAt: now },
@@ -29,7 +32,7 @@ const invalidateApprovals = (board: Board, cardId: string, actor: string, now: s
         'Invalidated packet approval after board change',
       );
   for (const approval of board.list<ComputerApproval>('computer_approval'))
-    if (approval.cardId === cardId && ['pending', 'approved'].includes(approval.status))
+    if (approval.cardId === cardId && computerApprovalLifecycle.is('open', approval.status))
       board.record(
         'computer_approval',
         { ...approval, status: 'rejected', decidedAt: now },
@@ -82,7 +85,7 @@ export const deleteJob = (board: Board, cardId: string, actor: string, reason: s
           {
             ...request,
             deliveries: request.deliveries.map((d) =>
-              ['completed', 'cancelled'].includes(d.status)
+              deliveryLifecycle.is('done', d.status)
                 ? d
                 : { ...d, status: 'cancelled' as const, error: 'The attached job was deleted.' },
             ),

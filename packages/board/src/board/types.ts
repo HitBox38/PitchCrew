@@ -15,6 +15,10 @@ import Database from 'better-sqlite3';
 export interface BoardContext {
   filename: string;
   db: Database.Database;
+  /** Whether an undeclared status move is refused or saved with a warning. */
+  lifecycleMode: import('./lifecycle.ts').LifecycleMode;
+  /** Undeclared moves already reported by this board, one entry per edge. */
+  lifecycleReports: Set<string>;
   close(): void;
   list<T>(kind: BoardEvent['kind']): T[];
   get<T>(kind: BoardEvent['kind'], id: string): T;

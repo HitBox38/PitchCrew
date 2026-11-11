@@ -1,4 +1,11 @@
-import { states, type Approval, type Card, type CardState, type Run } from '@pitchcrew/core';
+import {
+  approvalLifecycle,
+  states,
+  type Approval,
+  type Card,
+  type CardState,
+  type Run,
+} from '@pitchcrew/core';
 import type { Board } from '../index.ts';
 
 /** User-only bookkeeping; never launches work, exports a packet or submits an application. */
@@ -16,7 +23,7 @@ export const setCardStatus = (board: Board, id: string, state: CardState): Card 
     const next = { ...card, state, updatedAt: now, statusEffectiveAt: now };
     board.record('card', next, 'user', `User changed status to ${state.replaceAll('_', ' ')}`);
     for (const approval of board.list<Approval>('approval')) {
-      if (approval.cardId !== id || !['pending', 'approved'].includes(approval.status)) continue;
+      if (approval.cardId !== id || !approvalLifecycle.is('open', approval.status)) continue;
       board.record(
         'approval',
         { ...approval, status: 'rejected', decidedAt: now },

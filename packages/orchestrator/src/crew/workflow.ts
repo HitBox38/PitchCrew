@@ -13,6 +13,7 @@ import {
   cancelUserQuestions,
 } from './user-input/lifecycle.ts';
 import { finishDelivery } from './conversation-queue.ts';
+import { startTaskRun } from './task-start.ts';
 import { relatedConversation } from './conversations.ts';
 import { drainConversationQueue } from './conversation-queue.ts';
 import { requireRole } from './roles.ts';
@@ -209,6 +210,7 @@ const startRunPrepared = async (
     `${role.name} claimed this application`,
   );
   crewContext.board.record('run', run, 'orchestrator', `Started ${role.name} on ${role.runtime}`);
+  startTaskRun(crewContext, run);
   const context = {
     writingGuide: run.writingGuide,
     request: correction?.instruction,

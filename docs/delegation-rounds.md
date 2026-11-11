@@ -37,6 +37,7 @@ Before delegation rounds, agents in one standalone group could already run at th
 
 - Stopping one delegate, from its DM or the queue card, cancels only that run. It arrives as a cancelled result and the round still settles.
 - Stop on the originating conversation or job cancels every delegate and the collection and pauses the queue as today. Resume does not replay cancelled delegates.
+- A failed collection turn pauses the queue like any failed follow-up and keeps the round open, shown as Collection failed with a rose bead. Retry runs the collection again with the same delegate results; Skip settles the round as stopped.
 - Removing a delegate from a group, retiring it or pausing its role cancels its delegate run under existing rules; the result is recorded as cancelled or failed.
 - After a daemon restart, unstarted delegates stay queued and started ones follow the existing interrupted-follow-up recovery. The collection turn never runs before every delegate has settled.
 

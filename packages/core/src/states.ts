@@ -1,5 +1,13 @@
 export const assertTransition = (from: CardState, to: CardState) => {
-  if (!transitions[from].includes(to)) throw new Error(`Cannot move ${from} to ${to}.`);
+  if (transitions[from].includes(to)) return;
+  const allowed = transitions[from];
+  throw new Error(
+    `Cannot move ${from} to ${to}. ${
+      allowed.length
+        ? `The workflow allows ${from} to become: ${allowed.join(', ')}.`
+        : `${from} has no further workflow moves.`
+    }`,
+  );
 };
 
 export const isRoleId = (value: string): boolean => {

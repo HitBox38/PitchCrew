@@ -1,3 +1,4 @@
+import { deliveryLifecycle, runLifecycle, taskLifecycle } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
 import type { ChatRequest, ChatMessage, Run, AgentTask, UserInputRequest } from '@pitchcrew/core';
 import { conversation } from './conversations.ts';
@@ -23,22 +24,17 @@ export const continueConversation = (context: CrewContext, id: string): ChatRequ
   if (
     context.board
       .list<Run>('run')
-      .some(
-        (run) => ['running', 'waiting'].includes(run.status) && roots.has(run.rootRunId ?? run.id),
-      ) ||
+      .some((run) => runLifecycle.is('live', run.status) && roots.has(run.rootRunId ?? run.id)) ||
     context.board
       .list<AgentTask>('task')
-      .some(
-        (task) =>
-          roots.has(task.rootRunId) && ['queued', 'running', 'waiting'].includes(task.status),
-      ) ||
+      .some((task) => roots.has(task.rootRunId) && taskLifecycle.is('live', task.status)) ||
     context.board
       .list<import('@pitchcrew/core').ChatRequest>('chat_request')
       .some(
         (request) =>
           request.threadId === id &&
           request.summarize &&
-          request.deliveries.some((delivery) => ['queued', 'running'].includes(delivery.status)),
+          request.deliveries.some((delivery) => deliveryLifecycle.is('moving', delivery.status)),
       )
   )
     throw new Error('Wait for current work to finish before summarizing.');

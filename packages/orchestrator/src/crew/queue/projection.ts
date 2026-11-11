@@ -1,4 +1,10 @@
-import { type Card, type Conversation, type WorkQueue, type WorkspaceQueue } from '@pitchcrew/core';
+import {
+  taskLifecycle,
+  type Card,
+  type Conversation,
+  type WorkQueue,
+  type WorkspaceQueue,
+} from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 import { activeRuns, tasksWithStatus } from './queries.ts';
 import {
@@ -39,8 +45,7 @@ export const workspaceQueue = (context: CrewContext): WorkspaceQueue => {
       );
       const relatedTasks = tasks.filter(
         (t) =>
-          (['queued', 'running', 'waiting'].includes(t.status) ||
-            (queue.paused && t.status === 'failed')) &&
+          (taskLifecycle.is('live', t.status) || (queue.paused && t.status === 'failed')) &&
           taskLane(context, t) === queue.id,
       );
       if (!requests.length && !relatedRuns.length && !relatedTasks.length) return [];

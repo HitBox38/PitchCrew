@@ -6,6 +6,7 @@ import {
   saveApplicationContext,
 } from '@pitchcrew/board';
 import {
+  approvalLifecycle,
   cardInput,
   jobLinkProvenance,
   type Approval,
@@ -58,7 +59,7 @@ export const moveCard = (context: CrewContext, id: string, state: CardState): Ca
   if (state === 'changes_requested')
     for (const approval of context.board
       .list<Approval>('approval')
-      .filter((a) => a.cardId === card.id && ['pending', 'approved'].includes(a.status)))
+      .filter((a) => a.cardId === card.id && approvalLifecycle.is('open', a.status)))
       context.board.record(
         'approval',
         { ...approval, status: 'rejected', decidedAt: new Date().toISOString() },

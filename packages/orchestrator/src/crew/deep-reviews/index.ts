@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { RuntimeHeldError } from '../../runtime-maintenance/availability.ts';
 import { assertConfirmedContext, digestPacket } from '@pitchcrew/board';
 import {
+  deepReviewLifecycle,
   deepReviewOptionsSchema,
   workflowSeat,
   type Card,
@@ -71,7 +72,10 @@ const startDeepReviewPrepared = async (
     );
   const application = assertConfirmedContext(card);
   const original = resumeId ? review(context, resumeId) : undefined;
-  if (original && (!['waiting', 'failed'].includes(original.status) || original.cardId !== card.id))
+  if (
+    original &&
+    (!deepReviewLifecycle.is('resumable', original.status) || original.cardId !== card.id)
+  )
     throw new Error('This review is not waiting for continuation.');
   const continuing = original?.status === 'waiting';
   const continuation = delivery

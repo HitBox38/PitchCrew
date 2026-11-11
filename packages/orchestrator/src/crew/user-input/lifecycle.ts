@@ -1,3 +1,4 @@
+import { deliveryLifecycle } from '@pitchcrew/core';
 import type { AgentTask, ChatRequest, DeepReview, Run, UserInputRequest } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 
@@ -149,7 +150,7 @@ export const cancelUserQuestions = (
       const request = context.board.get<ChatRequest>('chat_request', q.continuationRequestId);
       for (const delivery of request.deliveries) {
         if (delivery.runId) effect(() => context.controllers.get(delivery.runId!)?.abort());
-        if (!['completed', 'cancelled'].includes(delivery.status)) delivery.status = 'cancelled';
+        if (!deliveryLifecycle.is('done', delivery.status)) delivery.status = 'cancelled';
       }
       context.board.record('chat_request', request, 'user', reason);
     }

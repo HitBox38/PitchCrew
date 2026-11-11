@@ -1,5 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import {
+  delegationRoundLifecycle,
+  taskLifecycle,
   delegationRoundLimits,
   type AgentTask,
   type ChatMessage,
@@ -11,8 +13,7 @@ import { agentDm, conversation } from './conversations.ts';
 import { requireRole } from './roles.ts';
 import type { CrewContext } from './types.ts';
 
-const settled = (status: AgentTask['status']) =>
-  ['completed', 'failed', 'cancelled'].includes(status);
+const settled = (status: AgentTask['status']) => taskLifecycle.is('settled', status);
 
 /** A task's parent run; absent when a user-initiated round anchors the task to a chat request. */
 export const taskParentRun = (context: CrewContext, task: AgentTask): Run | undefined => {
@@ -202,20 +203,24 @@ export const collectionPrompt = (context: CrewContext, round: DelegationRound): 
   });
   return `Delegation round results. Every delegate has finished. Synthesize these for the user in this conversation, state plainly which delegates failed or were stopped, and read a listed conversation with pitchcrew_read_conversation only if you need details beyond what is here.\n\n${results.join('\n\n')}`;
 };
-/** Recompute a round's status from its tasks after any task settles or is cancelled. */
+/**
+ * Recompute a round's status from its tasks after any task settles or is cancelled. A failed
+ * collection keeps the round collecting, because Retry can queue it again; only a cancelled
+ * collection (Stop or Skip) settles the round as cancelled.
+ */
 export const refreshRound = (context: CrewContext, roundId: string): void => {
   const row = context.board.db
     .prepare("SELECT json FROM entities WHERE kind='delegation_round' AND id=?")
     .get(roundId) as { json: string } | undefined;
   if (!row) return;
   const round = JSON.parse(row.json) as DelegationRound;
-  if (['completed', 'cancelled'].includes(round.status)) return;
+  if (delegationRoundLifecycle.is('settled', round.status)) return;
   const delegates = roundDelegateTasks(context, round);
   const collection = context.board.get<AgentTask>('task', round.collectionTaskId);
   const status: DelegationRound['status'] =
     collection.status === 'completed'
       ? 'completed'
-      : ['failed', 'cancelled'].includes(collection.status)
+      : collection.status === 'cancelled'
         ? 'cancelled'
         : delegates.every((task) => settled(task.status))
           ? 'collecting'
@@ -228,7 +233,7 @@ export const refreshRound = (context: CrewContext, roundId: string): void => {
     {
       ...round,
       status,
-      settledAt: ['completed', 'cancelled'].includes(status) ? new Date().toISOString() : null,
+      settledAt: delegationRoundLifecycle.is('settled', status) ? new Date().toISOString() : null,
     },
     'system',
     `Delegation round ${status}`,
@@ -239,12 +244,13 @@ export const openRoundRoots = (context: CrewContext, threadId: string): string[]
   context.board
     .list<DelegationRound>('delegation_round')
     .filter(
-      (round) => round.threadId === threadId && !['completed', 'cancelled'].includes(round.status),
+      (round) =>
+        round.threadId === threadId && !delegationRoundLifecycle.is('settled', round.status),
     )
     .map((round) => round.rootRunId);
 export const refreshOpenRounds = (context: CrewContext): void => {
   for (const round of context.board.list<DelegationRound>('delegation_round'))
-    if (!['completed', 'cancelled'].includes(round.status)) refreshRound(context, round.id);
+    if (!delegationRoundLifecycle.is('settled', round.status)) refreshRound(context, round.id);
 };
 /** Reply addressee for a task's run: the user for collections, the lead for delegates. */
 export const taskReplyTarget = (context: CrewContext, task: AgentTask): ChatMessage['to'] => {

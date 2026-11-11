@@ -1,4 +1,6 @@
 import {
+  approvalLifecycle,
+  computerApprovalLifecycle,
   extractedJobSchema,
   missingPersonalAnswers,
   applicationFormIsCurrent,
@@ -147,7 +149,7 @@ export const saveApplicationContext = (
     );
     if (!same) {
       for (const approval of board.list<Approval>('approval'))
-        if (approval.cardId === cardId && ['pending', 'approved'].includes(approval.status))
+        if (approval.cardId === cardId && approvalLifecycle.is('open', approval.status))
           board.record(
             'approval',
             { ...approval, status: 'rejected', decidedAt: now },
@@ -155,7 +157,7 @@ export const saveApplicationContext = (
             'Invalidated export approval after application context changed',
           );
       for (const approval of board.list<ComputerApproval>('computer_approval'))
-        if (approval.cardId === cardId && ['pending', 'approved'].includes(approval.status))
+        if (approval.cardId === cardId && computerApprovalLifecycle.is('open', approval.status))
           board.record(
             'computer_approval',
             { ...approval, status: 'rejected', decidedAt: now },

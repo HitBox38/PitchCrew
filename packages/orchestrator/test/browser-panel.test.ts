@@ -313,6 +313,13 @@ it('captures the originating conversation browser mode for a workflow follow-up'
   service.board.record('task', task, 'writer', 'Queued fixture follow-up');
   confirmFixtureJob(service.board, card.id);
   const launched = await service.startRun(card.id, 'scout', task);
+  // The queue marks a follow-up running as soon as its run starts.
+  service.board.record(
+    'task',
+    { ...task, status: 'running', runId: launched.id },
+    'orchestrator',
+    'Started fixture follow-up',
+  );
   expect(launched.configuration?.role.browserMode).toBe('supervised');
   await finish(request, launched.id);
 });

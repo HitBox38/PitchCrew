@@ -11,7 +11,10 @@ import {
   type RuntimeConfiguration,
 } from '@pitchcrew/core';
 import { createBoardContext } from './board/context.ts';
+import type { LifecycleMode } from './board/lifecycle.ts';
 import type { BoardContext } from './board/types.ts';
+
+export type { LifecycleMode } from './board/lifecycle.ts';
 
 export { digestPacket, digestArtifacts } from './board/helpers.ts';
 export { setCardStatus } from './board/manual-status.ts';
@@ -74,6 +77,13 @@ export class Board {
   }
   get db() {
     return this.context.db;
+  }
+  /** How undeclared status moves are handled: refused, saved with a warning, or unchecked. */
+  get lifecycleMode() {
+    return this.context.lifecycleMode;
+  }
+  set lifecycleMode(mode: LifecycleMode) {
+    this.context.lifecycleMode = mode;
   }
   close = (): void => {
     return this.context.close();

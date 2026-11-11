@@ -25,6 +25,7 @@
     "test": "node --import tsx --test scripts/posthog/*.test.ts && vitest run",
     "test:e2e": "bun run build && node --import tsx --test --test-concurrency=1 --test-reporter=tap --test-timeout=240000 packages/ui/test/e2e/browser.e2e.ts packages/ui/test/e2e/native-tab-failure.e2e.ts",
     "test:desktop": "bun run test:e2e && bun --no-env-file --no-install scripts/desktop-smoke.ts && bun --no-env-file --no-install packages/desktop/test/native-browser.smoke.ts",
+    "docs:state-machines": "bun --no-env-file --no-install scripts/state-machines.ts",
     "typecheck": "tsc --noEmit && bun run --filter @pitchcrew/landing typecheck",
     "lint": "oxlint --deny-warnings packages scripts vitest.config.ts && bun --no-env-file --no-install scripts/check-components.ts",
     "format": "oxfmt --write .",
