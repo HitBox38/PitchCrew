@@ -11,6 +11,7 @@ import {
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@pitchcrew/design-system/sidebar';
 import { viewPaths } from '@/navigation.ts';
 import { isMac } from '@/shortcuts.ts';
@@ -28,8 +29,9 @@ const countMeaning = {
  * replaces the shortcut hint while something is waiting. Its counts are rebuilt on every update,
  * so it compares them by content.
  */
-export const ClayNav = memo(
-  ({ view, counts }: WorkspaceLinksProps) => (
+export const ClayNav = memo(({ view, counts }: WorkspaceLinksProps) => {
+  const { setOpenMobile } = useSidebar();
+  return (
     <SidebarGroup className="sidebar-nav">
       <SidebarMenu>
         {primaryShortcutViews.map((id, index) => {
@@ -46,7 +48,7 @@ export const ClayNav = memo(
                 isActive={view === id}
                 aria-current={view === id ? 'page' : undefined}
                 className="sidebar-nav-row"
-                render={<Link to={viewPaths[id]} />}
+                render={<Link to={viewPaths[id]} onClick={() => setOpenMobile(false)} />}
               >
                 <Icon aria-hidden="true" />
                 <span>{viewTitles[id]}</span>
@@ -67,6 +69,5 @@ export const ClayNav = memo(
         <MoreMenu view={view} counts={counts} />
       </SidebarMenu>
     </SidebarGroup>
-  ),
-  deepEqual,
-);
+  );
+}, deepEqual);

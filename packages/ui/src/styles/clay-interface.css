@@ -748,14 +748,22 @@
   color: var(--moss);
 }
 
-/* Below 1124px of work width the deck becomes a compact strip above a scrolling pipeline. */
+/* Below 1124px of work width the deck becomes a compact strip above a scrolling pipeline.
+ * When both cannot fit, scroll the Board instead of shrinking the pipeline out of reach. */
 @container board (width < 70.25rem) {
   .clay-board {
     flex-direction: column;
     gap: 10px;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .clay-board > .clay-columns {
+    min-height: 240px;
+    flex-shrink: 0;
   }
   .clay-deck {
     width: auto;
+    max-height: none;
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
