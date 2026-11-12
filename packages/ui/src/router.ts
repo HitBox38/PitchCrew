@@ -12,6 +12,7 @@ import { validateSettingsSearch } from './SettingsPage/helpers.ts';
 import { NotFoundPage } from './components/NotFoundPage/index.tsx';
 import { RouteLoadError } from './LoadRecovery/index.tsx';
 import { retryableLazy } from './lib/retryable-lazy.ts';
+import { WorkspaceLoading } from './App/components/WorkspaceLoading.tsx';
 import type { Role } from '@pitchcrew/core';
 import type { View } from './navigation.ts';
 import {
@@ -48,6 +49,7 @@ declare module '@tanstack/react-router' {
 
 const rootRoute = createRootRouteWithContext<{ getRoles: () => Role[] | undefined }>()({
   component: retryableLazy(() => import('@/App/index.tsx'), 'App'),
+  pendingComponent: WorkspaceLoading,
   notFoundComponent: NotFoundPage,
 });
 

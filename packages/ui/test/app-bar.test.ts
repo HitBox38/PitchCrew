@@ -164,3 +164,27 @@ test('phones retain a compact summary and exact large totals in the bounded popo
     .toBe(true);
   expect(errors).toEqual([]);
 });
+
+test('touch navigation closes the phone drawer after choosing a primary page', async () => {
+  const context = await browser.newContext({
+    viewport: { width: 320, height: 800 },
+    hasTouch: true,
+    isMobile: true,
+    reducedMotion: 'reduce',
+  });
+  const phone = await context.newPage();
+  try {
+    await phone.goto(host.daemon.url);
+    for (const name of ['Crew', 'Profile', 'Decisions', 'Board']) {
+      await phone.getByRole('button', { name: 'Open navigation', exact: true }).tap();
+      const drawer = phone.getByRole('dialog', { name: 'Sidebar', exact: true });
+      await drawer.getByRole('link', { name, exact: true }).tap();
+      await drawer.waitFor({ state: 'hidden', timeout: 5000 });
+      expect(
+        await phone.getByRole('button', { name: 'Open navigation', exact: true }).isVisible(),
+      ).toBe(true);
+    }
+  } finally {
+    await context.close();
+  }
+});
