@@ -1,9 +1,15 @@
+import {
+  deepReviewLifecycle,
+  deliveryLifecycle,
+  runLifecycle,
+  taskLifecycle,
+} from '@pitchcrew/core';
+import { runsForThread, runsWithStatus } from '@pitchcrew/board';
 import type {
   AgentTask,
   ChatRequest,
   DeepReview,
   Routine,
-  Run,
   UserInputRequest,
 } from '@pitchcrew/core';
 import { conversation } from './conversations.ts';
@@ -13,26 +19,21 @@ import type { CrewContext } from './types.ts';
 export const deleteConversation = (context: CrewContext, id: string): { ok: true } => {
   context.board.db.transaction(() => {
     const current = conversation(context, id);
-    const runs = context.board.list<Run>('run');
-    const roots = new Set(
-      runs.filter((run) => run.threadId === id).map((run) => run.rootRunId ?? run.id),
-    );
+    const roots = new Set(runsForThread(context.board, id).map((run) => run.rootRunId ?? run.id));
     const tasks = context.board
       .list<AgentTask>('task')
       .filter((task) => task.threadId === id || roots.has(task.rootRunId));
     if (
-      runs.some(
-        (run) =>
-          (run.threadId === id || roots.has(run.rootRunId ?? run.id)) &&
-          ['running', 'waiting'].includes(run.status),
+      runsWithStatus(context.board, runLifecycle.groups.live).some(
+        (run) => run.threadId === id || roots.has(run.rootRunId ?? run.id),
       ) ||
-      tasks.some((task) => ['running', 'waiting'].includes(task.status)) ||
+      tasks.some((task) => taskLifecycle.is('engaged', task.status)) ||
       context.board
         .list<ChatRequest>('chat_request')
         .some(
           (request) =>
             request.threadId === id &&
-            request.deliveries.some((delivery) => ['running', 'waiting'].includes(delivery.status)),
+            request.deliveries.some((delivery) => deliveryLifecycle.is('engaged', delivery.status)),
         ) ||
       context.board
         .list<UserInputRequest>('user_input')
@@ -42,7 +43,7 @@ export const deleteConversation = (context: CrewContext, id: string): { ok: true
         .some(
           (review) =>
             (review.threadId === id || review.sourceThreadId === id) &&
-            ['running', 'waiting'].includes(review.status),
+            deepReviewLifecycle.is('live', review.status),
         )
     )
       throw new Error('Stop or finish this conversation’s active work before deleting it.');
@@ -57,16 +58,14 @@ export const deleteConversation = (context: CrewContext, id: string): { ok: true
     for (const request of context.board.list<ChatRequest>('chat_request'))
       if (
         request.threadId === id &&
-        request.deliveries.some((delivery) =>
-          ['queued', 'paused', 'failed'].includes(delivery.status),
-        )
+        request.deliveries.some((delivery) => deliveryLifecycle.is('unsent', delivery.status))
       )
         context.board.record(
           'chat_request',
           {
             ...request,
             deliveries: request.deliveries.map((delivery) =>
-              ['queued', 'paused', 'failed'].includes(delivery.status)
+              deliveryLifecycle.is('unsent', delivery.status)
                 ? { ...delivery, status: 'cancelled' as const }
                 : delivery,
             ),

@@ -64,6 +64,13 @@
   height: 100%;
   border-radius: inherit;
   background: var(--plum);
+  /* Width, not scale: a 3px bar re-lays out cheaply and keeps its rounded ends. */
+  transition: width 300ms var(--ease-in-out);
+}
+@media (prefers-reduced-motion: reduce) {
+  .queue-capacity-meter > span {
+    transition: none;
+  }
 }
 .queue-tray-attention {
   display: inline-flex;

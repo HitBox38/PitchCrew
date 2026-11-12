@@ -62,7 +62,7 @@ it('checks weakest lines and keeps explicit missing-section findings valid', () 
 });
 
 it('retains rejected output, repairs once against unchanged bytes and preserves before/after provenance', async () => {
-  const { daemon, request, card, directory } = await deepReviewFixture(24671);
+  const { daemon, request, card, directory } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   let calls = 0;
   const inputs: string[] = [];
@@ -109,7 +109,7 @@ it('retains rejected output, repairs once against unchanged bytes and preserves 
 });
 
 it('stops after one failed repair without adopting an incomplete review or launching Writer corrections', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24672);
+  const { daemon, request, card } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   const stages: string[] = [];
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {
@@ -132,7 +132,7 @@ it('stops after one failed repair without adopting an incomplete review or launc
 });
 
 it('validates the recheck against Writer corrections and retains both resume versions', async () => {
-  const { daemon, request, card, directory } = await deepReviewFixture(24673);
+  const { daemon, request, card, directory } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   let rechecks = 0;
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {

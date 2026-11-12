@@ -1,7 +1,6 @@
-/* Clay interface preview: clay-composer. Scoped under [data-interface='clay'].
- * One quiet toolbar: who the message reaches (recessed), the model and browser mode as plain
+/* One quiet toolbar: who the message reaches (recessed), the model and browser mode as plain
  * picks, then what happens on send, a rose Stop and the round send. */
-[data-interface='clay'] .chat-prompt-footer {
+.chat-prompt-footer {
   flex-wrap: nowrap;
   justify-content: flex-start;
   gap: 8px;
@@ -39,7 +38,7 @@
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
-[data-interface='clay'] .chat-prompt-footer .chat-add-context {
+.chat-prompt-footer .chat-add-context {
   margin-right: 2px;
 }
 
@@ -93,7 +92,7 @@
 }
 
 /* Model and browser mode: plain picks that only lift on hover. */
-[data-interface='clay'] .chat-composer-runtime {
+.chat-composer-runtime {
   flex: 0 1 auto;
   min-width: 0;
   gap: 6px;
@@ -102,19 +101,19 @@
   border-radius: 8px;
   font-size: 12px;
 }
-[data-interface='clay'] .chat-composer-runtime > svg:last-child {
+.chat-composer-runtime > svg:last-child {
   flex-shrink: 0;
   color: var(--muted);
 }
-[data-interface='clay'] .chat-composer-runtime .role-avatar.small {
+.chat-composer-runtime .role-avatar.small {
   width: 18px;
   height: 18px;
 }
-[data-interface='clay'] .chat-composer-runtime .role-avatar svg {
+.chat-composer-runtime .role-avatar svg {
   width: 11px;
   height: 11px;
 }
-[data-interface='clay'] .chat-prompt-footer .chat-browser-mode {
+.chat-prompt-footer .chat-browser-mode {
   gap: 6px;
   max-width: 13rem;
   height: 32px;
@@ -126,20 +125,20 @@
   color: var(--ink-soft);
   font-weight: 600;
 }
-[data-interface='clay'] .chat-prompt-footer .chat-browser-mode-autonomous {
+.chat-prompt-footer .chat-browser-mode-autonomous {
   color: var(--plum);
   background: var(--plum-soft);
 }
-[data-interface='clay'] .chat-prompt-footer .chat-browser-mode:hover,
-[data-interface='clay'] .chat-prompt-footer .chat-browser-mode[data-popup-open],
-[data-interface='clay'] .chat-composer-runtime:hover {
+.chat-prompt-footer .chat-browser-mode:hover,
+.chat-prompt-footer .chat-browser-mode[data-popup-open],
+.chat-composer-runtime:hover {
   border-color: transparent;
   background: var(--clay-fill);
   box-shadow: var(--clay);
 }
 
 /* What happens on send: quiet text, or the follow-up choice styled as that text. */
-[data-interface='clay'] .chat-send-actions {
+.chat-send-actions {
   flex: 0 0 auto;
   gap: 6px;
   margin-left: 0;
@@ -158,7 +157,7 @@ span.chat-send-note {
   white-space: normal;
   text-wrap: pretty;
 }
-[data-interface='clay'] .chat-send-actions .chat-send-note.chat-context-select {
+.chat-send-actions .chat-send-note.chat-context-select {
   flex-shrink: 1;
   max-width: 17rem;
   height: 32px;
@@ -170,14 +169,16 @@ span.chat-send-note {
   color: var(--muted);
   font-weight: 400;
 }
-[data-interface='clay'] .chat-send-actions .chat-send-note.chat-context-select:hover,
-[data-interface='clay'] .chat-send-actions .chat-send-note.chat-context-select[data-popup-open] {
+.chat-send-actions .chat-send-note.chat-context-select:hover,
+.chat-send-actions .chat-send-note.chat-context-select[data-popup-open] {
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
 }
 
 /* Stop: a raised clay button in rose, named rather than an icon alone. */
-[data-interface='clay'] .chat-stop-response {
+.chat-stop-response {
+  /* Mounts only while an agent runs, so it marks the moment the turn starts. */
+  animation: clay-emerge 160ms var(--ease);
   flex-shrink: 0;
   gap: 6px;
   width: auto;
@@ -187,46 +188,46 @@ span.chat-send-note {
   font-size: 12px;
   font-weight: 600;
 }
-[data-interface='clay'] .chat-stop-response:hover {
+.chat-stop-response:hover {
   color: var(--rose);
 }
 
 /* Context above the draft: the job and files as compact raised chips. */
-[data-interface='clay'] .chat-composer-context {
+.chat-composer-context {
   flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
 }
-[data-interface='clay'] .chat-composer-context .chat-context-job {
+.chat-composer-context .chat-context-job {
   width: auto;
   min-width: 0;
   max-width: 100%;
   padding: 0 6px 0 2px;
   border-radius: 8px;
 }
-[data-interface='clay'] .chat-context-job > button:first-child {
+.chat-context-job > button:first-child {
   gap: 7px;
   height: 32px;
   color: var(--ink);
   font-weight: 600;
 }
-[data-interface='clay'] .chat-context-job > button:first-child:hover {
+.chat-context-job > button:first-child:hover {
   background: none;
   color: var(--primary);
 }
-[data-interface='clay'] .chat-context-job > svg {
+.chat-context-job > svg {
   flex-shrink: 0;
   color: var(--muted);
 }
-[data-interface='clay'] .chat-composer-context [data-slot='attachment'] {
+.chat-composer-context [data-slot='attachment'] {
   min-width: 0;
   height: 32px;
   padding: 0 4px 0 6px;
   gap: 7px;
   border-radius: 8px;
 }
-[data-interface='clay'] .chat-composer-context [data-slot='attachment-media'] {
+.chat-composer-context [data-slot='attachment-media'] {
   width: 20px;
   border-radius: 6px;
   background: var(--sunken-fill);
@@ -274,22 +275,21 @@ span.chat-send-note {
 .chat-composer-mode > svg {
   flex: none;
 }
-[data-interface='clay'] .chat-context-job[data-locked][data-header-job] {
+.chat-context-job[data-locked][data-header-job] {
   display: none;
 }
-[data-interface='clay']
-  .chat-composer-context:has(> .chat-context-job[data-locked][data-header-job]):not(:has(> ul)) {
+.chat-composer-context:has(> .chat-context-job[data-locked][data-header-job]):not(:has(> ul)) {
   display: none;
 }
-[data-interface='clay'] .chat-prompt-footer [data-slot='button'],
-[data-interface='clay'] .chat-prompt-footer [data-slot='select-trigger'],
-[data-interface='clay'] .chat-composer-context [data-slot='attachment-action'] {
+.chat-prompt-footer [data-slot='button'],
+.chat-prompt-footer [data-slot='select-trigger'],
+.chat-composer-context [data-slot='attachment-action'] {
   min-width: 32px;
   min-height: 32px;
 }
 /* The form owns the reading lane: a wide workspace can still contain a 736px composer. */
 @container chat-composer (width < 60rem) {
-  [data-interface='clay'] .chat-prompt-footer:is([data-follow-up='true'], [data-held='true']) {
+  .chat-prompt-footer:is([data-follow-up='true'], [data-held='true']) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto auto;
     gap: 4px 6px;
@@ -298,14 +298,10 @@ span.chat-send-note {
     grid-column: 1;
     grid-row: 2;
   }
-  [data-interface='clay']
-    .chat-prompt-footer:is([data-follow-up='true'], [data-held='true'])
-    .chat-send-actions {
+  .chat-prompt-footer:is([data-follow-up='true'], [data-held='true']) .chat-send-actions {
     display: contents;
   }
-  [data-interface='clay']
-    .chat-prompt-footer:is([data-follow-up='true'], [data-held='true'])
-    .chat-send-note {
+  .chat-prompt-footer:is([data-follow-up='true'], [data-held='true']) .chat-send-note {
     grid-column: 1 / -1;
     grid-row: 1;
     max-width: 100%;
@@ -339,13 +335,13 @@ span.chat-send-note {
   .chat-followup-short {
     display: inline;
   }
-  [data-interface='clay'] .chat-prompt .chat-prompt-footer {
+  .chat-prompt .chat-prompt-footer {
     display: grid;
     grid-template-columns: 44px minmax(44px, 1fr) auto auto 44px;
     gap: 4px;
   }
   .chat-prompt-footer .chat-composer-controls,
-  [data-interface='clay'] .chat-prompt-footer .chat-send-actions {
+  .chat-prompt-footer .chat-send-actions {
     display: contents;
   }
   .chat-composer-controls > .chat-add-context {
@@ -361,10 +357,10 @@ span.chat-send-note {
     grid-column: 1 / -1;
     max-width: calc(100% - 7.5rem);
   }
-  [data-interface='clay'] .chat-composer-recipient {
+  .chat-composer-recipient {
     max-width: 100%;
   }
-  [data-interface='clay'] .chat-composer-runtime {
+  .chat-composer-runtime {
     grid-column: 2;
     grid-row: 2;
     max-width: 11rem;
@@ -380,7 +376,7 @@ span.chat-send-note {
     grid-column: 4;
     grid-row: 2;
   }
-  [data-interface='clay'] .chat-prompt-footer .chat-stop-response {
+  .chat-prompt-footer .chat-stop-response {
     width: 44px;
     padding: 0;
   }
@@ -391,52 +387,47 @@ span.chat-send-note {
     grid-column: 5;
     grid-row: 2;
   }
-  [data-interface='clay']
-    .chat-prompt-footer[data-held='true']
-    .chat-send-actions
-    > span.chat-send-note {
+  .chat-prompt-footer[data-held='true'] .chat-send-actions > span.chat-send-note {
     grid-column: 1 / -1;
     grid-row: 3;
     width: 100%;
     justify-self: stretch;
   }
-  [data-interface='clay'] .chat-send-actions .chat-send-note.chat-context-select {
+  .chat-send-actions .chat-send-note.chat-context-select {
     grid-column: 1 / -1;
     grid-row: 1;
     max-width: 100%;
     width: 7rem;
     justify-self: end;
   }
-  [data-interface='clay']
-    .chat-prompt-footer:not([data-group])
-    .chat-send-note.chat-context-select {
+  .chat-prompt-footer:not([data-group]) .chat-send-note.chat-context-select {
     grid-column: 1 / -1;
     width: 100%;
   }
 }
 @media (width < 768px), (pointer: coarse) {
-  [data-interface='clay'] .chat-prompt-footer [data-slot='button'],
-  [data-interface='clay'] .chat-prompt-footer [data-slot='select-trigger'],
-  [data-interface='clay'] .chat-context-job > button,
-  [data-interface='clay'] .chat-composer-context [data-slot='attachment-action'],
+  .chat-prompt-footer [data-slot='button'],
+  .chat-prompt-footer [data-slot='select-trigger'],
+  .chat-context-job > button,
+  .chat-composer-context [data-slot='attachment-action'],
   .chat-composer-options-panel [data-slot='button'],
   .chat-composer-options-panel [data-slot='select-trigger'] {
     min-width: 44px;
     min-height: 44px;
   }
-  [data-interface='clay'] .chat-composer-context [data-slot='attachment'] {
+  .chat-composer-context [data-slot='attachment'] {
     height: auto;
     min-height: 44px;
   }
 }
 @container chat-composer (width < 24rem) {
-  [data-interface='clay'] .chat-prompt .chat-prompt-footer {
+  .chat-prompt .chat-prompt-footer {
     gap: 4px 2px;
   }
   .chat-prompt-footer:not([data-group]) .chat-composer-runtime > span:not(.role-avatar) {
     display: none;
   }
-  [data-interface='clay'] .chat-prompt-footer[data-follow-up='true'] .chat-composer-mode {
+  .chat-prompt-footer[data-follow-up='true'] .chat-composer-mode {
     padding-inline: 4px;
   }
   .chat-prompt-footer[data-follow-up='true'] .chat-composer-mode > svg {
@@ -453,9 +444,7 @@ span.chat-send-note {
     grid-row: 1;
     justify-self: end;
   }
-  [data-interface='clay']
-    .chat-prompt-footer[data-group]:not([data-follow-up='true'])
-    .chat-composer-runtime {
+  .chat-prompt-footer[data-group]:not([data-follow-up='true']) .chat-composer-runtime {
     grid-column: 2 / 4;
     max-width: none;
   }

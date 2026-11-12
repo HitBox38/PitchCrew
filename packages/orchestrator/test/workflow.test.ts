@@ -18,7 +18,7 @@ import { cleanup, finish, setup } from './helpers/daemon.ts';
 afterEach(cleanup);
 describe('local daemon workflow', () => {
   it('keeps board entities and their events consistent when work changes during profile reads', async () => {
-    const { daemon } = await setup(14451);
+    const { daemon } = await setup();
     const card = daemon.service.board.createCard({
       company: 'Snapshot Fixture',
       title: 'Engineer',
@@ -69,7 +69,7 @@ describe('local daemon workflow', () => {
     const claudeList = vi
       .spyOn(adapters['claude-code'], 'listModels')
       .mockResolvedValue([{ value: 'fixture-claude', label: 'Fixture Claude' }]);
-    const { daemon, request } = await setup(14434);
+    const { daemon, request } = await setup();
     expect(list).not.toHaveBeenCalled();
     expect(claudeList).not.toHaveBeenCalled();
     const eventsBefore = daemon.service.board.events();
@@ -147,7 +147,7 @@ describe('local daemon workflow', () => {
           resolveModels = resolve;
         }),
     );
-    const { request } = await setup(14435);
+    const { request } = await setup();
     const first = request<RuntimeModelCatalog>('/runtimes/opencode/models', 'POST', {});
     const second = request<RuntimeModelCatalog>('/runtimes/opencode/models', 'POST', {});
     await vi.waitFor(() => expect(list).toHaveBeenCalledOnce());
@@ -167,7 +167,7 @@ describe('local daemon workflow', () => {
   });
 
   it('exposes the new runtimes and persists their role settings through event replay', async () => {
-    const { daemon, request } = await setup(14420);
+    const { daemon, request } = await setup();
     const { result: snapshot } = await request<Snapshot>('/snapshot');
     expect(snapshot.runtimes.map((runtime) => runtime.id)).toEqual([
       'demo',
@@ -236,7 +236,7 @@ describe('local daemon workflow', () => {
   });
   // Two complete review/export cycles include cold document workers on CI.
   it('runs a source-backed application through review, approval, export and manual tracking', async () => {
-    const { request, directory } = await setup(14417);
+    const { request, directory } = await setup();
     await request('/profile', 'PUT', {
       name: 'profile.md',
       content: '# Example Candidate\n\n- Built React interfaces.\n',
@@ -330,7 +330,7 @@ describe('local daemon workflow', () => {
     expect(final.cards[0].state).toBe('interviewing');
   }, 30000);
   it('rejects cross-origin/user-session bypasses and expired agent capabilities', async () => {
-    const { daemon, request } = await setup(14418);
+    const { daemon, request } = await setup();
     expect((await fetch(`${daemon.url}/api/snapshot`)).status).toBe(403);
     expect(
       (
@@ -361,7 +361,7 @@ describe('local daemon workflow', () => {
         started(context.signal);
       });
     });
-    const { daemon, request } = await setup(14419);
+    const { daemon, request } = await setup();
     await request('/profile', 'PUT', {
       name: 'profile.md',
       content: '# Candidate\n\n- Built React interfaces.',

@@ -1,4 +1,5 @@
-import { type Card, type Role } from '@pitchcrew/core';
+import { runsWithStatus } from '@pitchcrew/board';
+import { runLifecycle, type Card, type Role } from '@pitchcrew/core';
 import { createConversation } from '../conversations.ts';
 import { sendConversation } from '../conversation-queue.ts';
 import type { CrewContext } from '../types.ts';
@@ -14,9 +15,7 @@ export const inspectApplicationForm = async (
     card.deletedAt ||
     card.owner ||
     context.board.hasActiveRun(cardId) ||
-    context.board
-      .list<import('@pitchcrew/core').Run>('run')
-      .some((run) => run.cardId === cardId && ['running', 'waiting'].includes(run.status))
+    runsWithStatus(context.board, runLifecycle.groups.live).some((run) => run.cardId === cardId)
   )
     throw new Error('Finish active job work before inspecting its application form.');
   if (card.submissionAttempts?.some((attempt) => attempt.status === 'uncertain'))

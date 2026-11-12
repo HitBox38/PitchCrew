@@ -13,7 +13,7 @@ const quote = 'Led the fictional migration with a verified reduction in processi
 const errors: string[] = [];
 
 beforeAll(async () => {
-  host = await setup(14620);
+  host = await setup();
   await host.daemon.service.saveProfile(
     name,
     `# Fictional career background\n\n${'A documented project with supporting evidence.\n\n'.repeat(80)}${quote}`,
@@ -247,7 +247,7 @@ test.each([390, 1000, 1920])(
       const show = page.getByRole('button', { name: 'Show notes explorer', exact: true });
       if (await show.isVisible()) await show.click();
       await page.getByRole('treeitem', { name: title, exact: true }).click();
-      await page.getByRole('button', { name: 'Preview', exact: true }).click();
+      await page.getByRole('tab', { name: 'Preview', exact: true }).click();
       await page.getByRole('button', { name: 'Cited in 1 packet', exact: true }).click();
       await page.getByRole('button', { name: quote, exact: true }).click();
       const editor = page.getByRole('textbox', { name: 'Profile Markdown', exact: true });

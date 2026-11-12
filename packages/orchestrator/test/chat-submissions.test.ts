@@ -15,7 +15,7 @@ import type {
 } from '@pitchcrew/core';
 import type { CrewContext } from '../src/crew/types.ts';
 import { migrateConversations } from '../src/crew/conversations.ts';
-import { sendConversation } from '../src/crew/conversation-queue.ts';
+import { sendConversation, sendDelegation } from '../src/crew/conversation-queue.ts';
 import { addMessage } from '../src/crew/chat.ts';
 import { chatSubmissionReceipt } from '../src/crew/chat-submissions.ts';
 import { readAttachment } from '../src/crew/attachments/storage.ts';
@@ -254,6 +254,68 @@ it('rejects a changed payload both during admission and after commit, but scopes
     ).rejects.toMatchObject({ statusCode: 409 });
   await sendConversation(context, 'writer', { clientRequestId, content: 'Independent' });
   expect(context.board.list<ChatRequest>('chat_request')).toHaveLength(2);
+});
+
+const gateAdmission = (context: CrewContext) => {
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  vi.mocked(context.runtimeMaintenance.refreshOnRetry).mockReturnValueOnce(gate);
+  const reached = () =>
+    vi.waitFor(() => expect(context.runtimeMaintenance.refreshOnRetry).toHaveBeenCalled());
+  return { release, reached };
+};
+
+it('accepts a send when only conversation activity changed during admission', async () => {
+  const { context } = await fixture();
+  const { release, reached } = gateAdmission(context);
+  const sent = sendConversation(context, 'scout', {
+    content: 'Hello',
+    attachments: [{ name: 'note.txt', data: 'eA==' }],
+  });
+  await reached();
+  context.addMessage('scout', 'scout', 'user', 'A reply saved meanwhile.', null, null);
+  release();
+  const request = await sent;
+  expect(request.deliveries).toHaveLength(1);
+  expect(context.board.list<ChatRequest>('chat_request')).toHaveLength(1);
+  expect(await readdir(join(context.directory, 'chat-attachments'))).toHaveLength(1);
+});
+
+it('still rejects a send when routing changed during admission, and removes its attachments', async () => {
+  const { context } = await fixture();
+  const { release, reached } = gateAdmission(context);
+  const sent = sendConversation(context, 'scout', {
+    content: 'Hello',
+    attachments: [{ name: 'note.txt', data: 'eA==' }],
+  });
+  const settled = expect(sent).rejects.toThrow(/conversation changed/i);
+  await reached();
+  const item = context.board.get<Conversation>('conversation', 'scout');
+  context.board.record(
+    'conversation',
+    { ...item, configurations: { scout: { model: 'another-model' } } },
+    'user',
+    'Changed runtime',
+  );
+  release();
+  await settled;
+  expect(context.board.list<ChatRequest>('chat_request')).toHaveLength(0);
+  const stored = await readdir(join(context.directory, 'chat-attachments')).catch(() => []);
+  expect(stored).toHaveLength(0);
+});
+
+it('accepts a delegation when only conversation activity changed during admission', async () => {
+  const { context } = await fixture();
+  context.drainTasks = vi.fn(async () => {});
+  const { release, reached } = gateAdmission(context);
+  const sent = sendDelegation(context, 'scout', { content: 'Compare notes', roleIds: ['writer'] });
+  await reached();
+  context.addMessage('scout', 'scout', 'user', 'A reply saved meanwhile.', null, null);
+  release();
+  const request = await sent;
+  expect(request.roundId).toBeTruthy();
 });
 
 it('does not consume failed submissions, and saves a managed review and its receipt in the same transaction', async () => {

@@ -4,7 +4,7 @@ Pitchcrew is a local-first job-search app with a crew of AI agents. Keep opportu
 
 It runs in your browser or an Electron desktop window. Your board, profile, chats and packets stay on this computer; AI runs use the CLI runtime and provider account you configure.
 
-Production installations send anonymous page visits and feature usage to Pitchcrew's PostHog project. Opt out in **Settings > General > Usage analytics**. App content is excluded and sessions are never recorded. Development analytics is disabled by default. See [analytics configuration](docs/analytics.md).
+Production installations send anonymous page visits and feature usage to Pitchcrew's PostHog project. Opt out in **Settings > Privacy > Usage analytics**. App content is excluded; masked session replay is a separate opt-in and off by default. Development analytics is disabled by default. See [analytics configuration](docs/analytics.md).
 
 **Status: working MVP.** The application workflow, crew chats, scheduled routines, read-only account connectors and approval-gated browser tools are implemented. Automated tests use fixtures and mock runtimes; live provider runs are not verified by that suite.
 
@@ -23,7 +23,7 @@ Production installations send anonymous page visits and feature usage to Pitchcr
 
 Download a production installer from [GitHub Releases](https://github.com/HitBox38/PitchCrew/releases): Windows x64 (`.exe`), macOS Apple Silicon or Intel (`.dmg`), or Linux x64 (`.AppImage`/`.deb`). Installers include Bun for the daemon, a Node.js helper for bounded document/database processing, runtime dependencies and Chromium; configure provider CLIs and authentication separately. Windows and macOS builds are unsigned and macOS builds are not notarized, so your operating system may require permission to open them. Each successful push to `main` publishes a commit-tagged release after CI and packaged-app checks pass. Existing data stays in `~/.pitchcrew`.
 
-Pitchcrew checks for newer builds when you open a production workspace and once an hour while it stays open. Settings > General shows your version, **Check for updates**, and a switch for automatic checks. Supported Windows and Linux installations offer **Download update**, then **Install and restart** after confirmation; active agents are interrupted and your saved data stays in place. Unsigned Mac builds, browser sessions and source launches use the matching release page for manual installation. Set `PITCHCREW_UPDATE_CHECKS=0` to disable checks for an installation. See [update checks](docs/app-updates.md).
+Pitchcrew checks for newer builds when you open a production workspace and once an hour while it stays open. Settings > Updates shows your version, **Check for updates**, and a switch for automatic checks. Supported Windows and Linux installations offer **Download update**, then **Install and restart** after confirmation; active agents are interrupted and your saved data stays in place. Unsigned Mac builds, browser sessions and source launches use the matching release page for manual installation. Set `PITCHCREW_UPDATE_CHECKS=0` to disable checks for an installation. See [update checks](docs/app-updates.md).
 
 For development from source:
 
@@ -78,7 +78,7 @@ Fresh workspaces show an introduction and setup checklist. You can defer setup a
 2. **Configure agents in Crew.** Choose an installed runtime, optional model and permissions. Enable an agent for each workflow seat: fit assessment, drafting and review.
 3. **Add a job on Board.** Paste a Greenhouse, Ashby, Lever, Comeet or Workable posting link and choose **Fetch from link** to fill in the details, or type them yourself. Then start the workflow below. Or add job sources in **Settings > Job sources** and choose **Scan now**.
 
-New production workspaces start with paused Claude Code agents. Development defaults use Demo. Existing agent settings are preserved; Demo agents cannot run in production until you select a real runtime. When a release improves a default agent's instructions, Crew offers the new text for you to review instead of changing it.
+New production workspaces start with paused agents, each preset to a recommended installed runtime and model (see [roles](docs/roles.md)). Development defaults use Demo. Existing agent settings are preserved; Demo agents cannot run in production until you select a real runtime. When a release improves a default agent's instructions, Crew offers the new text for you to review instead of changing it.
 
 ## From opportunity to application
 
@@ -147,7 +147,7 @@ See [runtime setup](docs/runtimes.md) for executable names, authentication requi
 
 **Chat** fills the available workspace with named direct conversations, groups, and a separate collapsible list of read-only agent DMs. Create, search, pin, archive and restore conversations in the app sidebar’s **Conversations** section. Chat uses the full remaining width without a second sidebar. Groups have a lead and no participant limit; @mentions call the named agents, while an unaddressed request lets every available participant contribute or stay silent. Attach one persistent job per conversation for application context. Pick, drop or paste up to five files (10 MB total) into a message: UTF-8 text, Markdown, CSV, JSON, PDF, DOCX, PNG, JPEG, WebP or GIF. You can remove files before sending, send files without text and download them from saved messages. Agents read attachments through a scoped tool; PDF/DOCX text extraction is bounded, and scanned PDFs may have no extractable text. Attachments stay in the local data directory and are shared with your configured runtime/provider when the agent reads them. Replies stream where the runtime supports it; only successful final replies are saved. Agents with permission can message each other and queue follow-ups without a per-chain count limit. **Stop group** cancels related work, including delegated DMs, and pauses queued user input. **Stop agent** stops its branch. Send follow-ups while agents work: queue, edit, reorder, remove or explicitly interrupt current work. Resume targets unfinished deliveries; **Continue with summary** compacts the context before refreshing the runtime session. Existing role chats retain their history; the old shared chat becomes read-only Crew history.
 
-Use **Conversation runtime** to override runtime/model for a participant; reasoning stays inside this dialog. Each field defaults to **Use agent default**, following current Crew settings on future turns. Restore that option to clear an override; **CLI default** remains a separate model/reasoning choice. Crew owns agent defaults. Codex and Claude Code support per-participant native session continuity; other runtimes reconstruct saved context. Local **Agent memory** notes are recalled on demand and remain separate from skills and verified Profile evidence. Inspect, edit or delete them from chat or Crew. Comfortable, Wide (default) and Full reading widths preserve the paper palette, light/dark themes and clay depth. See [chat design and runtime boundaries](docs/chat-redesign.md).
+Use **Conversation runtime** to override runtime/model for a participant; reasoning stays inside this dialog. Each field defaults to **Use agent default**, following current Crew settings on future turns. Restore that option to clear an override; **CLI default** remains a separate model/reasoning choice. Crew owns agent defaults. Codex and Claude Code support per-participant native session continuity; other runtimes reconstruct saved context. Local **Agent memory** notes are recalled on demand and remain separate from skills and verified Profile evidence. Inspect, edit or delete them from chat or Crew. Comfortable (default), Wide and Full reading widths preserve the paper palette, light/dark themes and clay depth. See [chat design and runtime boundaries](docs/chat-redesign.md).
 
 **Skills** holds reusable Markdown instructions assigned to all agents or selected roles. Write your own, import a public GitHub-backed skills.sh link, or review an agent's suggestion. Imports copy `SKILL.md` instructions only. **Include in every run** delivers the full text immediately; other assigned skills appear in a catalog and agents read their instructions when relevant. Existing skills keep full inclusion, new hand-written skills default to included and new imported procedures load on demand. Explicit `$skill` selections include their full text for that turn. New runs receive a frozen snapshot; edits affect future runs and grant no additional tools. The library holds up to 100 skills of 50,000 characters each, with no combined per-agent character cap. See [skill delivery](docs/skills.md).
 
@@ -198,7 +198,7 @@ Local packet exports also require a single-use approval for the exact packet and
 
 The default data folder is `~/.pitchcrew` (`%USERPROFILE%\.pitchcrew` on Windows). It contains the SQLite board and event history, profile notes, chats, skills, routines, packet rules, role instructions, isolated run folders and versioned packets.
 
-Pitchcrew does not read, copy or store AI provider credentials. The runtime uses its native authentication. Connected GitHub and Google credentials are stored separately in `connectors/credentials.json` inside the data folder, as local JSON without encryption. Protect that folder using your operating system's account and disk protections.
+By default each runtime uses its own native sign-in and Pitchcrew stores no AI provider credentials. Authentication values you save in **Settings > Runtimes** are kept in `runtime-connections/credentials.json` (managed Grok sign-in under `runtime-auth/grok`), AI-text detector keys in `detectors/keys.json`, and connected GitHub and Google credentials in `connectors/credentials.json`, all inside the data folder as permission-protected local files without encryption. Protect that folder using your operating system's account and disk protections.
 
 AI runs send context to the configured runtime/provider, and connected services make network requests when used. Local storage does not make provider-backed runs offline.
 
@@ -242,7 +242,7 @@ Paste the printed `mcpServers.pitchcrew` entry into your client's MCP configurat
 
 Create feature, fix, refactor, documentation and maintenance branches from the latest `dev`, and open their pull requests against `dev`. Production releases use a `dev` → `main` pull request that includes a version bump in the root `package.json` and matching workspace package versions, a change summary and validation. Use semantic versions (`MAJOR.MINOR.PATCH`), choosing and explaining the bump in each release PR: patch for fixes, minor for backward-compatible features and major for breaking changes. After required CI passes and the release merges, merge `main` back into `dev` before starting subsequent work. See [branch and release rules](AGENTS.md#branch-and-release-workflow).
 
-The standalone public landing page uses Next.js in `packages/landing`. Run `bun run landing:dev` at **http://127.0.0.1:3000**, `bun run landing:build` for its production build, and `bun run landing:start` to serve that build. It is independent of the local app and uses fictional demo screenshots. Vercel deployment is configured later; see [landing page setup](docs/landing-page.md).
+The standalone public landing page uses Next.js in `packages/landing`. Run `bun run landing:dev` at **http://127.0.0.1:3000**, `bun run landing:build` for its production build, and `bun run landing:start` to serve that build. It is independent of the local app and built from labelled fictional data. Vercel deployment is configured later; see [landing page setup](docs/landing-page.md).
 
 The workspace uses strict TypeScript, Bun workspaces, SQLite, Fastify and the official MCP SDK. The shared UI uses React, shadcn/ui, AI Elements, Tailwind, TanStack Router and Zustand, built with Vite 8. Electron hosts the same renderer. Reusable primitives and the paper/clay theme live in [`@pitchcrew/design-system`](packages/design-system/README.md), shared with the landing page. Oxlint and Oxfmt handle linting and formatting; Vitest runs the complete suite on Node, and a separate Bun integration check exercises the daemon, MCP and bounded helpers.
 
@@ -266,9 +266,10 @@ bun run format:check
 bun run typecheck
 bun run browser:install # once, for browser tools and tests
 bun run test
+bun x --no-install vitest run <path> # one test file
 bun run test:bun      # actual Bun daemon, MCP and bounded-helper integration
 bun run build
-bun run check           # lint, typecheck, tests and build
+bun run check           # lint, format check, typecheck, tests, app build and landing build
 bun run test:e2e        # built UI, real Bun daemon, Electron guests and scoped MCP browser journeys
 bun run test:desktop    # E2E journeys plus hidden Electron and native browser checks
 ```

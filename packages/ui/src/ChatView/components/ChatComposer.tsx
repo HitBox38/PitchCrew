@@ -1,4 +1,5 @@
 import { useRef, type RefObject } from 'react';
+import { chatPanelPresence } from '../presence.ts';
 import type { ComposerSuggestion } from '@/ChatComposer/types.ts';
 import { ComposerInput } from './ComposerInput.tsx';
 import { ComposerFooter } from './ComposerFooter.tsx';
@@ -14,6 +15,7 @@ export const ChatComposer = ({
   composerRef,
   ...props
 }: ChatComposerProps & { hidden?: boolean; composerRef: RefObject<HTMLElement | null> }) => {
+  chatPanelPresence.usePresent('composer-hidden', !!props.hidden);
   const { role, available, error, send, addFiles } = props;
   const disabled = !available;
   const contextActions = useRef<

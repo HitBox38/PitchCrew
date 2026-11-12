@@ -13,7 +13,7 @@ const metaSchema = z
   .strict();
 export type TrashMeta = z.infer<typeof metaSchema>;
 
-export const trashDirectory = (directory: string) => join(directory, 'profile-trash');
+const trashDirectory = (directory: string) => join(directory, 'profile-trash');
 
 /** Deleted notes wait here so the user can undo; they are never profile evidence. */
 export const moveToTrash = async (directory: string, id: string, meta: TrashMeta) => {

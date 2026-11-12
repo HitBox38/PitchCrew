@@ -23,6 +23,26 @@ export const queueStateLabels = {
   blocked: 'Needs attention',
 };
 
+/** Only work that failed is rose; an interruption or a missing prerequisite waits on the user. */
+export const queueFailed = (queue: Pick<WorkQueueView, 'pauseKind'>) =>
+  queue.pauseKind === 'failed';
+
+/**
+ * The one bead for a whole queue, wherever it shows: plum while an agent works, rose when work
+ * failed, ochre when the user must answer, finish a prerequisite or recover an interruption, and
+ * a hollow socket when ready or paused by the user.
+ */
+export const queueTone = (
+  queue: Pick<WorkQueueView, 'state' | 'pauseKind'>,
+): 'plum' | 'ochre' | 'rose' | undefined =>
+  queue.state === 'running'
+    ? 'plum'
+    : queueFailed(queue)
+      ? 'rose'
+      : queue.state === 'waiting' || queue.state === 'blocked' || queue.pauseKind === 'interrupted'
+        ? 'ochre'
+        : undefined;
+
 /** Workspace slots belong to jobs/conversations, not individual agent processes. */
 export const queueSummary = (queue: WorkspaceQueue) => {
   const running = queue.queues.filter((item) => item.state === 'running');

@@ -58,7 +58,7 @@ const facts = [
   },
   {
     title: 'Runs on the AI you already have',
-    text: 'Pitchcrew does not sell an AI plan. Usage follows your provider’s plan, and Pitchcrew never reads or stores your provider tokens.',
+    text: 'Pitchcrew does not sell an AI plan. Usage follows your provider’s plan. Each tool signs in its own way, and an API key you choose to add stays in a private file on your computer.',
   },
 ];
 

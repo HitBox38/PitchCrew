@@ -9,6 +9,7 @@ import{QuestionResponseRecoveries}from'/src/UserQuestions/components/QuestionRes
 import{useQuestionAnswer}from'/src/UserQuestions/hooks/useQuestionAnswer.ts';
 import{QuestionDockProvider}from'/src/UserQuestions/QuestionDockProvider.tsx';
 import{PendingQuestions}from'/src/UserQuestions/index.tsx';
+import{chatPanelPresence}from'/src/ChatView/presence.ts';
 import{useQuestionSelection}from'/src/UserQuestions/hooks/useQuestionSelection.ts';
 import{useQuestionLifecycle}from'/src/UserQuestions/hooks/useQuestionLifecycle.ts';
 import{collapseQuestions,pendingQuestionId,emptyQuestionSelection,useQuestionState}from'/src/UserQuestions/question-state.ts';
@@ -29,6 +30,7 @@ function Fixture(){
  const[all,setAll]=useState(decision?[question]:[]),[thread,setThread]=useState('fixture'),[draft,setDraft]=useState(''),[references,setReferences]=useState([]),[files,setFiles]=useState([]),[working,setWorking]=useState(false);
  const composer=useRef(null),input=useRef(null),decisionRoot=useRef(null),requests=useRef([]),response=useRef(null),writeCount=useRef(0),backend=useRef(decision?[question]:[]),refreshFails=useRef(false),refreshes=useRef(0),http=useRef(false),newJobs=useRef(0);
  useShortcuts({search:()=>{},newJob:()=>{newJobs.current++;}});
+ const panel=chatPanelPresence.useRoot();
  const publish=next=>{backend.current=next;useWorkspaceStore.setState({data:{userInputs:next}});setAll(next);};
  useEffect(()=>{useWorkspaceStore.setState({data:{userInputs:backend.current},reload:async()=>{refreshes.current++;if(refreshFails.current)throw Error('Controlled refresh failure');publish(backend.current);}});},[]);
  useQuestionLifecycle(all);
@@ -42,7 +44,7 @@ function Fixture(){
  const outside=h('button',{id:'outside',className:'chat-mobile-title',type:'button'},'Unrelated control');
  const form=pending?h('div',{hidden:!open},h(DecisionForm,{question:questions[0],action,working,active:open,onResolved:decisionResolved})):null;
  if(decision)return h('main',{ref:decisionRoot,className:'decide'},h('h1',{},'Controlled Decisions state; no agent'),outside,h(QuestionResponseRecoveries,{}),pending?h('article',{'data-decision-id':question.id},h('h2',{'data-decision-focus':'',tabIndex:-1},question.question),form):h(mode==='empty'?'span':'h2',{'data-decision-focus':'',tabIndex:-1,id:'next-decision'},mode==='empty'?'No decisions waiting':'Next decision to review'));
- return h(LazyMotion,{features:domAnimation},h(QuestionDockProvider,{questions,activeQuestionId,onWriteMessage:write,onQuestionResolved:resolved},h('main',{className:'chat-panel'},h('h1',{},'Controlled question state; no agent or backend'),outside,h(PendingQuestions,{thread,questions,activeQuestionId,setActiveQuestionId,working,action,reduced:true,data:{roles:[{id:'coach',name:'Coach'}]}}),hidden?h('button',{id:'write',type:'button',onClick:write},'Write a message for later'):null,h('div',{id:'composer',className:'chat-compose',ref:composer,hidden,inert:hidden||undefined,tabIndex:-1,'aria-label':'Message composer'},h(ComposerAttachments,{files,removeFile:index=>setFiles(current=>current.filter((_,i)=>i!==index)),disabled:false}),h(ChatComposerEditor,{thread,value:draft,references,inputRef:input,disabled:false,label:'Fixture message',placeholder:'Write a message',suggestions:[],onAction:()=>{},onFiles:()=>{},onSend:()=>{},onChange:(text,refs)=>{setDraft(text);setReferences(refs);}}),h(DropdownMenu,{},h(DropdownMenuTrigger,{id:'add-context'},'Add context'),h(DropdownMenuContent,{},h(DropdownMenuItem,{},'Fixture context action')))))));
+ return h(LazyMotion,{features:domAnimation},h(QuestionDockProvider,{questions,activeQuestionId,onWriteMessage:write,onQuestionResolved:resolved},h(panel.Provider,{value:panel.register},h('main',{className:'chat-panel',...panel.attributes,...(hidden?{'data-has-composer-hidden':''}:{})},h('h1',{},'Controlled question state; no agent or backend'),outside,h(PendingQuestions,{thread,questions,activeQuestionId,setActiveQuestionId,working,action,reduced:true,data:{roles:[{id:'coach',name:'Coach'}]}}),hidden?h('button',{id:'write',type:'button',onClick:write},'Write a message for later'):null,h('div',{id:'composer',className:'chat-compose',ref:composer,hidden,inert:hidden||undefined,tabIndex:-1,'aria-label':'Message composer'},h(ComposerAttachments,{files,removeFile:index=>setFiles(current=>current.filter((_,i)=>i!==index)),disabled:false}),h(ChatComposerEditor,{thread,value:draft,references,inputRef:input,disabled:false,label:'Fixture message',placeholder:'Write a message',suggestions:[],onAction:()=>{},onFiles:()=>{},onSend:()=>{},onChange:(text,refs)=>{setDraft(text);setReferences(refs);}}),h(DropdownMenu,{},h(DropdownMenuTrigger,{id:'add-context'},'Add context'),h(DropdownMenuContent,{},h(DropdownMenuItem,{},'Fixture context action'))))))));
 }
 createRoot(document.getElementById('root')).render(h(Fixture));
 `;

@@ -210,7 +210,7 @@ const canBreak = (before: string, after: string) =>
   !noBreakBefore.test(after) &&
   !noBreakAfter.test(before);
 
-export const measure = (piece: Omit<Piece, 'width'>, size: number) =>
+const measure = (piece: Omit<Piece, 'width'>, size: number) =>
   piece.font.widthOfTextAtSize(piece.level % 2 ? rtlMark + piece.text : piece.text, size);
 
 const atomOf = (kind: Atom['kind'], pieces: Piece[], width?: number): Atom => ({

@@ -4,6 +4,7 @@ import { chatTokens } from '@pitchcrew/core/chat-references';
 import { Button } from '@pitchcrew/design-system/button';
 import { Textarea } from '@pitchcrew/design-system/textarea';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { referenceInputs } from '@/ChatComposer/helpers.ts';
 
 export const EditQueueMessage = ({
   request,
@@ -24,7 +25,7 @@ export const EditQueueMessage = ({
   const save = async () => {
     try {
       const previous = [...(request.references ?? [])];
-      const references = chatTokens(content).flatMap((token) => {
+      const rebuilt = chatTokens(content).flatMap((token) => {
         const index = previous.findIndex(
           (ref) => ref.token === content.slice(token.start, token.end),
         );
@@ -32,10 +33,11 @@ export const EditQueueMessage = ({
         const [reference] = previous.splice(index, 1);
         return [{ ...reference, start: token.start, end: token.end }];
       });
+      // The strict API takes identity and trim-relative offsets, never the saved display label.
       await action(
         `/chat-requests/${request.id}`,
         'PUT',
-        { action: 'edit', content, references },
+        { action: 'edit', content, references: referenceInputs(content, rebuilt) },
         'Queued message updated',
       );
       close();

@@ -1,6 +1,6 @@
 import type { RuntimeConnectionFieldState } from '@pitchcrew/core';
 
-export const connectionSources = {
+const connectionSources = {
   saved: 'Saved for this runtime',
   inherited: 'Inherited from the daemon',
   disabled: 'Disabled for this runtime',

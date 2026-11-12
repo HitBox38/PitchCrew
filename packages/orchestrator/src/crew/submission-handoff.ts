@@ -1,3 +1,4 @@
+import { approvalLifecycle } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { assertReviewedContext, digestPacket, setCardStatus } from '@pitchcrew/board';
@@ -28,7 +29,7 @@ export const completeSubmission = (context: CrewContext, id: string, data: unkno
   })();
 };
 
-export const assertSubmissionPacket = (context: CrewContext, approval: Approval): Card => {
+const assertSubmissionPacket = (context: CrewContext, approval: Approval): Card => {
   const card = context.board.get<Card>('card', approval.cardId);
   if (card.owner || context.board.hasActiveRun(card.id))
     throw new Error('Wait for active job work to finish.');
@@ -59,7 +60,7 @@ export const startSubmission = async (
   // An already-started handoff is an idempotent lookup, including while its run is active.
   if (approval.submission?.requestId) return approval;
   const initialCard = assertSubmissionPacket(context, approval);
-  if (!['approved', 'consumed'].includes(approval.status))
+  if (!approvalLifecycle.is('granted', approval.status))
     throw new Error('Approve this packet first.');
   const role = input.method === 'agent' ? context.board.get<Role>('role', input.roleId) : undefined;
   if (

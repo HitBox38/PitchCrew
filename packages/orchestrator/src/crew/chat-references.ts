@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import type { ChatReference, ChatReferenceInput, Conversation, Role, Skill } from '@pitchcrew/core';
-import { chatTokens, skillToken } from '@pitchcrew/core/chat-references';
+import { chatTokens, mentionedParticipants, skillToken } from '@pitchcrew/core/chat-references';
 import type { CrewContext } from './types.ts';
 
 export const skillDigest = (skill: Skill): string => {
@@ -9,12 +9,7 @@ export const skillDigest = (skill: Skill): string => {
     .digest('hex');
 };
 export const messageRecipients = (content: string, conversation: Conversation): string[] => {
-  const mentions = chatTokens(content)
-    .filter((token) => token.symbol === '@')
-    .map((token) => token.query);
-  return mentions.length
-    ? conversation.participants.filter((id) => mentions.includes(id))
-    : conversation.participants;
+  return mentionedParticipants(content, conversation.participants);
 };
 export const resolveChatReferences = (
   context: CrewContext,

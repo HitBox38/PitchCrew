@@ -1,5 +1,4 @@
-/* Clay interface preview: clay-browser-layout. Scoped under [data-interface='clay'].
- * One right panel for a job chat: a Packet | Browser switch, the task's mode chip, then Take
+/* One right panel for a job chat: a Packet | Browser switch, the task's mode chip, then Take
  * control, expand and more. Expanded, the page fills the window beside a column with the agent's
  * live activity and the approval tray. Shapes encode state: the mode chip is plain while
  * supervised, moss for granted autonomous preparation and primary while you hold control. */
@@ -10,10 +9,10 @@
 }
 
 /* Packet | Browser: a recessed track with the shown view raised. */
-[data-interface='clay'] .browser-view-switch-root {
+.browser-view-switch-root {
   flex: none;
 }
-[data-interface='clay'] .browser-view-switch {
+.browser-view-switch {
   width: fit-content;
   height: 32px;
   padding: 3px;
@@ -22,7 +21,7 @@
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
 }
-[data-interface='clay'] .browser-view-switch [data-slot='tabs-trigger'] {
+.browser-view-switch [data-slot='tabs-trigger'] {
   flex: 0 0 auto;
   height: 26px;
   padding: 0 10px;
@@ -32,40 +31,38 @@
   font-size: var(--text-caption);
   font-weight: 600;
 }
-[data-interface='clay'] .browser-view-switch [data-slot='tabs-trigger'][data-active] {
-  background: var(--clay-fill);
-  box-shadow: var(--clay);
+.browser-view-switch [data-slot='tabs-trigger'][data-active] {
   color: var(--ink);
 }
-[data-interface='clay'] .browser-view-switch [data-slot='tabs-trigger']:hover:not([data-active]) {
+.browser-view-switch [data-slot='tabs-trigger']:hover:not([data-active]) {
   color: var(--ink);
 }
 
 /* Header order per the mock: mode chip, Take control, expand, more, hide. */
-[data-interface='clay'] .browser-heading-actions {
+.browser-heading-actions {
   gap: 4px;
 }
-[data-interface='clay'] .browser-heading-actions > .browser-expand {
+.browser-heading-actions > .browser-expand {
   order: 1;
 }
-[data-interface='clay'] .browser-heading-actions > [aria-label='Browser options'] {
+.browser-heading-actions > [aria-label='Browser options'] {
   order: 2;
 }
-[data-interface='clay'] .browser-heading-actions > .browser-hide {
+.browser-heading-actions > .browser-hide {
   order: 3;
 }
-[data-interface='clay'] .browser-handoff {
+.browser-handoff {
   background: var(--clay-fill);
   box-shadow: var(--clay);
 }
-[data-interface='clay'] .browser-handoff[data-variant='secondary'] {
+.browser-handoff[data-variant='secondary'] {
   background: var(--primary-soft);
   box-shadow: var(--clay-sunken);
   color: var(--primary);
 }
 
 /* Packet tab: the documents scroll inside the panel; the browser region above stays mounted. */
-[data-interface='clay'] .browser-packet-view {
+.browser-packet-view {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -75,21 +72,15 @@
 
 /* Narrow panels keep the switch and chips readable by dropping the agent's name. */
 @container browser-panel (max-width: 40rem) {
-  [data-interface='clay']
-    .browser-heading-identity:has(.browser-view-switch)
-    .browser-agent-picker
-    > .truncate,
-  [data-interface='clay']
-    .browser-heading-identity:has(.browser-view-switch)
-    .browser-agent-name
-    > .truncate {
+  .browser-heading-identity:has(.browser-view-switch) .browser-agent-picker > .truncate,
+  .browser-heading-identity:has(.browser-view-switch) .browser-agent-name > .truncate {
     display: none;
   }
 }
 
 /* Expanded: the page column on the left, activity and approvals on the right. The page spans
  * the full height of its column, so the tray never changes the inspected page's size. */
-[data-interface='clay'] .agent-browser-panel:has(> .browser-expanded-side) {
+.agent-browser-panel:has(> .browser-expanded-side) {
   display: grid;
   grid-template-areas: 'head head' 'error error' 'page side';
   grid-template-rows: auto auto minmax(0, 1fr);
@@ -98,16 +89,14 @@
   padding-right: 12px;
   background: var(--paper);
 }
-[data-interface='clay']
-  .agent-browser-panel:has(> .browser-expanded-side)
-  > .browser-panel-heading {
+.agent-browser-panel:has(> .browser-expanded-side) > .browser-panel-heading {
   grid-area: head;
   margin-right: -12px;
 }
-[data-interface='clay'] .agent-browser-panel:has(> .browser-expanded-side) > .form-error {
+.agent-browser-panel:has(> .browser-expanded-side) > .form-error {
   grid-area: error;
 }
-[data-interface='clay'] .agent-browser-panel > .browser-page-region:has(~ .browser-expanded-side) {
+.agent-browser-panel > .browser-page-region:has(~ .browser-expanded-side) {
   display: flex;
   grid-area: page;
   flex-direction: column;
@@ -118,7 +107,7 @@
   border-right: 1px solid var(--border);
   background: var(--paper);
 }
-[data-interface='clay'] .browser-expanded-side {
+.browser-expanded-side {
   display: flex;
   grid-area: side;
   flex-direction: column;
@@ -126,7 +115,7 @@
   min-height: 0;
   padding-block: 12px;
 }
-[data-interface='clay'] .browser-expanded-activity {
+.browser-expanded-activity {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -137,35 +126,33 @@
   background: var(--clay-fill);
   box-shadow: var(--clay);
 }
-[data-interface='clay'] .browser-run-activity {
+.browser-run-activity {
   display: flex;
   flex: 1;
   flex-direction: column;
   gap: 10px;
   min-height: 0;
 }
-[data-interface='clay'] .browser-run-heading {
+.browser-run-heading {
   display: flex;
   align-items: center;
   gap: 8px;
   min-width: 0;
   font-size: var(--text-label);
 }
-[data-interface='clay'] .browser-run-heading > strong {
+.browser-run-heading > strong {
   min-width: 0;
-  font-family: var(--font-serif);
-  font-size: 14px;
 }
-[data-interface='clay'] .browser-run-state {
+.browser-run-state {
   flex: none;
   color: var(--muted);
   font-size: var(--text-caption);
 }
-[data-interface='clay'] .browser-run-stop {
+.browser-run-stop {
   margin-left: auto;
   color: var(--rose);
 }
-[data-interface='clay'] .browser-run-body {
+.browser-run-body {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -175,23 +162,23 @@
   font-size: var(--text-label);
   overscroll-behavior: contain;
 }
-[data-interface='clay'] .browser-run-body > .quiet {
+.browser-run-body > .quiet {
   margin: 0;
 }
 /* The message box: a recessed field at the bottom of the activity card, sharing chat's draft. */
-[data-interface='clay'] .browser-reply {
+.browser-reply {
   display: flex;
   flex: none;
   flex-direction: column;
   gap: 6px;
 }
-[data-interface='clay'] .browser-reply > .form-error {
+.browser-reply > .form-error {
   margin: 0;
 }
-[data-interface='clay'] .browser-reply-field {
+.browser-reply-field {
   position: relative;
 }
-[data-interface='clay'] .browser-reply-input {
+.browser-reply-input {
   min-height: 38px;
   max-height: 8.5rem;
   padding-right: 40px;
@@ -199,21 +186,21 @@
   font-size: var(--text-label);
   field-sizing: content;
 }
-[data-interface='clay'] .browser-reply-send {
+.browser-reply-send {
   position: absolute;
   right: 5px;
   bottom: 5px;
   color: var(--muted);
 }
-[data-interface='clay'] .browser-reply-send:not(:disabled) {
+.browser-reply-send:not(:disabled) {
   color: var(--color-primary-foreground);
 }
-[data-interface='clay'] .browser-reply-note {
+.browser-reply-note {
   margin: 0;
   color: var(--muted);
   font-size: var(--text-caption);
 }
-[data-interface='clay'] .browser-expand-kbd {
+.browser-expand-kbd {
   margin-left: 2px;
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
@@ -221,7 +208,7 @@
 }
 
 /* The tray in the side column: a raised card that stacks its decision buttons. */
-[data-interface='clay'] .browser-expanded-side > .browser-approvals {
+.browser-expanded-side > .browser-approvals {
   flex: none;
   margin: 0;
   border: 0;
@@ -230,35 +217,35 @@
   box-shadow: var(--clay);
 }
 /* Beside the page the tray cannot resize it, so it is as tall as its content. */
-[data-interface='clay'] .browser-expanded-side > .browser-approvals[data-reserved] {
+.browser-expanded-side > .browser-approvals[data-reserved] {
   height: auto;
   min-height: 3.5rem;
 }
-[data-interface='clay'] .browser-expanded-side .clay-tray-line {
+.browser-expanded-side .clay-tray-line {
   min-height: 3.5rem;
 }
 /* Beside the page a request reads top to bottom: its two lines, then one row of actions with
  * the decision at the end (wrapping in a narrow column). */
-[data-interface='clay'] .browser-expanded-side .browser-pending-action {
+.browser-expanded-side .browser-pending-action {
   flex-wrap: wrap;
   align-items: center;
   row-gap: 8px;
   padding: 12px 14px;
 }
-[data-interface='clay'] .browser-expanded-side .browser-pending-action > .browser-approval-body {
+.browser-expanded-side .browser-pending-action > .browser-approval-body {
   flex-basis: 100%;
 }
-[data-interface='clay'] .browser-expanded-side .browser-pending-action > .approval-footer {
+.browser-expanded-side .browser-pending-action > .approval-footer {
   margin-left: auto;
 }
 
 /* Before the agent's first run here the column is just the message box and tray. */
-[data-interface='clay'] .agent-browser-panel:has(> .browser-expanded-side[data-empty]) {
+.agent-browser-panel:has(> .browser-expanded-side[data-empty]) {
   grid-template-columns: minmax(0, 1fr) min(18rem, 28%);
 }
-[data-interface='clay'] .browser-expanded-side[data-empty] .browser-run-activity {
+.browser-expanded-side[data-empty] .browser-run-activity {
   flex: none;
 }
-[data-interface='clay'] .browser-expanded-side[data-empty] .browser-expanded-activity {
+.browser-expanded-side[data-empty] .browser-expanded-activity {
   flex: 0 0 auto;
 }

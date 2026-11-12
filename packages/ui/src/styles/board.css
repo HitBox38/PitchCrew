@@ -41,6 +41,9 @@
 .detail-tabs button::after {
   display: none;
 }
+.detail-tabs [data-slot='tabs-indicator'] {
+  border-radius: 9px 10px 9px 8px;
+}
 .view-switch button span {
   color: var(--muted);
   font-weight: 400;
@@ -154,9 +157,6 @@
 .subtle {
   font-size: 12px;
   color: var(--muted);
-}
-.section-heading h2 {
-  font-size: 17px;
 }
 .empty-state {
   padding: 26px 24px;

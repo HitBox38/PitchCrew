@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { assertConfirmedContext } from '@pitchcrew/board';
+import { assertConfirmedContext, runsForDeepReview } from '@pitchcrew/board';
 import type { Card, DeepReview, ProfileFile, Run } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 import type { LiveDeepReview } from './types.ts';
@@ -61,9 +61,9 @@ export const failReviewContinuation = (context: CrewContext, id: string, error: 
     },
     'Deep-review continuation failed',
   );
-  for (const run of context.board
-    .list<Run>('run')
-    .filter((run) => run.deepReviewId === id && run.status === 'waiting')) {
+  for (const run of runsForDeepReview(context.board, id).filter(
+    (run) => run.status === 'waiting',
+  )) {
     context.board.record(
       'run',
       { ...run, status: 'failed', message: error, finishedAt: new Date().toISOString() },

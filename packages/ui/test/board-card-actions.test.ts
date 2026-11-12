@@ -15,7 +15,7 @@ const menu = () => page.getByRole('button', { name: menuName(), exact: true });
 const focusedLabel = () => page.evaluate(() => document.activeElement?.getAttribute('aria-label'));
 
 beforeAll(async () => {
-  host = await setup(14609);
+  host = await setup();
   browser = await chromium.launch({ headless: true });
   page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   page.setDefaultTimeout(10000);
@@ -25,7 +25,8 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await page.unrouteAll({ behavior: 'wait' });
-  host.daemon.service.controllers.delete('fixture-busy');
+  for (const kind of ['dropdown', 'context'])
+    host.daemon.service.controllers.delete(`fixture-busy-${kind}`);
   for (const run of host.daemon.service.board.list<Run>('run'))
     if (run.status === 'running')
       host.daemon.service.board.record(
@@ -288,11 +289,13 @@ test.each(['dropdown', 'context'])(
   'attached chat work disables mutations but leaves the menu and cancellation available (%s)',
   async (kind) => {
     const controller = new AbortController();
-    host.daemon.service.controllers.set('fixture-busy', controller);
+    // A cancelled run stays cancelled, so each case starts its own.
+    const id = `fixture-busy-${kind}`;
+    host.daemon.service.controllers.set(id, controller);
     host.daemon.service.board.record(
       'run',
       {
-        id: 'fixture-busy',
+        id,
         cardId: card.id,
         roleId: 'scout',
         status: 'running',

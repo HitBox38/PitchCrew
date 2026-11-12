@@ -51,6 +51,13 @@ export const operationalLogPayload = (
                     ? [attribute('runtime_exit_signal', log.runtime_exit_signal)]
                     : []),
                   ...(log.operation ? [attribute('operation', log.operation)] : []),
+                  ...(log.lifecycle && log.from_status && log.to_status
+                    ? [
+                        attribute('lifecycle', log.lifecycle),
+                        attribute('from_status', log.from_status),
+                        attribute('to_status', log.to_status),
+                      ]
+                    : []),
                   attribute('renderer', context.renderer),
                   attribute('analytics_schema', context.analytics_schema),
                   ...(identity ? [attribute('posthogDistinctId', identity)] : []),

@@ -7,7 +7,6 @@ export { CommandGroup } from './components/CommandGroup.tsx';
 export { CommandInput } from './components/CommandInput.tsx';
 export { CommandItem } from './components/CommandItem.tsx';
 export { CommandList } from './components/CommandList.tsx';
-export { CommandSeparator } from './components/CommandSeparator.tsx';
 export { CommandShortcut } from './components/CommandShortcut.tsx';
 
 export type * from './types.ts';

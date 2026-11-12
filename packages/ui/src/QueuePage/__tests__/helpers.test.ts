@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest';
-import { backgroundLine, queueRequestHeading, queueTone, slotFact } from '../helpers.ts';
+import { queueTone } from '@/lib/work-queue.ts';
+import { backgroundLine, queueRequestHeading, slotFact } from '../helpers.ts';
 
 it('colours a queue bead by who must act next', () => {
   expect(queueTone({ state: 'running' })).toBe('plum');

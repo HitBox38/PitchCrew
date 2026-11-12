@@ -19,26 +19,6 @@
   padding: 0 16px 16px 8px;
   max-width: none;
 }
-.workspace-notice {
-  padding: 16px 20px;
-  background: var(--surface);
-  border-radius: 16px;
-  box-shadow: var(--sheet);
-}
-.pipeline-column.flash {
-  animation: tray-flash 1.4s var(--ease);
-}
-@keyframes tray-flash {
-  0%,
-  40% {
-    outline: 2px solid color-mix(in srgb, var(--primary) 60%, transparent);
-    outline-offset: -2px;
-  }
-  100% {
-    outline: 2px solid transparent;
-    outline-offset: -2px;
-  }
-}
 
 /* Phones: menu, page title, the page's one primary action and the overflow in one 48px bar above
  * the page. The bell stands before the overflow only while no primary takes its place. */
@@ -76,8 +56,10 @@
 .workspace-mobile-primary > * {
   min-height: 40px;
 }
-.workspace-mobile-bar:has(.workspace-mobile-primary:not(:empty)) .workspace-mobile-bell,
-.workspace-mobile-bar:not(:has(.workspace-mobile-primary:not(:empty))) .workspace-overflow-dot {
+/* Sibling selectors, never :has(): an "is this slot empty" test inside :has() makes Chrome recheck
+ * it after every change anywhere on the page, which made each edit cost a full style pass. */
+.workspace-mobile-primary:not(:empty) ~ .workspace-mobile-bell,
+.workspace-mobile-primary:empty ~ * .workspace-overflow-dot {
   display: none;
 }
 .workspace-mobile-bell,
@@ -86,7 +68,8 @@
   height: 44px;
 }
 /* A page may name the bar itself (chat: its conversation title and menu). The bell then waits in
- * the overflow, as it does beside a primary action. */
+ * the overflow, as it does beside a primary action. The slot comes before the plain title so
+ * these stay sibling selectors. */
 .workspace-mobile-title-slot {
   display: flex;
   flex: 1;
@@ -94,11 +77,10 @@
   align-items: center;
 }
 .workspace-mobile-title-slot:empty,
-.workspace-mobile-bar:has(.workspace-mobile-title-slot:not(:empty))
-  :is(.workspace-mobile-title, .workspace-mobile-bell) {
+.workspace-mobile-title-slot:not(:empty) ~ :is(.workspace-mobile-title, .workspace-mobile-bell) {
   display: none;
 }
-.workspace-mobile-bar:has(.workspace-mobile-title-slot:not(:empty)) .workspace-overflow-dot {
+.workspace-mobile-title-slot:not(:empty) ~ * .workspace-overflow-dot {
   display: block;
 }
 .workspace-overflow-dot {

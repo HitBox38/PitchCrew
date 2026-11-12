@@ -45,7 +45,7 @@ describe('agent conversations and crew actions', () => {
           turns.push({ context, complete: (reply) => resolve({ reply }) });
         }),
     );
-    const { daemon, request, cookie } = await setup(14446);
+    const { daemon, request, cookie } = await setup();
     const states: ChatStreamState[] = [];
     const streams: { controller: AbortController; done: Promise<void> }[] = [];
     const connect = async () => {
@@ -165,7 +165,7 @@ describe('agent conversations and crew actions', () => {
         input.onReply!('Late text');
         return { reply: status === 'failed' ? '' : 'Late final text' };
       });
-      const { daemon, request } = await setup(status === 'cancelled' ? 14447 : 14448);
+      const { daemon, request } = await setup();
       const { result: run } = await request<Run>('/roles/scout/chat', 'POST', {
         content: 'Start a turn.',
       });
@@ -185,7 +185,7 @@ describe('agent conversations and crew actions', () => {
   );
 
   it('protects the live stream with the same session, client and origin checks as snapshots', async () => {
-    const { daemon, cookie } = await setup(14449);
+    const { daemon, cookie } = await setup();
     const deniedHeaders: Record<string, string>[] = [
       { 'x-pitchcrew-client': 'ui' },
       { cookie },
@@ -203,7 +203,7 @@ describe('agent conversations and crew actions', () => {
     const content = 'Help me understand your role.';
     const competingContent = 'A competing message.';
     const release = holdDemoChats([content, competingContent]);
-    const { daemon, request } = await setup(14422);
+    const { daemon, request } = await setup();
     const results = await Promise.all([
       request<Run>('/roles/scout/chat', 'POST', { content }),
       request<Run>('/roles/scout/chat', 'POST', { content: competingContent }),
@@ -249,7 +249,7 @@ describe('agent conversations and crew actions', () => {
     const disabledMessage = 'Try a disabled capability.';
     const revisionMessage = 'Request revision.';
     const release = holdDemoChats([rootMessage, disabledMessage, revisionMessage]);
-    const { daemon, request, directory } = await setup(14423);
+    const { daemon, request, directory } = await setup();
     await request('/profile', 'PUT', {
       name: 'profile.md',
       content: '# Example Candidate\n\n- Built React interfaces.',
@@ -411,7 +411,7 @@ describe('agent conversations and crew actions', () => {
   it('queues more than six follow-ups and cancels the chain without launching queued work', async () => {
     const content = 'Plan a discussion.';
     holdDemoChats([content]);
-    const { daemon, request } = await setup(14424);
+    const { daemon, request } = await setup();
     const { result: run } = await request<Run>('/roles/scout/chat', 'POST', {
       content,
     });
@@ -440,7 +440,7 @@ describe('agent conversations and crew actions', () => {
   });
 
   it('recovers interrupted chats and queued invocations on startup', async () => {
-    const { daemon } = await setup(14425);
+    const { daemon } = await setup();
     daemon.service.board.record(
       'run',
       {
@@ -485,7 +485,7 @@ describe('agent conversations and crew actions', () => {
   });
 });
 it('runs more than six recursive self-invocations across descendant chat turns', async () => {
-  const { request } = await setup(14426);
+  const { request } = await setup();
   const followUps = 10;
   let turnCount = 0;
   vi.spyOn(adapters.demo, 'chat').mockImplementation(async (context) => {

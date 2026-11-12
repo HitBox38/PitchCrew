@@ -1,4 +1,6 @@
 import {
+  approvalLifecycle,
+  computerApprovalLifecycle,
   extractedJobSchema,
   missingPersonalAnswers,
   applicationFormIsCurrent,
@@ -8,11 +10,11 @@ import {
   type ExtractedJob,
   type Approval,
   type ComputerApproval,
-  type Run,
   type SubmissionAttempt,
 } from '@pitchcrew/core';
 import { createHash } from 'node:crypto';
 import { digestPacket } from './helpers.ts';
+import { runsWithStatus } from './runs.ts';
 import type { BoardContext } from './types.ts';
 export const jobSourceRevision = (card: Card) => {
   return digest([
@@ -25,7 +27,7 @@ export const jobSourceRevision = (card: Card) => {
     card.sourceHtml ?? null,
   ]);
 };
-export const applicationRevision = (sourceRevision: string, data: ExtractedJob) => {
+const applicationRevision = (sourceRevision: string, data: ExtractedJob) => {
   const parsed = extractedJobSchema.parse(data);
   const parts: unknown[] = [sourceRevision, parsed.brief, parsed.requirements, parsed.flagged];
   if (parsed.form) parts.push(parsed.form);
@@ -86,7 +88,7 @@ export const saveApplicationContext = (
     if (board.hasActiveRun(cardId))
       throw new Error('Wait for the active application run to finish.');
     if (
-      board.list<Run>('run').some((run) => run.cardId === cardId && run.status === 'running') ||
+      runsWithStatus(board, ['running']).some((run) => run.cardId === cardId) ||
       board
         .list<SubmissionAttempt>('submission_attempt')
         .some((attempt) => attempt.cardId === cardId && attempt.status === 'uncertain')
@@ -147,7 +149,7 @@ export const saveApplicationContext = (
     );
     if (!same) {
       for (const approval of board.list<Approval>('approval'))
-        if (approval.cardId === cardId && ['pending', 'approved'].includes(approval.status))
+        if (approval.cardId === cardId && approvalLifecycle.is('open', approval.status))
           board.record(
             'approval',
             { ...approval, status: 'rejected', decidedAt: now },
@@ -155,7 +157,7 @@ export const saveApplicationContext = (
             'Invalidated export approval after application context changed',
           );
       for (const approval of board.list<ComputerApproval>('computer_approval'))
-        if (approval.cardId === cardId && ['pending', 'approved'].includes(approval.status))
+        if (approval.cardId === cardId && computerApprovalLifecycle.is('open', approval.status))
           board.record(
             'computer_approval',
             { ...approval, status: 'rejected', decidedAt: now },

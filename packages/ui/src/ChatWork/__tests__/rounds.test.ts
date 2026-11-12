@@ -1,6 +1,6 @@
 import type { AgentTask, DelegationRound } from '@pitchcrew/core';
 import { expect, it } from 'vitest';
-import { roundBead, roundMembers, roundStatusLabels } from '../rounds.ts';
+import { roundBead, roundLabel, roundMembers, roundStatusLabels } from '../rounds.ts';
 
 const round = {
   id: 'r1',
@@ -44,4 +44,12 @@ it('maps round status to one bead and a readable label', () => {
   expect(roundBead({ ...round, status: 'cancelled' })).toBe('cancelled');
   expect(roundBead({ ...round, status: 'queued' })).toBe('queued');
   expect(roundStatusLabels.collecting).toBe('Collecting results');
+});
+it('shows a failed collection as failed while the round waits for Retry or Skip', () => {
+  const collecting = { ...round, status: 'collecting' } as const;
+  const tasks = [task('t1', 'completed'), task('t2', 'completed'), task('t3', 'failed')];
+  expect(roundBead(collecting, tasks)).toBe('failed');
+  expect(roundLabel(collecting, tasks)).toBe('Collection failed');
+  expect(roundBead(collecting, [...tasks.slice(0, 2), task('t3', 'running')])).toBe('running');
+  expect(roundLabel(collecting, [])).toBe('Collecting results');
 });

@@ -14,7 +14,7 @@ export const chatAttachmentMime = (name: string): string | undefined => {
 };
 /** Browser-safe attachment policy shared by the composer and daemon. */
 export const chatAttachmentLimits = { count: 5, bytes: 10 * 1024 * 1024, text: 50_000 } as const;
-export const chatAttachmentTypes: Readonly<Record<string, string>> = {
+const chatAttachmentTypes: Readonly<Record<string, string>> = {
   txt: 'text/plain',
   md: 'text/markdown',
   csv: 'text/csv',

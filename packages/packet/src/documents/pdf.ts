@@ -49,7 +49,7 @@ const documentTexts = (blocks: Block[]) => {
 };
 
 // PDF URI actions must be 7-bit ASCII; parentheses and backslashes are escaped as well.
-export const asciiUri = (href: string) => {
+const asciiUri = (href: string) => {
   let output = '';
   for (const character of href) {
     const code = character.codePointAt(0)!;

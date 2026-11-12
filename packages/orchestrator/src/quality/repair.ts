@@ -1,6 +1,6 @@
 import { sourceArguments } from '../process.ts';
 import { adapters } from '@pitchcrew/adapters';
-import { digestPacket, assertConfirmedContext } from '@pitchcrew/board';
+import { digestPacket, assertConfirmedContext, runsForCard } from '@pitchcrew/board';
 import {
   draftingCard,
   workflowSeat,
@@ -100,8 +100,7 @@ const stagePrepared = async (
     const result = await ai.observe(() => adapters[role.runtime].run(launch), signal);
     if (endQuestionTurn(context, run)) {
       if (purpose === 'application-draft')
-        context.board.record(
-          'card',
+        context.board.crewMove(
           {
             ...context.board.get<Card>('card', card.id),
             state: 'changes_requested',
@@ -114,8 +113,7 @@ const stagePrepared = async (
     }
     signal.throwIfAborted();
     if (purpose === 'application-draft')
-      context.board.record(
-        'card',
+      context.board.crewMove(
         { ...context.board.get<Card>('card', card.id), state: 'drafting', packetReview: undefined },
         'orchestrator',
         'Started the single document correction pass',
@@ -191,14 +189,9 @@ export const documentReviewCycle = async (
   if (!card.packet) return;
   let check = await inspectPacketDocuments(context.directory, card.packet);
   signal.throwIfAborted();
-  const alreadyCorrected = context.board
-    .list<Run>('run')
-    .some(
-      (run) =>
-        run.documentRepair &&
-        run.cardId === card.id &&
-        (run.rootRunId ?? run.id) === (parent.rootRunId ?? parent.id),
-    );
+  const alreadyCorrected = runsForCard(context.board, card.id).some(
+    (run) => run.documentRepair && (run.rootRunId ?? run.id) === (parent.rootRunId ?? parent.id),
+  );
   if (check.repairable.length && !alreadyCorrected) {
     const roles = context.board.list<Role>('role');
     const available = (r: Role) => r.enabled && adapters[r.runtime].applicationIsolation;
@@ -255,8 +248,7 @@ export const documentReviewCycle = async (
     'Recorded document verification findings',
   );
   if (check.errors.length)
-    context.board.record(
-      'card',
+    context.board.crewMove(
       {
         ...context.board.get<Card>('card', card.id),
         state: 'changes_requested',

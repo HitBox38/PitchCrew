@@ -35,7 +35,7 @@ export const skillSourceSchema = z
     fetchedAt: z.iso.datetime(),
   })
   .strict();
-export const skillAssignment = z
+const skillAssignment = z
   .object({
     scope: z.enum(['all', 'roles']),
     roleIds: z.array(roleIdSchema).max(50).default([]),
@@ -70,7 +70,7 @@ export const skillInput = z
     (skill) => new Set(skill.roleIds).size === skill.roleIds.length,
     'Choose each agent once.',
   );
-export type SkillInput = z.infer<typeof skillInput>;
+type SkillInput = z.infer<typeof skillInput>;
 export interface Skill extends SkillInput {
   id: string;
   createdAt: string;

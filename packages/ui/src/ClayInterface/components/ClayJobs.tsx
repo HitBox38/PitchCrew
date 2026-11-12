@@ -10,12 +10,21 @@ import {
 } from '@pitchcrew/design-system/sidebar';
 import type { ClaySidebarState } from '../hooks/useClaySidebar.ts';
 import { ClayJobRow } from './ClayJobRow.tsx';
+import { useStableCallbacks } from '@/lib/use-stable-callbacks.ts';
 
 type ClayJobsProps = { sidebar: ClaySidebarState; onOpenCard: (id: string) => void };
 
 /** Live jobs, each with its conversations folded beneath it, then one row counting the leads. */
 export const ClayJobs = ({ sidebar, onOpenCard }: ClayJobsProps) => {
   const { jobs, leads, nested, navigation, actions } = sidebar;
+  // Stable, so a job row whose content did not change skips rendering.
+  const callbacks = useStableCallbacks({
+    setJobOpen: sidebar.setJobOpen,
+    onOpenCard,
+    closeMobile: navigation.closeMobile,
+    archive: actions.archive,
+    requestDelete: actions.requestDelete,
+  });
   if (!jobs.length && !leads.length) return null;
   if (navigation.iconOnly)
     return <RailShortcut id="clay-jobs" label="Open jobs" icon={<Briefcase />} />;
@@ -33,12 +42,12 @@ export const ClayJobs = ({ sidebar, onOpenCard }: ClayJobsProps) => {
               job={job}
               rows={nested.byCard.get(job.card.id) ?? []}
               open={sidebar.isOpen(job.card.id)}
-              setOpen={(open) => sidebar.setJobOpen(job.card.id, open)}
-              onOpenCard={onOpenCard}
+              setJobOpen={callbacks.setJobOpen}
+              onOpenCard={callbacks.onOpenCard}
               thread={navigation.thread}
               now={sidebar.now}
-              closeMobile={navigation.closeMobile}
-              actions={actions}
+              closeMobile={callbacks.closeMobile}
+              actions={callbacks}
               working={actions.working}
             />
           ))}

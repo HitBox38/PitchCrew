@@ -22,11 +22,3 @@ export const instructionUpdateExplanation = (update: InstructionUpdate): string 
       return 'These instructions do not match any earlier default, so they count as your own. Compare before you decide.';
   }
 };
-
-/** Plain text for a list of role names: "Scout", "Scout and Writer", "Scout, Writer and Tracker". */
-export const joinNames = (names: string[]): string => {
-  if (names.length < 2) return names.join('');
-  return `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
-};
-
-export const instructionUpdateTitle = 'Instructions update available';

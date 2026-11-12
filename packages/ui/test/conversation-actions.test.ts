@@ -26,7 +26,7 @@ const menu = () =>
   page.getByRole('button', { name: `Actions for ${conversation.title}`, exact: true });
 
 beforeAll(async () => {
-  host = await setup(14639);
+  host = await setup();
   conversation = host.daemon.service.createConversation({
     title: 'Fictional sidebar topic',
     participants: ['scout'],

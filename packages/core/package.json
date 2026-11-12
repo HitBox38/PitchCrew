@@ -1,6 +1,6 @@
 {
   "name": "@pitchcrew/core",
-  "version": "0.21.0",
+  "version": "0.22.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -10,6 +10,7 @@
     "./skill-updates": "./src/skill-updates.ts",
     "./skill-delivery": "./src/skill-delivery.ts",
     "./states": "./src/states.ts",
+    "./lifecycles": "./src/lifecycles.ts",
     "./desktop-links": "./src/desktop-links.ts",
     "./job-link-recognition": "./src/job-link-recognition.ts",
     "./public-job-links": "./src/public-job-links.ts",
@@ -34,6 +35,6 @@
   "dependencies": {
     "strip-ansi": "^7.2.0",
     "tsx": "4.23.15",
-    "zod": "^4.3.6"
+    "zod": "^4.6.6"
   }
 }

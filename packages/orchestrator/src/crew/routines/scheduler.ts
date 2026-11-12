@@ -1,19 +1,16 @@
 import { launchProblem } from '../queue/admission.ts';
 import { queueMayStart } from '../queue/dispatch.ts';
+import { reportDrainFailure } from '../queue/drain-failure.ts';
+import { unsettledChatRequests } from '../queue/queries.ts';
 import { randomUUID } from 'node:crypto';
 import { saveRequest } from '../conversation-queue.ts';
 import { activeQueues, concurrency } from '../queue/state.ts';
-import { type ChatRequest } from '@pitchcrew/core';
+import { runLifecycle, taskLifecycle, type ChatRequest } from '@pitchcrew/core';
 import { drainConversationQueue } from '../conversation-queue.ts';
-import { relatedConversation, conversation } from '../conversations.ts';
+import { relatedConversation, conversations } from '../conversations.ts';
 import { profileUpdateInterrupted } from '../../profile-sources/mutation.ts';
-import {
-  defaultCapabilities,
-  type AgentTask,
-  type Role,
-  type Routine,
-  type Run,
-} from '@pitchcrew/core';
+import { runsWithStatus, tasksWithStatus } from '@pitchcrew/board';
+import { defaultCapabilities, type Role, type Routine } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 import { nextOccurrence } from './schedule.ts';
 import { routines } from './index.ts';
@@ -21,7 +18,7 @@ import { routines } from './index.ts';
 export const startScheduler = (context: CrewContext): void => {
   if (context.schedulerTimer || context.closing) return;
   context.schedulerTimer = setInterval(() => {
-    void tickRoutines(context);
+    void tickRoutines(context).catch((error) => reportDrainFailure(context, 'scheduler', error));
   }, 1000);
   context.schedulerTimer.unref();
 };
@@ -39,13 +36,19 @@ export const tickRoutines = async (context: CrewContext, now = new Date()): Prom
       if (context.closing) break;
       const routine = context.board.get<Routine>('routine', candidate.id);
       if (routine.deletedAt) continue;
-      if (routine.conversationId) {
-        const target = conversation(context, routine.conversationId);
-        if (!target.participants.includes(routine.roleId) || target.cardId !== routine.cardId)
-          continue;
-      }
       if (!routine.enabled || !routine.nextRunAt || Date.parse(routine.nextRunAt) > now.getTime())
         continue;
+      if (routine.conversationId) {
+        // A deleted conversation has no projection; looking it up by ID would throw and stop
+        // every later routine on each tick.
+        const target = conversations(context).find((item) => item.id === routine.conversationId);
+        if (
+          !target ||
+          !target.participants.includes(routine.roleId) ||
+          target.cardId !== routine.cardId
+        )
+          continue;
+      }
       if (routine.endsAt && Date.parse(routine.endsAt) < now.getTime()) {
         context.board.record(
           'routine',
@@ -65,39 +68,21 @@ export const tickRoutines = async (context: CrewContext, now = new Date()): Prom
         !context.runtimes.some((runtime) => runtime.id === role.runtime && runtime.available)
       )
         continue;
+      if (unsettledChatRequests(context).some((r) => r.routine?.routineId === routine.id)) continue;
       if (
-        context.board
-          .list<ChatRequest>('chat_request')
-          .some(
-            (r) =>
-              r.routine?.routineId === routine.id &&
-              r.deliveries.some((d) =>
-                ['queued', 'running', 'waiting', 'paused', 'failed'].includes(d.status),
-              ),
-          )
-      )
-        continue;
-      if (
-        context.board
-          .list<Run>('run')
-          .some(
-            (run) =>
-              ['running', 'waiting'].includes(run.status) &&
-              (run.routineId === routine.id ||
-                (routine.lastRunId && run.rootRunId === routine.lastRunId)),
-          )
+        runsWithStatus(context.board, runLifecycle.groups.live).some(
+          (run) =>
+            run.routineId === routine.id ||
+            (routine.lastRunId && run.rootRunId === routine.lastRunId),
+        )
       )
         continue;
       if (!routine.cardId && activeQueues(context).size >= concurrency(context)) continue;
       if (
         routine.lastRunId &&
-        context.board
-          .list<AgentTask>('task')
-          .some(
-            (task) =>
-              task.rootRunId === routine.lastRunId &&
-              ['queued', 'running', 'waiting'].includes(task.status),
-          )
+        tasksWithStatus(context.board, taskLifecycle.groups.live).some(
+          (task) => task.rootRunId === routine.lastRunId,
+        )
       )
         continue;
       if (routine.updatedBy !== 'user') {

@@ -32,7 +32,7 @@ const source = (name: string): ProfileSource => ({
 
 describe('profile note file management', () => {
   it('renames a note with its explicit folder and imported source record', async () => {
-    const { request, directory } = await setup(4594);
+    const { request, directory } = await setup();
     await request('/profile', 'PUT', { name: 'atlas.md', content: '# Atlas\n\n- Fictional.' });
     await request('/profile', 'PUT', { name: 'taken.md', content: '# Taken' });
     await writeFile(join(directory, 'profile-sources.json'), JSON.stringify([source('atlas.md')]));
@@ -89,7 +89,7 @@ describe('profile note file management', () => {
   });
 
   it('rejects renaming onto a filename an imported source still tracks', async () => {
-    const { request, directory } = await setup(4595);
+    const { request, directory } = await setup();
     await request('/profile', 'PUT', { name: 'mine.md', content: '# Mine' });
     await writeFile(
       join(directory, 'profile-sources.json'),
@@ -105,7 +105,7 @@ describe('profile note file management', () => {
   });
 
   it('moves deleted notes to the trash and restores them with their folder', async () => {
-    const { request, directory } = await setup(4596);
+    const { request, directory } = await setup();
     await request('/profile', 'PUT', { name: 'role.md', content: '# Role\n\n- Fictional.' });
     await request('/profile/organization', 'POST', {
       action: 'move',
@@ -171,7 +171,7 @@ describe('profile note file management', () => {
   });
 
   it('detects save conflicts only when the client sends a baseline', async () => {
-    const { request, directory } = await setup(4597);
+    const { request, directory } = await setup();
     const path = join(directory, 'profile', 'notes.md');
     const created = await request<ProfileFile[]>('/profile', 'PUT', {
       name: 'notes.md',
@@ -223,7 +223,7 @@ describe('profile note file management', () => {
   });
 
   it('never lets a new note overwrite another note that differs only in capitals', async () => {
-    const { request, directory } = await setup(4603);
+    const { request, directory } = await setup();
     await request('/profile', 'PUT', { name: 'race.md', content: 'original' });
     const created = await request<{ error: string }>('/profile', 'PUT', {
       name: 'Race.md',
@@ -243,7 +243,7 @@ describe('profile note file management', () => {
   });
 
   it('renames and deletes folders with their descendants under explorer rules', async () => {
-    const { request, daemon } = await setup(4598);
+    const { request, daemon } = await setup();
     await request('/profile', 'PUT', { name: 'a.md', content: 'A' });
     const change = (command: object) =>
       request<ProfileOrganization & { error?: string }>('/profile/organization', 'POST', command);
@@ -279,7 +279,7 @@ describe('profile note file management', () => {
   });
 
   it('blocks note saves, renames, deletes and restores while a run is active', async () => {
-    const { request, daemon, directory } = await setup(4599);
+    const { request, daemon, directory } = await setup();
     await request('/profile', 'PUT', { name: 'busy.md', content: 'Busy' });
     const trashed = await request<Deleted>('/profile/busy.md', 'DELETE');
     await request('/profile', 'PUT', { name: 'busy.md', content: 'Busy' });
@@ -300,7 +300,7 @@ describe('profile note file management', () => {
   });
 
   it('lists deleted notes newest first until they are restored', async () => {
-    const { request } = await setup(4604);
+    const { request } = await setup();
     await request('/profile', 'PUT', { name: 'one.md', content: '# One' });
     await request('/profile', 'PUT', { name: 'two.md', content: '# Two' });
     const first = await request<Deleted>('/profile/one.md', 'DELETE');

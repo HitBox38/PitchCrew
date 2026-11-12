@@ -9,7 +9,7 @@ import { cleanup, setup } from './helpers/daemon.ts';
 afterEach(cleanup);
 
 it('converts an uploaded database locally, then previews and imports with user confirmation', async () => {
-  const { daemon, directory, request } = await setup(15372);
+  const { daemon, directory, request } = await setup();
   const source = join(directory, 'applications.db');
   legacyTracker(source);
   const original = await readFile(source);
@@ -67,7 +67,7 @@ it('converts an uploaded database locally, then previews and imports with user c
 });
 
 it('rejects invalid, oversized, unsupported and excessive-row databases with usable errors', async () => {
-  const { directory, request } = await setup(15373);
+  const { directory, request } = await setup();
   const convert = (content: string) =>
     request<{ error: string }>('/tracking/import/database', 'POST', { content });
   expect((await convert(Buffer.from('not sqlite').toString('base64'))).result.error).toContain(

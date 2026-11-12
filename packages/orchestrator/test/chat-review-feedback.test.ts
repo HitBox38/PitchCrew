@@ -42,7 +42,7 @@ const chatTurn = (daemon: Daemon, roleId: string, cardId: string) => {
 };
 
 it('saves chat Reviewer blocking feedback for the same-context Writer revision only', async () => {
-  const { daemon, request } = await setup(24691);
+  const { daemon, request } = await setup();
   const board = daemon.service.board;
   const profile = [{ name: 'profile.md', content: 'Built React interfaces.' }];
   await request('/profile', 'PUT', profile[0]);

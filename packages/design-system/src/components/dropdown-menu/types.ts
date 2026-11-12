@@ -20,8 +20,6 @@ export type DropdownMenuLabelProps = MenuPrimitive.GroupLabel.Props & {
   inset?: boolean;
 };
 
-export type DropdownMenuPortalProps = MenuPrimitive.Portal.Props;
-
 export type DropdownMenuRadioGroupProps = MenuPrimitive.RadioGroup.Props;
 
 export type DropdownMenuRadioItemProps = MenuPrimitive.RadioItem.Props;

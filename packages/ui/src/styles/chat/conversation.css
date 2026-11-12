@@ -6,12 +6,12 @@
   overflow-y: auto;
 }
 /* A waiting question yields space before the transcript loses its reading area and pager. */
-.chat-panel:has(.pending-user-questions) {
+.chat-panel[data-has-questions] {
   /* Short windows can scroll the column after the history and answer controls reach their
    * minimum usable sizes; the browser keeps its independent viewport. */
   overflow-y: auto;
 }
-.chat-panel:has(.pending-user-questions) .chat-conversation-panel {
+.chat-panel[data-has-questions] .chat-conversation-panel {
   --chat-history-min-height: clamp(6rem, 20dvh, 10rem);
 }
 .chat-transcript {
@@ -38,7 +38,7 @@
 .chat-transcript:has(> .chat-empty) {
   padding-bottom: 0;
 }
-.chat-panel:has(.chat-empty) .chat-compose {
+.chat-panel[data-has-welcome] .chat-compose {
   padding-top: 8px;
 }
 .chat-empty-purpose {
@@ -72,10 +72,34 @@
   flex: none;
   color: var(--muted);
 }
+.chat-starter {
+  transition:
+    box-shadow 150ms ease,
+    color 150ms ease;
+}
 .chat-starter:hover {
   background: var(--clay-fill);
   box-shadow: var(--clay);
   color: var(--ink);
+}
+.chat-starter:active {
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  transition-duration: 100ms;
+}
+/* An empty chat is occasional, so its few rows may settle in with a short stagger. */
+.chat-empty-purpose,
+.chat-starter {
+  animation: clay-settle-in 220ms var(--ease) both;
+}
+.chat-starters > .chat-starter:nth-child(1) {
+  animation-delay: 40ms;
+}
+.chat-starters > .chat-starter:nth-child(2) {
+  animation-delay: 80ms;
+}
+.chat-starters > .chat-starter:nth-child(3) {
+  animation-delay: 120ms;
 }
 .chat-starter:focus-visible,
 .chat-starters-toggle:focus-visible {
@@ -95,6 +119,9 @@
 }
 .chat-starters-toggle:hover {
   color: var(--ink);
+}
+.chat-starters-toggle svg {
+  transition: transform 140ms var(--ease);
 }
 .chat-starters-toggle[data-panel-open] svg {
   transform: rotate(180deg);

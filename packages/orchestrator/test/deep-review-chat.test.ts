@@ -21,7 +21,7 @@ const mockReview = () => {
 
 afterEach(cleanup);
 it('starts the managed flow from a natural chat request on an attached job', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24521);
+  const { daemon, request, card } = await deepReviewFixture();
   mockReview();
   const conversation = daemon.service.createConversation({
     title: 'Fictional review',
@@ -41,7 +41,7 @@ it('starts the managed flow from a natural chat request on an attached job', asy
   );
 });
 it('asks for a job when /hiring-panel is requested without one, then runs the selected application', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24522);
+  const { daemon, request, card } = await deepReviewFixture();
   mockReview();
   const conversation = daemon.service.createConversation({
     title: 'Choose a job',
@@ -66,7 +66,7 @@ it('asks for a job when /hiring-panel is requested without one, then runs the se
   expect(daemon.service.board.list<DeepReview>('deep_review')[0]!.cardId).toBe(card.id);
 });
 it('preserves an explicit chat request for targeted subagents', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24523);
+  const { daemon, request, card } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   let requested = false;
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {

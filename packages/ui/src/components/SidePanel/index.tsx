@@ -1,6 +1,10 @@
 import { Sheet } from '@pitchcrew/design-system/sheet';
 import { Dialog as SheetPrimitive } from '@base-ui/react/dialog';
 import { useState, type ReactNode } from 'react';
+import { chatWorkspacePresence } from '@/ChatView/presence.ts';
+// The panel's sheet, form and footer rules live in the chat stylesheet; Routines, New conversation and
+// agent memory open this panel without the chat route having loaded it.
+import '@/styles/chat.css';
 
 /** A non-modal sheet docked in its parent's layout, keeping the workspace usable. */
 export const SidePanel = ({
@@ -15,6 +19,7 @@ export const SidePanel = ({
   returnFocus?: string;
 }) => {
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
+  chatWorkspacePresence.usePresent('side-panel');
   return (
     <div className="chat-side-panel-slot" ref={setContainer}>
       <Sheet

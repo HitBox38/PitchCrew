@@ -2,7 +2,7 @@ import type { DocumentKind } from './types.ts';
 
 // One single-column template per document, in PDF points (1/72 inch). The DOCX renderer converts
 // the same values so both formats share margins, type sizes and spacing.
-export interface HeadingStyle {
+interface HeadingStyle {
   size: number;
   leading: number;
   before: number;

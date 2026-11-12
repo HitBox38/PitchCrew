@@ -73,7 +73,7 @@ it.each(['chat', 'workflow'] as const)(
 describe('operational HTTP hook', () => {
   it('keeps the existing 400 response and records only a fixed HTTP code', async () => {
     const { setup, cleanup } = await import('../../../test/helpers/daemon.ts');
-    const { daemon, request } = await setup(14588);
+    const { daemon, request } = await setup();
     const record = vi.spyOn(daemon.service.diagnostics!, 'record');
     try {
       const { response, result } = await request<{ error: string }>('/cards', 'POST', {

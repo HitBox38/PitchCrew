@@ -6,7 +6,7 @@ export interface DetectorRequest {
   url: string;
   init: RequestInit;
 }
-export interface DetectorOutcome {
+interface DetectorOutcome {
   score: number;
   confidence: 'normal' | 'low';
   passages: DetectorPassage[];

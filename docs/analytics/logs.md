@@ -4,14 +4,15 @@ Pitchcrew emits fixed-code operational records to **native PostHog Logs** throug
 
 ## Record vocabulary
 
-| Fixed body              | Service             | Severity | Trigger                                                               |
-| ----------------------- | ------------------- | -------- | --------------------------------------------------------------------- |
-| `runtime_run_failed`    | `pitchcrew-runtime` | ERROR    | Existing chat/workflow catch, unless waiting for user input           |
-| `runtime_run_cancelled` | `pitchcrew-runtime` | INFO     | Same catch when its cancellation signal is aborted                    |
-| `http_request_failed`   | `pitchcrew-http`    | WARN     | Existing daemon HTTP error handler, before its unchanged 400 response |
-| `daemon_run_recovered`  | `pitchcrew-daemon`  | WARN     | Startup recovers a previously running board run                       |
-| `daemon_ready`          | `pitchcrew-daemon`  | INFO     | Daemon plugins become ready                                           |
-| `daemon_start_failed`   | `pitchcrew-daemon`  | ERROR    | Daemon startup catch                                                  |
+| Fixed body                   | Service             | Severity | Trigger                                                                                                        |
+| ---------------------------- | ------------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
+| `runtime_run_failed`         | `pitchcrew-runtime` | ERROR    | Existing chat/workflow catch, unless waiting for user input                                                    |
+| `runtime_run_cancelled`      | `pitchcrew-runtime` | INFO     | Same catch when its cancellation signal is aborted                                                             |
+| `http_request_failed`        | `pitchcrew-http`    | WARN     | Existing daemon HTTP error handler, before its unchanged 400 response                                          |
+| `daemon_run_recovered`       | `pitchcrew-daemon`  | WARN     | Startup recovers a previously running board run                                                                |
+| `daemon_lifecycle_violation` | `pitchcrew-daemon`  | WARN     | A board write saves a status move its lifecycle table does not declare (report mode, once per edge per daemon) |
+| `daemon_ready`               | `pitchcrew-daemon`  | INFO     | Daemon plugins become ready                                                                                    |
+| `daemon_start_failed`        | `pitchcrew-daemon`  | ERROR    | Daemon startup catch                                                                                           |
 
 The body is exactly the code. Resource attributes are fixed `service.name` and the shipped `service.version`. Log attributes contain code, fixed area (`chat`, `workflow`, `http`, `daemon`), fixed renderer, analytics schema and, for non-HTTP records, the **existing initialized SDK anonymous ID** under PostHog’s documented `posthogDistinctId` attribute. HTTP records use only the originating request’s identity as described below. See [log identity linking](https://posthog.com/docs/logs/link-person). No new identity or person profile is created. Timestamps represent renderer observation/send time, because the local diagnostic buffer does not expose an event timestamp.
 
@@ -44,6 +45,8 @@ Audit repair adds optional closed `failure_category` values (`aborted`, `timeout
 Runtime `process_exit` records also retain an optional bounded integer `runtime_exit_code` (0–4,294,967,295) and a fixed OS-name `runtime_exit_signal`, including premature ACP exits. Null codes and unknown signals are omitted. The shared sanitizer checks these attributes again before OTLP encoding; neither field is accepted on HTTP or daemon records. Structured workflow result validation is tagged at its source instead of falling back to `other`. Original exceptions, stderr and result content remain local.
 
 HTTP failures on packet approval requests, packet exports and workflow starts also include a fixed `operation` (`packet_export_requested`, `packet_exported`, `workflow_started`). The daemon derives it from the registered POST route template; it never records the request URL, query, parameters or body. Other routes omit the field. Both sanitization boundaries retain only these three values, and the renderer includes the operation alongside status and failure category in native OTLP attributes. Use those fields together to distinguish validation rejections from other failed actions; a warning alone does not establish a failed export or a common cause. This context requires an updated build and consented traffic; it cannot identify historical failures retroactively.
+
+Lifecycle warnings carry three more attributes: `lifecycle` (a table name from `packages/core/src/lifecycles.ts`, such as `Run` or `Crew task`) and `from_status`/`to_status` (two statuses of that table). Both sanitization boundaries rebuild them only when the name matches a table and both statuses belong to it; any other value drops the whole record, and the attributes are never accepted on other codes. They never include entity IDs, roles, messages or the actor. Installed daemons save the move and record it, so a record means a lifecycle table missed a real move, not that a user's work was refused; the fix is to declare the edge or correct the write. Tests enforce the tables instead and record nothing.
 
 ## HTTP request correlation
 

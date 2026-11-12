@@ -52,116 +52,8 @@
   color: var(--ink);
   box-shadow: var(--pop);
 }
-.role-settings-heading {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-shrink: 0;
-  padding: 24px 28px;
-  border-bottom: 1px solid var(--border);
-}
-.role-settings-heading > div {
-  flex: 1;
-  min-width: 0;
-}
-.role-settings-heading .role-avatar,
-.role-settings-heading .icon-button {
-  flex-shrink: 0;
-}
-.role-settings-heading h2 {
-  font-size: 24px;
-  line-height: 1.3;
-}
-.role-settings-heading p {
-  margin-top: 4px;
-  font-size: var(--text-body);
-  line-height: 1.5;
-  color: var(--muted);
-}
-.form.role-settings-form {
-  flex: 1;
-  min-height: 0;
-  gap: 0;
-}
-.role-settings-body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 24px 28px 32px;
-}
-.role-settings-section {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.role-settings-section + .role-settings-section {
-  margin-top: 28px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border);
-}
-.role-settings-section h3 {
-  font-size: 18px;
-  line-height: 1.4;
-}
-.form.role-settings-form h3 label {
-  font: inherit;
-  color: inherit;
-}
-.role-settings-section h3 + .quiet {
-  margin-top: -8px;
-}
-.role-settings-section .form-row > .field {
-  min-width: 0;
-}
-.role-settings-section .field > label,
-.role-settings-section .model-field-heading {
-  min-height: 24px;
-  justify-content: center;
-}
-.role-settings-section .model-field-heading {
-  justify-content: space-between;
-}
-.role-settings-section .optional {
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-}
-.form.role-settings-form textarea {
-  min-height: 230px;
-}
-.role-settings-capabilities {
-  display: grid;
-  gap: 12px;
-  border: 0;
-  padding: 0;
-  min-width: 0;
-}
-.role-settings-capabilities legend {
-  padding: 0 0 12px;
-  color: var(--muted);
-  font-size: var(--text-label);
-  font-weight: 600;
-}
-.role-settings-capabilities [data-slot='checkbox'] {
-  flex-shrink: 0;
-}
-.role-settings-footer {
-  flex-shrink: 0;
-  padding: 16px 28px;
-  border-top: 1px solid var(--border);
-  background: var(--surface);
-}
-.role-settings-footer .form-error {
-  margin-bottom: 12px;
-}
-.role-settings-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
 
 .modal,
-.role-settings-body,
 .notification-panel {
   overscroll-behavior: contain;
 }
@@ -171,9 +63,6 @@
 .drawer {
   height: 100dvh;
   max-height: 100dvh;
-}
-.role-settings-footer {
-  padding-bottom: max(16px, env(safe-area-inset-bottom));
 }
 .discard-description {
   color: var(--muted);

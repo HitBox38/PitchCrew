@@ -1,3 +1,4 @@
+import { cardLifecycle } from '@pitchcrew/core/lifecycles';
 import type { BoardEvent, Snapshot } from '@pitchcrew/core';
 import { eventKindLabels } from './constants.ts';
 
@@ -76,9 +77,7 @@ export const currentStatus = (
 export const eventTone = (event: Pick<BoardEvent, 'kind' | 'data'>, current?: string) => {
   const { status: recorded, state } = event.data as Status;
   if (event.kind === 'card')
-    return state && ['submitted', 'screening', 'interviewing', 'offer'].includes(state)
-      ? 'moss'
-      : undefined;
+    return state && cardLifecycle.is('applied', state) ? 'moss' : undefined;
   const open = ['running', 'pending', 'waiting', 'queued'];
   const status = recorded && open.includes(recorded) && current !== recorded ? undefined : recorded;
   if (status === 'running') return 'plum';

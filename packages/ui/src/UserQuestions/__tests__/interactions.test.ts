@@ -15,6 +15,9 @@ import { setup, cleanup } from '../../../../orchestrator/test/helpers/daemon.ts'
 let server: ViteDevServer, browser: Browser, cache: string, url: string;
 let rejectionHost: Awaited<ReturnType<typeof setup>> | undefined;
 beforeAll(async () => {
+  // A production daemon checks every installed runtime before it serves (many seconds on a
+  // machine with CLIs installed), so it starts here, alongside the UI server, never inside a test.
+  const rejection = prepareRejectionFixture();
   const root = fileURLToPath(new URL('../../..', import.meta.url));
   const designSystem = createRequire(join(root, '../design-system/package.json'));
   const core = createRequire(join(root, '../core/package.json'));
@@ -102,7 +105,7 @@ beforeAll(async () => {
             res.end(
               await vite.transformIndexHtml(
                 '/chat/fixture',
-                `<!doctype html><html data-interface="clay"><head><link rel="icon" href="data:,"><style>[hidden]{display:none!important}#root{max-width:1100px;margin:auto}</style></head><body><div id="root"></div><script type="module" src="/question-fixture"></script></body></html>`,
+                `<!doctype html><html><head><link rel="icon" href="data:,"><style>[hidden]{display:none!important}#root{max-width:1100px;margin:auto}</style></head><body><div id="root"></div><script type="module" src="/question-fixture"></script></body></html>`,
               ),
             );
           });
@@ -119,7 +122,8 @@ beforeAll(async () => {
   if (!stylesheet.ok) throw new Error(await stylesheet.text());
   await stylesheet.text();
   browser = await chromium.launch({ headless: true });
-}, 60000);
+  await rejection;
+}, 120000);
 afterAll(async () => {
   await browser?.close();
   await server?.close();
@@ -732,7 +736,7 @@ it('drops a failed single choice when a custom answer is edited', async () => {
 
 const prepareRejectionFixture = async () => {
   if (rejectionHost) return rejectionHost;
-  rejectionHost = await setup(23973, false, { dev: false, ui: false });
+  rejectionHost = await setup(false, { dev: false, ui: false });
   const service = rejectionHost.daemon.service;
   const role = service.board.get<Role>('role', 'writer');
   service.board.record(

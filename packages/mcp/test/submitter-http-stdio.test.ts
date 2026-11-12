@@ -16,7 +16,7 @@ import { cleanup, setup } from '../../orchestrator/test/helpers/daemon.ts';
 
 afterEach(cleanup);
 it('generates reviewed artifact previews before approval and exports exact bytes only through the gate', async () => {
-  const { daemon, request } = await setup(14700);
+  const { daemon, request } = await setup();
   await daemon.service.saveProfile('profile.md', 'Built React interfaces.');
   const board = daemon.service.board;
   const card = board.createCard(cardInput.parse({ company: 'Fixture Studio', title: 'Engineer' }));
@@ -38,7 +38,7 @@ it('generates reviewed artifact previews before approval and exports exact bytes
 });
 
 it('exposes scoped form/receipt tools through real MCP stdio and rechecks revoked permissions', async () => {
-  const { daemon } = await setup(14701);
+  const { daemon } = await setup();
   const board = daemon.service.board;
   const card = board.createCard(cardInput.parse({ company: 'Fixture Studio', title: 'Engineer' }));
   const role = board.get<Role>('role', 'writer');

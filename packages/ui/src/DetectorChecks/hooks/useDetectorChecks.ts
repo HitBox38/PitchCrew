@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import type { Card, Conversation, DetectorDocument, DetectorProvider } from '@pitchcrew/core';
+import type { Card, Conversation, DetectorProvider } from '@pitchcrew/core';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import {
   configuredProviders,
@@ -42,14 +42,15 @@ export const useDetectorChecks = (card: Card) => {
   }, [cover, answers]);
   const providers = configuredProviders(data?.quality?.detectors);
   const rows = detectorRows(card, digests);
-  const check = async (document: DetectorDocument, provider: DetectorProvider) => {
-    const documentDigest = digests[document];
-    if (!documentDigest) return;
+  /** Sends the digest of the text the consent dialog showed, so a packet revised while it was open
+   * is rejected by the daemon instead of being sent unseen. */
+  const check = async ({ row, provider }: Consent) => {
     setConsent(null);
+    const documentDigest = await sha256(row.text);
     await action(
       '/detectors/check',
       'POST',
-      { cardId: card.id, provider, document, documentDigest },
+      { cardId: card.id, provider, document: row.document, documentDigest },
       'Detector check saved',
     ).catch(() => {});
   };

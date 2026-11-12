@@ -1,12 +1,12 @@
 import { registerDeepReviewRoutes } from './deep-reviews.ts';
 import { registerCardChangeRoutes } from './card-changes.ts';
 import { roleIdSchema, states } from '@pitchcrew/core';
-import { deleteJob, editJob, setCardStatus } from '@pitchcrew/board';
+import { deleteJob, editJob, setCardStatus, runsWithStatus } from '@pitchcrew/board';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { IdRoute } from '../types.ts';
 import { CrewService } from '../../service.ts';
-import type { Card, Run } from '@pitchcrew/core';
+import type { Card } from '@pitchcrew/core';
 import { registerApplicationContextRoutes } from './application-context.ts';
 import { ProfileConflictError } from '../../profile-notes/index.ts';
 
@@ -39,9 +39,7 @@ export const registerBoardRoutes = (app: FastifyInstance, service: CrewService) 
     const card = service.board.get<Card>('card', req.params.id);
     if (
       card.owner ||
-      service.board
-        .list<Run>('run')
-        .some((run) => run.cardId === card.id && run.status === 'running')
+      runsWithStatus(service.board, ['running']).some((run) => run.cardId === card.id)
     )
       throw new Error('Wait for the active run or cancel it before deleting this job.');
     deleteJob(service.board, req.params.id, 'user', 'User deleted the job');

@@ -9,7 +9,7 @@ let browser: Browser;
 let page: Page;
 const errors: string[] = [];
 beforeAll(async () => {
-  host = await deepReviewFixture(24541, { ui: 'built' });
+  host = await deepReviewFixture({ ui: 'built' });
   browser = await chromium.launch({ headless: true });
   page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   page.setDefaultTimeout(15000);

@@ -8,7 +8,7 @@
     "no-unused-vars": "error",
     "jsx-a11y/label-has-associated-control": [
       "error",
-      { "controlComponents": ["Input", "Textarea", "NativeSelect", "Checkbox"] }
+      { "controlComponents": ["Input", "Textarea", "Checkbox"] }
     ]
   },
   "ignorePatterns": [
@@ -30,6 +30,46 @@
                 "name": "@pitchcrew/core",
                 "allowTypeImports": true,
                 "message": "The UI may only import types from @pitchcrew/core; use @pitchcrew/core/states for runtime values so zod stays out of the bundle."
+              },
+              {
+                "name": "@pitchcrew/adapters",
+                "message": "Provider code stays in packages/adapters; only the orchestrator may import it (AGENTS.md invariant 2)."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["@pitchcrew/adapters/*", "**/adapters/src/**"],
+                "message": "Provider code stays in packages/adapters; only the orchestrator may import it (AGENTS.md invariant 2)."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "packages/board/src/**",
+        "packages/mcp/src/**",
+        "packages/core/src/**",
+        "packages/packet/src/**",
+        "packages/design-system/src/**",
+        "packages/desktop/src/**",
+        "packages/landing/src/**"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@pitchcrew/adapters",
+                "message": "Provider code stays in packages/adapters; only the orchestrator may import it (AGENTS.md invariant 2)."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["@pitchcrew/adapters/*", "**/adapters/src/**"],
+                "message": "Provider code stays in packages/adapters; only the orchestrator may import it (AGENTS.md invariant 2)."
               }
             ]
           }

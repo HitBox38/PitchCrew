@@ -14,7 +14,7 @@ import { captureSettings } from './helpers/settings-capture.ts';
 let host: Awaited<ReturnType<typeof setup>>;
 let browser: Browser;
 beforeAll(async () => {
-  host = await setup(15759, false, { dev: false });
+  host = await setup(false, { dev: false });
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
   browser = await chromium.launch({ headless: true });
 }, 60000);
@@ -358,7 +358,7 @@ test('read-only external access and a healthy service fixture show their complet
         running: true,
         pid: 4242,
         directory: host.directory,
-        port: 15759,
+        port: host.port,
         definition: 'Fixture Pitchcrew login task',
         logFile: resolve(host.directory, 'background-service', 'daemon.log'),
         detail: 'Healthy Windows service fixture for this workspace.',

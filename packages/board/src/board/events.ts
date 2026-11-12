@@ -1,4 +1,5 @@
 import { currentEventVersion, decodeEvent, type BoardEvent, type Card } from '@pitchcrew/core';
+import { guardLifecycle } from './lifecycle.ts';
 import type { BoardContext } from './types.ts';
 
 export const close = (context: BoardContext): void => {
@@ -31,6 +32,7 @@ export const record = (
   message: string,
 ): BoardEvent => {
   return context.db.transaction(() => {
+    guardLifecycle(context, kind, data);
     const event: BoardEvent = {
       id: 0,
       version: currentEventVersion,

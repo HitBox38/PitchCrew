@@ -139,7 +139,7 @@ export const createProposal = async (host: Host, applying = false) => {
 };
 
 type Host = Awaited<ReturnType<typeof setup>>;
-export const sourceInput = {
+const sourceInput = {
   provider: 'github',
   repository: 'fictional/profile',
   path: 'about-me',

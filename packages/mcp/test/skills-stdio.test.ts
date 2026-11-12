@@ -36,7 +36,7 @@ afterEach(cleanupSkillReaders);
 
 describe('assigned skill MCP reader', () => {
   it('advertises an ID-only read-only tool and returns exact frozen instructions over actual stdio', async () => {
-    const { daemon, service, run, skill, other, input } = await skillReaderFixture(35373);
+    const { daemon, service, run, skill, other, input } = await skillReaderFixture();
     const client = await connect(daemon.url, run.id);
     try {
       const tool = (await client.listTools()).tools.find(
@@ -90,7 +90,7 @@ describe('assigned skill MCP reader', () => {
   ] as const)(
     'exposes frozen instruction reading in %s without adding wider application tools',
     async (mode) => {
-      const { daemon, run, isolated, updateRun, skill } = await skillReaderFixture(35373);
+      const { daemon, run, isolated, updateRun, skill } = await skillReaderFixture();
       if (mode !== 'chat') isolated(mode === 'child' ? 'application-review' : mode);
       if (mode === 'child') updateRun({ deepReviewId: 'review', reviewSubagentId: 'child' });
       const client = await connect(daemon.url, run.id);
@@ -123,7 +123,7 @@ describe('assigned skill MCP reader', () => {
     'omits the reader from actual discovery for %s turns and denies forged calls',
     async (reason) => {
       const { daemon, service, run, isolated, updateRun, summary, skill } =
-        await skillReaderFixture(35373);
+        await skillReaderFixture();
       if (reason === 'source') updateRun({ purpose: 'source-extraction' });
       if (reason === 'budget') {
         isolated('application-review');

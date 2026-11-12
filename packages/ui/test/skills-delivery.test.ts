@@ -9,7 +9,7 @@ let page: Page;
 const errors: string[] = [];
 
 beforeAll(async () => {
-  host = await setup(15783);
+  host = await setup();
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
   browser = await chromium.launch({ headless: true });
 }, 60000);

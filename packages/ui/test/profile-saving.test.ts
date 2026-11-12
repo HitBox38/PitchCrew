@@ -23,8 +23,8 @@ afterEach(async () => {
   expect(errors.splice(0)).toEqual([]);
 });
 
-const open = async (port: number, notes: Record<string, string>) => {
-  const host = await setup(port);
+const open = async (notes: Record<string, string>) => {
+  const host = await setup();
   for (const [name, content] of Object.entries(notes))
     await host.daemon.service.saveProfile(name, content);
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
@@ -54,7 +54,7 @@ const holdSaves = async (page: Page) => {
 const editor = (page: Page) => page.getByRole('textbox', { name: 'Profile Markdown', exact: true });
 
 test('closing a tab keeps text typed while its save was in flight', async () => {
-  const { page, file } = await open(14641, { 'notes.md': '# Notes' });
+  const { page, file } = await open({ 'notes.md': '# Notes' });
   const saves = await holdSaves(page);
   await editor(page).click();
   await page.keyboard.press('Meta+End');
@@ -70,7 +70,7 @@ test('closing a tab keeps text typed while its save was in flight', async () => 
 });
 
 test('deleting a new note during its first save does not bring it back', async () => {
-  const { page, host } = await open(14642, { 'profile.md': '# Me' });
+  const { page, host } = await open({ 'profile.md': '# Me' });
   await page.getByRole('button', { name: 'New note', exact: true }).first().click();
   const create = page.getByRole('dialog', { name: 'New note' });
   await create.getByRole('textbox', { name: 'Name' }).fill('Short lived');
@@ -88,7 +88,7 @@ test('deleting a new note during its first save does not bring it back', async (
 });
 
 test('turning autosave on saves every dirty tab, one after another', async () => {
-  const { page, file } = await open(14643, { 'a.md': '# A', 'b.md': '# B' });
+  const { page, file } = await open({ 'a.md': '# A', 'b.md': '# B' });
   await page.getByRole('button', { name: 'Editor options' }).click();
   await page.getByRole('menuitemcheckbox', { name: 'Save automatically' }).click();
   await page.keyboard.press('Escape');

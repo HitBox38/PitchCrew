@@ -40,6 +40,7 @@ import { randomUUID, createHash } from 'node:crypto';
 import { join } from 'node:path';
 import type { CrewContext } from './types.ts';
 import { delegationContext, taskReplyTarget } from './delegation-rounds.ts';
+import { startTaskRun } from './task-start.ts';
 
 export const chatState = (context: CrewContext): ChatStreamState => {
   return {
@@ -229,6 +230,7 @@ const startChatRunPrepared = async (
   context.controllers.set(run.id, controller);
   context.capabilities.set(token, { runId: run.id, cardId, roleId });
   context.board.record('run', run, roleId, `${role.name} started a chat turn`);
+  startTaskRun(context, run);
   if (!task && !delivery)
     context.addMessage(
       threadId,

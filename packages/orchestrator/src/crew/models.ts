@@ -33,6 +33,8 @@ export const detect = async (context: CrewContext): Promise<RuntimeInfo[]> => {
         const cached = context.modelCatalogs.get(adapter.id);
         return {
           ...health,
+          applicationIsolation: adapter.applicationIsolation === true,
+          customReasoning: adapter.customReasoning === true,
           ...(health.available && cached && cached.expiresAt > Date.now()
             ? cached.catalog
             : suggestedModels(adapter)),

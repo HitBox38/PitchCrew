@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const writingScope = z.enum(['all', 'resume', 'coverLetter']);
+const writingScope = z.enum(['all', 'resume', 'coverLetter']);
 export interface WritingPreference {
   id: string;
   text: string;
@@ -10,7 +10,7 @@ export interface WritingPreference {
   correctionIds: string[];
   createdAt: string;
 }
-export interface WritingProposal {
+interface WritingProposal {
   id: string;
   text: string;
   scope: z.infer<typeof writingScope>;
@@ -43,7 +43,7 @@ export interface WritingCorrection {
   eligible: boolean;
   createdAt: string;
 }
-export const planScopeSchema = z
+const planScopeSchema = z
   .object({
     cardIds: z.array(z.uuid()).max(100).default([]),
     tag: z.string().trim().max(80).default(''),
@@ -54,7 +54,7 @@ export const planScopeSchema = z
     (s) => s.cardIds.length > 0 || !!s.tag || !!s.title,
     'Choose jobs, a tag or target role.',
   );
-export const gapSchema = z
+const gapSchema = z
   .object({
     label: z.string().trim().min(1).max(120),
     kind: z.enum(['evidence', 'skill', 'coverage']),

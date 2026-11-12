@@ -8,7 +8,7 @@ import { confirmFixtureJob } from '../../board/test/fixtures/application-context
 
 afterEach(cleanup);
 it('exposes no extraction tools and only application-scoped drafting/review tools over real stdio', async () => {
-  const { daemon } = await setup(22381);
+  const { daemon } = await setup();
   const writer = daemon.service.board.get<Role>('role', 'writer');
   daemon.service.board.record(
     'role',

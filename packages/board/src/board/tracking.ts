@@ -1,4 +1,5 @@
 import {
+  approvalLifecycle,
   applicationQuery,
   externalApplicationInput,
   externalSubmissionInput,
@@ -97,7 +98,12 @@ export const recordExternalApplication = (
   board.record('card', external, 'user', message);
   return external;
 };
-export const latestTrackingTime = (board: Board, card: Card): number => {
+/** `signals` lets callers checking many cards read the tracking signals once. */
+export const latestTrackingTime = (
+  board: Board,
+  card: Card,
+  signals: TrackingSignal[] = board.list<TrackingSignal>('tracking_signal'),
+): number => {
   let userBoundary = Date.parse(card.statusEffectiveAt ?? '') || 0;
   if (!userBoundary) {
     // Legacy cards have no explicit boundary. Find the latest user state change,
@@ -120,8 +126,7 @@ export const latestTrackingTime = (board: Board, card: Card): number => {
       before = page.at(-1)!.id;
     }
   }
-  const times = board
-    .list<TrackingSignal>('tracking_signal')
+  const times = signals
     .filter((signal) => signal.cardId === card.id && signal.status === 'applied')
     .map((signal) => Date.parse(signal.effectiveAt));
   return Math.max(0, Date.parse(card.tracking?.submittedAt ?? '') || 0, userBoundary, ...times);
@@ -164,7 +169,7 @@ export const registerExistingExternalSubmission = (
     };
     for (const approval of board
       .list<Approval>('approval')
-      .filter((value) => value.cardId === cardId && ['pending', 'approved'].includes(value.status)))
+      .filter((value) => value.cardId === cardId && approvalLifecycle.is('open', value.status)))
       board.record(
         'approval',
         { ...approval, status: 'rejected', decidedAt: new Date().toISOString() },

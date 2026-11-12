@@ -22,7 +22,8 @@ export const ActivityRowBody = ({
 }) => {
   const nameOf = (id: string) => data.roles.find((role) => role.id === id)?.name;
   const titleOf = (id: string) => data.conversations?.find((item) => item.id === id)?.title;
-  const actor = actorLabels[event.actor] ?? nameOf(event.actor) ?? event.actor;
+  // The agent's saved name first: Scout, Writer and Reviewer can be renamed like any other.
+  const actor = nameOf(event.actor) ?? actorLabels[event.actor] ?? event.actor;
   const detail = activityDetail(event);
   return (
     <Collapsible className="activity-row-body">

@@ -19,7 +19,7 @@ afterEach(async () => {
 
 describe('HTTP framework contracts', () => {
   it('keeps API-only fixtures authenticated without serving the UI', async () => {
-    const { daemon, request } = await setup(15014);
+    const { daemon, request } = await setup();
     expect((await fetch(daemon.url)).status).toBe(404);
     expect((await fetch(`${daemon.url}/@vite/client`)).status).toBe(404);
     expect((await fetch(`${daemon.url}/api/snapshot`)).status).toBe(403);
@@ -28,10 +28,40 @@ describe('HTTP framework contracts', () => {
     expect(snapshot.result.runtimes.some((runtime) => runtime.id === 'demo')).toBe(true);
   });
 
+  it('applies the session check to percent-encoded API paths the router still matches', async () => {
+    const { daemon, cookie } = await setup();
+    const host = new URL(daemon.url).host;
+    const encoded = (path: string) =>
+      path.replace('/api/', `/%${'a'.charCodeAt(0).toString(16)}pi/`);
+    const session = { host, cookie, 'x-pitchcrew-client': 'ui' };
+    const allowed = await daemon.app.inject({
+      method: 'GET',
+      url: encoded('/api/snapshot'),
+      headers: session,
+    });
+    expect(allowed.statusCode).toBe(200);
+    const rejected = await daemon.app.inject({
+      method: 'GET',
+      url: encoded('/api/snapshot'),
+      headers: { host },
+    });
+    expect(rejected.statusCode).toBe(403);
+    expect(rejected.json()).toHaveProperty('error');
+    expect(rejected.headers['x-pitchcrew-session']).toBe('required');
+    expect(rejected.headers['set-cookie']).toBeUndefined();
+    const health = await daemon.app.inject({
+      method: 'GET',
+      url: encoded('/api/health'),
+      headers: { host },
+    });
+    expect(health.statusCode).toBe(200);
+  });
+
   it('rejects untrusted requests before parsing and preserves session/security headers', async () => {
-    const { daemon, cookie } = await setup(15001, false, { dev: false });
+    const { daemon, cookie } = await setup(false, { dev: false });
     const page = await fetch(`${daemon.url}/chat/scout`);
-    expect(page.headers.get('set-cookie')).toMatch(/pitchcrew_session=.*Max-Age=86400/);
+    expect(page.headers.get('set-cookie')).toMatch(/^pitchcrew_session=/);
+    expect(page.headers.get('set-cookie')).not.toContain('Max-Age');
     expect(page.headers.get('set-cookie')).toContain('HttpOnly');
     expect(page.headers.get('set-cookie')).toContain('SameSite=Strict');
     expect(page.headers.get('content-security-policy')).toContain("default-src 'self'");
@@ -39,7 +69,7 @@ describe('HTTP framework contracts', () => {
     expect(page.headers.get('referrer-policy')).toBe('no-referrer');
     const base = { host: new URL(daemon.url).host, cookie, 'x-pitchcrew-client': 'ui' };
     for (const extra of [
-      { host: 'localhost:15001' },
+      { host: `localhost:${new URL(daemon.url).port}` },
       { origin: 'https://example.invalid' },
       { 'sec-fetch-site': 'cross-site' },
       { cookie: 'pitchcrew_session=expired' },
@@ -53,6 +83,10 @@ describe('HTTP framework contracts', () => {
       });
       expect(response.statusCode).toBe(403);
       expect(response.json()).toHaveProperty('error');
+      // Only a missing session invites the window to renew it.
+      expect(response.headers['x-pitchcrew-session']).toBe(
+        'cookie' in extra || 'x-pitchcrew-client' in extra ? 'required' : undefined,
+      );
     }
     expect((await fetch(`${daemon.url}/api/health`)).status).toBe(200);
     expect((await fetch(`${daemon.url}/api/chat/stream`)).status).toBe(403);
@@ -64,6 +98,14 @@ describe('HTTP framework contracts', () => {
     });
     expect(agent.statusCode).toBe(403);
     expect(agent.json().error).toContain('capability');
+    const agentMalformed = await daemon.app.inject({
+      method: 'POST',
+      url: '/api/agent',
+      headers: { host: base.host, 'content-type': 'application/json' },
+      payload: '{',
+    });
+    expect(agentMalformed.statusCode).toBe(403);
+    expect(agentMalformed.json().error).toContain('capability');
     const snapshot = await daemon.app.inject({
       method: 'GET',
       url: '/api/snapshot',
@@ -87,7 +129,7 @@ describe('HTTP framework contracts', () => {
   });
 
   it('accepts bodyless JSON actions and keeps parser and domain errors in the API envelope', async () => {
-    const { daemon, request, cookie } = await setup(15002);
+    const { daemon, request, cookie } = await setup();
     expect((await request('/runtimes/demo/models', 'POST')).response.status).toBe(200);
     const before = daemon.service.board.events();
     for (const body of ['{', 'null', '"text"']) {
@@ -129,7 +171,7 @@ describe('HTTP framework contracts', () => {
   });
 
   it('closes an open SSE connection and shuts down the service through Fastify', async () => {
-    const { daemon, cookie } = await setup(15003, false, { dev: false });
+    const { daemon, cookie } = await setup(false, { dev: false });
     const close = vi.spyOn(daemon.service, 'close');
     const response = await fetch(`${daemon.url}/api/chat/stream`, {
       headers: { cookie, 'x-pitchcrew-client': 'ui' },
@@ -150,8 +192,8 @@ describe('HTTP framework contracts', () => {
     expect(close).toHaveBeenCalledOnce();
   });
 
-  it('serves the exact reviewed PDF/DOCX bytes without consuming the export approval', async () => {
-    const { daemon, request, cookie } = await setup(15006);
+  it('freezes verifiable PDF/DOCX artifacts without consuming the export approval', async () => {
+    const { daemon, request } = await setup();
     const card = daemon.service.createCard({ company: 'Fixture Co', title: 'Engineer' });
     daemon.service.board.record(
       'card',
@@ -169,17 +211,8 @@ describe('HTTP framework contracts', () => {
     );
     expect(response.status).toBe(201);
     expect(approval.artifacts).toHaveLength(4);
-    for (const artifact of approval.artifacts!) {
-      const url = `${daemon.url}/api/approvals/${approval.id}/artifacts/${artifact.name}`;
-      expect((await fetch(url)).status).toBe(403);
-      const preview = await fetch(url, { headers: { cookie, 'x-pitchcrew-client': 'ui' } });
-      expect(preview.status).toBe(200);
-      expect(preview.headers.get('content-type')).toBe(artifact.mimeType);
-      expect(preview.headers.get('content-disposition')).toBe(
-        `inline; filename="${artifact.name}"`,
-      );
-      expect(Buffer.from(await preview.arrayBuffer())).toEqual(verifiedArtifact(artifact));
-    }
+    for (const artifact of approval.artifacts!)
+      expect(verifiedArtifact(artifact).length).toBeGreaterThan(0);
     expect(daemon.service.board.get<Approval>('approval', approval.id).status).toBe('pending');
     const { result: snapshot } = await request<Snapshot>('/snapshot');
     expect(snapshot.artifactPages).toEqual(
@@ -198,7 +231,7 @@ describe('HTTP framework contracts', () => {
   });
 
   it('serves production assets and SPA deep links with the same security hooks', async () => {
-    const { directory } = await setup(15004);
+    const { directory } = await setup();
     const uiRoot = join(directory, 'ui-fixture');
     await mkdir(join(uiRoot, 'dist/assets'), { recursive: true });
     const html = '<!doctype html><html><body>Fixture workspace</body></html>';
@@ -234,7 +267,7 @@ describe('HTTP framework contracts', () => {
   });
 
   it('serves Vite deep links and assets without bypassing API or session checks', async () => {
-    const { daemon, request } = await setup(15005, false, {
+    const { daemon, request } = await setup(false, {
       dev: true,
       ui: 'dev',
       uiCache: 'temporary',

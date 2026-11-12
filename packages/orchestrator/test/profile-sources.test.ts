@@ -47,7 +47,7 @@ const input = { provider: 'github', repository: 'fictional/resumes', path: 'abou
 const sha = 'a'.repeat(40);
 describe('reviewed profile sources', () => {
   it('imports only selected exact reviewed files, pins nested reads, persists provenance and consumes previews', async () => {
-    const { daemon, directory, request } = await setup(14501);
+    const { daemon, directory, request } = await setup();
     const { documents, spy } = githubFixture(daemon);
     const preview = (await request<ProfileSourcePreview>('/profile/sources/preview', 'POST', input))
       .result;
@@ -110,7 +110,7 @@ describe('reviewed profile sources', () => {
     expect((await request<ProfileSource[]>('/profile/sources')).result).toEqual([]);
   });
   it('flags local edits, preserves removed documents and rejects notes edited since preview', async () => {
-    const { daemon, request } = await setup(14502);
+    const { daemon, request } = await setup();
     const { documents } = githubFixture(daemon);
     const preview = (await request<ProfileSourcePreview>('/profile/sources/preview', 'POST', input))
       .result;
@@ -152,7 +152,7 @@ describe('reviewed profile sources', () => {
     expect(notes).toHaveLength(3);
   });
   it('reviews an entirely removed upstream folder without deleting local copies, while rejecting empty first imports', async () => {
-    const { daemon, request } = await setup(14508);
+    const { daemon, request } = await setup();
     const { documents } = githubFixture(daemon);
     const original = (
       await request<ProfileSourcePreview>('/profile/sources/preview', 'POST', input)
@@ -175,7 +175,7 @@ describe('reviewed profile sources', () => {
     expect((await request<Snapshot>('/snapshot')).result.profile).toHaveLength(3);
   });
   it('rejects unauthorized source access, path traversal, payload changes, oversized documents and active-run mutations', async () => {
-    const { daemon, request } = await setup(14503);
+    const { daemon, request } = await setup();
     const { documents, spy } = githubFixture(daemon);
     expect(
       (
@@ -222,7 +222,7 @@ describe('reviewed profile sources', () => {
     expect((await request<Snapshot>('/snapshot')).result.profile).toEqual([]);
   });
   it('serializes profile writes and refuses chat or workflow launches during an import', async () => {
-    const { daemon, request } = await setup(14507);
+    const { daemon, request } = await setup();
     await daemon.service.saveProfile(
       'fictional.md',
       '# Fictional applicant\n\n- Built a scheduling tool.',
@@ -285,7 +285,7 @@ describe('reviewed profile sources', () => {
     await expect(waiting).rejects.toThrow('Finish the approved profile update');
   });
   it('expires reviewed snapshots without saving source content', async () => {
-    const { daemon, request } = await setup(14504);
+    const { daemon, request } = await setup();
     githubFixture(daemon);
     const preview = (await request<ProfileSourcePreview>('/profile/sources/preview', 'POST', input))
       .result;
@@ -299,7 +299,7 @@ describe('reviewed profile sources', () => {
     expect((await request<Snapshot>('/snapshot')).result.profile).toEqual([]);
   });
   it('reads paginated nested Drive documents, skips PDFs and retains stable identity when a document is renamed', async () => {
-    const { daemon, request } = await setup(14505);
+    const { daemon, request } = await setup();
     let name = 'Background';
     vi.spyOn(daemon.service.connectors, 'call').mockImplementation(async (tool, value) => {
       const args = value as { fileId: string; query: string; pageToken?: string };
@@ -374,7 +374,7 @@ describe('reviewed profile sources', () => {
     expect(renamed.missing).toEqual([]);
   });
   it('rolls back imported file replacements if committing source metadata fails', async () => {
-    const { daemon, request } = await setup(14506);
+    const { daemon, request } = await setup();
     const { documents } = githubFixture(daemon);
     const original = (
       await request<ProfileSourcePreview>('/profile/sources/preview', 'POST', input)

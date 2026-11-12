@@ -6,6 +6,7 @@ import {
   type Run,
 } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
+import { guardCrewMove } from './lifecycle.ts';
 import type { BoardContext } from './types.ts';
 
 export const createCard = (
@@ -82,8 +83,27 @@ export const move = (
   context.record('card', next, actor, message ?? `Moved to ${state.replaceAll('_', ' ')}`);
   return next;
 };
+/**
+ * Saves a job that crew work moved to a new status, checked against the workflow graph plus its
+ * rework moves (`crewTransitions`) inside the write transaction. Callers pass the whole next card
+ * because these writes also clear reviews or change the owner.
+ */
+export const crewMove = (context: BoardContext, next: Card, actor: string, message: string): Card =>
+  context.db.transaction(() => {
+    guardCrewMove(context, context.get<Card>('card', next.id).state, next.state);
+    context.record('card', next, actor, message);
+    return next;
+  })();
 export const hasActiveRun = (context: BoardContext, cardId: string): boolean => {
-  return context
-    .list<Run>('run')
-    .some((run) => run.cardId === cardId && run.status === 'running' && run.mode !== 'chat');
+  // Select running rows through the status index before parsing: every historical run carries its
+  // role and skill snapshot, and this check sits on board moves, approvals and bulk job tools.
+  const rows = context.db
+    .prepare(
+      "SELECT json FROM entities WHERE kind='run' AND json_extract(json,'$.status')='running'",
+    )
+    .all() as { json: string }[];
+  return rows.some((row) => {
+    const run = JSON.parse(row.json) as Run;
+    return run.cardId === cardId && run.mode !== 'chat';
+  });
 };

@@ -18,8 +18,6 @@ export type SelectScrollDownButtonProps = React.ComponentProps<
 
 export type SelectScrollUpButtonProps = React.ComponentProps<typeof SelectPrimitive.ScrollUpArrow>;
 
-export type SelectSeparatorProps = SelectPrimitive.Separator.Props;
-
 export type SelectTriggerProps = SelectPrimitive.Trigger.Props & {
   size?: 'sm' | 'default';
 };

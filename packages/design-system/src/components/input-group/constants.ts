@@ -10,9 +10,9 @@ export const inputGroupAddonVariants = cva(
         'inline-end':
           'primitive:order-last primitive:pr-2 primitive:has-[>button]:-mr-1 primitive:has-[>kbd]:mr-[-0.15rem]',
         'block-start':
-          'primitive:order-first primitive:w-full primitive:justify-start primitive:px-2.5 primitive:pt-2 primitive:group-has-[>input]/input-group:pt-2 primitive:[.border-b]:pb-2',
+          'primitive:order-first primitive:w-full primitive:justify-start primitive:px-2.5 primitive:pt-2 primitive:[.border-b]:pb-2',
         'block-end':
-          'primitive:order-last primitive:w-full primitive:justify-start primitive:px-2.5 primitive:pb-2 primitive:group-has-[>input]/input-group:pb-2 primitive:[.border-t]:pt-2',
+          'primitive:order-last primitive:w-full primitive:justify-start primitive:px-2.5 primitive:pb-2 primitive:[.border-t]:pt-2',
       },
     },
     defaultVariants: {

@@ -95,7 +95,7 @@ describe('packet rules', () => {
   it.each(['formatted', 'plain'] as const)(
     'rechecks rules before exporting exact frozen %s PDF and DOCX artifacts',
     async (layout) => {
-      const { daemon, request, cookie } = await setup(layout === 'formatted' ? 15383 : 15384);
+      const { daemon, request } = await setup();
       const agreed = await draftAndReview(request);
       const { response, result: approval } = await request<Approval>(
         `/cards/${agreed.id}/approval`,
@@ -105,16 +105,8 @@ describe('packet rules', () => {
       expect(response.status).toBe(201);
       expect(approval.artifacts).toHaveLength(4);
       const frozen = new Map<string, Buffer>();
-      for (const artifact of approval.artifacts!) {
-        const preview = await fetch(
-          `${daemon.url}/api/approvals/${approval.id}/artifacts/${artifact.name}`,
-          { headers: { cookie, 'x-pitchcrew-client': 'ui' } },
-        );
-        expect(preview.status).toBe(200);
-        const bytes = Buffer.from(await preview.arrayBuffer());
-        expect(bytes).toEqual(verifiedArtifact(artifact));
-        frozen.set(artifact.name, bytes);
-      }
+      for (const artifact of approval.artifacts!)
+        frozen.set(artifact.name, verifiedArtifact(artifact));
       const { result: snapshot } = await request<Snapshot>('/snapshot');
       expect(snapshot.packetRules?.rules).toEqual(defaultPacketRules);
       expect(snapshot.artifactPages).toEqual(
@@ -149,7 +141,7 @@ describe('packet rules', () => {
   );
 
   it('uses the defaults without a file and lets only the UI session change rules', async () => {
-    const { daemon, request, directory } = await setup(19572);
+    const { daemon, request, directory } = await setup();
     const before = await daemon.service.snapshot();
     expect(before.packetRules).toEqual({ rules: defaultPacketRules, custom: false, error: null });
     expect((await request<PacketRulesState>('/packet-rules')).result.custom).toBe(false);
@@ -223,7 +215,7 @@ describe('packet rules', () => {
   });
 
   it('preserves exact source through saves, rereads and snapshots while enforcing every rule check', async () => {
-    const { daemon, request, directory } = await setup(15389);
+    const { daemon, request, directory } = await setup();
     const source = ` { "version": 1, "rules": ${JSON.stringify(houseRules.rules)} } `;
     const saved = await request<PacketRulesState>('/packet-rules', 'PUT', { source });
     expect(saved.response.status).toBe(200);
@@ -252,7 +244,7 @@ describe('packet rules', () => {
   });
 
   it('fails closed when the rules file is edited into an invalid state', async () => {
-    const { daemon, directory } = await setup(19573);
+    const { daemon, directory } = await setup();
     const path = join(directory, 'packet-rules.json');
     await writeFile(path, '{"version":1,"rules":[');
     expect(daemon.service.packetRules.current()).toMatchObject({
@@ -280,7 +272,7 @@ describe('packet rules', () => {
   });
 
   it('fails closed when the rules path cannot be inspected', async () => {
-    const { daemon, directory } = await setup(15375);
+    const { daemon, directory } = await setup();
     await symlink('packet-rules.json', join(directory, 'packet-rules.json'));
     expect(daemon.service.packetRules.current()).toMatchObject({
       custom: true,
@@ -288,7 +280,7 @@ describe('packet rules', () => {
     });
   });
   it('refreshes same-size rules edits even when their modification time is preserved', async () => {
-    const { daemon, directory } = await setup(15377);
+    const { daemon, directory } = await setup();
     const path = join(directory, 'packet-rules.json');
     const timestamp = new Date('2026-01-01T00:00:00Z');
     const original = { version: 1, rules: [{ ...houseRules.rules[1], pattern: 'first' }] };
@@ -303,7 +295,7 @@ describe('packet rules', () => {
     expect(daemon.service.packetRules.current().rules.rules[0]).toMatchObject({ pattern: 'other' });
   });
   it('fails closed if rules change while a worker checks the prior snapshot', async () => {
-    const { daemon } = await setup(15378);
+    const { daemon } = await setup();
     const { packet } = await import('../../board/test/fixtures/packet.ts');
     daemon.service.packetRules.save({
       version: 1,
@@ -329,7 +321,7 @@ describe('packet rules', () => {
     expect((await pending).errors).toEqual([expect.stringContaining('rules changed')]);
   });
   it('accepts an unchanged effective default configuration across save and reset', async () => {
-    const { daemon } = await setup(15379);
+    const { daemon } = await setup();
     const { packet } = await import('../../board/test/fixtures/packet.ts');
     daemon.service.packetRules.save(defaultPacketRules);
     const pending = daemon.service.packetRules.check(packet, [
@@ -340,7 +332,7 @@ describe('packet rules', () => {
   });
 
   it('keeps a reviewer cancelled during rule checks from agreeing the card', async () => {
-    const { daemon, request } = await setup(15380);
+    const { daemon, request } = await setup();
     const agreed = await draftAndReview(request);
     await request(`/cards/${agreed.id}/move`, 'POST', { state: 'changes_requested' });
     const { result: writer } = await request<Run>(`/cards/${agreed.id}/run`, 'POST', {
@@ -362,7 +354,7 @@ describe('packet rules', () => {
   });
 
   it('rejects export when managed profile notes change during rule checks', async () => {
-    const { daemon, request } = await setup(15381);
+    const { daemon, request } = await setup();
     const agreed = await draftAndReview(request);
     const { result: approval } = await request<Approval>(`/cards/${agreed.id}/approval`, 'POST', {
       formats: ['pdf', 'docx'],
@@ -381,7 +373,7 @@ describe('packet rules', () => {
   });
 
   it('rejects an agent export when its run capability expires during rule checks', async () => {
-    const { daemon, request } = await setup(15382);
+    const { daemon, request } = await setup();
     const agreed = await draftAndReview(request);
     const { result: approval } = await request<Approval>(`/cards/${agreed.id}/approval`, 'POST', {
       formats: ['pdf', 'docx'],
@@ -406,7 +398,7 @@ describe('packet rules', () => {
   });
 
   it('bounds slow regex checks while keeping HTTP and approved exports responsive', async () => {
-    const { daemon, request } = await setup(15376);
+    const { daemon, request } = await setup();
     const agreed = await draftAndReview(request);
     const slowPacket = { ...agreed.packet!, resume: `Built React interfaces.\n${'a'.repeat(40)}!` };
     daemon.service.board.updateCard(agreed.id, { packet: slowPacket }, 'user', 'Fixture packet');
@@ -443,7 +435,7 @@ describe('packet rules', () => {
     expect((await request(`/approvals/${approval.id}/export`, 'POST')).response.status).toBe(200);
   });
   it('shows warnings without blocking review and blocks drafts and exports on errors', async () => {
-    const { daemon, request } = await setup(19574);
+    const { daemon, request } = await setup();
     await request('/packet-rules', 'PUT', {
       version: 1,
       rules: [...houseRules.rules, warnOnGreeting],
@@ -489,7 +481,7 @@ describe('packet rules', () => {
   });
 
   it('lets agents read rules and check drafts with findings', async () => {
-    const { daemon, request } = await setup(15374);
+    const { daemon, request } = await setup();
     await request('/packet-rules', 'PUT', { version: 1, rules: [warnOnGreeting] });
     daemon.service.capabilities.set('fixture-token', {
       runId: 'fixture',

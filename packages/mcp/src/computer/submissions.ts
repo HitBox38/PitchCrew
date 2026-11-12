@@ -1,5 +1,6 @@
 import { assertReviewedContext, digestPacket, type Board } from '@pitchcrew/board';
 import {
+  computerApprovalLifecycle,
   formAssessmentInput,
   applicationFormIsCurrent,
   type Approval,
@@ -76,7 +77,7 @@ export const saveAssessment = (
     if (changed) {
       for (const kind of ['approval', 'computer_approval'] as const)
         for (const approval of board.list<Approval | ComputerApproval>(kind))
-          if (approval.cardId === card.id && ['pending', 'approved'].includes(approval.status))
+          if (approval.cardId === card.id && computerApprovalLifecycle.is('open', approval.status))
             board.record(
               kind,
               { ...approval, status: 'rejected', decidedAt: assessment.createdAt },
@@ -146,7 +147,7 @@ export const assertNoUncertainSubmission = (
     const submission = board.get<ComputerApproval>('computer_approval', attempt.computerApprovalId);
     if (
       exported.digest !== attempt.packetDigest ||
-      !['consumed', 'failed'].includes(submission.status)
+      !computerApprovalLifecycle.is('used', submission.status)
     )
       throw new Error('Dialog continuation requires the current consumed submission attempt.');
     return;
@@ -236,7 +237,7 @@ export const resolveSubmission = (
         throw new Error('Capture browser confirmation evidence before confirming submission.');
       const approval = board.get<ComputerApproval>('computer_approval', attempt.computerApprovalId);
       if (
-        !['consumed', 'failed'].includes(approval.status) ||
+        !computerApprovalLifecycle.is('used', approval.status) ||
         approval.cardId !== attempt.cardId ||
         approval.runId !== attempt.runId ||
         !isSubmission(approval.action) ||

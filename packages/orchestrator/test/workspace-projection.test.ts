@@ -1,11 +1,11 @@
-import type { ChatMessage, ConversationHistoryPage, Snapshot } from '@pitchcrew/core';
+import type { ChatMessage, ChatRequest, ConversationHistoryPage, Snapshot } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
 import { afterEach, expect, it } from 'vitest';
 import { cleanup, setup } from './helpers/daemon.ts';
 
 afterEach(cleanup);
 it('keeps the full API compatible while the UI loads bounded previews, history pages and full job details', async () => {
-  const { daemon, request, cookie } = await setup(15091);
+  const { daemon, request, cookie } = await setup();
   const card = daemon.service.board.createCard({
     company: 'Fictional',
     title: 'Engineer',
@@ -31,11 +31,51 @@ it('keeps the full API compatible while the UI loads bounded previews, history p
     daemon.service.board.record('message', message, message.from, 'Fictional history');
     messages.push(message);
   }
+  const requestFor = (id: string, status: 'completed' | 'paused'): ChatRequest => ({
+    id,
+    threadId: 'scout',
+    messageId: `${id}-message`,
+    content: `Fictional request ${id} ` + 'y'.repeat(2000),
+    attachments: [
+      {
+        id: `${id}-file`,
+        name: 'fictional.txt',
+        mimeType: 'text/plain',
+        size: 12,
+        sha256: 'a'.repeat(64),
+      },
+    ],
+    references: [{ kind: 'agent', id: 'scout', label: 'Scout', token: '@scout', start: 0, end: 6 }],
+    createdAt: '2026-11-10T10:00:00.000Z',
+    order: status === 'paused' ? 2 : 1,
+    deliveries: [{ roleId: 'scout', status, runId: null, error: '' }],
+  });
+  const settled = requestFor('settled', 'completed');
+  const held = requestFor('held', 'paused');
+  daemon.service.board.record('chat_request', settled, 'user', 'Fictional request');
+  daemon.service.board.record('chat_request', held, 'user', 'Fictional request');
   const full = await request<Snapshot>('/snapshot');
   const compact = await request<Snapshot>('/snapshot?view=workspace');
   expect(full.result.messages).toHaveLength(125);
   expect(full.result.cards.find((item) => item.id === card.id)?.description).toBe(card.description);
   expect(compact.result.workspace).toBe(true);
+  const requestsOf = (snapshot: Snapshot) =>
+    new Map((snapshot.chatRequests ?? []).map((item) => [item.id, item]));
+  expect(requestsOf(full.result).get('settled')).toEqual(settled);
+  expect(requestsOf(full.result).get('held')).toEqual(held);
+  expect(requestsOf(full.result).get('settled')).not.toHaveProperty('compact');
+  const slim = requestsOf(compact.result).get('settled');
+  expect(slim).toMatchObject({
+    id: settled.id,
+    messageId: settled.messageId,
+    order: settled.order,
+    deliveries: settled.deliveries,
+    content: '',
+    attachments: [],
+    compact: true,
+  });
+  expect(slim?.references).toBeUndefined();
+  expect(requestsOf(compact.result).get('held')).toEqual(held);
   expect(compact.result.messages).toHaveLength(1);
   expect(compact.result.messageHistory?.threads.scout.count).toBe(125);
   expect(compact.result.cards.find((item) => item.id === card.id)).toMatchObject({
@@ -72,7 +112,7 @@ it('keeps the full API compatible while the UI loads bounded previews, history p
   expect(c.json().messages).toHaveLength(125);
 });
 it('does not send saved history through the compact event stream or weaken local session checks', async () => {
-  const { daemon, cookie } = await setup(15092);
+  const { daemon, cookie } = await setup();
   for (let i = 0; i < 80; i++)
     daemon.service.board.record(
       'message',

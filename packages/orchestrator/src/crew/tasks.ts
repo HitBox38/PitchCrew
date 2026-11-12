@@ -1,4 +1,6 @@
 import { queueMayStart } from './queue/dispatch.ts';
+import { reportDrainFailure } from './queue/drain-failure.ts';
+import { findEntity } from './queue/queries.ts';
 import { patchQueue, taskLane } from './queue/state.ts';
 import { launchProblem, QueueBusyError } from './queue/admission.ts';
 import { RuntimeHeldError } from '../runtime-maintenance/availability.ts';
@@ -18,7 +20,9 @@ import {
   taskParentRun,
 } from './delegation-rounds.ts';
 import { requireRole } from './roles.ts';
+import { startTaskRun } from './task-start.ts';
 import {
+  runLifecycle,
   defaultCapabilities,
   type AgentTask,
   type Role,
@@ -26,6 +30,7 @@ import {
   type Run,
   type Routine,
 } from '@pitchcrew/core';
+import { runsForCard, tasksWithStatus } from '@pitchcrew/board';
 import { randomUUID } from 'node:crypto';
 import type { CrewContext } from './types.ts';
 
@@ -156,11 +161,11 @@ export const drainTasks = async (context: CrewContext): Promise<void> => {
   }
   context.draining = true;
   try {
-    for (const task of context.board.list<AgentTask>('task').filter((t) => t.status === 'queued')) {
+    for (const task of tasksWithStatus(context.board, ['queued'])) {
       if (context.closing) break;
       const parent = taskParentRun(context, task);
       if (
-        ['running', 'waiting'].includes(parent?.status ?? 'completed') ||
+        runLifecycle.is('live', parent?.status ?? 'completed') ||
         waitingOnUser(context, task.threadId, task.roleId)
       )
         continue;
@@ -205,8 +210,11 @@ export const drainTasks = async (context: CrewContext): Promise<void> => {
       )
         continue;
       if (!(await queueMayStart(context, taskLane(context, task), task.rootRunId))) continue;
+      // Admission awaited: Stop, deletion or retirement may have cancelled this follow-up.
+      const queued = context.board.get<AgentTask>('task', task.id);
+      if (queued.status !== 'queued') continue;
       try {
-        const launch = task.roundPart === 'collection' ? collectionTask(context, task) : task;
+        const launch = task.roundPart === 'collection' ? collectionTask(context, queued) : queued;
         const run =
           launch.mode === 'workflow'
             ? await context.startRun(launch.cardId!, launch.roleId, launch)
@@ -217,20 +225,20 @@ export const drainTasks = async (context: CrewContext): Promise<void> => {
                 launch.threadId,
                 launch,
               );
-        context.board.record(
-          'task',
-          { ...launch, status: 'running', runId: run.id },
-          'orchestrator',
-          `Started queued ${task.roleId} ${task.mode}`,
-        );
-        if (task.roundId) refreshRound(context, task.roundId);
+        // The launch marked the task running when it saved the run (`startTaskRun`), and a fast
+        // turn may already have settled it, so a stale copy is never written back here.
+        startTaskRun(context, run);
+        // Stopped while the launch awaited: the run began for a cancelled follow-up, so end it.
+        if (context.board.get<AgentTask>('task', task.id).status === 'cancelled')
+          context.controllers.get(run.id)?.abort();
       } catch (error) {
         if (error instanceof RuntimeHeldError || error instanceof QueueBusyError) continue;
-        if (context.board.get<AgentTask>('task', task.id).status === 'cancelled') continue;
+        const latest = context.board.get<AgentTask>('task', task.id);
+        if (latest.status === 'cancelled') continue;
         const message = error instanceof Error ? error.message : 'Could not start crew task.';
         context.board.record(
           'task',
-          { ...task, status: 'failed', error: message },
+          { ...latest, status: 'failed', error: message },
           'system',
           message,
         );
@@ -253,6 +261,8 @@ export const drainTasks = async (context: CrewContext): Promise<void> => {
         );
       }
     }
+  } catch (error) {
+    reportDrainFailure(context, 'crew follow-ups', error);
   } finally {
     context.draining = false;
     void drainConversationQueue(context);
@@ -265,16 +275,13 @@ export const drainTasks = async (context: CrewContext): Promise<void> => {
 
 /** Other work on the card blocks a follow-up unless every active run is a delegate of the same round. */
 const cardBusyFor = (context: CrewContext, task: AgentTask): boolean => {
-  const active = context.board
-    .list<Run>('run')
-    .filter(
-      (r) => r.cardId === task.cardId && (r.status === 'running' || context.controllers.has(r.id)),
-    );
+  const active = runsForCard(context.board, task.cardId!).filter(
+    (r) => r.status === 'running' || context.controllers.has(r.id),
+  );
   if (!active.length) return false;
   if (task.roundPart !== 'delegate') return true;
-  const tasks = context.board.list<AgentTask>('task');
   return !active.every((run) => {
-    const sibling = tasks.find((entry) => entry.id === run.taskId);
+    const sibling = findEntity<AgentTask>(context, 'task', run.taskId);
     return !!sibling && sibling.roundId === task.roundId && sibling.roundPart === 'delegate';
   });
 };

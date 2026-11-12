@@ -87,7 +87,7 @@ export const attachmentFiles = (
     })),
   ];
 };
-export const fileSize = (file: ViewerFile) => {
+const fileSize = (file: ViewerFile) => {
   const bytes = file.bytes
     ? Math.floor((file.bytes.length * 3) / 4) -
       (file.bytes.endsWith('==') ? 2 : file.bytes.endsWith('=') ? 1 : 0)
