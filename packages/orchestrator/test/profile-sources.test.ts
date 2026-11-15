@@ -174,9 +174,9 @@ describe('reviewed profile sources', () => {
     expect((await request('/profile/sources/preview', 'POST', input)).response.status).toBe(400);
     expect((await request<Snapshot>('/snapshot')).result.profile).toHaveLength(3);
   });
-  it('rejects unauthorized source access, path traversal, payload changes, oversized documents and active-run mutations', async () => {
+  it('rejects unauthorized source access, path traversal, payload changes and active-run mutations', async () => {
     const { daemon, request } = await setup();
-    const { documents, spy } = githubFixture(daemon);
+    const { spy } = githubFixture(daemon);
     expect(
       (
         await fetch(`${daemon.url}/api/profile/sources/preview`, {
@@ -217,9 +217,39 @@ describe('reviewed profile sources', () => {
     });
     expect(blocked.result.error).toContain('active runs');
     daemon.service.controllers.delete('fixture-active-run');
-    documents.set('about-me/LinkedIn-About.md', 'x'.repeat(50001));
-    expect((await request('/profile/sources/preview', 'POST', input)).response.status).toBe(400);
     expect((await request<Snapshot>('/snapshot')).result.profile).toEqual([]);
+  });
+  it('skips documents a Profile note cannot hold without blocking the rest or reporting them removed', async () => {
+    const { daemon, request } = await setup();
+    const { documents } = githubFixture(daemon);
+    const first = (await request<ProfileSourcePreview>('/profile/sources/preview', 'POST', input))
+      .result;
+    await request('/profile/sources/import', 'POST', {
+      token: first.token,
+      names: first.files.map((file) => file.name),
+    });
+    documents.set('about-me/LinkedIn-About.md', 'Not\0text');
+    documents.set('about-me/Projects/Atlas.md', 'x'.repeat(50001));
+    const refresh = await request<ProfileSourcePreview>('/profile/sources/preview', 'POST', input);
+    expect(refresh.response.status).toBe(200);
+    expect(refresh.result.files.map((file) => [file.path, file.status])).toEqual([
+      ['about-me/Work Experience/Example/CONTEXT.md', 'unchanged'],
+    ]);
+    expect(refresh.result.skipped).toEqual([
+      { key: 'about-me/LinkedIn-About.md', path: 'about-me/LinkedIn-About.md', reason: 'not_text' },
+      {
+        key: 'about-me/Projects/Atlas.md',
+        path: 'about-me/Projects/Atlas.md',
+        reason: 'too_large',
+      },
+    ]);
+    expect(refresh.result.missing).toEqual([]);
+    const fresh = await request<{ error: string }>('/profile/sources/preview', 'POST', {
+      ...input,
+      path: 'about-me/Projects',
+    });
+    expect(fresh.response.status).toBe(400);
+    expect(fresh.result.error).toContain('50,000 characters');
   });
   it('serializes profile writes and refuses chat or workflow launches during an import', async () => {
     const { daemon, request } = await setup();
