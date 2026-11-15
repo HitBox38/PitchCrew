@@ -198,6 +198,12 @@ describe('application source boundary', () => {
       expect(JSON.stringify(runContext.card)).not.toContain('RAW-SOURCE-CONVERSATION');
       if (turns === 1) {
         expect(runContext.userAnswers).toEqual([]);
+        await expect(
+          daemon.service.agentCall(runContext.mcp.env.PITCHCREW_RUN_TOKEN!, 'ask_user', {
+            input: { question: 'Which app do you admire?' },
+          }),
+        ).rejects.toThrow('Use applicationRequirementId');
+        expect(daemon.service.board.list('user_input')).toHaveLength(2);
         await daemon.service.agentCall(runContext.mcp.env.PITCHCREW_RUN_TOKEN!, 'ask_user', {
           input: {
             question: 'Agent text must not replace the confirmed question.',

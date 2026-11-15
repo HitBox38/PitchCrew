@@ -42,7 +42,15 @@ it('inspects before drafting and carries confirmed fields through isolated extra
       qualifications: [],
       constraints: [],
     },
-    requirements: [],
+    requirements: [
+      {
+        id: 'availability',
+        question: 'When could you start?',
+        required: true,
+        personal: true,
+        answer: '',
+      },
+    ],
     flagged: [],
   };
   const initial = (
@@ -178,15 +186,31 @@ it('inspects before drafting and carries confirmed fields through isolated extra
       'isolated application',
     );
     if (context.role.id === 'writer' && !context.userAnswers?.length) {
+      await expect(
+        daemon.service.agentCall(token, 'ask_user', {
+          input: { question: 'Why this team? (Required on the application form.)' },
+        }),
+      ).rejects.toThrow('exact unique assessed form field label');
+      expect(daemon.service.board.list('user_input')).toEqual([]);
       await daemon.service.agentCall(token, 'ask_user', { input: { question: 'Why this team?' } });
       throw new Error('End question turn');
     }
-    expect(context.userAnswers).toEqual([
+    expect(context.userAnswers).toContainEqual(
       expect.objectContaining({
         question: 'Why this team?',
         answer: 'I enjoy building interfaces with a small team.',
       }),
-    ]);
+    );
+    if (!context.card.applicationContext!.requirements[0]!.answer) {
+      await daemon.service.agentCall(token, 'ask_user', {
+        input: { question: 'When could you start?', applicationRequirementId: 'availability' },
+      });
+      throw new Error('End second question turn');
+    }
+    expect(context.card.applicationContext!.requirements[0]!.answer).toBe('Two weeks');
+    if (context.role.id === 'writer')
+      expect(context.userAnswers).toContainEqual(expect.objectContaining({ answer: 'Two weeks' }));
+    expect(context.userAnswers).toHaveLength(context.role.id === 'writer' ? 2 : 1);
     return context.role.id === 'writer'
       ? {
           role: 'writer',
@@ -209,29 +233,35 @@ it('inspects before drafting and carries confirmed fields through isolated extra
   for (const roleId of ['writer', 'reviewer']) {
     const run = (await request<Run>(`/cards/${card.id}/run`, 'POST', { roleId })).result;
     if (roleId === 'writer') {
-      const waiting = await waitForSnapshot(request, (snapshot) =>
-        snapshot.runs.some((entry) => entry.id === run.id && entry.status === 'waiting'),
-      );
-      const question = waiting.userInputs!.find((entry) => entry.runId === run.id)!;
-      expect(question.applicationContextRevision).toBe(
-        daemon.service.board.get<Card>('card', card.id).applicationContext?.revision,
-      );
-      expect(
-        (
-          await request(`/user-input/${question.id}/answer`, 'POST', {
-            text: 'I enjoy building interfaces with a small team.',
-          })
-        ).response.status,
-      ).toBe(202);
-      await waitForSnapshot(request, (snapshot) =>
-        snapshot.runs.some(
+      for (const text of ['I enjoy building interfaces with a small team.', 'Two weeks']) {
+        const waiting = await waitForSnapshot(request, (snapshot) =>
+          snapshot.userInputs!.some(
+            (question) =>
+              question.status === 'pending' &&
+              snapshot.runs.some(
+                (entry) => entry.id === question.runId && entry.status === 'waiting',
+              ),
+          ),
+        );
+        const question = waiting.userInputs!.find((entry) => entry.status === 'pending')!;
+        expect(question.applicationContextRevision).toBe(
+          daemon.service.board.get<Card>('card', card.id).applicationContext?.revision,
+        );
+        expect(
+          (await request(`/user-input/${question.id}/answer`, 'POST', { text })).response.status,
+        ).toBe(202);
+      }
+      await waitForSnapshot(request, (snapshot) => {
+        expect(snapshot.runs.find((entry) => entry.status === 'failed')?.message).toBeUndefined();
+        return snapshot.runs.some(
           (entry) => entry.purpose === 'application-draft' && entry.status === 'completed',
-        ),
-      );
+        );
+      });
     } else await finish(request, run.id);
     await vi.waitFor(() => expect(daemon.service.controllers.size).toBe(0));
   }
   expect(daemon.service.board.get<Card>('card', card.id).state).toBe('agreed');
+  expect(daemon.service.board.list('user_input')).toHaveLength(2);
   expect(chat).toHaveBeenCalledTimes(2);
   expect(driver.perform).toHaveBeenCalledExactlyOnceWith(
     { kind: 'navigate', url: card.url },
