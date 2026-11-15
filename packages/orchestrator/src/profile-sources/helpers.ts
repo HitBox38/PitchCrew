@@ -1,4 +1,4 @@
-import type { ProfileSourceInput } from '@pitchcrew/core';
+import type { ProfileSkippedFile, ProfileSourceInput } from '@pitchcrew/core';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 export const localName = (source: string, key: string, path: string) => {
@@ -21,11 +21,12 @@ export const text = (value: unknown): string => {
   return value;
 };
 
-export const checkFiles = (files: RemoteFile[]) => {
-  if (!files.length)
-    throw new Error(
-      'No supported documents found. Choose a folder with Markdown, text files or Google Docs.',
-    );
+// Leaves out documents a Profile note cannot hold, so one large file never blocks the rest.
+export const checkFiles = (
+  files: RemoteFile[],
+  skipped: ProfileSkippedFile[],
+  requireDocuments: boolean,
+) => {
   if (
     files.length > MAX_FILES ||
     files.reduce((sum, file) => sum + file.content.length, 0) > MAX_CHARACTERS
@@ -33,11 +34,24 @@ export const checkFiles = (files: RemoteFile[]) => {
     throw new Error(
       'This source is too large. Choose a smaller folder (up to 100 documents and 1 million characters).',
     );
-  for (const file of files)
-    if (file.content.length > 50000 || file.content.includes('\0'))
-      throw new Error(
-        `${file.path} is not supported text or exceeds 50,000 characters. Choose a smaller source folder.`,
-      );
+  const kept: RemoteFile[] = [];
+  const all = [...skipped];
+  for (const file of files) {
+    const reason = file.content.includes('\0')
+      ? 'not_text'
+      : file.content.length > NOTE_CHARACTERS
+        ? 'too_large'
+        : null;
+    if (reason) all.push({ key: file.key, path: file.path, reason });
+    else kept.push(file);
+  }
+  if (requireDocuments && !kept.length)
+    throw new Error(
+      all.length
+        ? 'None of these documents can be imported. Profile notes hold up to 50,000 characters of plain text; split larger files or choose another folder.'
+        : 'No supported documents found. Choose a folder with Markdown, text files or Google Docs.',
+    );
+  return { files: kept, skipped: all };
 };
 
 const folderPath = z
@@ -70,6 +84,8 @@ export const sourceId = (input: ProfileSourceInput) => digest(JSON.stringify(inp
 export const MAX_FILES = 100;
 export const MAX_FOLDERS = 30;
 export const MAX_CHARACTERS = 1000000;
+// Matches the Profile note save limit.
+export const NOTE_CHARACTERS = 50000;
 export interface RemoteFile {
   key: string;
   path: string;

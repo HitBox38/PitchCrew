@@ -106,6 +106,7 @@ export type {
   ProfileSource,
   ImportedProfileFile,
   ProfileImportFile,
+  ProfileSkippedFile,
   ProfileSourcePreview,
 } from './profile-sources.ts';
 

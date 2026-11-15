@@ -98,5 +98,9 @@ const initial: ProfileSourcePreview = {
   },
   files: mode === 'removed' ? [] : mode === 'unchanged' ? [file('same.md', 'unchanged')] : files,
   missing: mode === 'unchanged' ? [] : ['Experience/retired.md'],
+  skipped:
+    mode === 'removed'
+      ? [{ key: 'Projects/long.md', path: 'Projects/long.md', reason: 'too_large' }]
+      : [],
 };
 createRoot(document.getElementById('root')!).render(<Fixture />);

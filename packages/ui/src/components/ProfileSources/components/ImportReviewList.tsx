@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { FileMinus2 } from 'lucide-react';
-import type { ProfileImportFile } from '@pitchcrew/core';
+import { FileMinus2, FileX2 } from 'lucide-react';
+import type { ProfileImportFile, ProfileSkippedFile } from '@pitchcrew/core';
 import { Accordion } from '@pitchcrew/design-system/accordion';
 import { ImportDocument } from './ImportDocument.tsx';
 
 export const ImportReviewList = ({
   changes,
   missing,
+  skipped,
   selected,
   toggle,
   busy,
@@ -14,6 +15,7 @@ export const ImportReviewList = ({
 }: {
   changes: ProfileImportFile[];
   missing: string[];
+  skipped: ProfileSkippedFile[];
   selected: string[];
   toggle: (name: string) => void;
   busy: boolean;
@@ -25,7 +27,8 @@ export const ImportReviewList = ({
     `${file.path}\n${file.name}`.toLocaleLowerCase().includes(term),
   );
   const removed = missing.filter((path) => path.toLocaleLowerCase().includes(term));
-  const empty = !files.length && !removed.length;
+  const left = skipped.filter((file) => file.path.toLocaleLowerCase().includes(term));
+  const empty = !files.length && !removed.length && !left.length;
   const selectedNames = new Set(selected);
   const expandedNames = new Set(expanded);
   return (
@@ -66,6 +69,20 @@ export const ImportReviewList = ({
           </span>
           <span className="ui-chip">Removed from source</span>
           <span className="text-detail text-muted-foreground">Local copy kept</span>
+        </div>
+      ))}
+      {left.map((file) => (
+        <div key={file.key} className="profile-import-removed">
+          <FileX2 size={16} className="mx-3 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <span className="min-w-0 flex-1 truncate text-label" title={file.path}>
+            {file.path}
+          </span>
+          <span className="ui-chip">Not imported</span>
+          <span className="text-detail text-muted-foreground">
+            {file.reason === 'too_large'
+              ? 'Over 50,000 characters; split it to import'
+              : 'Not plain text'}
+          </span>
         </div>
       ))}
     </div>
