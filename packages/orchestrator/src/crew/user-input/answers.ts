@@ -113,8 +113,8 @@ export const answerUserQuestion = (
       null,
       request.messageId,
     );
-    if (application)
-      saveApplicationContext(
+    if (application) {
+      const updated = saveApplicationContext(
         context.board,
         question.cardId!,
         application.sourceRevision,
@@ -129,6 +129,24 @@ export const answerUserQuestion = (
         },
         true,
       );
+      const revision = updated.applicationContext!.revision;
+      // Only a personal answer changed; the confirmed form questions still mean the same thing.
+      if (revision !== application.revision)
+        for (const saved of context.board.list<UserInputRequest>('user_input'))
+          if (
+            saved.status === 'answered' &&
+            saved.cardId === question.cardId &&
+            !saved.applicationRequirementId &&
+            saved.applicationContextRevision === application.revision &&
+            formHasQuestion(application.form, saved.question)
+          )
+            context.board.record(
+              'user_input',
+              { ...saved, applicationContextRevision: revision },
+              'user',
+              'Retained form answer after another personal answer',
+            );
+    }
     context.board.record(
       'message',
       { ...message, userInput: { id, kind: 'answer' } },

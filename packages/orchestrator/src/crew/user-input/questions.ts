@@ -41,6 +41,11 @@ export const askUser = (
     if (job.revision !== run.contextRevision)
       throw new Error('The application requirement changed.');
     if (formHasQuestion(job.form, input.question)) applicationContextRevision = job.revision;
+    // Ordinary isolated continuations cannot recover unbound answers from chat history.
+    else if (!run.deepReviewId)
+      throw new Error(
+        'Use applicationRequirementId for a confirmed personal requirement, or use the exact unique assessed form field label as question. Put explanations in reason and retry. No question was saved.',
+      );
   }
   if (context.board.list<UserInputRequest>('user_input').some((q) => q.runId === run.id))
     throw new Error('This turn already asked a question. Finish the turn and wait for its answer.');

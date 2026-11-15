@@ -9,7 +9,7 @@ export const registerApplicationInputTools = (server: McpServer, call: AgentCall
     'pitchcrew_ask_user',
     {
       description:
-        'Ask for a missing application answer. Use applicationRequirementId for a confirmed personal requirement. Asking ends this turn; the user answer resumes only your isolated workflow.',
+        'Ask for a missing application answer. Use applicationRequirementId for a confirmed personal requirement, or use the exact unique assessed form field label as question. Put explanations in reason, not question; unbound questions are rejected. Managed deep-review clarifications are scoped to that review. Asking ends this turn; the user answer resumes only your isolated workflow.',
       inputSchema: userQuestionInput,
       annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
     },
