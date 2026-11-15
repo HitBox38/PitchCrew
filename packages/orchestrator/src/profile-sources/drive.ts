@@ -1,11 +1,11 @@
-import type { ProfileSourceInput } from '@pitchcrew/core';
+import type { ProfileSkippedFile, ProfileSourceInput } from '@pitchcrew/core';
 import type { ConnectorManager } from '@pitchcrew/mcp/connectors';
 import { MAX_FILES, MAX_FOLDERS, object, text, type RemoteFile } from './helpers.ts';
 export const readDriveSource = async (
   manager: ConnectorManager,
   input: Extract<ProfileSourceInput, { provider: 'drive' }>,
   signal: AbortSignal,
-): Promise<{ label: string; files: RemoteFile[] }> => {
+): Promise<{ label: string; files: RemoteFile[]; skipped: ProfileSkippedFile[] }> => {
   const root = object(
     (await manager.call('google_drive_get_file', { fileId: input.folderId }, signal)).data,
   );
@@ -14,6 +14,7 @@ export const readDriveSource = async (
   const queue = [{ id: input.folderId, path: label }];
   const seen = new Set<string>();
   const files: RemoteFile[] = [];
+  const skipped: ProfileSkippedFile[] = [];
   let entries = 0;
   while (queue.length) {
     const folder = queue.shift()!;
@@ -51,8 +52,10 @@ export const readDriveSource = async (
         ) {
           if (files.length >= MAX_FILES)
             throw new Error('Too many documents. Choose a smaller source folder.');
-          if (file.size && Number(file.size) > 200000)
-            throw new Error(`${path} is too large. Choose a smaller source folder.`);
+          if (file.size && Number(file.size) > 200000) {
+            skipped.push({ key: id, path, reason: 'too_large' });
+            continue;
+          }
           const doc = file.mimeType === 'application/vnd.google-apps.document';
           const result = object(
             (
@@ -85,7 +88,7 @@ export const readDriveSource = async (
       if (pageToken) pages.add(pageToken);
     } while (pageToken);
   }
-  return { label, files };
+  return { label, files, skipped };
 };
 
 const folderType = 'application/vnd.google-apps.folder';

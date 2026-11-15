@@ -165,7 +165,9 @@
 }
 .board-workspace > .onboarding-checklist {
   width: min(640px, 100%);
+  min-height: 0;
   padding: 16px;
+  overflow-y: auto;
 }
 @variant max-mobile {
   .onboarding-dialog {

@@ -1,4 +1,4 @@
-import type { ProfileSourceInput } from '@pitchcrew/core';
+import type { ProfileSkippedFile, ProfileSourceInput } from '@pitchcrew/core';
 import type { ConnectorManager } from '@pitchcrew/mcp/connectors';
 import { MAX_FILES, MAX_FOLDERS, object, text, type RemoteFile } from './helpers.ts';
 
@@ -6,7 +6,7 @@ export const readGithubSource = async (
   manager: ConnectorManager,
   input: Extract<ProfileSourceInput, { provider: 'github' }>,
   signal: AbortSignal,
-): Promise<{ label: string; files: RemoteFile[] }> => {
+): Promise<{ label: string; files: RemoteFile[]; skipped: ProfileSkippedFile[] }> => {
   const [owner, repo] = input.repository.split('/');
   const resolved = await manager.call(
     'github_get_revision',
@@ -16,6 +16,7 @@ export const readGithubSource = async (
   const ref = text(resolved.sha);
   if (!/^[a-f0-9]{40}$/.test(ref)) throw new Error('Could not resolve the repository revision.');
   const files: RemoteFile[] = [];
+  const skipped: ProfileSkippedFile[] = [];
   const queue = [input.path];
   let folders = 0;
   while (queue.length) {
@@ -50,8 +51,10 @@ export const readGithubSource = async (
       ) {
         if (files.length >= MAX_FILES)
           throw new Error('Too many documents. Choose a smaller source folder.');
-        if (typeof entry.size === 'number' && entry.size > 200000)
-          throw new Error(`${child} is too large. Choose a smaller source folder.`);
+        if (typeof entry.size === 'number' && entry.size > 200000) {
+          skipped.push({ key: child, path: child, reason: 'too_large' });
+          continue;
+        }
         const result = await manager.call(
           'github_read_file',
           { owner, repo, path: child, ref },
@@ -67,5 +70,5 @@ export const readGithubSource = async (
       }
     }
   }
-  return { label: `${input.repository}/${input.path || ''}`, files };
+  return { label: `${input.repository}/${input.path || ''}`, files, skipped };
 };

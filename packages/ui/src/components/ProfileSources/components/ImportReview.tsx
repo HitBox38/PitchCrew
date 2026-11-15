@@ -37,6 +37,7 @@ const ImportReviewContent = (c: ImportReviewProps) => {
       <ImportReviewList
         changes={changes}
         missing={preview.missing}
+        skipped={preview.skipped}
         selected={c.selected}
         toggle={c.toggle}
         busy={c.busy}

@@ -157,6 +157,10 @@ test('removed-only and unchanged reviews have no importable documents, and busy 
         .getByText(mode === 'removed' ? 'Local copy kept' : 'Everything is up to date')
         .isVisible(),
     ).toBe(true);
+    if (mode === 'removed')
+      expect(await page.getByText('Over 50,000 characters; split it to import').isVisible()).toBe(
+        true,
+      );
   }
   await page.goto(`${origin}/__profile-import?mode=busy`);
   await page.getByRole('button', { name: 'Importing…', exact: true }).waitFor();

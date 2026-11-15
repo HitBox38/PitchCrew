@@ -156,10 +156,14 @@ export class ProfileSourceManager {
         input.provider === 'github'
           ? await readGithubSource(this.connectors, input, signal)
           : await readDriveSource(this.connectors, input, signal);
-      if (remote.files.length || (!allowEmpty && !previous?.files.length)) checkFiles(remote.files);
+      const checked = checkFiles(
+        remote.files,
+        remote.skipped,
+        !allowEmpty && !previous?.files.length,
+      );
       const local = await readProfile(this.directory);
       const before = new Map<string, string | null>();
-      const files = remote.files.map((file) => {
+      const files = checked.files.map((file) => {
         const old = previous?.files.find((prior) => prior.key === file.key);
         const name = old?.name ?? localName(id, file.key, file.path);
         const existing = local.find((note) => note.name === name);
@@ -177,7 +181,11 @@ export class ProfileSourceManager {
         return { ...file, name, before: existing?.content ?? null, digest: incomingDigest, status };
       });
       const missing = (previous?.files ?? [])
-        .filter((old) => !files.some((file) => file.key === old.key))
+        .filter(
+          (old) =>
+            !files.some((file) => file.key === old.key) &&
+            !checked.skipped.some((file) => file.key === old.key),
+        )
         .map((old) => old.path);
       const source: ProfileSource = {
         id,
@@ -193,6 +201,7 @@ export class ProfileSourceManager {
         source,
         files,
         missing,
+        skipped: checked.skipped,
         expiresAt: new Date(Date.now() + 10 * 60000).toISOString(),
       };
       this.previews.set(preview.token, {

@@ -27,10 +27,17 @@ export interface ProfileImportFile extends ImportedProfileFile {
   content: string;
   status: 'new' | 'changed' | 'unchanged' | 'conflict';
 }
+/** A source document left out of a preview because a Profile note cannot hold it. */
+export interface ProfileSkippedFile {
+  key: string;
+  path: string;
+  reason: 'too_large' | 'not_text';
+}
 export interface ProfileSourcePreview {
   token: string;
   source: ProfileSource;
   files: ProfileImportFile[];
   missing: string[];
+  skipped: ProfileSkippedFile[];
   expiresAt: string;
 }
