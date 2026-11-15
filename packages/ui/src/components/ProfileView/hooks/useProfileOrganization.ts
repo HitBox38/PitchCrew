@@ -3,7 +3,11 @@ import type { ProfileViewProps } from '../types.ts';
 
 export const useProfileOrganization = ({ action }: Pick<ProfileViewProps, 'action'>) => {
   const change = async (
-    body: { action: 'create'; path: string } | { action: 'move'; name: string; folder: string },
+    body:
+      | { action: 'create'; path: string }
+      | { action: 'move'; name: string; folder: string }
+      | { action: 'rename-folder'; from: string; to: string }
+      | { action: 'delete-folder'; path: string },
   ) => {
     setError('');
     try {
@@ -11,7 +15,12 @@ export const useProfileOrganization = ({ action }: Pick<ProfileViewProps, 'actio
         '/profile/organization',
         'POST',
         body,
-        body.action === 'create' ? 'Folder created' : 'Note moved',
+        {
+          create: 'Folder created',
+          move: 'Note moved',
+          'rename-folder': 'Folder renamed',
+          'delete-folder': 'Folder deleted',
+        }[body.action],
       );
       return true;
     } catch (error) {

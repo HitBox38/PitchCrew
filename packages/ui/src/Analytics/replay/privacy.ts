@@ -147,7 +147,7 @@ export const sanitizeReplayProperties = (
   return properties;
 };
 /** Replay uses a content-free wireframe; no source DOM attribute survives serialization. */
-export const replaySurfaces = [
+const replaySurfaces = [
   'board',
   'crew',
   'chat',

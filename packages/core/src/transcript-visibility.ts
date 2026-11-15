@@ -1,3 +1,5 @@
+import { deliveryLifecycle } from './lifecycles.ts';
+
 /** Pure transcript visibility shared by saved history and live rendering. */
 export interface TranscriptVisibilityMessage {
   id: string;
@@ -47,8 +49,7 @@ export const hiddenTranscriptMessageIds = (
           (!request.id || !startedRequestIds.has(request.id)) &&
           request.deliveries.length > 0 &&
           request.deliveries.every(
-            (delivery) =>
-              !delivery.runId && ['queued', 'paused', 'failed'].includes(delivery.status),
+            (delivery) => !delivery.runId && deliveryLifecycle.is('unsent', delivery.status),
           ),
       )
       .map((request) => request.messageId),

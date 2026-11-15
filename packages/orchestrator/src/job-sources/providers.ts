@@ -378,7 +378,7 @@ const hosted: Record<Exclude<JobProvider, 'comeet'>, (slug: string, id: string) 
   lever: (slug, id) => `https://jobs.lever.co/${slug}/${id}`,
   workable: (slug, id) => `https://apply.workable.com/${slug}/j/${id}/`,
 };
-export const maxPostingsPerSource = 2000;
+const maxPostingsPerSource = 2000;
 /** Status messages that explain provider-specific failures better than the generic ones. */
 export const providerStatusMessages: Partial<Record<JobProvider, Record<number, string>>> = {
   comeet: {

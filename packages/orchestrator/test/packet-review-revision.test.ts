@@ -10,7 +10,7 @@ import { reviewSummary } from './helpers/review-summary.ts';
 afterEach(cleanup);
 
 it('delivers saved review corrections to the next Writer prompt and tools before an independent recheck', async () => {
-  const { daemon, request } = await setup(24641);
+  const { daemon, request } = await setup();
   const profile = [{ name: 'profile.md', content: 'Built React interfaces.' }];
   await request('/profile', 'PUT', profile[0]);
   const card = daemon.service.createCard({

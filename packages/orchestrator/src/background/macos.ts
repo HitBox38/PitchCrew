@@ -53,7 +53,7 @@ export const readProgramArguments = (plist: string) => {
 };
 
 /** launchctl uses disabled/enabled on newer macOS releases and true/false on older ones. */
-export const launchAgentDisabled = (output: string) => {
+const launchAgentDisabled = (output: string) => {
   return output.split(/\r?\n/).some((line) => {
     const entry = /^\s*"([^"]+)"\s*=>\s*(disabled|true|1)\s*;?\s*$/.exec(line);
     return entry?.[1] === launchdLabel;
@@ -139,7 +139,7 @@ export const macosDriver = (spec: ServiceSpec, host: ServiceHost): PlatformDrive
   };
 };
 
-export const launchAgentPath = (spec: ServiceSpec) =>
+const launchAgentPath = (spec: ServiceSpec) =>
   posix.join(spec.home, 'Library', 'LaunchAgents', `${launchdLabel}.plist`);
 
 const string = (value: string) => `<string>${escapeXml(value)}</string>`;

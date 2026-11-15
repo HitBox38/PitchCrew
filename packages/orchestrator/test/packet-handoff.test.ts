@@ -8,7 +8,7 @@ import { reviewSummary } from './helpers/review-summary.ts';
 afterEach(cleanup);
 
 it('binds Reviewer summaries and Writer change notes to the exact packet', async () => {
-  const { daemon, request } = await setup(19931);
+  const { daemon, request } = await setup();
   const { service } = daemon;
   const card = service.createCard({ company: 'Fictional Handoff', title: 'Engineer' });
   await confirmFixtureApplication(request, card.id);

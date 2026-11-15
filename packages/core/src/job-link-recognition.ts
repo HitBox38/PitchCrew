@@ -197,7 +197,7 @@ const canonicalComeetPosition = (value: string) =>
   comeetPositionUidPattern.test(value) ? value.split('-')[0]! : value;
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 /** Job ID shapes per provider. A provider without an entry has no link support yet. */
-export const jobLinkIdPatterns: Partial<Record<JobProvider, RegExp>> = {
+const jobLinkIdPatterns: Partial<Record<JobProvider, RegExp>> = {
   greenhouse: /^[0-9]{1,20}$/,
   ashby: uuid,
   lever: uuid,

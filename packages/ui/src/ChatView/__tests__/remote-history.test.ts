@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import type { ChatMessage, ConversationHistoryPage, Run } from '@pitchcrew/core';
-import { liveHistoryItems } from '../remote-history.ts';
+import { keepShownItems, liveHistoryItems } from '../remote-history.ts';
 
 const message = (id: string, from = 'scout'): ChatMessage => {
   return {
@@ -171,4 +171,25 @@ it('merges waiting metadata without dropping saved activity or a queued input’
   const settled = liveHistoryItems(page, [reply], [{ ...metadata, status: 'completed' }], 'scout');
   expect(settled.map((item) => item.id)).toEqual([input.id, 'turn-delivery', reply.id]);
   expect(settled[1].createdAt).toBe(reply.createdAt);
+});
+
+it('keeps what the reader has seen on the latest page', () => {
+  const item = (id: string) => ({
+    kind: 'message' as const,
+    id,
+    createdAt: '2026-10-17T00:00:00.000Z',
+    message: message(id),
+  });
+  const shown = ['a', 'b', 'c', 'd', 'e'].map(item);
+  const ids = (shownIds: string[], itemIds: string[], untilRefetch = false) =>
+    keepShownItems(shownIds.map(item), itemIds.map(item), untilRefetch).map((entry) => entry.id);
+  // The window dropped its oldest entries: they stay.
+  expect(ids(['a', 'b', 'c'], ['c', 'd'])).toEqual(['a', 'b', 'c', 'd']);
+  // A finished reply left the live data: kept in place until the refetched page arrives.
+  expect(ids(['a', 'b', 'c'], ['a', 'c', 'd'], true)).toEqual(['a', 'b', 'c', 'd']);
+  expect(ids(['a', 'b', 'c'], ['a', 'c', 'd'])).toEqual(['a', 'c', 'd']);
+  // Nothing in common (a different page): the new entries as they are.
+  expect(ids(['a', 'b'], ['x', 'y'], true)).toEqual(['x', 'y']);
+  const same = shown.map((entry) => entry);
+  expect(keepShownItems(shown, same, true)).toBe(same);
 });

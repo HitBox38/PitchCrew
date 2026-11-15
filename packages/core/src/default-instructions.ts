@@ -18,7 +18,7 @@ export interface DefaultInstructionRevision {
  * - `customized`: the user edited an earlier default (recorded source or role event history).
  * - `unknown_base`: the text matches no known default; treated like `customized`.
  */
-export type DefaultInstructionState = 'up_to_date' | 'unedited' | 'customized' | 'unknown_base';
+type DefaultInstructionState = 'up_to_date' | 'unedited' | 'customized' | 'unknown_base';
 
 export interface DefaultInstructionStatus {
   roleId: RoleId;

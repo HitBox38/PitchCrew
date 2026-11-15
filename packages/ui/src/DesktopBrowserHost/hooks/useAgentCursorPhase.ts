@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
  */
 export type AgentCursorPhase = 'full' | 'rest' | 'fading' | 'hidden';
 
-export const cursorSettleDelay = (navigated: boolean) => (navigated ? 350 : 700);
+const cursorSettleDelay = (navigated: boolean) => (navigated ? 350 : 700);
 
 export const useAgentCursorPhase = (
   sequence: number | undefined,

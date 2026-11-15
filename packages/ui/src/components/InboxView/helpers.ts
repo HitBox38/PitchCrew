@@ -3,14 +3,6 @@ export { packetNeedsAction } from '../../lib/inbox.ts';
 import type { ApprovalRequest, InboxTab } from './types.ts';
 import type { Approval, PacketArtifact, Snapshot } from '@pitchcrew/core';
 
-// PDF counts come from the frozen bytes. DOCX counts are the formatted layout's estimate.
-export const pageLabel = (artifact: PacketArtifact, pages: ArtifactPages) => {
-  const count = pages?.[artifact.digest];
-  if (count === undefined) return undefined;
-  const label = `${count} ${count === 1 ? 'page' : 'pages'}`;
-  return artifact.mimeType === 'application/pdf' ? label : `about ${label} in Word`;
-};
-
 export const resumePageWarning = (artifacts: PacketArtifact[], pages: ArtifactPages) => {
   const counts = artifacts
     .filter((artifact) => artifact.source === 'resume')
@@ -34,10 +26,6 @@ export const approvalRequests = (
       .filter((approval) => packetNeedsAction(approval, data.cards) === waiting)
       .map((approval) => ({ kind: 'packet' as const, key: `packet:${approval.id}`, approval })),
   ].sort((a, b) => b.approval.createdAt.localeCompare(a.approval.createdAt));
-};
-
-export const selectedApprovalRequest = (requests: ApprovalRequest[], key: string | null) => {
-  return requests.find((request) => request.key === key) ?? requests[0];
 };
 
 export const packetStatusLabel = (status: Approval['status']) => {
@@ -98,13 +86,14 @@ export const historyGroups = (requests: ApprovalRequest[], now: Date) => {
   const groups: { label: string; requests: ApprovalRequest[] }[] = [];
   for (const request of requests) {
     const created = new Date(request.approval.createdAt);
-    const age = today - dayStart(created).getTime();
+    // Whole calendar days: across a clock change two local midnights are 23 or 25 hours apart.
+    const days = Math.round((today - dayStart(created).getTime()) / day);
     const label =
-      age <= 0
+      days <= 0
         ? 'Today'
-        : age <= day
+        : days === 1
           ? 'Yesterday'
-          : age < 7 * day
+          : days < 7
             ? 'Earlier this week'
             : created.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
     const last = groups.at(-1);

@@ -186,8 +186,14 @@ export const verifyDocument = async (
   return structuredClone(await pending);
 };
 
-const bootstrap = `import { register } from ${JSON.stringify(import.meta.resolve('tsx/esm/api'))};
-import { parentPort, workerData } from 'node:worker_threads';
+// PDF.js loads before tsx's hooks, which make its large modules take seconds longer to load. Its
+// worker module sets globalThis.pdfjsWorker, so the in-thread worker skips another import.
+const bootstrap = `import { parentPort, workerData } from 'node:worker_threads';
+if (workerData.mimeType === 'application/pdf') {
+  await import(${JSON.stringify(import.meta.resolve('pdfjs-dist/legacy/build/pdf.mjs'))});
+  await import(${JSON.stringify(import.meta.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs'))});
+}
+const { register } = await import(${JSON.stringify(import.meta.resolve('tsx/esm/api'))});
 register();
 const { extractDocument } = await import(workerData.module);
 parentPort.postMessage(await extractDocument(workerData.bytes, workerData.mimeType, workerData.headings));`;
@@ -208,7 +214,13 @@ export const expectedDocumentText = (source: string, layout: ArtifactLayout) =>
 // Layout and reading-order judgments remain advisory; this is not an ATS compatibility test.
 const characters = (value: string) =>
   Array.from(
-    value.normalize('NFKC').replace(/[\s\u00ad\u200b-\u200f\u202a-\u202e\u2066-\u2069]/gu, ''),
+    value
+      .normalize('NFKC')
+      // The same invisible characters the renderer leaves out (cleanText), so they never count as missing.
+      .replace(
+        /[\s\u00ad\u200b-\u200f\u202a-\u202e\u2060\u2066-\u2069]|\p{Variation_Selector}/gu,
+        '',
+      ),
   );
 
 const verifiedCache = new Map<string, Promise<DocumentVerification>>();

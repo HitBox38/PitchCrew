@@ -55,7 +55,7 @@ it('launches a one-time action exactly once with saved chat, scoped tools and cu
   const chat = vi
     .spyOn(adapters.demo, 'chat')
     .mockResolvedValue({ reply: 'Fictional check complete.' });
-  const { daemon, request } = await setup(14530);
+  const { daemon, request } = await setup();
   const { result: routine } = await request<Routine>('/routines', 'POST', input);
   expect(routine.nextRunAt).toBe('2030-01-01T09:00:00.000Z');
   await daemon.service.tickRoutines(at('08:59'));
@@ -113,7 +113,7 @@ it('launches a one-time action exactly once with saved chat, scoped tools and cu
 
 it('automatically dispatches a due action while the daemon is listening', async () => {
   vi.spyOn(adapters.demo, 'chat').mockResolvedValue({ reply: 'Automatic fictional check.' });
-  const { request } = await setup(14536);
+  const { request } = await setup();
   const { result: routine } = await request<Routine>('/routines', 'POST', {
     ...input,
     startAt: new Date(Date.now() - 1000).toISOString(),
@@ -136,7 +136,7 @@ it('coalesces missed intervals, bounds total dispatches, and does not overlap bu
         complete = resolve;
       }),
   );
-  const { daemon, request } = await setup(14531);
+  const { daemon, request } = await setup();
   const routine = daemon.service.saveRoutine({ ...input, intervalMinutes: 5, maxRuns: 2 });
   await Promise.all([
     daemon.service.tickRoutines(at('09:23')),
@@ -161,7 +161,7 @@ it('coalesces missed intervals, bounds total dispatches, and does not overlap bu
 
 it('pauses, resumes, expires duration limits and deletes without resurrecting replayed routines', async () => {
   const chat = vi.spyOn(adapters.demo, 'chat').mockResolvedValue({ reply: 'Fictional reply.' });
-  const { daemon, request } = await setup(14532);
+  const { daemon, request } = await setup();
   const paused = daemon.service.saveRoutine({ ...input, enabled: false });
   const expired = daemon.service.saveRoutine({
     ...input,
@@ -187,7 +187,7 @@ it('pauses, resumes, expires duration limits and deletes without resurrecting re
 });
 
 it('uses run-scoped chat tools for self and cross-agent CRUD and rechecks revoked capabilities', async () => {
-  const { daemon, request } = await setup(14533);
+  const { daemon, request } = await setup();
   // A board-backed capability fixture keeps the test independent of inference.
   const run: Run = {
     id: 'routine-fixture',
@@ -265,7 +265,7 @@ it('persists schedules across restart and never replays an already dispatched oc
   const chat = vi
     .spyOn(adapters.demo, 'chat')
     .mockResolvedValue({ reply: 'Fictional scheduled check.' });
-  const { daemon, directory, request } = await setup(14534);
+  const { daemon, directory, request, port } = await setup();
   const once = daemon.service.saveRoutine(input);
   const repeat = daemon.service.saveRoutine({
     ...input,
@@ -282,7 +282,7 @@ it('persists schedules across restart and never replays an already dispatched oc
     dev: true,
     ui: false,
     directory,
-    port: 14534,
+    port,
     seedSkills: false,
   });
   resources.push({ daemon: restarted, directory });
@@ -312,7 +312,7 @@ it('does not launch paused or unavailable roles and does not cancel active runs 
         complete = resolve;
       }),
   );
-  const { daemon, request } = await setup(14535);
+  const { daemon, request } = await setup();
   const routine = daemon.service.saveRoutine(input);
   const role = daemon.service.board.get<Role>('role', 'scout');
   daemon.service.board.record('role', { ...role, enabled: false }, 'user', 'Paused');

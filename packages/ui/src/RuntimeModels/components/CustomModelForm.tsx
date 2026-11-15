@@ -4,6 +4,7 @@ import { useCustomModelForm } from '../hooks/useCustomModelForm.ts';
 import { CustomModelReasoning } from './CustomModelReasoning.tsx';
 import type { CustomRuntimeModel } from '../types.ts';
 import { CustomModelBasics } from './CustomModelBasics.tsx';
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
 export const CustomModelForm = ({
   runtime,
@@ -23,14 +24,9 @@ export const CustomModelForm = ({
   onDirtyChange?: (value: boolean) => void;
 }) => {
   const { field, ...form } = useCustomModelForm(existing, models, onDirtyChange);
-  const supportsReasoning = [
-    'codex',
-    'claude-code',
-    'opencode',
-    'copilot-cli',
-    'pi',
-    'oh-my-pi',
-  ].includes(runtime);
+  const supportsReasoning = useWorkspaceStore(
+    (state) => state.data?.runtimes.find((entry) => entry.id === runtime)?.customReasoning === true,
+  );
   return (
     <form
       className="settings-form"

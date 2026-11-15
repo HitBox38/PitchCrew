@@ -1,4 +1,4 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, stat, writeFile } from 'node:fs/promises';
 
 import { roleResult } from './role-result.ts';
 
@@ -45,7 +45,20 @@ const environment = Object.fromEntries(
       key.startsWith('PITCHCREW_'),
   ),
 );
-await writeFile('cli-request.json', JSON.stringify({ runtime, args, prompt, environment }));
+// Record the private MCP configuration file while the adapter still owns it.
+const mcpConfigPath =
+  runtime === 'copilot' ? args[args.indexOf('--additional-mcp-config') + 1]?.replace(/^@/, '') : '';
+const mcpConfig = mcpConfigPath
+  ? {
+      path: mcpConfigPath,
+      mode: (await stat(mcpConfigPath)).mode & 0o777,
+      content: JSON.parse(await readFile(mcpConfigPath, 'utf8')),
+    }
+  : undefined;
+await writeFile(
+  'cli-request.json',
+  JSON.stringify({ runtime, args, prompt, environment, mcpConfig }),
+);
 const mode = process.env.PITCHCREW_FIXTURE_MODE;
 if (mode === 'wait') {
   setInterval(() => {}, 1000);

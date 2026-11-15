@@ -9,7 +9,7 @@ let host: Awaited<ReturnType<typeof setup>>;
 let fixture: ReturnType<typeof seedParallelQueue>;
 const errors: string[] = [];
 beforeAll(async () => {
-  host = await setup(23942);
+  host = await setup();
   fixture = seedParallelQueue(host.daemon.service);
   // Fill capacity so deterministic ready fixtures cannot dispatch.
   host.daemon.service.board.record(

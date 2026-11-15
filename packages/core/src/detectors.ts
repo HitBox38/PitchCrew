@@ -4,7 +4,7 @@ import { z } from 'zod';
 export const detectorProviders = ['sapling', 'copyleaks', 'gptzero', 'originality'] as const;
 export type DetectorProvider = (typeof detectorProviders)[number];
 /** Packet documents eligible for a detector check; resumes stay out of scope. */
-export const detectorDocuments = ['coverLetter', 'formAnswers'] as const;
+const detectorDocuments = ['coverLetter', 'formAnswers'] as const;
 export type DetectorDocument = (typeof detectorDocuments)[number];
 
 export interface DetectorCatalogEntry {
@@ -95,7 +95,6 @@ export interface DetectorAdvisory {
 export const maxDetectorPassages = 40;
 /** Saved advisories per card; older provider/document pairs are replaced. */
 export const maxDetectorAdvisories = 8;
-export const detectorFlagThreshold = 0.5;
 
 export interface DetectorStatus {
   provider: DetectorProvider;
@@ -111,13 +110,11 @@ export const detectorCheckInput = z
     documentDigest: z.string().regex(/^[a-f0-9]{64}$/),
   })
   .strict();
-export type DetectorCheckInput = z.infer<typeof detectorCheckInput>;
 export const detectorKeyInput = z
   .object({
     key: z.string().trim().min(8).max(400),
     email: z.email().optional(),
   })
   .strict();
-export type DetectorKeyInput = z.infer<typeof detectorKeyInput>;
 /** Opening line of the prefilled chat draft; corrections quoting it never teach preferences. */
 export const detectorRevisionPrefix = 'Revise for the AI-text detector advisory';

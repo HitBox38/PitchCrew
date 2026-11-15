@@ -1,7 +1,7 @@
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 import { MarkdownEditor } from '@/components/MarkdownEditor/index.tsx';
 import { useMarkdownSaveShortcut } from '@/components/MarkdownEditor/hooks/useMarkdownSaveShortcut.ts';
-import { Tabs } from '@pitchcrew/design-system/tabs';
+import { MarkdownToolbar } from '@/components/MarkdownEditor/components/MarkdownToolbar.tsx';
 import { skillContentLimit } from '@pitchcrew/core/base-skills';
 import { SkillAssignment } from './components/SkillAssignment.tsx';
 import { SkillDetails } from './components/SkillDetails.tsx';
@@ -18,7 +18,7 @@ export const SkillEditor = (props: SkillEditorProps) => {
   const c = useSkillEditor(props);
   return (
     <>
-      <Tabs value={c.mode} onValueChange={c.setMode} className="skills-pane skills-editor">
+      <div className="skills-pane skills-editor">
         <form
           ref={form}
           className="skills-editor-form"
@@ -41,12 +41,22 @@ export const SkillEditor = (props: SkillEditorProps) => {
             <SkillDelivery {...c} />
           </div>
           <div className="skills-sheet">
+            <MarkdownToolbar
+              handle={c.editor}
+              disabled={c.working || c.loading}
+              preview={c.mode === 'preview'}
+              active={c.cursor?.formats}
+            />
             <MarkdownEditor
               id="skill-content"
               label="Skill Markdown"
               content={c.content}
               onChange={c.setContent}
               maxLength={skillContentLimit}
+              mode={c.mode}
+              handle={c.editor}
+              onCursor={c.setCursor}
+              documentKey={c.skill?.id ?? 'new'}
               disabled={c.working || c.loading}
               placeholder={
                 '# Clear application writing\n\nUse when drafting an application.\n\n- Lead with relevant experience.\n- Support every claim with a profile quotation.'
@@ -55,7 +65,7 @@ export const SkillEditor = (props: SkillEditorProps) => {
           </div>
           <SkillEditorFooter {...c} />
         </form>
-      </Tabs>
+      </div>
       <DiscardChanges guard={c.guard} />
     </>
   );

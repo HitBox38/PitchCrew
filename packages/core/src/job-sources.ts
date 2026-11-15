@@ -37,7 +37,7 @@ const keywords = z
   .max(20)
   .default([])
   .transform((values) => [...new Set(values)]);
-export const jobSourceFilters = z
+const jobSourceFilters = z
   .object({
     titleInclude: keywords,
     titleExclude: keywords,
@@ -64,7 +64,7 @@ export const jobSourceFields = z
 export const jobSourceInput = jobSourceFields.superRefine(refineJobSource);
 export type JobSourceInput = z.infer<typeof jobSourceInput>;
 export type JobSourceFilters = z.infer<typeof jobSourceFilters>;
-export interface JobSourceScanStatus {
+interface JobSourceScanStatus {
   at: string;
   status: 'ok' | 'failed';
   error?: string;

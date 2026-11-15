@@ -1,4 +1,6 @@
 import { queueMayStart } from './queue/dispatch.ts';
+import { reportDrainFailure } from './queue/drain-failure.ts';
+import { findEntity, queuedChatRequests } from './queue/queries.ts';
 import { submitChatOnce } from './chat-submissions.ts';
 import { pauseForUnfinishedHead, resumeHeadRequest } from './queue/recovery.ts';
 import { QueueBusyError, launchProblem } from './queue/admission.ts';
@@ -15,7 +17,7 @@ import { requestProblem, requestIsHead } from './queue/requests.ts';
 import { moveQueueRequest } from './queue/commands.ts';
 import { RuntimeHeldError } from '../runtime-maintenance/availability.ts';
 import { messageRecipients, resolveChatReferences } from './chat-references.ts';
-import { chatReferenceInput } from '@pitchcrew/core';
+import { deliveryLifecycle, chatReferenceInput } from '@pitchcrew/core';
 import { failReviewContinuation } from './deep-reviews/state.ts';
 import { startDeepReview } from './deep-reviews/index.ts';
 import { isDeepReviewRequest, queueDeepReviewChat } from './deep-reviews/chat.ts';
@@ -28,18 +30,24 @@ import {
   type Run,
   type AgentTask,
   type ChatMessage,
+  type Conversation,
   type Role,
 } from '@pitchcrew/core';
 import { z } from 'zod';
 import { saveAttachments, removeAttachments } from './attachments/storage.ts';
 import { conversation, conversations, canReadConversation } from './conversations.ts';
-import { openRoundRoots, refreshOpenRounds, startRound } from './delegation-rounds.ts';
+import {
+  openRoundRoots,
+  refreshOpenRounds,
+  runIsDelegate,
+  startRound,
+} from './delegation-rounds.ts';
 import { userDelegationInput } from '@pitchcrew/core';
 import type { CrewContext } from './types.ts';
 export const saveRequest = (context: CrewContext, request: ChatRequest, publish = true): void => {
   const queue = ensureQueue(context, request.threadId, request.rootRunId);
   if (
-    !context.board.list<ChatRequest>('chat_request').some((r) => r.id === request.id) &&
+    !findEntity<ChatRequest>(context, 'chat_request', request.id) &&
     !queueRequests(context, queue.id).length &&
     !activeQueues(context).has(queue.id)
   )
@@ -85,6 +93,12 @@ const requestOrder = (context: CrewContext, intent: 'queue' | 'interrupt') => {
     ? Math.min(now, bound?.position ?? now) - 1
     : Math.max(now, (bound?.position ?? 0) + 1);
 };
+/**
+ * What a send reads from its conversation. Activity fields (`updatedAt`, `archived`) change with
+ * every saved message, so comparing the whole record rejected sends that nothing had invalidated.
+ */
+const sendIdentity = (item: Conversation): string =>
+  JSON.stringify([item.kind, item.participants, item.leadId, item.cardId, item.configurations]);
 export const sendConversation = async (
   context: CrewContext,
   id: string,
@@ -137,7 +151,7 @@ const sendConversationPrepared = async (
   const files = await saveAttachments(context.directory, input.attachments);
   let committed = false;
   try {
-    if (JSON.stringify(conversation(context, id)) !== JSON.stringify(item))
+    if (sendIdentity(conversation(context, id)) !== sendIdentity(item))
       throw new Error('The conversation changed. Try sending again.');
     if (isDeepReviewRequest(input.content)) {
       const effects: (() => void)[] = [];
@@ -204,13 +218,9 @@ export const drainConversationQueue = async (context: CrewContext): Promise<void
   }
   draining.add(context);
   try {
-    for (const request of context.board
-      .list<ChatRequest>('chat_request')
-      .filter(
-        (r) =>
-          r.deliveries.some((d) => d.status === 'queued') &&
-          conversations(context).some((c) => c.id === r.threadId),
-      )
+    const open = new Set(conversations(context).map((c) => c.id));
+    for (const request of queuedChatRequests(context)
+      .filter((r) => open.has(r.threadId))
       .sort(
         (a, b) =>
           ensureQueue(context, a.threadId, a.rootRunId).order -
@@ -221,8 +231,9 @@ export const drainConversationQueue = async (context: CrewContext): Promise<void
         // Another turn may delete a later queued conversation while setup awaits.
         if (!conversations(context).some((item) => item.id === request.threadId)) continue;
         const current = context.board.get<ChatRequest>('chat_request', request.id);
-        const delivery = current.deliveries.find((entry) => entry.roleId === queued.roleId)!;
-        if (delivery.status !== 'queued') continue;
+        // An edit can replace the recipients while an earlier request in this pass was starting.
+        const delivery = current.deliveries.find((entry) => entry.roleId === queued.roleId);
+        if (!delivery || delivery.status !== 'queued') continue;
         const item = conversation(context, request.threadId);
         if (!current.deepReviewRequest && !item.participants.includes(delivery.roleId)) {
           delivery.status = 'cancelled';
@@ -292,6 +303,16 @@ export const drainConversationQueue = async (context: CrewContext): Promise<void
         )
           continue;
         if (!(await queueMayStart(context, queue.id, current.rootRunId ?? current.id))) continue;
+        // Setup awaited: a Remove, Edit, Stop or deletion may have been saved meanwhile.
+        // Launch only the request as it is saved now; a changed one gets a fresh pass.
+        if (!conversations(context).some((entry) => entry.id === request.threadId)) continue;
+        if (
+          JSON.stringify(context.board.get<ChatRequest>('chat_request', request.id)) !==
+          JSON.stringify(current)
+        ) {
+          drainAgain.add(context);
+          continue;
+        }
         patchQueue(context, queue.id, { reason: '' });
         // Reserve delivery before setup awaits; another drain cannot duplicate it.
         delivery.status = 'running';
@@ -408,6 +429,8 @@ export const drainConversationQueue = async (context: CrewContext): Promise<void
         }
       }
     }
+  } catch (error) {
+    reportDrainFailure(context, 'chat requests', error);
   } finally {
     draining.delete(context);
     if (drainAgain.has(context)) {
@@ -506,7 +529,7 @@ const stopConversationBranch = (
     for (const delivery of request.deliveries)
       if (
         (!roleId || delivery.roleId === roleId) &&
-        ['queued', 'running'].includes(delivery.status)
+        deliveryLifecycle.is('moving', delivery.status)
       ) {
         delivery.status = 'paused';
         changed = true;
@@ -542,7 +565,7 @@ export const sendDelegation = async (
       return context.runtimeMaintenance.refreshOnRetry({ ...role, ...item.configurations[roleId] });
     }),
   );
-  if (JSON.stringify(conversation(context, id)) !== JSON.stringify(item))
+  if (sendIdentity(conversation(context, id)) !== sendIdentity(item))
     throw new Error('The conversation changed. Try sending again.');
   const request: ChatRequest = {
     id: randomUUID(),
@@ -639,7 +662,7 @@ export const stopConversationWork = (
   }
   effect(() => context.publishChat(true));
 };
-export const finishQueueRun = (context: CrewContext, run: Run): void => {
+const finishQueueRun = (context: CrewContext, run: Run): void => {
   const finished = context.board.get<Run>('run', run.id);
   const thread = run.threadId;
   if (
@@ -650,11 +673,17 @@ export const finishQueueRun = (context: CrewContext, run: Run): void => {
   )
     return;
   const scope = runLane(context, run);
-  if (['waiting', 'failed', 'cancelled'].includes(finished.status))
+  // A failed or stopped delegate is a result for the lead: the round keeps its admitted chain and
+  // the lane stays running so the collection turn can start once every delegate settles.
+  const delegate = runIsDelegate(context, finished);
+  if (
+    finished.status === 'waiting' ||
+    (['failed', 'cancelled'].includes(finished.status) && !delegate)
+  )
     context.queueChains.delete(scope);
   if (scope.startsWith('routine:')) return;
   const queue = ensureQueue(context, thread, run.rootRunId);
-  if (finished.status === 'failed')
+  if (finished.status === 'failed' && !delegate)
     patchQueue(context, queue.id, { paused: true, pauseKind: 'failed', reason: finished.message });
   else if (!activeQueues(context).has(queue.id))
     patchQueue(context, queue.id, { order: nextOrder(context) });
@@ -684,7 +713,7 @@ export const updateRequest = (context: CrewContext, id: string, data: unknown): 
   }
   const request = context.board.get<ChatRequest>('chat_request', id);
   const pending = request.deliveries.filter((delivery) =>
-    ['queued', 'paused', 'failed'].includes(delivery.status),
+    deliveryLifecycle.is('unsent', delivery.status),
   );
   if (!pending.length && input.action !== 'remove')
     throw new Error('This request has no pending deliveries.');
@@ -698,7 +727,7 @@ export const updateRequest = (context: CrewContext, id: string, data: unknown): 
       throw new Error('Your answer is already saved. Send a correction instead.');
     if (
       request.deliveries.some(
-        (delivery) => delivery.runId || !['queued', 'paused', 'failed'].includes(delivery.status),
+        (delivery) => delivery.runId || !deliveryLifecycle.is('unsent', delivery.status),
       )
     )
       throw new Error('This message has started. Send a correction instead.');
@@ -709,7 +738,7 @@ export const updateRequest = (context: CrewContext, id: string, data: unknown): 
     const targets = messageRecipients(input.content, item);
     if (!targets.length) throw new Error('Mention an agent participating in this conversation.');
     const paused = request.deliveries.some((delivery) =>
-      ['paused', 'failed'].includes(delivery.status),
+      deliveryLifecycle.is('stopped', delivery.status),
     );
     request.deliveries = targets.map((roleId) => ({
       roleId,
@@ -729,7 +758,7 @@ export const updateRequest = (context: CrewContext, id: string, data: unknown): 
   }
   if (input.action === 'remove')
     for (const delivery of request.deliveries)
-      if (['queued', 'paused', 'failed'].includes(delivery.status)) delivery.status = 'cancelled';
+      if (deliveryLifecycle.is('unsent', delivery.status)) delivery.status = 'cancelled';
   if (input.action === 'interrupt') {
     stopConversationWork(context, request.threadId);
     for (const saved of queueRequests(
@@ -750,7 +779,7 @@ export const updateRequest = (context: CrewContext, id: string, data: unknown): 
   if (input.action === 'interrupt')
     for (const delivery of request.deliveries)
       if (
-        ['paused', 'failed'].includes(delivery.status) &&
+        deliveryLifecycle.is('stopped', delivery.status) &&
         canReadConversation(context, delivery.roleId, request.threadId)
       )
         delivery.status = 'queued';

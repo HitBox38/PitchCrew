@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@pitchcrew/design-system/button';
-import { Tabs, TabsList, TabsTrigger } from '@pitchcrew/design-system/tabs';
+import { Tabs, TabsIndicator, TabsList, TabsTrigger } from '@pitchcrew/design-system/tabs';
 import { outcomeLabels } from '@/lib/labels.ts';
 import { outcomes, type InsightLesson, type Outcome } from '@pitchcrew/core/insights';
 import { LessonList } from './LessonList.tsx';
@@ -33,6 +33,7 @@ export const RecentLessons = ({ lessons }: { lessons: Record<Outcome, InsightLes
               {outcomeLabels[item]} <span className="ui-count">{lessons[item].length}</span>
             </TabsTrigger>
           ))}
+          <TabsIndicator />
         </TabsList>
       </Tabs>
       {list.length ? (

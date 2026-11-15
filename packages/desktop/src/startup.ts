@@ -25,4 +25,4 @@ export const installStartupTiming = (
   });
 };
 
-export const startupChannel = 'pitchcrew:startup:timing';
+const startupChannel = 'pitchcrew:startup:timing';

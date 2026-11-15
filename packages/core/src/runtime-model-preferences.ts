@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { reasoningLevels } from './reasoning.ts';
 import type { RuntimeModel, RuntimeModelCatalog } from './runtime.ts';
 
-export const modelSelector = z
+const modelSelector = z
   .string()
   .trim()
   .min(1)

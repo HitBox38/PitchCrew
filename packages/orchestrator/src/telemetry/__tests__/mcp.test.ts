@@ -68,9 +68,7 @@ describe('MCP gateway observations', () => {
         tool: 'github_read_file',
         input: { path: '/Users/private/file', revision: 'secret' },
       }),
-    ).rejects.toThrow(
-      'This connector capability is disabled for your role. Enable it in Your crew.',
-    );
+    ).rejects.toThrow('This connector capability is disabled for your role. Enable it in Crew.');
     expect(call).not.toHaveBeenCalled();
     expect(record.mock.calls[0][1]).toMatchObject({
       $mcp_tool_name: 'github_read_file',

@@ -327,3 +327,7 @@ Use fictional fixtures and deterministic gateway, HTTP and renderer checks;
 automated verification does not establish live provider writing or coaching
 quality. Follow repository instructions for any headless browser or hidden
 desktop verification needed by an implementation slice.
+
+## Contributor rules
+
+**Application process quality.** PDF/DOCX export verifies actual frozen bytes for readability and retained content, blocks essential failures per file and warns on heuristic layout findings; DOCX final layout remains unverified. Ordinary draft/review can perform one isolated Writer formatting correction and Reviewer recheck within the original budget; managed deep review uses its existing correction stage. Settings > Writing holds the revisioned shared guide, explicit preferences, chat-sourced before/after evidence, two-application learning, Disable/Undo and user-reviewed critic proposals. Isolated runs save the applicable guide snapshot; chat corrections queue through existing workflow tasks with exact draft digests and source isolation. Insights holds user-scoped source-linked career plans with three user-selected priorities, progress and stale-source checks. The optional `manageCareerPlans` capability plus `readApplications` gates agent refresh/progress; new Career Coach defaults receive it and existing roles retain settings. Version 25 persists guides, corrections and plans in board events. Existing weights/lessons remain user-only, and no schedules are seeded. See [docs/application-process-quality.md](application-process-quality.md).

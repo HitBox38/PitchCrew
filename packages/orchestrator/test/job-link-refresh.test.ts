@@ -9,7 +9,7 @@ import { afterEach, expect, it } from 'vitest';
 import { cleanup, resources, setup } from './helpers/daemon.ts';
 import { recordedPostings, postingLinks } from './helpers/job-links.ts';
 const context = async () => {
-  const { daemon, request } = await setup(15632);
+  const { daemon, request } = await setup();
   const service = daemon.service;
   const role = service.board.get<Role>('role', 'scout');
   service.board.record(

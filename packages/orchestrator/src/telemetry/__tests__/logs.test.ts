@@ -35,6 +35,33 @@ describe('content-free operational logs', () => {
       }),
     ).toEqual({ code: 'http_request_failed', area: 'http' });
   });
+  it('keeps a lifecycle warning to a table name and two of its statuses', () => {
+    const move = {
+      code: 'daemon_lifecycle_violation',
+      area: 'daemon',
+      lifecycle: 'Crew task',
+      from_status: 'completed',
+      to_status: 'running',
+    } as const;
+    expect(sanitizeLogObservation('operational_log', { ...move, taskId: 'private' })).toEqual(move);
+    for (const change of [
+      { lifecycle: 'Private table' },
+      { from_status: 'private' },
+      { to_status: 'lead' },
+      { area: 'http' },
+    ])
+      expect(sanitizeLogObservation('operational_log', { ...move, ...change })).toBeNull();
+    // Lifecycle fields never ride along on other codes.
+    expect(
+      sanitizeLogObservation('operational_log', {
+        code: 'daemon_ready',
+        area: 'daemon',
+        lifecycle: 'Run',
+        from_status: 'completed',
+        to_status: 'running',
+      }),
+    ).toEqual({ code: 'daemon_ready', area: 'daemon' });
+  });
   it('keeps exit details only on runtime exits and never retains unknown error properties', () => {
     const error = Object.assign(new Error('private stderr'), {
       code: 'PITCHCREW_RUNTIME_EXIT',

@@ -1,4 +1,5 @@
 import { useCategoryOpen } from '@/AppSidebar/hooks/useCategoryOpen.ts';
+import { useStableCallbacks } from '@/lib/use-stable-callbacks.ts';
 import { chatGroups } from '../helpers.ts';
 import type { ConversationNavigationRow } from '../types.ts';
 import { ConversationGroup } from './ConversationGroup.tsx';
@@ -31,7 +32,19 @@ export const ChatsList = ({
   const archived = useCategoryOpen('chats-archived', false);
   const groups = chatGroups(rows);
   const searching = !!query.trim();
-  const shared = { query, thread, closeMobile, actions, working: actions.working };
+  // Stable, so a chat row whose content did not change skips rendering (ConversationLink).
+  const callbacks = useStableCallbacks({
+    closeMobile,
+    archive: actions.archive,
+    requestDelete: actions.requestDelete,
+  });
+  const shared = {
+    query,
+    thread,
+    closeMobile: callbacks.closeMobile,
+    actions: callbacks,
+    working: actions.working,
+  };
   const sub = [
     { label: 'Agent chats', rows: groups.agents, ...agents, setOpen: agents.changeOpen },
     { label: 'Agent DMs', rows: groups.dms, open: dmsOpen, setOpen: setDmsOpen, always: true },

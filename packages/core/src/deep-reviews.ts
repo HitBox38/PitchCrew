@@ -7,7 +7,7 @@ import { reviewPerspectives, type ReviewPerspective } from './deep-review-labels
 export const reviewPerspectiveSchema = z.enum(
   Object.keys(reviewPerspectives) as [ReviewPerspective, ...ReviewPerspective[]],
 );
-export const reviewFindingSchema = z.object({
+const reviewFindingSchema = z.object({
   severity: z.enum(['blocking', 'advisory']),
   quote: z.string().trim().min(1).max(2000),
   reason: z.string().trim().min(1).max(2000),
@@ -38,7 +38,7 @@ export const reviewAssessmentSchema = z.object({
 });
 export type ReviewFinding = z.infer<typeof reviewFindingSchema>;
 export type ReviewAssessment = z.infer<typeof reviewAssessmentSchema>;
-export const reviewRuntimeAlternativeSchema = z
+const reviewRuntimeAlternativeSchema = z
   .object({
     runtime: z.enum(runtimeIds),
     model: z.string().trim().max(100),

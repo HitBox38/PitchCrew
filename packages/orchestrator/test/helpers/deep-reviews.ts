@@ -15,11 +15,8 @@ export const assessment = (): ReviewAssessment => {
     findings: [],
   };
 };
-export const deepReviewFixture = async (
-  port: number,
-  options: Parameters<typeof setup>[2] = {},
-) => {
-  const env = await setup(port, false, options);
+export const deepReviewFixture = async (options: Parameters<typeof setup>[1] = {}) => {
+  const env = await setup(false, options);
   await env.request('/profile', 'PUT', {
     name: 'profile.md',
     content: '# Fictional Candidate\n- Built a React interface.',

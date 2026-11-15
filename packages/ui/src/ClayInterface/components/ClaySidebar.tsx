@@ -40,9 +40,7 @@ export const ClaySidebar = (props: AppSidebarProps) => {
         />
         <div className="sidebar-notices">
           <SetupRow />
-          <div className="sidebar-source-activity" onClickCapture={() => setOpenMobile(false)}>
-            <SourceActivity />
-          </div>
+          <SourceActivity onOpen={() => setOpenMobile(false)} />
         </div>
       </SidebarContent>
       <SidebarFooterTray data={props.data} active={props.view === 'settings'} />

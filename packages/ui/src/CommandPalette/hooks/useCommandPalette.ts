@@ -3,7 +3,7 @@ import type { CommandPaletteProps } from '@/CommandPalette/types.ts';
 import type { ChatThread } from '@/navigation.ts';
 import { useManualUpdateCheck } from '@/AppUpdates/hooks/useManualUpdateCheck.ts';
 import { useSidebar } from '@pitchcrew/design-system/sidebar';
-import { requestNewNote } from '@/lib/new-note.ts';
+import { requestNewNote, requestOpenNote } from '@/lib/new-note.ts';
 import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
@@ -22,6 +22,7 @@ export const useCommandPalette = (props: CommandPaletteProps) => {
   return {
     ...props,
     conversations: data?.conversations ?? [],
+    notes: data?.profile ?? [],
     recentIds,
     toggleSidebar,
     run,
@@ -31,6 +32,10 @@ export const useCommandPalette = (props: CommandPaletteProps) => {
       void navigate({ to: '/profile' }).then(() => {
         if (window.location.pathname === '/profile') requestNewNote();
       }),
+    onOpenNote: (name: string, find = '') => {
+      requestOpenNote(name, find);
+      void navigate({ to: '/profile' });
+    },
     onCheckUpdates: () => void checkUpdates(),
     onShowIntroduction: data?.onboarding
       ? () =>

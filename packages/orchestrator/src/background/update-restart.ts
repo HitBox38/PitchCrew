@@ -12,8 +12,9 @@ export const markUpdateRestart = async (directory: string, version: unknown) => 
 export const verifyUpdateRestart = async (directory: string, build: AppBuild, url: string) => {
   const text = await readFile(join(directory, fileName), 'utf8').catch(() => null);
   if (text === null) return;
-  const expected = JSON.parse(text) as { version?: unknown };
-  if (expected.version === build.version) {
+  // A truncated marker must not block every later launch; treat it as absent and clear it.
+  const expected = parseMarker(text);
+  if (expected?.version === build.version) {
     const response = await fetch(url, { redirect: 'error', signal: AbortSignal.timeout(2000) });
     const cookie = response.headers.get('set-cookie')?.split(';')[0];
     await response.body?.cancel();
@@ -36,6 +37,15 @@ export const verifyUpdateRestart = async (directory: string, build: AppBuild, ur
   }
   // Reopening the previous build after a failed OS installer is a supported recovery path.
   await clearUpdateRestart(directory);
+};
+
+const parseMarker = (text: string): { version?: unknown } | null => {
+  try {
+    const value: unknown = JSON.parse(text);
+    return value && typeof value === 'object' ? (value as { version?: unknown }) : null;
+  } catch {
+    return null;
+  }
 };
 
 const fileName = 'update-restart.json';

@@ -15,7 +15,7 @@ const errors: string[] = [];
 const input = { ...directorySkill, scope: 'roles', roleIds: ['reviewer'] };
 
 beforeAll(async () => {
-  host = await setup(15739);
+  host = await setup();
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
   const scout = host.daemon.service.board.get<Role>('role', 'scout');
   host.daemon.service.board.record(

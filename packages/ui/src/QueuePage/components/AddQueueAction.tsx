@@ -15,6 +15,7 @@ export const AddQueueAction = ({ data, cardId }: { data: Snapshot; cardId?: stri
   const action = useWorkspaceStore((s) => s.action);
   const working = useWorkspaceStore((s) => s.working);
   const add = async () => {
+    setError('');
     try {
       await action(
         '/queue/actions',
@@ -33,7 +34,10 @@ export const AddQueueAction = ({ data, cardId }: { data: Snapshot; cardId?: stri
         className={cardId ? 'queue-add-request' : undefined}
         variant={cardId ? 'ghost' : 'default'}
         size={cardId ? 'sm' : 'default'}
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setError('');
+          setOpen(true);
+        }}
         disabled={!data.cards.length}
       >
         <Plus size={15} />

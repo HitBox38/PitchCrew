@@ -1,3 +1,4 @@
+import { delegationRoundLifecycle } from '@pitchcrew/core/lifecycles';
 import { useBrowserPresenceField } from '@/DesktopBrowserHost/presence.ts';
 import { chatRole, chatRoleState } from '../model.ts';
 import { queuedChatRequests } from '../helpers.ts';
@@ -8,7 +9,7 @@ import { useChatPreferences } from './useChatPreferences.ts';
 import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
 import type { ChatViewProps } from '@/ChatView/types.ts';
 import type { ChatMessage } from '@pitchcrew/core';
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { focusAfterReveal, questionReturnFocus } from '@/UserQuestions/focus.ts';
 import type { QuestionFocusIntent } from '@/UserQuestions/types.ts';
 import {
@@ -22,6 +23,14 @@ import { useQuestionLifecycle } from '@/UserQuestions/hooks/useQuestionLifecycle
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useComposerDraft } from './useComposerDraft.ts';
 import { sendComposerDraft } from '../composer-send.ts';
+import { composerState } from '../composer-state.ts';
+import { conversationQueueHold } from '../queue-recovery-plan.ts';
+import {
+  cancelSendFlight,
+  dropSendFlight,
+  launchSendFlight,
+  sendFlightOrigin,
+} from '../send-flight.ts';
 import { effectiveComposerMode } from '../composer-retry.ts';
 
 export const useChatView = (props: ChatViewProps) => {
@@ -37,13 +46,22 @@ export const useChatView = (props: ChatViewProps) => {
   const reduced = useAppReducedMotion();
   const inputRef = useRef<HTMLDivElement>(null);
   const composerDraft = useComposerDraft(thread);
-  const [recipient, setRecipient] = useState('');
+  // The view stays mounted across conversations, so a chosen recipient and a shown error belong
+  // to the conversation they came from.
+  const [recipientState, setRecipientState] = useState({ thread, value: '' });
+  const recipient = recipientState.thread === thread ? recipientState.value : '';
+  const setRecipient = useCallback(
+    (value: string) => setRecipientState({ thread, value }),
+    [thread],
+  );
   const [panes, setPanes] = useState<Record<string, 'conversation' | 'work'>>({});
   const pane = panes[thread] ?? 'conversation';
   const setPane = (next: 'conversation' | 'work') =>
     setPanes((current) => ({ ...current, [thread]: next }));
   const panels = useChatPanels(thread);
-  const [error, setError] = useState('');
+  const [errorState, setErrorState] = useState({ thread, value: '' });
+  const error = errorState.thread === thread ? errorState.value : '';
+  const setError = useCallback((value: string) => setErrorState({ thread, value }), [thread]);
   const questions = (data.userInputs ?? []).filter(
     (question) => question.threadId === thread && question.status === 'pending',
   );
@@ -151,7 +169,7 @@ export const useChatView = (props: ChatViewProps) => {
     proposals.length +
     skillProposals.length +
     tasks.filter((task) => ['queued', 'running'].includes(task.status)).length +
-    rounds.filter((round) => !['completed', 'cancelled'].includes(round.status)).length;
+    rounds.filter((round) => !delegationRoundLifecycle.is('settled', round.status)).length;
   const approving = data.computerApprovals.some(
     (approval) => approval.status === 'pending' && running.some((run) => run.id === approval.runId),
   );
@@ -179,6 +197,7 @@ export const useChatView = (props: ChatViewProps) => {
     composerDraft.offerDraft(thread, prompt);
     inputRef.current?.focus();
   };
+  useEffect(() => dropSendFlight, [thread]);
   const send = async (text: string, intent: 'queue' | 'interrupt' = 'queue') => {
     if (
       (!text.trim() && !attachments.files.length) ||
@@ -194,7 +213,20 @@ export const useChatView = (props: ChatViewProps) => {
     }
     setPane('conversation');
     setError('');
-    await sendComposerDraft(thread, action, { intent });
+    // Only a send that dispatches now lands in the transcript; a held one waits in the queue.
+    const flies = !reduced && !busy && !questions.length && !conversationQueueHold(data, thread);
+    const origin = flies ? sendFlightOrigin(inputRef.current) : undefined;
+    const before = composerState(thread).operation;
+    const sending = sendComposerDraft(thread, action, { intent });
+    // A repeated Enter reaches here while the first send is in progress and is refused; only
+    // the call that began the send launches or cancels its flight.
+    const operation = composerState(thread).operation;
+    const payload = operation !== before ? operation?.payload : undefined;
+    const id = payload?.submission?.id;
+    // References keep the draft's own offsets, so the copy renders them like the saved message.
+    if (origin && payload && id)
+      launchSendFlight(thread, { id, text: payload.text, references: payload.references }, origin);
+    if (!(await sending) && id) cancelSendFlight(thread, id);
   };
 
   const sendDelegation = async (text: string, roleIds: string[]) => {

@@ -21,21 +21,23 @@ export const QueueList = <T extends { id: string }>({
   movable?: (item: T) => boolean;
 }) => {
   const model = useQueueOrder(items, commit);
+  // An active request stays at the head and is never a destination: the daemon rejects it.
+  const head = model.visible.findIndex(movable);
   return (
     <ol className={`queue-list ${className}`} aria-label={group}>
       {model.visible.map((item, index) => {
         const disabled = model.busy || !movable(item);
         const move = (beforeId: string | null) => () => void model.move(item.id, beforeId);
-        const first = model.visible[0];
+        const first = model.visible[head];
         const moves: QueueMoves = disabled
           ? {}
           : {
-              up: index > 0 ? move(model.visible[index - 1]?.id ?? null) : undefined,
+              up: index > head ? move(model.visible[index - 1]?.id ?? null) : undefined,
               down:
                 index < model.visible.length - 1
                   ? move(model.visible[index + 2]?.id ?? null)
                   : undefined,
-              makeNext: index > 0 && first ? move(first.id) : undefined,
+              makeNext: index > head && first ? move(first.id) : undefined,
             };
         const handle = <QueueGrip group={group} id={item.id} disabled={disabled} moves={moves} />;
         return (

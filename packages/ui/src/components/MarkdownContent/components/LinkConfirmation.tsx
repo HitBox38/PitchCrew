@@ -29,7 +29,14 @@ const LinkConfirmationDialog = ({ url, onClose, onConfirm }: LinkSafetyModalProp
       <p className="info-note max-h-32 overflow-y-auto font-mono text-sm break-all">{url}</p>
       <div className="mt-5 flex flex-wrap justify-end gap-3">
         <Button variant="outline" onClick={() => void copyLink()}>
-          {copyStatus === 'copied' ? <Check size={16} /> : <Copy size={16} />}
+          <span
+            data-slot="icon-swap"
+            data-swapped={copyStatus === 'copied' || undefined}
+            aria-hidden="true"
+          >
+            <Copy size={16} />
+            <Check size={16} />
+          </span>
           {copyStatus === 'copied' ? 'Copied' : 'Copy link'}
         </Button>
         <Button

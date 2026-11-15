@@ -1,3 +1,4 @@
+import { findRun } from '@pitchcrew/board';
 import { subagentCard } from './deep-reviews/inputs.ts';
 import { qualityAgentAction } from '../quality/agent.ts';
 import { inspectPacketDocuments } from '../quality/documents.ts';
@@ -75,6 +76,10 @@ export const agentCall = async (
   }
 };
 
+// MCP tools wrap their arguments in `input`, the only free-form field the /api/agent body keeps.
+const toolInput = (data: Record<string, unknown>) =>
+  (data.input ?? data) as Record<string, unknown>;
+
 const dispatchAgentCall = async (
   context: CrewContext,
   token: string,
@@ -87,9 +92,7 @@ const dispatchAgentCall = async (
   const role = requireRole(context, capability.roleId);
   if (!role.enabled) throw new Error('This role is paused.');
   const permissions = role.capabilities ?? defaultCapabilities;
-  const activeRun = context.board
-    .list<import('@pitchcrew/core').Run>('run')
-    .find((run) => run.id === capability.runId);
+  const activeRun = findRun(context.board, capability.runId);
   if (action === 'execution_access') {
     if (!activeRun || activeRun.status !== 'running')
       throw new Error('Run capability is invalid or expired.');
@@ -122,6 +125,7 @@ const dispatchAgentCall = async (
       'delegate_round',
       'create_group',
       'invite_agent',
+      'transfer_lead',
       'start_deep_review',
     ].includes(action) &&
     runIsDelegate(context, activeRun)
@@ -235,9 +239,9 @@ const dispatchAgentCall = async (
       'transfer_lead',
     ].includes(action)
   )
-    return conversationAction(context, capability, action, data);
+    return conversationAction(context, capability, action, toolInput(data));
   if (['recall_memory', 'save_memory'].includes(action))
-    return memoryAction(context, capability, action, data);
+    return memoryAction(context, capability, action, toolInput(data));
   if (action === 'application_insights')
     return insightsAction(context, capability, token, data.input);
   if (action === 'quality') return qualityAgentAction(context, capability, data.input);

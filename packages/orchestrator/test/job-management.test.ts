@@ -42,7 +42,7 @@ afterEach(async () => {
 });
 
 it('lists bounded summaries and changes or deletes explicit jobs from an unattached chat over HTTP', async () => {
-  const { daemon, request } = await setup(19575);
+  const { daemon, request } = await setup();
   const board = daemon.service.board;
   const card = board.createCard(
     cardInput.parse({
@@ -114,7 +114,7 @@ it('lists bounded summaries and changes or deletes explicit jobs from an unattac
 });
 
 it('uses attached jobs by default and checks current permissions, pause and cancellation on each call', async () => {
-  const { daemon } = await setup(19576);
+  const { daemon } = await setup();
   const board = daemon.service.board;
   const card = board.createCard(cardInput.parse({ company: 'Fixture', title: 'Engineer' }));
   const token = scopedRun(daemon, card.id);
@@ -150,7 +150,7 @@ it('uses attached jobs by default and checks current permissions, pause and canc
 });
 
 it('finishes an actual chat successfully after its attached job is deleted', async () => {
-  const { daemon, request } = await setup(19577);
+  const { daemon, request } = await setup();
   await daemon.service.saveProfile(
     'profile.md',
     '# Fixture Candidate\n\nBuilt fictional interfaces.',
@@ -177,7 +177,7 @@ it('finishes an actual chat successfully after its attached job is deleted', asy
 it.each(['bulk_move_jobs', 'bulk_delete_jobs'] as const)(
   '%s reports mixed outcomes in order and continues past busy and missing jobs',
   async (action) => {
-    const { daemon, request } = await setup(action === 'bulk_move_jobs' ? 15624 : 15625);
+    const { daemon, request } = await setup();
     const board = daemon.service.board;
     const cards = ['First', 'Busy', 'Last'].map((company) =>
       board.createCard(cardInput.parse({ company, title: 'Fixture Engineer' })),
@@ -243,7 +243,7 @@ it.each(['bulk_move_jobs', 'bulk_delete_jobs'] as const)(
 it.each(['bulk_move_jobs', 'bulk_delete_jobs'] as const)(
   '%s rolls back an individual job when its saved message fails and continues the batch',
   async (action) => {
-    const { daemon } = await setup(action === 'bulk_move_jobs' ? 15626 : 15627);
+    const { daemon } = await setup();
     const board = daemon.service.board;
     const cards = ['Failed', 'Successful'].map((company) =>
       board.createCard(cardInput.parse({ company, title: 'Fixture Engineer' })),
@@ -279,7 +279,7 @@ it.each(['bulk_move_jobs', 'bulk_delete_jobs'] as const)(
 );
 
 it('validates the whole batch before mutation and accepts the 100-job boundary', async () => {
-  const { daemon, request } = await setup(15628);
+  const { daemon, request } = await setup();
   const board = daemon.service.board;
   const card = board.createCard(cardInput.parse({ company: 'Fixture', title: 'Engineer' }));
   const token = scopedRun(daemon);

@@ -8,11 +8,20 @@ import {
 } from '@pitchcrew/design-system/popover';
 import { Globe } from 'lucide-react';
 import type { ChatComposerProps } from '../types.ts';
+import { memo } from 'react';
+import { deepEqual } from '@/lib/share-equal.ts';
+
+type ComposerOptionsProps = Pick<ChatComposerProps, 'role' | 'conversation' | 'working'> & {
+  /** The role as the browser panel knows it (its saved browser mode). */
+  panelRole?: ChatComposerProps['role'];
+  /** Stable (see ComposerFooter), so the options do not render again on every update. */
+  patchConversation: ChatComposerProps['patchConversation'];
+};
 
 /** Keep preparation permissions reachable when the chat lane cannot fit another picker. */
-export const ComposerOptions = (props: ChatComposerProps) => {
+export const ComposerOptions = memo((props: ComposerOptionsProps) => {
   if (!props.role.capabilities?.computerUse) return null;
-  const role = props.browserPanel.roles.find((item) => item.id === props.role.id) ?? props.role;
+  const role = props.panelRole ?? props.role;
   const override = props.conversation?.configurations[role.id]?.browserMode;
   const autonomous = (override ?? role.browserMode) === 'autonomous';
   const mode = autonomous ? 'Autonomous preparation' : 'Supervised';
@@ -58,4 +67,4 @@ export const ComposerOptions = (props: ChatComposerProps) => {
       </div>
     </>
   );
-};
+}, deepEqual);

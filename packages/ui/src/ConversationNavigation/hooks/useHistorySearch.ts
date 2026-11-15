@@ -29,5 +29,9 @@ export const useHistorySearch = (query: string, revision?: string) => {
       controller.abort();
     };
   }, [query, revision]);
-  return { matches: result.query === query ? result.threads : [], error };
+  // An error belongs to the query that failed; a cleared search shows none.
+  return {
+    matches: result.query === query ? result.threads : [],
+    error: query.trim() ? error : '',
+  };
 };

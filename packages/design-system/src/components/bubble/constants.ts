@@ -26,23 +26,3 @@ export const bubbleVariants = cva(
     },
   },
 );
-
-export const bubbleReactionsVariants = cva(
-  'primitive:absolute primitive:z-10 primitive:flex primitive:w-fit primitive:shrink-0 primitive:items-center primitive:justify-center primitive:gap-1 primitive:rounded-full primitive:bg-muted primitive:px-1.5 primitive:py-0.5 primitive:text-sm primitive:ring-3 primitive:ring-card primitive:has-[button]:p-0',
-  {
-    variants: {
-      side: {
-        top: 'primitive:top-0 primitive:-translate-y-3/4',
-        bottom: 'primitive:bottom-0 primitive:translate-y-3/4',
-      },
-      align: {
-        start: 'left-3',
-        end: 'right-3',
-      },
-    },
-    defaultVariants: {
-      side: 'bottom',
-      align: 'end',
-    },
-  },
-);

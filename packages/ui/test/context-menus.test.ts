@@ -13,7 +13,7 @@ const openMenu = () =>
   page.locator('#main > .page').click({ button: 'right', position: { x: 10, y: 10 } });
 
 beforeAll(async () => {
-  host = await setup(14649);
+  host = await setup();
   host.daemon.service.createCard({ company: 'Fictional Menu Studio', title: 'Engineer' });
   browser = await chromium.launch({ headless: true });
   page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });

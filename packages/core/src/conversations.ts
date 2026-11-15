@@ -61,6 +61,11 @@ export interface ChatRequest {
   /** User-initiated delegation round anchored by this request. */
   roundId?: string;
   mode?: 'chat' | 'workflow';
+  /**
+   * Set by the workspace snapshot on a settled request whose `content`, `attachments` and
+   * `references` were blanked; the saved message keeps the text. Never stored in events.
+   */
+  compact?: true;
 }
 /** Receipt lookups expose acceptance identity rather than saved request content or digests. */
 export interface ChatSubmissionReceipt {

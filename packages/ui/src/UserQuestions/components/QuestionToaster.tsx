@@ -2,6 +2,7 @@ import { claySpring } from '@/AppMotion/constants.ts';
 import { useIsPresent } from 'motion/react';
 import * as m from 'motion/react-m';
 import type { ReactNode } from 'react';
+import { chatPanelPresence } from '@/ChatView/presence.ts';
 
 export const QuestionToaster = ({
   children,
@@ -11,6 +12,8 @@ export const QuestionToaster = ({
   reduced: boolean;
 }) => {
   const present = useIsPresent();
+  // Until its exit animation ends, as the panel's layout around it expects.
+  chatPanelPresence.usePresent('questions');
   const hidden = reduced ? 'translateY(0%)' : 'translateY(100%)';
   return (
     <m.section

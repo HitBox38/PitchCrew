@@ -43,11 +43,7 @@ export const ProfileTitle = ({ controller: c, tree, workspace }: ProfileSectionP
             size="sm"
             disabled={c.working}
             title={`New note in ${folder || 'your profile folder'}`}
-            onClick={() => {
-              void workspace.createNote(folder).then((opened) => {
-                if (opened) tree.reveal(folder);
-              });
-            }}
+            onClick={() => workspace.createNote(folder)}
           >
             <Plus aria-hidden="true" /> New note
           </Button>

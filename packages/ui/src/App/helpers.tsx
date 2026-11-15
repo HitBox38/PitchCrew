@@ -7,7 +7,7 @@ import type { Role, Snapshot } from '@pitchcrew/core';
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
 
 /** The one quiet fact beside each page title; pages may replace it with their own. */
-export const pageFact = (view: View | undefined, data: Snapshot, pending: number) => {
+const pageFact = (view: View | undefined, data: Snapshot, pending: number) => {
   if (view === 'board') {
     const active = data.cards.filter((card) => !closedStateSet.has(card.state)).length;
     return data.cards.length ? `${active} active` : '';
@@ -27,7 +27,7 @@ export const pageFact = (view: View | undefined, data: Snapshot, pending: number
   return '';
 };
 
-export const pageTitle = (view: View | undefined) => (view ? viewTitles[view] : 'Page not found');
+const pageTitle = (view: View | undefined) => (view ? viewTitles[view] : 'Page not found');
 
 export const getWorkspaceModel = (props: ReadyWorkspaceProps) => {
   const { data, view, pending, recentIds, act } = props;

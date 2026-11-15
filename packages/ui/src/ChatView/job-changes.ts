@@ -17,7 +17,7 @@ export interface CardChangesPage {
 }
 
 /** Pages are 200 events each; ten pages bound one job conversation's lookup. */
-export const MAX_CHANGE_PAGES = 10;
+const MAX_CHANGE_PAGES = 10;
 
 /**
  * Walks a job's saved changes newest first until a page reaches before `since` (the conversation

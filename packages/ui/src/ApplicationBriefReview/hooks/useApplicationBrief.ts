@@ -1,6 +1,7 @@
 import { useDirtyNotification } from '@/hooks/useDirtyNotification.ts';
 import { api } from '@/api.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { isolatesApplications } from '@/lib/runtimes.ts';
 import type { ExtractedJob } from '@pitchcrew/core';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -19,6 +20,7 @@ export const useApplicationBrief = ({
   onInspection,
 }: ApplicationBriefProps) => {
   const action = useWorkspaceStore((state) => state.action);
+  const runtimes = useWorkspaceStore((state) => state.data?.runtimes);
   const [loaded, setLoaded] = useState<ContextResponse | null>(null);
   const [draft, setDraft] = useState<ExtractedJob>(emptyBrief);
   const [error, setError] = useState('');
@@ -47,10 +49,7 @@ export const useApplicationBrief = ({
   );
   useDirtyNotification(dirty, onDirtyChange);
   const available = roles.filter(
-    (role) =>
-      role.enabled &&
-      !role.retiredAt &&
-      ['demo', 'codex', 'claude-code', 'opencode'].includes(role.runtime),
+    (role) => role.enabled && !role.retiredAt && isolatesApplications(runtimes ?? [], role.runtime),
   );
   const [roleId, setRoleId] = useState(
     () =>

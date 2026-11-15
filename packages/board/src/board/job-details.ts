@@ -1,12 +1,14 @@
 import {
+  approvalLifecycle,
+  computerApprovalLifecycle,
   jobDetailsChanges,
   type Approval,
   type Card,
   type ComputerApproval,
-  type Run,
   type SubmissionAttempt,
 } from '@pitchcrew/core';
 import type { Board } from '../index.ts';
+import { runsWithStatus } from './runs.ts';
 import { jobSourceRevision } from './application-context.ts';
 
 /** The editing chat may update its own card; other active work must finish first. */
@@ -15,14 +17,9 @@ export const assertJobDetailsChange = (board: Board, cardId: string, runId: stri
   if (card.deletedAt) throw new Error('This job was deleted.');
   if (
     card.owner ||
-    board
-      .list<Run>('run')
-      .some(
-        (run) =>
-          run.cardId === cardId &&
-          run.status === 'running' &&
-          (run.id !== runId || run.mode !== 'chat' || !!run.purpose),
-      ) ||
+    runsWithStatus(board, ['running']).some(
+      (run) => run.cardId === cardId && (run.id !== runId || run.mode !== 'chat' || !!run.purpose),
+    ) ||
     board
       .list<SubmissionAttempt>('submission_attempt')
       .some((attempt) => attempt.cardId === cardId && attempt.status === 'uncertain')
@@ -55,7 +52,7 @@ export const recordJobSourceChange = (
   };
   board.record('card', saved, actor, reason);
   for (const approval of board.list<Approval>('approval'))
-    if (approval.cardId === card.id && ['pending', 'approved'].includes(approval.status))
+    if (approval.cardId === card.id && approvalLifecycle.is('open', approval.status))
       board.record(
         'approval',
         { ...approval, status: 'rejected', decidedAt: now },
@@ -63,7 +60,7 @@ export const recordJobSourceChange = (
         'Invalidated export approval after job details changed',
       );
   for (const approval of board.list<ComputerApproval>('computer_approval'))
-    if (approval.cardId === card.id && ['pending', 'approved'].includes(approval.status))
+    if (approval.cardId === card.id && computerApprovalLifecycle.is('open', approval.status))
       board.record(
         'computer_approval',
         { ...approval, status: 'rejected', decidedAt: now },

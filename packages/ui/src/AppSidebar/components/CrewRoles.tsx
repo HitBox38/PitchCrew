@@ -3,10 +3,16 @@ import { SidebarGroupContent, SidebarMenu, useSidebar } from '@pitchcrew/design-
 import { getRoleStatus } from '@/lib/role-status.ts';
 import { CrewRoleRow } from './CrewRoleRow.tsx';
 import { SidebarCategory } from './SidebarCategory.tsx';
+import { useStableCallbacks } from '@/lib/use-stable-callbacks.ts';
+import type { Role } from '@pitchcrew/core';
 
 /** Every current agent in roster order: pebble, name, readable state and a quick menu. */
 export const CrewRoles = ({ data, working, onConfigureRole, onToggleRole }: CrewRolesProps) => {
   const { state, isMobile } = useSidebar();
+  const callbacks = useStableCallbacks({
+    configure: onConfigureRole,
+    toggle: (role: Role) => void onToggleRole(role),
+  });
   const roles = data.roles.filter((role) => !role.retiredAt);
   if (!roles.length || (state === 'collapsed' && !isMobile)) return null;
   const running = new Set(
@@ -27,8 +33,8 @@ export const CrewRoles = ({ data, working, onConfigureRole, onToggleRole }: Crew
               running={running.has(role.id)}
               asking={asking.has(role.id)}
               working={working}
-              onConfigure={() => onConfigureRole(role.id)}
-              onToggle={() => void onToggleRole(role)}
+              onConfigure={callbacks.configure}
+              onToggle={callbacks.toggle}
             />
           ))}
         </SidebarMenu>

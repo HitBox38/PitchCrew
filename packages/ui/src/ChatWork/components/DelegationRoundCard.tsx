@@ -1,5 +1,5 @@
 import type { DelegationRoundsProps } from '@/ChatWork/types.ts';
-import { roundBead, roundMembers, roundStatusLabels } from '@/ChatWork/rounds.ts';
+import { roundBead, roundLabel, roundMembers } from '@/ChatWork/rounds.ts';
 import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { Link } from '@tanstack/react-router';
@@ -21,14 +21,14 @@ export const DelegationRoundCard = ({
   return (
     <li className={`chat-round ${round.status}`}>
       <header className="chat-round-heading">
-        <StatusBead status={roundBead(round)} />
+        <StatusBead status={roundBead(round, data.tasks)} />
         <div>
           <strong>
             {name(round.leadId)} asked {round.delegates.length}{' '}
             {round.delegates.length === 1 ? 'agent' : 'agents'}
           </strong>
           <span className="chat-round-meta">
-            {roundStatusLabels[round.status]} · started by {started} ·{' '}
+            {roundLabel(round, data.tasks)} · started by {started} ·{' '}
             <time dateTime={round.createdAt}>{timeAgo(round.createdAt)}</time>
           </span>
         </div>

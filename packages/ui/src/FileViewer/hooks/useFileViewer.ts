@@ -52,7 +52,11 @@ export const useFileViewer = (
   const find = useDocumentFind(root, `${file.id}:${settings.mode}`);
   const change = (patch: Partial<ViewerSettings>) => {
     if (patch.mode) savePosition();
-    setPreferences((current) => ({ ...current, [file.id]: { ...settings, ...patch } }));
+    const pageRequest = settings.pageRequest + (patch.page === undefined ? 0 : 1);
+    setPreferences((current) => ({
+      ...current,
+      [file.id]: { ...settings, ...patch, pageRequest },
+    }));
     if (patch.mode)
       requestAnimationFrame(() => {
         if (body.current)

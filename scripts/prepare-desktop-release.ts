@@ -1,7 +1,11 @@
 import { execFileSync } from 'node:child_process';
 import { access, cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
-import { materializeWorkspacePackages, pruneRuntimeDependencies } from './installer-runtime.ts';
+import {
+  materializeWorkspacePackages,
+  pruneRuntimeDependencies,
+  stageRuntimeSources,
+} from './installer-runtime.ts';
 
 const root = resolve('.');
 const staging = resolve('dist/installer');
@@ -37,17 +41,7 @@ if (
   )
 )
   files.push('bunfig.toml');
-for (const file of new Set([...files, 'bun.lock', 'scripts/packaged-launcher.ts'])) {
-  if (
-    !file.startsWith('packages/') &&
-    file !== 'scripts/packaged-launcher.ts' &&
-    !['package.json', 'bun.lock', 'bunfig.toml'].includes(file)
-  )
-    continue;
-  const target = join(runtime, file);
-  await mkdir(dirname(target), { recursive: true });
-  await cp(join(root, file), target);
-}
+await stageRuntimeSources(root, runtime, [...files, 'bun.lock', 'scripts/packaged-launcher.ts']);
 await cp('packages/ui/dist', join(runtime, 'packages/ui/dist'), { recursive: true });
 const app = join(staging, 'app');
 await mkdir(join(app, 'node_modules'), { recursive: true });

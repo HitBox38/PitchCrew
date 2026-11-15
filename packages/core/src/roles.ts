@@ -20,7 +20,7 @@ export interface Role {
   capabilities?: AgentCapabilities;
   browserMode?: BrowserMode;
 }
-export const capabilitySchema = z.object({
+const capabilitySchema = z.object({
   messageAgents: z.boolean(),
   invokeAgents: z.boolean(),
   manageWorkflow: z.boolean(),

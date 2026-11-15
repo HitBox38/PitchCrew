@@ -7,7 +7,11 @@ export const useMarkdownSaveShortcut = () => {
       if (
         (event.metaKey || event.ctrlKey) &&
         event.key.toLowerCase() === 's' &&
-        form.current?.contains(document.activeElement)
+        // In the form, or nowhere in particular (focus fell to the page) without a dialog open.
+        (form.current?.contains(document.activeElement) ||
+          (form.current &&
+            document.activeElement === document.body &&
+            !document.querySelector('[role="dialog"], [role="alertdialog"]')))
       ) {
         event.preventDefault();
         form.current.requestSubmit();

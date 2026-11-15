@@ -164,7 +164,7 @@ export interface InsightsFilter {
   /** Example cards are fictional and excluded unless requested. */
   includeSamples?: boolean;
 }
-export interface TagScore {
+interface TagScore {
   tag: string;
   count: number;
   decided: number;

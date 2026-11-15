@@ -3,7 +3,13 @@ import { JobOverview } from './JobOverview.tsx';
 import { JobApplication } from './JobApplication.tsx';
 import { JobActivity } from './JobActivity.tsx';
 import type { JobTabsProps, JobSection } from '../types.ts';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@pitchcrew/design-system/tabs';
+import {
+  Tabs,
+  TabsIndicator,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from '@pitchcrew/design-system/tabs';
 export const JobTabs = (model: JobTabsProps) => {
   const [visited, setVisited] = useState<Set<JobSection>>(() => new Set([model.tab]));
   // Keep drafts and reading positions after a section is first opened.
@@ -21,6 +27,7 @@ export const JobTabs = (model: JobTabsProps) => {
               {sections[section]}
             </TabsTrigger>
           ))}
+          <TabsIndicator />
         </TabsList>
       </div>
       {(Object.keys(sections) as JobSection[]).map((section) => (

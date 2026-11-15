@@ -5,7 +5,7 @@ import type { CrewService } from '../../service.ts';
 import type { IdRoute } from '../types.ts';
 
 /** One status move or packet draft/revision read from a job's saved card events. */
-export interface CardChange {
+interface CardChange {
   id: number;
   at: string;
   actor: string;
@@ -34,7 +34,7 @@ const cardOf = (event: BoardEvent): Card | undefined => {
  * Reads changes from one newest-first page of a job's events. `page` may hold one extra, older
  * event that serves only as the baseline for the oldest event in the page.
  */
-export const cardChangesPage = (page: BoardEvent[]): CardChangesPage => {
+const cardChangesPage = (page: BoardEvent[]): CardChangesPage => {
   const scanned = page.slice(0, pageSize);
   const cards = page.map(cardOf);
   const changes: CardChange[] = [];

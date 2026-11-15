@@ -4,7 +4,7 @@
   overflow: hidden;
   padding: 0;
 }
-.routines-workspace-body > :is(.workspace-notice, .error-banner) {
+.routines-workspace-body > .error-banner {
   margin: 16px 4px 0 8px;
 }
 .routines-page {
@@ -308,7 +308,7 @@ a.routine-last-run:hover {
   }
 }
 @variant max-mobile {
-  .routines-workspace-body > :is(.workspace-notice, .error-banner) {
+  .routines-workspace-body > .error-banner {
     margin: 12px 0 0;
   }
   .routines-list-area {

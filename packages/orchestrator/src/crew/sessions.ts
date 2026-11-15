@@ -12,6 +12,9 @@ import type {
 } from '@pitchcrew/core';
 import type { CrewContext } from './types.ts';
 
+/** Bump when built-in chat instructions must replace prior native transcript instructions. */
+const chatPromptVersion = 1;
+
 export const prepareSession = (
   context: Pick<CrewContext, 'board' | 'directory'>,
   role: Role,
@@ -22,6 +25,7 @@ export const prepareSession = (
   const revision = createHash('sha256')
     .update(
       JSON.stringify({
+        chatPromptVersion,
         skillDeliveryVersion,
         role,
         skills,

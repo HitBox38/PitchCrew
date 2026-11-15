@@ -17,7 +17,7 @@ describe('managed agent skills', () => {
     roleIds: [],
   };
   it('creates, updates and deletes skills with replayable events and user-only access', async () => {
-    const { daemon, request } = await setup(14436);
+    const { daemon, request } = await setup();
     expect((await request<Snapshot>('/snapshot')).result.skills).toEqual([]);
     const { response, result: shared } = await request<Skill>('/skills', 'POST', sharedInput);
     expect(response.status).toBe(201);
@@ -94,7 +94,7 @@ describe('managed agent skills', () => {
     expect(daemon.service.board.events()).toEqual(events);
   });
   it('passes only assigned skills to chat and workflow runtimes and writes isolated Markdown copies', async () => {
-    const { daemon, directory, request } = await setup(14437);
+    const { daemon, directory, request } = await setup();
     const { result: shared } = await request<Skill>('/skills', 'POST', sharedInput);
     const { result: writerSkill } = await request<Skill>('/skills', 'POST', {
       ...sharedInput,
@@ -137,7 +137,7 @@ describe('managed agent skills', () => {
     ).toContain(shared.content);
   });
   it('keeps active skill snapshots intact while edits and deletion affect subsequent runs', async () => {
-    const { directory, request } = await setup(14438);
+    const { directory, request } = await setup();
     const { result: skill } = await request<Skill>('/skills', 'POST', sharedInput);
     let complete!: (result: { reply: string }) => void;
     const chat = vi.spyOn(adapters.demo, 'chat').mockImplementationOnce(
@@ -179,7 +179,7 @@ describe('managed agent skills', () => {
     ).toBe(firstInstructions);
   });
   it('lets an ordinary isolated Writer run read its deferred cover-letter instructions', async () => {
-    const { daemon, request } = await setup(14448);
+    const { daemon, request } = await setup();
     daemon.service.saveSkill({ ...sharedInput, content: 'a'.repeat(50000) });
     const cover = daemon.service.saveSkill({
       ...directorySkill,
@@ -213,7 +213,7 @@ describe('managed agent skills', () => {
     expect(writer).toHaveBeenCalledOnce();
   });
   it('accepts assigned skills above the former combined limit while retaining the library bound', async () => {
-    const { daemon, request } = await setup(14439);
+    const { daemon, request } = await setup();
     for (let index = 0; index < 2; index++)
       expect(
         (
@@ -243,7 +243,7 @@ describe('managed agent skills', () => {
     expect(daemon.service.board.events()).toEqual(events);
   });
   it('stores and replays larger writing skills while retaining the individual limit', async () => {
-    const { daemon, request } = await setup(14445);
+    const { daemon, request } = await setup();
     const { result: skill, response } = await request<Skill>('/skills', 'POST', {
       ...sharedInput,
       content: 'a'.repeat(50000),
@@ -264,7 +264,7 @@ describe('managed agent skills', () => {
   });
 
   it('preserves legacy inclusion on replay and omitted edits while defaulting new imports on demand', async () => {
-    const { daemon, request } = await setup(14446);
+    const { daemon, request } = await setup();
     const manual = daemon.service.saveSkill(sharedInput);
     expect(manual.includeInEveryRun).toBe(true);
     const legacy = { ...manual };

@@ -16,9 +16,12 @@ const alive = (pid: number) => {
 
 it('runs a real owned PTY, accepts bounded input and resizes its actual terminal', async () => {
   let output = '';
-  let markReady!: () => void, markSize!: () => void;
+  let markReady!: () => void, markResized!: () => void, markSize!: () => void;
   const ready = new Promise<void>((resolve) => {
     markReady = resolve;
+  });
+  const resized = new Promise<void>((resolve) => {
+    markResized = resolve;
   });
   const size = new Promise<void>((resolve) => {
     markSize = resolve;
@@ -30,12 +33,15 @@ it('runs a real owned PTY, accepts bounded input and resizes its actual terminal
     onOutput: (text) => {
       output += text;
       if (output.includes('READY:')) markReady();
+      if (output.includes('RESIZED:120:40')) markResized();
       if (output.includes('SIZE:120:40')) markSize();
     },
   });
   await ready;
   expect(output).toContain('TTY=true');
   terminal.resize(120, 40);
+  // The child learns of the new size only when it handles SIGWINCH, so wait for its acknowledgement before asking.
+  await resized;
   terminal.write('size\r');
   await size;
   terminal.write('finish\r');

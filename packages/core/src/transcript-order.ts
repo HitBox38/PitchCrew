@@ -1,3 +1,5 @@
+import { runLifecycle } from './lifecycles.ts';
+
 /** Lightweight transcript positions shared by the saved-history index and live renderer. */
 export interface TranscriptMessagePosition {
   id: string;
@@ -72,7 +74,7 @@ export const transcriptOrder = (
   const attached = new Map<string, TranscriptPosition>();
   for (const run of runs) {
     const answer = finalReplies.get(run.id);
-    const joined = answer?.sender === run.roleId && !['running', 'waiting'].includes(run.status);
+    const joined = answer?.sender === run.roleId && !runLifecycle.is('live', run.status);
     const item: TranscriptPosition = {
       kind: 'turn',
       id: `turn-${run.id}`,

@@ -77,7 +77,32 @@ describe('document verification', () => {
   });
   it('handles bidi visual ordering and composed text without losing repeated content', () => {
     expect(missingContent('שלום café', 'םולש cafe\u0301')).toBe('');
+    // Variation selectors and word joiners are never drawn, so they cannot be missing.
+    expect(
+      missingContent(
+        'Fictional\u2122\ufe0f product, word\u2060joiner',
+        'Fictional\u2122 product, wordjoiner',
+      ),
+    ).toBe('');
     expect(missingContent('Entry Entry', 'Entry')).not.toBe('');
+  });
+  it('extracts every page of a multi-page PDF in the bounded worker', async () => {
+    const lines = Array.from({ length: 70 }, (_, i) => `- Fictional entry ${i} at Example Corp.`);
+    const resume = `# Example candidate\n\n${lines.join('\n')}`;
+    const [artifact] = await renderArtifacts({ ...packet, resume }, ['pdf'], 'formatted', {
+      sources: ['resume'],
+    });
+    const result = await verifyDocument(
+      { ...artifact, name: 'resume.pdf', source: 'resume' },
+      expectedDocumentText(resume, 'formatted'),
+    );
+    expect(result.status).toBe('verified');
+    expect(result.findings).toContainEqual(
+      expect.objectContaining({
+        check: 'layout',
+        message: expect.stringMatching(/runs to \d+ pages/),
+      }),
+    );
   });
   it('reports essential timeouts as blocked', async () => {
     const [artifact] = await renderArtifacts(packet, ['pdf']);

@@ -131,7 +131,7 @@ type Fixture = Awaited<ReturnType<typeof setup>>;
 
 describe('profile maintenance', () => {
   it('stages exact source diffs, local conflicts and removals without writing, then applies the verified reviewed snapshot only when idle', async () => {
-    const f = await setup(19568);
+    const f = await setup();
     const remote = fixture(f);
     const { preview, source } = await imported(f);
     const project = preview.files.find((file) => file.path.endsWith('project.md'))!;
@@ -215,7 +215,7 @@ describe('profile maintenance', () => {
   });
 
   it('rejects stale notes, changed source settings, disconnected accounts and unauthorized agent access', async () => {
-    const f = await setup(19569);
+    const f = await setup();
     const remote = fixture(f);
     const { source, preview } = await imported(f);
     remote.documents.set('notes/background.md', 'New supported fact');
@@ -291,7 +291,7 @@ describe('profile maintenance', () => {
   });
 
   it('detects code-only GitHub project changes and keeps bounded pinned evidence and generated notes outside the factual profile until approval', async () => {
-    const f = await setup(19570);
+    const f = await setup();
     const remote = fixture(f);
     remote.documents.clear();
     remote.documents.set('src/tool.ts', 'export const accessible = true;');
@@ -393,7 +393,7 @@ describe('profile maintenance', () => {
   });
 
   it('rechecks watch and account permissions after a pending project read', async () => {
-    const f = await setup(14606);
+    const f = await setup();
     const remote = fixture(f);
     const sources = (
       await f.request<ProfileSource[]>('/profile/sources/project', 'POST', {
@@ -492,7 +492,7 @@ describe('profile maintenance', () => {
   });
 
   it('recovers an interrupted approved snapshot after replay without refetching or changing its selection', async () => {
-    const f = await setup(14604);
+    const f = await setup();
     const remote = fixture(f);
     const { source } = await imported(f);
     remote.documents.set('notes/background.md', 'Approved new background');
@@ -567,7 +567,7 @@ describe('profile maintenance', () => {
       dev: true,
       ui: false,
       directory: f.directory,
-      port: 14604,
+      port: f.port,
       seedSkills: false,
     });
     resources.find((item) => item.directory === f.directory)!.daemon = restarted;
@@ -593,7 +593,7 @@ describe('profile maintenance', () => {
   });
 
   it('reports an emptied source without deleting notes or repeatedly proposing acknowledged removals', async () => {
-    const f = await setup(14607);
+    const f = await setup();
     const remote = fixture(f);
     const { source } = await imported(f);
     remote.documents.clear();
@@ -630,7 +630,7 @@ describe('profile maintenance', () => {
   });
 
   it('dispatches maintenance through the actual MCP stdio server and retains disabled-capability boundaries', async () => {
-    const f = await setup(14605);
+    const f = await setup();
     const remote = fixture(f);
     const { source } = await imported(f);
     remote.documents.set('notes/background.md', 'New fictional fact');

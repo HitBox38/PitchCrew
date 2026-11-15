@@ -56,6 +56,7 @@ const extract = (event: Record<string, unknown>): string | null => {
 };
 export const codex: RuntimeAdapter = {
   applicationIsolation: true,
+  customReasoning: true,
   reviewSubagents: { maxConcurrent: 4 },
   id: 'codex',
   sessionSupport: 'resume',

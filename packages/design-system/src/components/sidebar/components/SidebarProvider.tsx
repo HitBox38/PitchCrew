@@ -1,4 +1,5 @@
 import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_ICON, SidebarContext } from '../constants.ts';
+import { sidebarWrapperPresence } from '../wrapper-presence.ts';
 import { useSidebarState } from '../hooks/useSidebarState.ts';
 import type { SidebarProviderProps } from '../types.ts';
 import { TooltipProvider } from '../../tooltip/components/TooltipProvider.tsx';
@@ -15,6 +16,7 @@ export const SidebarProvider = ({
   children,
   ...props
 }: SidebarProviderProps) => {
+  const wrapper = sidebarWrapperPresence.useRoot();
   const contextValue = useSidebarState({
     defaultOpen,
     open: openProp,
@@ -24,23 +26,26 @@ export const SidebarProvider = ({
   return (
     <SidebarContext.Provider value={contextValue}>
       <TooltipProvider delay={0}>
-        <div
-          data-slot="sidebar-wrapper"
-          style={
-            {
-              '--sidebar-width': SIDEBAR_WIDTH,
-              '--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
-              ...style,
-            } as React.CSSProperties
-          }
-          className={cn(
-            'group/sidebar-wrapper primitive:flex primitive:min-h-svh primitive:w-full primitive:has-data-[variant=inset]:bg-sidebar',
-            className,
-          )}
-          {...props}
-        >
-          {children}
-        </div>
+        <wrapper.Provider value={wrapper.register}>
+          <div
+            data-slot="sidebar-wrapper"
+            {...wrapper.attributes}
+            style={
+              {
+                '--sidebar-width': SIDEBAR_WIDTH,
+                '--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
+                ...style,
+              } as React.CSSProperties
+            }
+            className={cn(
+              'group/sidebar-wrapper primitive:flex primitive:min-h-svh primitive:w-full primitive:data-has-inset:bg-sidebar',
+              className,
+            )}
+            {...props}
+          >
+            {children}
+          </div>
+        </wrapper.Provider>
       </TooltipProvider>
     </SidebarContext.Provider>
   );

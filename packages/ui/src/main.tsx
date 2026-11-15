@@ -4,6 +4,9 @@ import '@fontsource-variable/fraunces/full-italic.css';
 import '@fontsource-variable/fraunces/full.css';
 import '@fontsource/source-sans-3/latin-400.css';
 import '@fontsource/source-sans-3/latin-600.css';
+// Italic faces: emphasis in notes, chat and documents is real italic, never synthesized.
+import '@fontsource/source-sans-3/latin-400-italic.css';
+import '@fontsource/source-sans-3/latin-600-italic.css';
 import { RouterProvider } from '@tanstack/react-router';
 import React from 'react';
 import { createRoot } from 'react-dom/client';

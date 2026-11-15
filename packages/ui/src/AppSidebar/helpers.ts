@@ -1,3 +1,4 @@
+import { profileProposalLifecycle } from '@pitchcrew/core/lifecycles';
 import type { Snapshot } from '@pitchcrew/core';
 import { pendingInstructionUpdates } from '../lib/instruction-updates.ts';
 import { pendingSkillUpdates } from '../lib/skill-updates.ts';
@@ -14,7 +15,7 @@ export const sidebarCounts = (data: Snapshot, decisions: number): SidebarCounts 
     data.proposals.filter((proposal) => proposal.status === 'pending').length +
     data.skillProposals.filter((proposal) => proposal.status === 'pending').length,
   profile: (data.profileProposals ?? []).filter((proposal) =>
-    ['pending', 'applying'].includes(proposal.status),
+    profileProposalLifecycle.is('open', proposal.status),
   ).length,
   skills: pendingSkillUpdates(data).length,
 });

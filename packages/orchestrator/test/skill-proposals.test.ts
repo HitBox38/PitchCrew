@@ -8,7 +8,7 @@ import { cleanup, directorySkill, setup, waitForSnapshot } from './helpers/daemo
 afterEach(cleanup);
 describe('directory imports and skill suggestions', () => {
   it('previews sources without installing, preserves provenance and refreshes imported skill content', async () => {
-    const { daemon, request } = await setup(14440);
+    const { daemon, request } = await setup();
     const preview = vi.spyOn(skillDirectory, 'preview').mockResolvedValue(directorySkill);
     const events = daemon.service.board.events();
     const { result: loaded, response } = await request<SkillPreview>('/skills/preview', 'POST', {
@@ -69,7 +69,7 @@ describe('directory imports and skill suggestions', () => {
     ).toBe(403);
   });
   it('persists suggestions in private and agent-to-agent chats and adds only the exact user-approved snapshot', async () => {
-    const { daemon, request } = await setup(14441);
+    const { daemon, request } = await setup();
     const preview = vi.spyOn(skillDirectory, 'preview').mockResolvedValue(directorySkill);
     vi.spyOn(adapters.demo, 'chat').mockImplementation(async (context) => {
       const token = context.mcp.env.PITCHCREW_RUN_TOKEN;
@@ -191,7 +191,7 @@ describe('directory imports and skill suggestions', () => {
     expect(unauthenticated.status).toBe(403);
   });
   it('keeps a historical imported proposal included when its delivery field is absent', async () => {
-    const { daemon, request } = await setup(14447);
+    const { daemon, request } = await setup();
     const proposal: SkillProposal = {
       id: crypto.randomUUID(),
       roleId: 'scout',
@@ -218,7 +218,7 @@ describe('directory imports and skill suggestions', () => {
     ).toBe(true);
   });
   it('bounds suggestions and rejects late remote results from cancelled capabilities', async () => {
-    const { daemon, request } = await setup(14442);
+    const { daemon, request } = await setup();
     const controller = new AbortController();
     const token = 'fixture-skill-suggestion-token';
     const runId = 'fixture-skill-suggestion-run';

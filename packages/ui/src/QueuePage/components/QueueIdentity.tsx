@@ -1,6 +1,5 @@
 import type { Snapshot, WorkQueueView } from '@pitchcrew/core';
-import { queueIdentity, queueStateLabels } from '@/lib/work-queue.ts';
-import { queueTone } from '../helpers.ts';
+import { queueIdentity, queueStateLabels, queueTone } from '@/lib/work-queue.ts';
 
 /** Company and role (or conversation), with the queue's state bead and words. */
 export const QueueIdentity = ({ queue, data }: { queue: WorkQueueView; data: Snapshot }) => {

@@ -3,10 +3,7 @@ import type { BackgroundService } from './index.ts';
 import { samePath } from './paths.ts';
 import { flagValue } from './settings.ts';
 
-export const formatServiceStatus = (
-  status: BackgroundServiceStatus,
-  service: BackgroundService,
-) => {
+const formatServiceStatus = (status: BackgroundServiceStatus, service: BackgroundService) => {
   if (!status.installed) return [`Background service: not installed`, status.detail];
   const state = [
     'installed',
@@ -102,7 +99,7 @@ export const runServiceCommand = async (
   }
 };
 
-export const serviceUsage = `Usage: bun run service <command>
+const serviceUsage = `Usage: bun run service <command>
 
   install     Run the production daemon in the background at login
   uninstall   Stop the background service and remove its files

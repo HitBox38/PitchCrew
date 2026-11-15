@@ -22,7 +22,7 @@ export const connectorAction = async (
   const input = z.object({ tool: z.string().max(100), input: z.unknown() }).parse(data);
   const tool = getConnectorTool(input.tool);
   if (permissions[tool.permission] !== true)
-    throw new Error('This connector capability is disabled for your role. Enable it in Your crew.');
+    throw new Error('This connector capability is disabled for your role. Enable it in Crew.');
   const signal = context.controllers.get(capability.runId)?.signal;
   if (!signal) throw new Error('Connector calls require an active run.');
   return context.connectors.call(input.tool, input.input, signal);

@@ -1,9 +1,19 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { cardInput, type ChatMessage, type Role } from '@pitchcrew/core';
+import { cardInput, type AgentTask, type ChatMessage, type Role, type Run } from '@pitchcrew/core';
 import { afterEach, expect, it, vi } from 'vitest';
-import { Board, deleteJob } from '../src/index.ts';
+import {
+  Board,
+  deleteJob,
+  findRun,
+  runHeaders,
+  runsForCard,
+  runsForDeepReview,
+  runsForThread,
+  runsWithStatus,
+  tasksWithStatus,
+} from '../src/index.ts';
 const open = (filename = ':memory:') => {
   const board = new Board(filename);
   boards.add(board);
@@ -146,4 +156,96 @@ it('uses indexed, sort-free plans at the list, history and default-instruction s
     'Edited',
     'Initialized Scout',
   ]);
+});
+
+const run = (id: string, patch: Partial<Run>): Run => ({
+  id,
+  cardId: null,
+  roleId: 'writer',
+  runtime: 'demo',
+  status: 'completed',
+  message: '',
+  startedAt: '',
+  finishedAt: null,
+  ...patch,
+});
+const queryPlan = (board: Board, sql: string, ...parameters: unknown[]) =>
+  (board.db.prepare(`EXPLAIN QUERY PLAN ${sql}`).all(...parameters) as { detail: string }[])
+    .map(({ detail }) => detail)
+    .join('\n');
+
+it('selects runs and tasks through indexes, in projection order, without full-table parsing', () => {
+  const board = open();
+  const configuration = {
+    role: { id: 'writer' } as Role,
+    revision: 'r',
+    skills: [],
+    skillsRevision: 's',
+  };
+  board.record(
+    'run',
+    run('b', { cardId: 'card-1', status: 'running', threadId: 'writer' }),
+    'writer',
+    'Started',
+  );
+  board.record(
+    'run',
+    run('a', { cardId: 'card-2', status: 'waiting', deepReviewId: 'review-1' }),
+    'writer',
+    'Started',
+  );
+  board.record(
+    'run',
+    run('c', { cardId: 'card-1', threadId: 'writer', rootRunId: 'b', configuration }),
+    'writer',
+    'Started',
+  );
+  // An update keeps its projection position.
+  board.record(
+    'run',
+    run('b', { cardId: 'card-1', status: 'running', threadId: 'writer', message: 'Edited' }),
+    'writer',
+    'Edited',
+  );
+  for (const [id, status] of [
+    ['t2', 'queued'],
+    ['t1', 'running'],
+    ['t3', 'completed'],
+  ] as const)
+    board.record('task', { id, status, rootRunId: 'b' } as AgentTask, 'writer', 'Queued');
+
+  const ids = (runs: { id: string }[]) => runs.map(({ id }) => id);
+  expect(ids(runsWithStatus(board, ['running', 'waiting']))).toEqual(['b', 'a']);
+  expect(runsWithStatus(board, ['running'])[0].message).toBe('Edited');
+  expect(runsWithStatus(board, [])).toEqual([]);
+  expect(ids(tasksWithStatus(board, ['queued', 'running']))).toEqual(['t2', 't1']);
+  expect(ids(runsForCard(board, 'card-1'))).toEqual(['b', 'c']);
+  expect(ids(runsForThread(board, 'writer'))).toEqual(['b', 'c']);
+  expect(ids(runsForDeepReview(board, 'review-1'))).toEqual(['a']);
+  expect(findRun(board, 'c')?.configuration?.revision).toBe('r');
+  expect(findRun(board, 'missing')).toBeUndefined();
+  const headers = runHeaders(board, ['c', 'c', 'missing']);
+  expect([...headers.keys()]).toEqual(['c']);
+  expect(headers.get('c')).toMatchObject({ rootRunId: 'b' });
+  expect(headers.get('c')).not.toHaveProperty('configuration');
+
+  // The SQL each helper actually prepares, planned with representative parameters.
+  const planOf = (action: () => unknown, ...parameters: unknown[]) => {
+    const prepare = vi.spyOn(board.db, 'prepare');
+    action();
+    const [sql] = prepare.mock.calls.map(([query]) => query);
+    prepare.mockRestore();
+    return queryPlan(board, sql, ...parameters);
+  };
+  expect(
+    planOf(() => runsWithStatus(board, ['running', 'waiting']), 'running', 'waiting'),
+  ).toContain('USING INDEX entities_queue_status');
+  expect(planOf(() => tasksWithStatus(board, ['queued']), 'queued')).toContain(
+    'USING INDEX entities_queue_status',
+  );
+  expect(planOf(() => runsForCard(board, 'x'), 'x')).toContain('USING INDEX entities_run_card');
+  expect(planOf(() => runsForThread(board, 'x'), 'x')).toContain('USING INDEX entities_thread');
+  expect(planOf(() => runsForDeepReview(board, 'x'), 'x')).toContain(
+    'USING INDEX entities_run_review',
+  );
 });

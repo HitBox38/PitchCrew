@@ -30,10 +30,13 @@ export const smokeUserQuestions = `(async () => {
   const composer = document.querySelector('.chat-compose');
   const composerYields = await waitFor(() => composer.hidden && composer.inert);
   const collapseCheck = (async () => {
+    const stage = card.parentElement;
     const end = performance.now() + 400;
     while (performance.now() < end) {
       await new Promise(resolve => requestAnimationFrame(resolve));
-      if (card.scrollHeight > card.clientHeight) return false;
+      // Motion's scrollHeight includes clipped animation overflow, not a visible scrollbar.
+      // The lane stays natural-height and its stage clips without becoming a scroll owner.
+      if (getComputedStyle(card).overflowY !== 'visible' || getComputedStyle(stage).overflowY !== 'clip' || stage.scrollTop !== 0) return false;
     }
     return true;
   })();

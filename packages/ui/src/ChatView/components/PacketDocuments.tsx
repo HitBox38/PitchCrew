@@ -2,7 +2,13 @@ import type { Card, Packet } from '@pitchcrew/core';
 import { packetReviewLabel, packetTabs, wordCount } from '../packet-panel.ts';
 import { MarkdownContent } from '@/components/MarkdownContent/index.tsx';
 import { noRemoteImages } from '@/components/ai-elements/message/constants.tsx';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@pitchcrew/design-system/tabs';
+import {
+  Tabs,
+  TabsContent,
+  TabsIndicator,
+  TabsList,
+  TabsTrigger,
+} from '@pitchcrew/design-system/tabs';
 
 import type { ComponentProps } from 'react';
 
@@ -19,12 +25,13 @@ export const PacketDocuments = ({ card, packet }: { card: Card; packet: Packet }
   const tabs = packetTabs(packet);
   return (
     <Tabs defaultValue={tabs[0]?.id} className="chat-packet-tabs">
-      <TabsList aria-label="Packet documents" className="w-fit flex-row">
+      <TabsList aria-label="Packet documents" className="ui-segment w-fit flex-row">
         {tabs.map((tab) => (
           <TabsTrigger key={tab.id} value={tab.id} className="w-auto flex-none">
             {tab.label}
           </TabsTrigger>
         ))}
+        <TabsIndicator />
       </TabsList>
       {tabs.map((tab) => (
         <TabsContent key={tab.id} value={tab.id} className="chat-packet-document">

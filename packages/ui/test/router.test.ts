@@ -1,6 +1,6 @@
 import type { Role } from '@pitchcrew/core';
 import { createMemoryHistory } from '@tanstack/react-router';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { createAppRouter } from '../src/router.ts';
 
 const setup = async (path: string) => {
@@ -10,6 +10,17 @@ const setup = async (path: string) => {
   await router.load();
   return { router, history };
 };
+
+// A route load waits for its page's lazy module, and the first import of a page compiles its whole
+// module graph (many seconds for chat): do that once here, so each test times only the routing.
+beforeAll(async () => {
+  const router = createAppRouter(createMemoryHistory());
+  await Promise.all(
+    Object.values(router.routesById).map((route) =>
+      (route.options.component as { preload?: () => Promise<void> } | undefined)?.preload?.(),
+    ),
+  );
+}, 120000);
 
 describe('workspace routes', () => {
   it('restores exact update reviews and update-only filters from URLs', async () => {

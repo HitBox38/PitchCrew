@@ -1,6 +1,7 @@
 import {
   cp,
   lstat,
+  mkdir,
   readFile,
   readdir,
   readlink,
@@ -10,6 +11,21 @@ import {
   unlink,
 } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+
+export const stageRuntimeSources = async (root: string, runtime: string, files: string[]) => {
+  for (const file of new Set(files)) {
+    if (
+      !file.startsWith('packages/') &&
+      !file.startsWith('patches/') &&
+      file !== 'scripts/packaged-launcher.ts' &&
+      !['package.json', 'bun.lock', 'bunfig.toml'].includes(file)
+    )
+      continue;
+    const target = join(runtime, file);
+    await mkdir(dirname(target), { recursive: true });
+    await cp(join(root, file), target);
+  }
+};
 
 export const pruneRuntimeDependencies = async (
   runtime: string,

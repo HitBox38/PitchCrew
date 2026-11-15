@@ -1,14 +1,14 @@
-import { TranscriptMessage } from './TranscriptMessage.tsx';
-import { JobEventChips } from './JobEventChips.tsx';
-import { ChatTurn } from '@/ChatTurn/index.tsx';
+import { TranscriptEntry } from './TranscriptEntry.tsx';
 import type { TranscriptItem } from '@/ChatTurn/helpers.ts';
 import type { ChatMessage } from '@pitchcrew/core';
-import { messageDay } from '@/ChatView/helpers.ts';
 import type { MessageTranscriptProps } from '@/ChatView/types.ts';
 import { useTranscriptJobEvents } from '../hooks/useTranscriptJobEvents.ts';
-import { AnimatePresence } from 'motion/react';
-import { MessageScrollerItem } from '@pitchcrew/design-system/message-scroller';
+import { useState } from 'react';
 import { useOpenQuestionId } from '@/UserQuestions/QuestionDockProvider.tsx';
+import { usePendingSend } from '../hooks/usePendingSend.ts';
+import { usePinSent } from '../hooks/usePinSent.ts';
+import { useStableCallbacks } from '@/lib/use-stable-callbacks.ts';
+import { transcriptKey } from '../send-flight.ts';
 
 /** A reply directly under its own turn; both hang on one thread. */
 const repliesTo = (previous: TranscriptItem | undefined, message: ChatMessage) =>
@@ -30,55 +30,47 @@ export const MessageTranscript = ({
   /** Whether this page starts or ends the conversation, so job events show once. */
   edges?: { oldest: boolean; newest: boolean };
 }) => {
+  // The scroller pins any user message it has not pinned yet whenever the entry count holds steady
+  // (the window drops the oldest as the newest arrives), so only messages sent since this page
+  // opened are anchors; otherwise a send jumps the page to its first user message.
+  const [opened] = useState(() => new Set(sourceItems.map((item) => transcriptKey(item.id))));
   const openQuestionId = useOpenQuestionId();
-  const items = sourceItems.filter(
+  const shownItems = sourceItems.filter(
     (item) =>
       item.kind !== 'message' ||
       item.message.userInput?.kind !== 'question' ||
       item.message.userInput.id !== openQuestionId,
   );
+  const items = usePendingSend(props.thread, shownItems, props.data.chatRequests, edges.newest);
+  usePinSent(items, opened);
   const replyingRuns = new Set(props.data.streamingMessages.map((message) => message.runId));
   const jobEvents = useTranscriptJobEvents(props.data, props.thread, items, edges, (index) =>
     continues(items, index),
   );
+  // Stable, so a new closure from the chat view does not render every entry again.
+  const handlers = useStableCallbacks({
+    onOpenCard: props.onOpenCard,
+    answerQuestion: props.answerQuestion,
+  });
   return (
-    <AnimatePresence initial={false}>
+    <>
       {items.map((item, index) => (
-        <MessageScrollerItem
-          key={item.id}
-          messageId={item.id}
-          scrollAnchor={item.kind === 'message' && item.message.from === 'user'}
-          className="flex flex-col gap-6"
-        >
-          {index === 0 ||
-          new Date(items[index - 1].createdAt).toDateString() !==
-            new Date(item.createdAt).toDateString() ? (
-            <div className="chat-day">
-              <span>{messageDay(item.createdAt)}</span>
-            </div>
-          ) : null}
-          {jobEvents.get(item.id)?.before ? (
-            <JobEventChips events={jobEvents.get(item.id)!.before!} name={props.name} />
-          ) : null}
-          {item.kind === 'turn' ? (
-            <ChatTurn
-              run={item.run}
-              name={props.name(item.run.roleId)}
-              replying={replyingRuns.has(item.run.id)}
-            />
-          ) : (
-            <TranscriptMessage
-              {...props}
-              message={item.message}
-              timestamp={item.createdAt}
-              continued={continues(items, index)}
-            />
-          )}
-          {jobEvents.get(item.id)?.after ? (
-            <JobEventChips events={jobEvents.get(item.id)!.after!} name={props.name} />
-          ) : null}
-        </MessageScrollerItem>
+        <TranscriptEntry
+          key={transcriptKey(item.id)}
+          {...props}
+          {...handlers}
+          item={item}
+          fresh={!opened.has(transcriptKey(item.id))}
+          day={
+            index === 0 ||
+            new Date(items[index - 1].createdAt).toDateString() !==
+              new Date(item.createdAt).toDateString()
+          }
+          events={jobEvents.get(item.id)}
+          continued={continues(items, index)}
+          replying={item.kind === 'turn' && replyingRuns.has(item.run.id)}
+        />
       ))}
-    </AnimatePresence>
+    </>
   );
 };

@@ -1,5 +1,6 @@
 import type { ChatRequest, DeepReview, Run, UserInputRequest } from '@pitchcrew/core';
 import type { Board } from '../index.ts';
+import { runsForDeepReview } from './runs.ts';
 /** Called inside job deletion's transaction; running workflows are rejected before this point. */
 export const cancelDeletedJobReviews = (
   board: Board,
@@ -22,7 +23,7 @@ export const cancelDeletedJobReviews = (
         return review.id;
       }),
   );
-  const runs = board.list<Run>('run');
+  const runs: Run[] = [...ids].flatMap((id) => runsForDeepReview(board, id));
   for (const run of runs)
     if (run.deepReviewId && ids.has(run.deepReviewId) && run.status === 'waiting')
       board.record(

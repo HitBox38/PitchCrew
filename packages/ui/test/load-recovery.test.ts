@@ -13,7 +13,7 @@ const blocked: string[] = [];
 let reloads = 0;
 
 beforeAll(async () => {
-  host = await setup(14783);
+  host = await setup();
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
   ({ result: card } = await host.request<Card>('/cards', 'POST', {
     company: 'Recovery Fixture (fictional)',
@@ -38,6 +38,58 @@ beforeAll(async () => {
 afterAll(async () => {
   await browser?.close();
   await cleanup();
+});
+
+test('the HTML entry gives feedback before JavaScript starts', async () => {
+  const initial = await browser.newPage();
+  let release: () => void = () => {};
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await initial.route(/\/assets\/index-[^/]+\.js$/, async (route) => {
+    await gate;
+    await route.continue();
+  });
+  try {
+    const navigation = initial.goto(host.daemon.url, { waitUntil: 'domcontentloaded' });
+    await initial
+      .getByRole('status')
+      .filter({ hasText: 'Opening your local workspace…' })
+      .waitFor({ timeout: 5000 });
+    expect(await initial.locator('.skip-link').count()).toBe(0);
+    release();
+    await navigation;
+    await initial.locator('.clay-job-card').first().waitFor({ timeout: 30000 });
+  } finally {
+    release();
+    await initial.close();
+  }
+});
+
+test('a slow initial workspace download shows loading feedback until it arrives', async () => {
+  const initial = await browser.newPage({ viewport: { width: 375, height: 667 } });
+  let release: () => void = () => {};
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await initial.route(/\/assets\/App-[^/]+\.js$/, async (route) => {
+    await gate;
+    await route.continue();
+  });
+  try {
+    await initial.goto(host.daemon.url, { waitUntil: 'domcontentloaded' });
+    await initial
+      .getByRole('status')
+      .filter({ hasText: 'Opening your local workspace…' })
+      .waitFor({ timeout: 5000 });
+    expect(await initial.getByRole('banner', { name: 'Workspace controls' }).count()).toBe(0);
+    release();
+    await initial.locator('.clay-job-card').first().waitFor({ timeout: 30000 });
+    expect(await initial.getByText('Opening your local workspace…').count()).toBe(0);
+  } finally {
+    release();
+    await initial.close();
+  }
 });
 
 test('a page that fails to load keeps the workspace and recovers only through a confirmed reload', async () => {

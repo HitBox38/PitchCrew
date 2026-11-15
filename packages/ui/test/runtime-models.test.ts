@@ -56,6 +56,7 @@ const catalog = {
 const runtime: RuntimeInfo = {
   id: 'codex',
   available: true,
+  customReasoning: true,
   version: '1.0.0',
   detail: 'Fixture installation',
   ...catalog,
@@ -74,7 +75,7 @@ const open = async (target = page) => {
     .waitFor();
 };
 beforeAll(async () => {
-  host = await setup(15783, false, { dev: false });
+  host = await setup(false, { dev: false });
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
   browser = await chromium.launch({ headless: true });
 }, 60000);

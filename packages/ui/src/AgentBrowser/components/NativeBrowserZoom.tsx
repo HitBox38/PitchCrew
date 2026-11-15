@@ -1,6 +1,7 @@
 import { Minus, Plus, RotateCcw } from 'lucide-react';
 import { Button } from '@pitchcrew/design-system/button';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
+import { browserShortcut } from '../helpers.ts';
 
 /** Page zoom as one menu row; pending commands disable the buttons but keep their focus. */
 export const NativeBrowserZoom = ({
@@ -19,7 +20,7 @@ export const NativeBrowserZoom = ({
         size="icon-sm"
         variant="ghost"
         aria-label="Zoom out"
-        title="Zoom out (Ctrl −)"
+        title={`Zoom out (${browserShortcut('−')})`}
         focusableWhenDisabled
         disabled={!manual || zoom <= 0.25}
         onClick={() => setZoom(Math.max(0.25, zoom - 0.25))}
@@ -31,7 +32,7 @@ export const NativeBrowserZoom = ({
         size="icon-sm"
         variant="ghost"
         aria-label="Zoom in"
-        title="Zoom in (Ctrl +)"
+        title={`Zoom in (${browserShortcut('+')})`}
         focusableWhenDisabled
         disabled={!manual || zoom >= 5}
         onClick={() => setZoom(Math.min(5, zoom + 0.25))}
@@ -42,7 +43,7 @@ export const NativeBrowserZoom = ({
         size="icon-sm"
         variant="ghost"
         aria-label="Reset page zoom"
-        title="Reset zoom (Ctrl 0)"
+        title={`Reset zoom (${browserShortcut('0')})`}
         focusableWhenDisabled
         disabled={!manual || zoom === 1}
         onClick={() => setZoom(1)}

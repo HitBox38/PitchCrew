@@ -7,7 +7,7 @@ export interface ConnectorSettingsProps {
   action: Action;
   working: boolean;
 }
-export type ConnectorSettingsModel = NonNullable<ReturnType<typeof useConnectorSettings>>;
+type ConnectorSettingsModel = NonNullable<ReturnType<typeof useConnectorSettings>>;
 
 export type ConnectAccountDialogProps = Pick<
   ConnectorSettingsModel,

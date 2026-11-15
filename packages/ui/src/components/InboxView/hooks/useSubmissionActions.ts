@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import type { Approval, Conversation } from '@pitchcrew/core';
 import type { PacketApprovalActionsProps } from '../types.ts';
@@ -14,8 +14,11 @@ export const useSubmissionActions = ({
   const [chooser, setChooser] = useState(false);
   const [confirmWithdraw, setConfirmWithdraw] = useState(false);
   const [roleId, setRoleId] = useState('submitter');
+  // A ref, not render state: two clicks before the next render must not both send.
+  const inFlight = useRef(false);
   const perform = async (operation: () => Promise<unknown>) => {
-    if (busy) return;
+    if (inFlight.current) return;
+    inFlight.current = true;
     setBusy(true);
     setError('');
     try {
@@ -23,6 +26,7 @@ export const useSubmissionActions = ({
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : String(reason));
     } finally {
+      inFlight.current = false;
       setBusy(false);
     }
   };

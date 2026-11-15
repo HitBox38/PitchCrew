@@ -1,4 +1,4 @@
-import type { ProfileViewModel } from '../types.ts';
+import type { ProfileSectionProps } from '../types.ts';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { TabsList } from '@pitchcrew/design-system/tabs';
 import { DragDropProvider } from '@dnd-kit/react';
@@ -6,22 +6,17 @@ import { isSortableOperation } from '@dnd-kit/react/sortable';
 import { ProfileDocumentTab } from './ProfileDocumentTab.tsx';
 import { profileTabPlugins, profileTabSensors } from '../tab-drag.ts';
 import { profileTabModifiers } from '../tab-drag-modifier.ts';
+import { revealTab } from '../tab-reveal.ts';
 
-export const ProfileDocumentTabs = (c: ProfileViewModel) => {
+export const ProfileDocumentTabs = (section: ProfileSectionProps) => {
+  const c = section.controller;
   const [announcement, setAnnouncement] = useState('');
   const strip = useRef<HTMLDivElement>(null);
   const activeIndex = c.documents.findIndex((document) => document.id === c.activeId);
   useLayoutEffect(() => {
     const lane = strip.current;
     if (!lane) return;
-    const reveal = () => {
-      const tab = lane.querySelector<HTMLElement>('[data-selected="true"]');
-      if (!tab) return;
-      const bounds = lane.getBoundingClientRect();
-      const selected = tab.getBoundingClientRect();
-      if (selected.right > bounds.right) lane.scrollLeft += selected.right - bounds.right;
-      else if (selected.left < bounds.left) lane.scrollLeft -= bounds.left - selected.left;
-    };
+    const reveal = () => revealTab(lane);
     reveal();
     const observer = new ResizeObserver(reveal);
     observer.observe(lane);
@@ -46,6 +41,7 @@ export const ProfileDocumentTabs = (c: ProfileViewModel) => {
             count={c.documents.length}
             active={document.id === c.activeId}
             close={() => c.closeNote(document.id)}
+            section={section}
             reorder={(next) => {
               if (next < 0 || next >= c.documents.length) return;
               c.reorderNote(document.id, next);

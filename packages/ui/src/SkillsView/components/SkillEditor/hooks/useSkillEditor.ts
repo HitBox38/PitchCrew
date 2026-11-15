@@ -1,3 +1,8 @@
+import type {
+  MarkdownCursor,
+  MarkdownEditorHandle,
+  MarkdownMode,
+} from '@/components/MarkdownEditor/types.ts';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import type { SkillEditorProps } from '@/SkillsView/components/SkillEditor/types.ts';
 import type { RoleId } from '@pitchcrew/core';
@@ -85,7 +90,9 @@ export const useSkillEditor = ({
   const [source, setSource] = useState(initial.source);
   const [url, setUrl] = useState(initial.url);
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState('write');
+  const [mode, setMode] = useState<MarkdownMode>('write');
+  const editor = useRef<MarkdownEditorHandle | null>(null);
+  const [cursor, setCursor] = useState<MarkdownCursor | null>(null);
   const dirty =
     name !== initial.name ||
     description !== initial.description ||
@@ -134,5 +141,8 @@ export const useSkillEditor = ({
     save,
     mode,
     setMode,
+    editor,
+    cursor,
+    setCursor,
   };
 };

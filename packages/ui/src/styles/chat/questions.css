@@ -52,11 +52,11 @@
 .pending-user-questions-lane {
   border-radius: 22px 24px 9px 10px;
 }
-.chat-panel:has(.chat-compose[hidden]) .pending-user-questions {
+.chat-panel[data-has-composer-hidden] .pending-user-questions {
   --question-composer-overlap: 0px;
   margin-bottom: 0;
 }
-.chat-panel:has(.chat-compose[hidden]) .pending-user-questions-lane {
+.chat-panel[data-has-composer-hidden] .pending-user-questions-lane {
   border-radius: 22px 24px 22px 24px;
   padding-bottom: 0;
 }
@@ -102,6 +102,9 @@
 .pending-question-trigger > svg {
   color: var(--ochre);
   flex-shrink: 0;
+}
+.pending-question-chevron {
+  transition: transform 140ms var(--ease);
 }
 .pending-question-trigger[data-panel-open] .pending-question-chevron {
   transform: rotate(180deg);

@@ -1,3 +1,4 @@
+import { cardLifecycle } from '@pitchcrew/core/lifecycles';
 import { useJobWork } from '@/components/JobWorkStatus/hooks/useJobWork.ts';
 import { useNavigate } from '@tanstack/react-router';
 import type { ApplicationSection, CardDetailsProps, JobSection } from '../types.ts';
@@ -64,7 +65,7 @@ export const useCardDetails = (props: CardDetailsProps) => {
   const seat =
     card.state === 'lead'
       ? 'scout'
-      : ['shortlisted', 'changes_requested'].includes(card.state)
+      : cardLifecycle.is('draftable', card.state)
         ? 'writer'
         : 'reviewer';
   const runRole = seat === 'writer' ? brief.roleId : jobRole(data, seat)?.id;

@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/api.ts';
-import { transcriptItems } from '@/ChatTurn/helpers.ts';
+import { transcriptItems, type TranscriptItem } from '@/ChatTurn/helpers.ts';
 import type { ConversationHistoryPage } from '@pitchcrew/core';
 import type { MessageTranscriptProps } from '../types.ts';
-import { liveHistoryItems } from '../remote-history.ts';
+import { keepShownItems, liveHistoryItems } from '../remote-history.ts';
+import { shareEqual } from '@/lib/share-equal.ts';
 import { useHistoryWindow } from './useHistoryWindow.ts';
 
 export const useConversationHistory = (props: MessageTranscriptProps) => {
@@ -26,6 +27,9 @@ export const useConversationHistory = (props: MessageTranscriptProps) => {
   const [loaded, setLoaded] = useState<{
     thread: string;
     anchor: string | null;
+    revision: string | undefined;
+    /** Counts fetches: a refetched page equal to the last keeps its identity, not its fetch. */
+    fetch: number;
     page: ConversationHistoryPage;
   } | null>(null);
   const [error, setError] = useState('');
@@ -44,7 +48,14 @@ export const useConversationHistory = (props: MessageTranscriptProps) => {
       .then((page) => {
         if (!controller.signal.aborted) {
           setError('');
-          setLoaded({ thread, anchor, page });
+          // A refetched page keeps the entries it shares with the last one, unchanged.
+          setLoaded((last) => ({
+            thread,
+            anchor,
+            revision,
+            fetch: (last?.fetch ?? 0) + 1,
+            page: shareEqual(last?.page, page),
+          }));
         }
       })
       .catch((failure) => {
@@ -65,23 +76,46 @@ export const useConversationHistory = (props: MessageTranscriptProps) => {
   const following =
     displayedAnchor === null ||
     (displayedAnchor === `turn-${props.focusRunId}` && saved?.newer === null);
-  const items = useMemo(
+  const live = useMemo(
     () =>
-      saved
-        ? following
-          ? liveHistoryItems(saved, data.streamingMessages, data.runs, thread, {
-              requests: data.chatRequests,
-              tasks: data.tasks,
-            })
-          : saved.items
-        : [],
+      saved && following
+        ? liveHistoryItems(saved, data.streamingMessages, data.runs, thread, {
+            requests: data.chatRequests,
+            tasks: data.tasks,
+          })
+        : null,
     [saved, following, data.streamingMessages, data.runs, data.chatRequests, data.tasks, thread],
   );
-  const total = saved ? Math.max(saved.total, saved.start + items.length) : 0;
+  // What the latest page showed, adjusted while rendering whenever the live entries change.
+  const [shown, setShown] = useState<{
+    thread: string;
+    fetch: number | undefined;
+    live: TranscriptItem[];
+    items: TranscriptItem[];
+  } | null>(null);
+  let current = live ? shown : null;
+  if (saved && live && (shown?.live !== live || shown.fetch !== loaded?.fetch)) {
+    const previous = shown?.thread === thread ? shown : null;
+    // A page fetched before the latest change cannot speak for what left the live data since.
+    const untilRefetch = previous?.fetch === loaded?.fetch || loaded?.revision !== revision;
+    current = {
+      thread,
+      fetch: loaded?.fetch,
+      live,
+      items: keepShownItems(previous?.items ?? [], live, untilRefetch),
+    };
+    setShown(current);
+  } else if (!live && shown) setShown(null);
+  const items = live && current ? current.items : (saved?.items ?? []);
+  const kept = live ? items.length - live.length : 0;
+  // Entries kept on the page; most sit above the newest window, so the page starts before it.
+  const start = saved ? saved.start - kept : 0;
+  const total = saved ? Math.max(saved.total, saved.start + items.length - kept) : 0;
   return remote
     ? {
         page: {
           ...(saved ?? { start: 0, end: 0, older: null, newer: null }),
+          start,
           items,
           anchor: displayedAnchor,
           navigate,

@@ -31,7 +31,7 @@ const save = async (id: string, changes: Record<string, string | null>, revision
   });
 
 beforeAll(async () => {
-  host = await setup(15778, false, { dev: false });
+  host = await setup(false, { dev: false });
 }, 60000);
 beforeEach(async () => {
   await rm(host.daemon.service.runtimeConnections.store.path, { force: true });

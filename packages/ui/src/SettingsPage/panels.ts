@@ -19,6 +19,9 @@ export const ConnectorSettings = lazy(() =>
 export const ExternalMcpSettings = lazy(() =>
   import('@/ExternalMcpSettings/index.tsx').then((m) => ({ default: m.ExternalMcpSettings })),
 );
+export const RemoteMcpSettings = lazy(() =>
+  import('@/RemoteMcpSettings/index.tsx').then((m) => ({ default: m.RemoteMcpSettings })),
+);
 export const JobSourcesSettings = lazy(() =>
   import('@/JobSourcesSettings/index.tsx').then((m) => ({ default: m.JobSourcesSettings })),
 );

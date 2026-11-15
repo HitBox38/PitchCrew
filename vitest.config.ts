@@ -8,6 +8,9 @@ export default defineConfig({
     maxWorkers: 2,
     setupFiles: ['./scripts/test-setup.ts'],
     testTimeout: 15000,
+    // Browser fixtures poll for pages that boot, reload or reopen; with two workers sharing the host
+    // that can take longer than the 1s default without anything being wrong.
+    expect: { poll: { timeout: 5000 } },
     projects: [
       {
         test: {

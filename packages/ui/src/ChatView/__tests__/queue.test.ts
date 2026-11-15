@@ -1,6 +1,6 @@
 import type { ChatRequest } from '@pitchcrew/core';
 import { expect, it } from 'vitest';
-import { queuedChatRequests } from '../helpers.ts';
+import { editorRequest, queuedChatRequests } from '../helpers.ts';
 
 const request = (
   id: string,
@@ -41,4 +41,18 @@ it('preserves actionable queued, paused, failed and partially delivered requests
   const input = [paused, unrelated, failed, mixed];
   expect(queuedChatRequests(input, 'chat')).toEqual([mixed, failed, paused]);
   expect(input).toEqual([paused, unrelated, failed, mixed]);
+});
+
+it('keeps the text of an open editor when the compact snapshot blanks its settled request', () => {
+  const kept = { ...request('edit', ['queued']), content: 'Draft text' };
+  expect(editorRequest(kept, undefined)).toBe(kept);
+  const full = { ...kept, content: 'Saved edit' };
+  expect(editorRequest(kept, full)).toBe(full);
+  const compact: ChatRequest = {
+    ...kept,
+    content: '',
+    compact: true,
+    deliveries: request('edit', ['completed']).deliveries,
+  };
+  expect(editorRequest(kept, compact)).toEqual({ ...kept, deliveries: compact.deliveries });
 });

@@ -379,9 +379,6 @@ it('preserves a lost-send UUID through actual Lexical restoration, reference hyd
       await readFile(new URL('../../styles/chat/clay-composer.css', import.meta.url), 'utf8'),
     ].join('\n'),
   });
-  await page.evaluate(() => {
-    document.documentElement.dataset.interface = 'clay';
-  });
   await page.evaluate(() => window.composerFixture.seed());
   const input = page.locator('.chat-compose .chat-textarea');
   await input.press('Enter');

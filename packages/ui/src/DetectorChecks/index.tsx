@@ -31,7 +31,7 @@ export const DetectorChecks = ({ card, canAct = true }: { card: Card; canAct?: b
       <DetectorConsent
         consent={model.consent}
         close={() => model.setConsent(null)}
-        confirm={(consent) => void model.check(consent.row.document, consent.provider)}
+        confirm={(consent) => void model.check(consent)}
         working={model.working}
       />
     </section>

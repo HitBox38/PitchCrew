@@ -1,6 +1,6 @@
 import type { Run } from './types.ts';
 
-export const safeHref = (target: string): string | undefined => {
+const safeHref = (target: string): string | undefined => {
   const url = target.trim();
   if (/^(https?:\/\/|mailto:|tel:)\S+$/i.test(url)) return url;
   if (/^[\w.+-]+@[\w-]+(\.[\w-]+)+$/.test(url)) return `mailto:${url}`;
@@ -100,7 +100,7 @@ const destination = (text: string, index: number): Destination | undefined => {
   return text[cursor] === ')' ? { href, end: cursor + 1 } : undefined;
 };
 
-export const mergeRuns = (runs: Run[]): Run[] => {
+const mergeRuns = (runs: Run[]): Run[] => {
   const output: Run[] = [];
   for (const run of runs) {
     const last = output.at(-1);
@@ -191,6 +191,15 @@ const symbols: Record<string, string> = {
   textbackslash: '\\',
 };
 
+/** Commands that mean something without arguments, even glued to a word (2021\hfill2024). */
+const knownCommands = new Set([
+  ...dropped,
+  ...Object.keys(symbols),
+  'newline',
+  'linebreak',
+  'hfill',
+]);
+
 const isSpace = (character: string | undefined) => !character || /\s/.test(character);
 const isWord = (character: string | undefined) => !!character && /[\p{L}\p{N}]/u.test(character);
 
@@ -245,7 +254,15 @@ class InlineParser {
       (source[cursor] === '[' ? options : args).push(source.slice(cursor + 1, end - 1));
       cursor = end;
     }
-    if (!args.length && !options.length) while (source[cursor] === ' ') cursor++;
+    const bare = !args.length && !options.length;
+    // A backslash inside a word is not LaTeX (N\A, CI\CD, CORP\user, C:\Users): keep it as written.
+    // An unknown command standing by itself is still removed as layout markup.
+    const glued = index > 0 && !/[\s{}]/.test(source[index - 1]);
+    if (bare && glued && !knownCommands.has(command)) {
+      this.text(`\\${name}`, style, true);
+      return index + 1 + name.length;
+    }
+    if (bare) while (source[cursor] === ' ') cursor++;
     if (command === 'newline' || command === 'linebreak') this.runs.push({ kind: 'break' });
     else if (command === 'hfill') this.runs.push({ kind: 'fill' });
     else if (Object.hasOwn(symbols, command)) this.text(symbols[command], style, true);

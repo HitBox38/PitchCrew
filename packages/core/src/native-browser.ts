@@ -74,7 +74,7 @@ export interface NativeBrowserState extends NativeBrowserIdentity {
     canGoForward: boolean;
   }[];
 }
-export interface NativeBrowserBounds {
+interface NativeBrowserBounds {
   x: number;
   y: number;
   width: number;

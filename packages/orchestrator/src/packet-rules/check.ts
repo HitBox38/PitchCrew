@@ -52,7 +52,7 @@ export const boundedPacketCheck = (
   });
 };
 
-export const packetRulesTimeoutMs = 2000;
+const packetRulesTimeoutMs = 2000;
 const bootstrap = `
 import { parentPort, workerData } from 'node:worker_threads';
 import { register } from ${JSON.stringify(import.meta.resolve('tsx/esm/api'))};

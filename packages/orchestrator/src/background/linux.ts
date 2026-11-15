@@ -106,5 +106,5 @@ export const linuxDriver = (spec: ServiceSpec, host: ServiceHost): PlatformDrive
   };
 };
 
-export const systemdUnitPath = (spec: ServiceSpec) =>
+const systemdUnitPath = (spec: ServiceSpec) =>
   posix.join(spec.configHome, 'systemd', 'user', systemdUnit);

@@ -29,8 +29,8 @@ const evaluation = {
   },
 };
 afterEach(cleanup);
-const fixture = async (port: number) => {
-  const host = await setup(port);
+const fixture = async () => {
+  const host = await setup();
   await host.daemon.service.saveProfile(
     'experience.md',
     '# Experience\n\n- Built React interfaces.',
@@ -71,7 +71,7 @@ const settled = async (host: Awaited<ReturnType<typeof fixture>>, id: string) =>
 };
 
 it('reevaluates the whole packet at every job stage without changing workflow feedback, review or approval', async () => {
-  const host = await fixture(24651);
+  const host = await fixture();
   const board = host.daemon.service.board;
   const checked: string[] = [];
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {
@@ -142,7 +142,7 @@ it('reevaluates the whole packet at every job stage without changing workflow fe
 });
 
 it('clears the rating on packet, adopted brief and job-source changes, retaining old event evidence', async () => {
-  const host = await fixture(24652);
+  const host = await fixture();
   const board = host.daemon.service.board;
   vi.spyOn(adapters.demo, 'run').mockResolvedValue(evaluation);
   const request = await enqueue(host);
@@ -190,7 +190,7 @@ it('clears the rating on packet, adopted brief and job-source changes, retaining
 });
 
 it('rejects missing and invalid scores and discards results when the packet changes during evaluation', async () => {
-  const host = await fixture(24653);
+  const host = await fixture();
   const board = host.daemon.service.board;
   for (const score of [-1, 101, 2.5])
     expect(
@@ -220,7 +220,7 @@ it('rejects missing and invalid scores and discards results when the packet chan
 });
 
 it('requires a rating even when a provider returns a valid ordinary fit result', async () => {
-  const host = await fixture(24654);
+  const host = await fixture();
   host.daemon.service.board.record(
     'card',
     { ...host.card, state: 'drafting' },
@@ -238,7 +238,7 @@ it('requires a rating even when a provider returns a valid ordinary fit result',
 });
 
 it('cancels a reevaluation without changing a drafting-stage job or its saved review', async () => {
-  const host = await fixture(24655);
+  const host = await fixture();
   const board = host.daemon.service.board;
   board.record('card', { ...host.card, state: 'drafting' }, 'user', 'Fixture stage');
   vi.spyOn(adapters.demo, 'run').mockImplementation(
@@ -266,7 +266,7 @@ it('cancels a reevaluation without changing a drafting-stage job or its saved re
 });
 
 it('resumes an evaluation question with the same isolated purpose and saved user answer', async () => {
-  const host = await fixture(24656);
+  const host = await fixture();
   const run = vi
     .spyOn(adapters.demo, 'run')
     .mockImplementationOnce(async (context) => {

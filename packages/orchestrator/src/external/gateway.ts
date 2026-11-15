@@ -1,4 +1,11 @@
-import { changeJobState, conversationHistory, deleteJob, updateJobDetails } from '@pitchcrew/board';
+import { runLifecycle } from '@pitchcrew/core';
+import {
+  changeJobState,
+  conversationHistory,
+  deleteJob,
+  updateJobDetails,
+  runsWithStatus,
+} from '@pitchcrew/board';
 import type { Card, Conversation, Role, Run } from '@pitchcrew/core';
 import { externalTools } from '@pitchcrew/mcp/external/tools';
 import { readProfile } from '@pitchcrew/packet';
@@ -6,6 +13,7 @@ import { z } from 'zod';
 import type { CrewContext } from '../crew/types.ts';
 import { createConversation } from '../crew/conversations.ts';
 import { sendConversation } from '../crew/conversation-queue.ts';
+import { chatSubmissionIdentity } from '../crew/chat-submissions.ts';
 import { workspaceQueue } from '../crew/queue/projection.ts';
 import { createExternalJob } from './jobs.ts';
 
@@ -32,9 +40,7 @@ const idleCard = (context: CrewContext, id: string) => {
   const card = context.board.get<Card>('card', id);
   if (
     card.owner ||
-    context.board
-      .list<Run>('run')
-      .some((run) => run.cardId === id && ['running', 'waiting'].includes(run.status))
+    runsWithStatus(context.board, runLifecycle.groups.live).some((run) => run.cardId === id)
   )
     throw new Error('Finish or cancel active job work before changing this job.');
   return card;
@@ -139,6 +145,11 @@ export const externalCall = async (
       const { runId } = externalTools.read_run.schema.parse(data);
       return { run: visibleRun(context, context.board.get<Run>('run', runId)) };
     }
+    case 'read_message_receipt': {
+      const { conversationId, clientRequestId } =
+        externalTools.read_message_receipt.schema.parse(data);
+      return { request: chatSubmissionIdentity(context, conversationId, clientRequestId) };
+    }
     case 'read_queue': {
       externalTools.read_queue.schema.parse(data);
       const queue = workspaceQueue(context);
@@ -185,11 +196,13 @@ export const externalCall = async (
       };
     }
     case 'send_message': {
-      const { conversationId, content } = externalTools.send_message.schema.parse(data);
+      const { conversationId, content, clientRequestId } =
+        externalTools.send_message.schema.parse(data);
       return {
         request: await sendConversation(context, conversationId, {
           content: `[External MCP agent]\n${content}`,
           intent: 'queue',
+          clientRequestId,
         }),
       };
     }

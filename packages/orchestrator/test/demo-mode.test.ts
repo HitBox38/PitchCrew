@@ -10,7 +10,7 @@ it('excludes Demo and rejects its entry points outside development mode', async 
   const detect = vi.spyOn(adapters.demo, 'detect');
   const chat = vi.spyOn(adapters.demo, 'chat');
   const run = vi.spyOn(adapters.demo, 'run');
-  const { daemon, request } = await setup(14571, false, { dev: false });
+  const { daemon, request } = await setup(false, { dev: false });
   const { result: snapshot } = await request<Snapshot>('/snapshot');
   expect(snapshot.runtimes.some((runtime) => runtime.id === 'demo')).toBe(false);
   expect(snapshot.demoAvailable).toBe(false);
@@ -41,7 +41,7 @@ it('excludes Demo and rejects its entry points outside development mode', async 
 });
 
 it('retains existing Demo role history but blocks chat and workflow runs in production', async () => {
-  const { daemon, directory } = await setup(14572);
+  const { daemon, directory, port } = await setup();
   expect((await daemon.service.snapshot()).runtimes.some((runtime) => runtime.id === 'demo')).toBe(
     true,
   );
@@ -53,7 +53,7 @@ it('retains existing Demo role history but blocks chat and workflow runs in prod
     resources.findIndex((resource) => resource.daemon === daemon),
     1,
   );
-  const production = await createDaemon({ directory, port: 14572, seedSkills: false });
+  const production = await createDaemon({ directory, port, seedSkills: false });
   resources.push({ daemon: production, directory });
   expect(production.service.board.list<Role>('role')).toEqual(roles);
   expect((await production.service.snapshot()).demoAvailable).toBe(false);
@@ -69,7 +69,7 @@ it('retains existing Demo role history but blocks chat and workflow runs in prod
 
 it('loads an example job conversation in every chat state without starting work', async () => {
   const chat = vi.spyOn(adapters.demo, 'chat');
-  const { daemon } = await setup(14573);
+  const { daemon } = await setup();
   await daemon.service.loadExamples();
   await new Promise((resolve) => setTimeout(resolve, 50));
   const snapshot = await daemon.service.snapshot();

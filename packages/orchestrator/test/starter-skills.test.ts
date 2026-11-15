@@ -13,7 +13,7 @@ describe('starter skills at workspace startup', () => {
     'bundles $name offline with scoped assignment and preserves edits, renames and deletion',
     async (starter) => {
       vi.spyOn(skillDirectory, 'preview').mockRejectedValue(new Error('Offline fixture.'));
-      const { daemon, directory, request } = await setup(14457, true);
+      const { daemon, directory, request } = await setup(true);
       const guard = daemon.service.skills().find((skill) => skill.name === starter.name)!;
       expect(guard).toMatchObject({
         bundledId: starter.name,
@@ -101,7 +101,7 @@ describe('starter skills at workspace startup', () => {
       .mockImplementation(async (url) =>
         starterFixture(baseSkills.find((item) => baseSkillUrl(item) === url)!),
       );
-    const { daemon, request } = await setup(14453, true);
+    const { daemon, request } = await setup(true);
     const snapshot = (await request<Snapshot>('/snapshot')).result;
     expect(snapshot.skills).toHaveLength(baseSkills.length);
     expect(snapshot.starterSkillErrors).toEqual([]);
@@ -165,7 +165,7 @@ describe('starter skills at workspace startup', () => {
         unavailable ? 'First version.' : 'Latest source instructions.',
       );
     });
-    const { daemon, request } = await setup(14454, true);
+    const { daemon, request } = await setup(true);
     expect(daemon.service.skills()).toHaveLength(baseSkills.length - 1);
     expect((await daemon.service.snapshot()).starterSkillErrors).toEqual([
       { name: 'research', error: 'Upstream file unavailable.' },
@@ -192,7 +192,7 @@ describe('starter skills at workspace startup', () => {
     ).toBe(403);
   });
   it('does not overwrite or resurrect a user skill added and removed during concurrent loading', async () => {
-    const { daemon } = await setup(14452);
+    const { daemon } = await setup();
     const starter = baseSkills.find((item) => item.name === 'humanizer')!;
     let release!: (preview: SkillPreview) => void;
     const pending = new Promise<SkillPreview>((resolve) => {
@@ -220,7 +220,7 @@ describe('starter skills at workspace startup', () => {
   });
   it('remains usable offline and reports source errors without storing placeholder instructions', async () => {
     vi.spyOn(skillDirectory, 'preview').mockRejectedValue(new Error('Offline fixture.'));
-    const { daemon } = await setup(14450, true);
+    const { daemon } = await setup(true);
     const snapshot = await daemon.service.snapshot();
     expect(snapshot.skills).toHaveLength(
       baseSkills.filter((skill) => skill.sourceType === 'bundled').length,
@@ -260,7 +260,7 @@ it('loads starter sources while native catalogs are pending, but waits for compl
       starterFixture(baseSkills.find((item) => baseSkillUrl(item) === url)!),
     );
   let ready = false;
-  const starting = setup(15011, true, { dev: false }).then((workspace) => {
+  const starting = setup(true, { dev: false }).then((workspace) => {
     ready = true;
     return workspace;
   });

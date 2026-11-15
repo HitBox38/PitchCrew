@@ -1,5 +1,3 @@
-export type { DesktopBrowserView } from '../../../core/src/native-browser.ts';
-
 export const domBrowserChannels = {
   views: 'pitchcrew:browser:views',
   register: 'pitchcrew:browser:register-view',

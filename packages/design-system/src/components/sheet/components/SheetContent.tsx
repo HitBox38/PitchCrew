@@ -37,7 +37,7 @@ export const SheetContent = ({
         {showCloseButton && (
           <SheetPrimitive.Close
             data-slot="sheet-close"
-            className="primitive:absolute primitive:top-4 primitive:right-4 primitive:rounded-xs primitive:opacity-70 primitive:ring-offset-background primitive:transition-opacity primitive:hover:opacity-100 primitive:focus:ring-2 primitive:focus:ring-ring primitive:focus:ring-offset-2 primitive:focus:outline-hidden primitive:disabled:pointer-events-none"
+            className="primitive:absolute primitive:top-4 primitive:right-4 primitive:rounded-xs primitive:opacity-70 primitive:ring-offset-background primitive:transition-opacity primitive:hover:opacity-100 primitive:focus-visible:ring-2 primitive:focus-visible:ring-ring primitive:focus-visible:ring-offset-2 primitive:focus-visible:outline-hidden primitive:disabled:pointer-events-none"
           >
             <XIcon className="primitive:size-4" />
             <span className="primitive:sr-only">Close</span>

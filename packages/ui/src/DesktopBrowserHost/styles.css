@@ -16,7 +16,7 @@
 .desktop-browser-chrome[hidden] {
   display: none;
 }
-:root[data-desktop]:has(.desktop-browser-layer[data-expanded]) .desktop-titlebar {
+:root[data-desktop][data-browser-expanded] .desktop-titlebar {
   z-index: 60;
 }
 

@@ -1,5 +1,5 @@
 // A small document model shared by the formatted PDF and DOCX renderers.
-export interface TextRun {
+interface TextRun {
   kind: 'text';
   text: string;
   bold: boolean;

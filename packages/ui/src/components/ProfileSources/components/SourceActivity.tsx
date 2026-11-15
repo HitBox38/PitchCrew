@@ -3,14 +3,19 @@ import { FileCheck2, LoaderCircle } from 'lucide-react';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { buttonVariants } from '@pitchcrew/design-system/button';
 
-export const SourceActivity = () => {
+/** Renders nothing while idle, so the sidebar's notices collapse with plain CSS. */
+export const SourceActivity = ({ onOpen }: { onOpen: () => void }) => {
   const progress = useWorkspaceStore((state) => state.profileSources.progress);
   const ready = useWorkspaceStore((state) => !!state.profileSources.preview);
   const update = useWorkspaceStore((state) => state.updateProfileSources);
   if (!progress && !ready) return null;
   const label = progress?.label ?? 'Profile documents ready to review.';
   return (
-    <section aria-label="Profile source activity" className="min-w-0">
+    <section
+      aria-label="Profile source activity"
+      className="sidebar-source-activity min-w-0"
+      onClickCapture={onOpen}
+    >
       <Link
         data-slot="button"
         className={buttonVariants({

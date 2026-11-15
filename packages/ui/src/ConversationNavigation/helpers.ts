@@ -80,11 +80,7 @@ export const conversationRows = (
 };
 
 /** A role's own preserved chat (“Scout chat”): direct, with only that agent, under its role ID. */
-export const isAgentChat = ({
-  id,
-  kind,
-  participants,
-}: ConversationNavigationRow['conversation']) =>
+const isAgentChat = ({ id, kind, participants }: ConversationNavigationRow['conversation']) =>
   kind === 'direct' && participants.length === 1 && participants[0] === id;
 
 /**

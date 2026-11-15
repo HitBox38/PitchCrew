@@ -26,8 +26,8 @@ export const WithdrawConfirmation = ({
     <DialogContent>
       <DialogTitle>Not applying to this job?</DialogTitle>
       <DialogDescription>
-        This marks the job Withdrawn and closes its Inbox follow-up. Your history and exported files
-        stay saved. It doesn’t contact the employer.
+        This marks the job Withdrawn and closes its Decisions follow-up. Your history and exported
+        files stay saved. It doesn’t contact the employer.
       </DialogDescription>
       <DialogFooter>
         <Button variant="outline" onClick={close}>

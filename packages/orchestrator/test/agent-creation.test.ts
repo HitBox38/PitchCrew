@@ -35,7 +35,7 @@ const reference = (skill: Skill) => ({ id: skill.id, updatedAt: skill.updatedAt 
 
 describe('guided agent setup', () => {
   it('commits a generic role, preserves other skill assignments and provenance, saves a paused routine, and replays all entities', async () => {
-    const { daemon, request } = await setup(14901);
+    const { daemon, request } = await setup();
     const skill = daemon.service.saveSkill({
       source: directorySkill.source,
       name: 'Evidence',
@@ -56,6 +56,11 @@ describe('guided agent setup', () => {
       routine,
     });
     expect(result.response.status).toBe(201);
+    expect(daemon.service.board.get('conversation', agent.id)).toMatchObject({
+      kind: 'direct',
+      participants: [agent.id],
+      leadId: agent.id,
+    });
     expect(result.result).toMatchObject({
       workflow: 'chat',
       capabilities: {
@@ -100,7 +105,7 @@ describe('guided agent setup', () => {
     { ...routine, intervalMinutes: null, cron: '0 9 * * 1', endsAt: '2030-01-01T10:00:00Z' },
     { ...routine, cardId: '00000000-0000-4000-8000-000000000001' },
   ])('rejects an invalid schedule without any role or skill events', async (invalid) => {
-    const { daemon, request } = await setup(14902);
+    const { daemon, request } = await setup();
     const skill = daemon.service.saveSkill({
       name: 'Evidence',
       content: 'Fictional.',
@@ -117,7 +122,7 @@ describe('guided agent setup', () => {
   });
 
   it('rejects stale, deleted and duplicate skill selections before creating a role', async () => {
-    const { daemon, request } = await setup(14903);
+    const { daemon, request } = await setup();
     const first = daemon.service.saveSkill({
       name: 'Long instructions',
       content: 'A'.repeat(40000),
@@ -140,7 +145,7 @@ describe('guided agent setup', () => {
   });
 
   it('creates an agent with shared and selected skills above the former combined limit', async () => {
-    const { daemon, request } = await setup(14906);
+    const { daemon, request } = await setup();
     daemon.service.saveSkill({
       name: 'Shared instructions',
       content: 'A'.repeat(40000),
@@ -162,7 +167,7 @@ describe('guided agent setup', () => {
   });
 
   it('rechecks skill versions after asynchronous instruction writes and permits retry with the reviewed version', async () => {
-    const { daemon } = await setup(14904);
+    const { daemon } = await setup();
     const context = (daemon.service as unknown as { context: CrewContext }).context;
     const skill = daemon.service.saveSkill({
       name: 'Evidence',
@@ -191,7 +196,7 @@ describe('guided agent setup', () => {
   });
 
   it('rolls back the complete setup if the last event fails', async () => {
-    const { daemon } = await setup(14905);
+    const { daemon } = await setup();
     const skill = daemon.service.saveSkill({
       name: 'Evidence',
       content: 'Fictional.',

@@ -24,7 +24,7 @@ export const browserCanvasBlob = (canvas: HTMLCanvasElement) =>
     }, 'image/png'),
   );
 
-export const browserRecordingType = () =>
+const browserRecordingType = () =>
   typeof MediaRecorder === 'undefined'
     ? undefined
     : ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].find((type) =>

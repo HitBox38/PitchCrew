@@ -26,14 +26,6 @@ export const acpMock = async () => {
   const actual = await vi.importActual<typeof import('../../src/acp.ts')>('../../src/acp.ts');
   return {
     ...actual,
-    runAcp: vi.fn((...args: Parameters<typeof actual.runAcp>) => {
-      const [, flags, ...rest] = args;
-      return actual.runAcp(
-        process.execPath,
-        [fileURLToPath(new URL('../fixtures/acp-cli.ts', import.meta.url)), ...flags],
-        ...rest,
-      );
-    }),
     runAcpText: vi.fn((...args: Parameters<typeof actual.runAcpText>) => {
       const [, flags, ...rest] = args;
       return actual.runAcpText(

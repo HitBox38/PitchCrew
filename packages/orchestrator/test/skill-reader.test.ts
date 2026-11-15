@@ -6,7 +6,7 @@ afterEach(cleanupSkillReaders);
 
 describe('run-scoped skill instructions', () => {
   it('returns full frozen instructions after edits, reassignment and deletion without recording read events', async () => {
-    const { service, run, skill, input, read, access, request } = await skillReaderFixture(35372);
+    const { service, run, skill, input, read, access, request } = await skillReaderFixture();
     expect(await access()).toMatchObject({ readSkills: true });
     const original = await read();
     expect(original).toMatchObject({ skill: { id: skill.id, content: input.content } });
@@ -33,7 +33,7 @@ describe('run-scoped skill instructions', () => {
   });
 
   it('rejects other-role, unknown and non-ID inputs without exposing their contents', async () => {
-    const { service, run, other, read, access, skill } = await skillReaderFixture(35372);
+    const { service, run, other, read, access, skill } = await skillReaderFixture();
     await expect(read(other.id)).rejects.toThrow('not assigned to this run');
     await expect(read('00000000-0000-4000-8000-000000000000')).rejects.toThrow('not assigned');
     await expect(read('../skills/private/SKILL.md')).rejects.toThrow();
@@ -51,8 +51,7 @@ describe('run-scoped skill instructions', () => {
   it.each(['fit', 'application-draft', 'application-review', 'packet-evaluation'] as const)(
     'allows own frozen guidance in isolated %s runs without source access',
     async (purpose) => {
-      const { service, run, isolated, read, access, skill, updateRun } =
-        await skillReaderFixture(35372);
+      const { service, run, isolated, read, access, skill, updateRun } = await skillReaderFixture();
       const isolatedRun = isolated(purpose);
       expect(await access()).toMatchObject({ readSkills: true });
       expect(await read()).toMatchObject({ skill: { id: skill.id } });
@@ -85,8 +84,7 @@ describe('run-scoped skill instructions', () => {
     'snapshot',
     'controller',
   ] as const)('denies skill reading for %s turns in discovery and execution', async (reason) => {
-    const { service, run, updateRun, isolated, summary, access, read } =
-      await skillReaderFixture(35372);
+    const { service, run, updateRun, isolated, summary, access, read } = await skillReaderFixture();
     if (reason === 'source') updateRun({ purpose: 'source-extraction' });
     if (reason === 'budget') {
       isolated('application-review');
@@ -107,7 +105,7 @@ describe('run-scoped skill instructions', () => {
   });
 
   it('rechecks revocation and never adds reader access to the external bridge', async () => {
-    const { service, run, role, access, read, skill } = await skillReaderFixture(35372);
+    const { service, run, role, access, read, skill } = await skillReaderFixture();
     const conversation = service.board.get<Conversation>('conversation', role.id);
     service.board.record(
       'conversation',

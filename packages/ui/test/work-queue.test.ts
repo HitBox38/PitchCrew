@@ -9,7 +9,7 @@ let page: Page;
 let a: Card, b: Card;
 const errors: string[] = [];
 beforeAll(async () => {
-  host = await setup(23941);
+  host = await setup();
   a = host.daemon.service.createCard({ company: 'Fictional A', title: 'Engineer' });
   b = host.daemon.service.createCard({ company: 'Fictional B', title: 'Designer' });
   host.daemon.service.queueBoardAction({ cardId: a.id, action: 'draft' });

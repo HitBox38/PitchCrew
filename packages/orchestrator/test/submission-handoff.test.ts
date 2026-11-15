@@ -4,21 +4,9 @@ import type { Approval, Card, ChatRequest, Role, Run } from '@pitchcrew/core';
 import { cleanup, confirmFixtureApplication, finish, setup } from './helpers/daemon.ts';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-vi.mock('vite', async (importOriginal) => {
-  const vite = await importOriginal<typeof import('vite')>();
-  return {
-    ...vite,
-    createServer: (config: import('vite').InlineConfig) =>
-      vite.createServer({
-        ...config,
-        optimizeDeps: { noDiscovery: true, include: [] },
-        cacheDir: `/tmp/pitchcrew-inbox-api-cache-${process.pid}`,
-      }),
-  };
-});
 afterEach(cleanup);
-const prepare = async (port: number) => {
-  const host = await setup(port);
+const prepare = async () => {
+  const host = await setup();
   await host.request('/profile', 'PUT', {
     name: 'profile.md',
     content: '# Example Candidate\n\n- Built React interfaces.\n',
@@ -44,7 +32,7 @@ const prepare = async (port: number) => {
 };
 describe('user-only post-approval submission handoff', { timeout: 60000 }, () => {
   it('requires approval, exports once, and leaves a manual application unsubmitted', async () => {
-    const { request, daemon, approval, card } = await prepare(14676);
+    const { request, daemon, approval, card } = await prepare();
     expect(
       (await request(`/approvals/${approval.id}/submit`, 'POST', { method: 'manual' })).response
         .status,
@@ -76,7 +64,7 @@ describe('user-only post-approval submission handoff', { timeout: 60000 }, () =>
     expect(daemon.service.board.list<ChatRequest>('chat_request')).toHaveLength(0);
   });
   it('recovers an interrupted export without consuming a second approval', async () => {
-    const { request, daemon, approval } = await prepare(14680);
+    const { request, daemon, approval } = await prepare();
     await request(`/approvals/${approval.id}/decide`, 'POST', { approved: true });
     const write = vi
       .spyOn(packet, 'writePacket')
@@ -100,7 +88,7 @@ describe('user-only post-approval submission handoff', { timeout: 60000 }, () =>
     expect(again.result.exportDirectory).toBe(resumed.result.exportDirectory);
   });
   it('checks agent setup before exporting and deduplicates concurrent preparation requests', async () => {
-    const { request, daemon, approval, card } = await prepare(14677);
+    const { request, daemon, approval, card } = await prepare();
     await request(`/approvals/${approval.id}/decide`, 'POST', { approved: true });
     const role = daemon.service.board.get<Role>('role', 'submitter');
     daemon.service.board.record(
@@ -142,7 +130,7 @@ describe('user-only post-approval submission handoff', { timeout: 60000 }, () =>
     expect(daemon.service.board.list('submission_attempt')).toHaveLength(0);
   });
   it('rejects stale packets and cannot use the handoff to approve itself', async () => {
-    const { request, daemon, approval, card } = await prepare(14678);
+    const { request, daemon, approval, card } = await prepare();
     await request(`/approvals/${approval.id}/decide`, 'POST', { approved: true });
     const current = daemon.service.board.get<Card>('card', card.id);
     daemon.service.board.record(

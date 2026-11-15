@@ -112,8 +112,8 @@ export const fetchBoard = async (
 export const userAgent =
   'Pitchcrew/0.1.0 (local job discovery; read-only; +https://github.com/HitBox38/PitchCrew)';
 export const requestTimeoutMs = 20_000;
-export const maxResponseBytes = 8 * 1024 * 1024;
-export const providerIntervalMs = 1_000;
+const maxResponseBytes = 8 * 1024 * 1024;
+const providerIntervalMs = 1_000;
 
 export type FetchLike = (url: string, init: RequestInit) => Promise<Response>;
 

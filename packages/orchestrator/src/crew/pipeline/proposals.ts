@@ -71,7 +71,7 @@ Review the exact before/after settings in Crew work. Your decision is required b
   })();
 };
 
-export const crewChangesInput = z.object({
+const crewChangesInput = z.object({
   targetRoleId: z.string().min(1).max(64),
   targetRevision: z.string().regex(/^[a-f0-9]{64}$/),
   pipelineReviewId: z.uuid(),

@@ -6,7 +6,7 @@ import { trace } from '@opentelemetry/api';
 afterEach(cleanup);
 
 it('captures independent originating request identities and W3C context before the relay boundary', async () => {
-  const { daemon, request } = await setup(14697);
+  const { daemon, request } = await setup();
   const record = vi.spyOn(daemon.service.diagnostics!, 'record');
   const traceId = '1234567890abcdef1234567890abcdef';
   const spanId = '1234567890abcdef';
@@ -58,7 +58,7 @@ it('captures independent originating request identities and W3C context before t
 });
 
 it('uses the active server span at error emission in preference to the incoming parent span', async () => {
-  const { daemon, request } = await setup(14697);
+  const { daemon, request } = await setup();
   const record = vi.spyOn(daemon.service.diagnostics!, 'record');
   const span = {
     traceId: 'abcdef1234567890abcdef1234567890',
@@ -78,7 +78,7 @@ it('uses the active server span at error emission in preference to the incoming 
 });
 
 it('identifies export and workflow failures without recording request content', async () => {
-  const { daemon, request } = await setup(14697);
+  const { daemon, request } = await setup();
   const record = vi.spyOn(daemon.service.diagnostics!, 'record');
   const id = randomUUID();
   const cases = [

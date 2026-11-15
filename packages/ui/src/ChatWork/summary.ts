@@ -3,7 +3,7 @@ import { capabilityDefaults, capabilityLabels } from '../agent-capabilities.ts';
 import { diffCounts, diffInstructions } from '../components/InstructionUpdate/helpers.ts';
 
 type CapabilityKey = keyof typeof capabilityLabels;
-export type CapabilityChange = {
+type CapabilityChange = {
   key: CapabilityKey;
   label: string;
   before: boolean;

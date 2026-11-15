@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { UserInputRequest } from '@pitchcrew/core';
 
-export type QuestionPhase = 'idle' | 'sending' | 'checking' | 'uncertain';
+type QuestionPhase = 'idle' | 'sending' | 'checking' | 'uncertain';
 export type QuestionAnswerSnapshot = { text: string; selected: string[] };
 export interface QuestionRecovery extends QuestionAnswerSnapshot {
   id: string;

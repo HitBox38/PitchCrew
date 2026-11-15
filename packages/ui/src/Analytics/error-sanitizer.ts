@@ -81,7 +81,7 @@ export const errorCategories = [
 ] as const;
 export type ErrorCategory = (typeof errorCategories)[number];
 
-export const errorActions = [
+const errorActions = [
   'chat',
   'workflow',
   'profile',

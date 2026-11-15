@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { commitPattern } from './build.ts';
 import { releaseNotes } from './release-notes.ts';
 
-export const githubJson = async (path: string, fetcher: typeof fetch, signal: AbortSignal) => {
+const githubJson = async (path: string, fetcher: typeof fetch, signal: AbortSignal) => {
   const response = await fetcher(`${apiRoot}${path}`, {
     signal,
     redirect: 'error',

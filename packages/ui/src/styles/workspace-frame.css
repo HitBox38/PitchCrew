@@ -12,7 +12,8 @@
   flex-shrink: 0;
   padding: 10px 0 12px 8px;
 }
-.workspace-title-fact:not(:has(> *)) {
+/* :empty rather than :not(:has(> *)), which Chrome rechecks after every change on the page. */
+.workspace-title-fact:empty {
   display: none;
 }
 .workspace-title-fact:has(> [data-page-fact]) > .workspace-default-fact {
@@ -48,7 +49,6 @@
 .workspace-loading {
   padding: 24px 8px;
 }
-.workspace-body > .workspace-notice,
 .workspace-body > .error-banner {
   margin-bottom: 16px;
 }
@@ -71,25 +71,9 @@
   margin-top: 0;
 }
 /* Editors use the same compact heading whether embedded or opened as a sheet. */
-.modal-heading h2,
-.role-settings-heading h2,
-.role-settings-section h3 {
+.modal-heading h2 {
   font-family: var(--font-sans);
-}
-.modal-heading h2,
-.role-settings-heading h2 {
   font-size: 18px;
-}
-.role-settings-heading {
-  min-height: 68px;
-  padding: 18px 20px;
-}
-.role-settings-body {
-  padding: 20px;
-}
-.role-settings-footer {
-  padding: 16px 20px;
-  padding-bottom: max(16px, env(safe-area-inset-bottom));
 }
 /* Narrow windows: the actions wrap to a second row; phones show the title and primary in the top
  * bar, so the row keeps only the fact, segment and secondaries, and takes no space without them. */

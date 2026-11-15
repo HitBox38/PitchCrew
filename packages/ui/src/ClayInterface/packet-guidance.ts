@@ -1,3 +1,4 @@
+import { deliveryLifecycle } from '@pitchcrew/core/lifecycles';
 import type { Approval, Card, Snapshot } from '@pitchcrew/core';
 import { requestStatus } from '@/components/InboxView/status.ts';
 import { packetNeedsAction } from '@/lib/inbox.ts';
@@ -54,7 +55,7 @@ export const packetWaitsOnUser = (approval: Approval, card: Card | undefined, da
   if (packetStage(approval, card) !== 'preparing') return true;
   const requestId = approval.submission?.requestId;
   const delivery = data.chatRequests?.find((item) => item.id === requestId)?.deliveries[0];
-  return !delivery || !['queued', 'running'].includes(delivery.status);
+  return !delivery || !deliveryLifecycle.is('moving', delivery.status);
 };
 
 /** Short status for job cards and the sidebar. */

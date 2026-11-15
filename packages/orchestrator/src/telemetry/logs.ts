@@ -16,4 +16,4 @@ export const sanitizeLogObservation = (event: string, input: Record<string, unkn
   return log ? { ...log } : null;
 };
 
-export const operationalLogEvent = 'operational_log';
+const operationalLogEvent = 'operational_log';

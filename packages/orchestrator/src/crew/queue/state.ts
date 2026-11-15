@@ -11,21 +11,13 @@ import {
 } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 import { taskParentReady } from '../delegation-rounds.ts';
-import { activeRuns, tasksWithStatus } from './queries.ts';
+import { activeRuns, findEntity, tasksWithStatus, unsettledChatRequests } from './queries.ts';
 
 export const concurrency = (context: CrewContext): number => {
   return context.board.list<QueueSettings>('queue_settings')[0]?.concurrency ?? 5;
 };
-/** Root/session resolution must not scan and parse every historical run for each queue row. */
-const entity = <T>(context: CrewContext, kind: string, id: string | undefined): T | undefined => {
-  if (!id) return undefined;
-  const row = context.board.db
-    .prepare('SELECT json FROM entities WHERE kind=? AND id=?')
-    .get(kind, id) as { json: string } | undefined;
-  return row ? (JSON.parse(row.json) as T) : undefined;
-};
 export const laneId = (context: CrewContext, threadId: string, rootRunId?: string): string => {
-  const item = entity<Conversation>(context, 'conversation', threadId);
+  const item = findEntity<Conversation>(context, 'conversation', threadId);
   return rootRunId
     ? runLane(context, { cardId: item?.cardId ?? null, threadId, rootRunId, id: rootRunId })
     : workQueueId(item?.cardId ?? null, threadId);
@@ -37,19 +29,19 @@ export const ensureQueue = (
 ): WorkQueue => {
   const id = laneId(context, threadId, rootRunId);
   if (rootRunId) {
-    const origin = entity<Run>(context, 'run', rootRunId);
-    const request = entity<ChatRequest>(context, 'chat_request', rootRunId);
+    const origin = findEntity<Run>(context, 'run', rootRunId);
+    const request = findEntity<ChatRequest>(context, 'chat_request', rootRunId);
     if (id.startsWith('conversation:') || id.startsWith('routine:'))
       threadId = request?.threadId ?? origin?.threadId ?? threadId;
   }
-  const stored = entity<Conversation>(context, 'conversation', threadId);
+  const stored = findEntity<Conversation>(context, 'conversation', threadId);
   if (stored?.deletedAt) throw new Error('This conversation was deleted.');
   if (!stored) {
     context.board.get('role', threadId);
   }
   const item = stored ?? { cardId: null };
 
-  const previous = entity<WorkQueue>(context, 'work_queue', id);
+  const previous = findEntity<WorkQueue>(context, 'work_queue', id);
   if (previous) return previous;
   const queue: WorkQueue = {
     id,
@@ -90,20 +82,14 @@ export const patchQueue = (
   );
 };
 export const queueRequests = (context: CrewContext, id: string): ChatRequest[] => {
-  const rows = context.board.db
-    .prepare(
-      "SELECT e.json FROM entities e WHERE e.kind='chat_request' AND EXISTS (SELECT 1 FROM json_each(e.json,'$.deliveries') d WHERE json_extract(d.value,'$.status') NOT IN ('completed','cancelled'))",
-    )
-    .all() as { json: string }[];
-  return rows
-    .map((row) => JSON.parse(row.json) as ChatRequest)
+  return unsettledChatRequests(context)
     .filter((r) => laneId(context, r.threadId, r.rootRunId) === id && requestPending(r))
     .sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
 };
 export const queueWaiting = (context: CrewContext, id: string): boolean => {
   return context.board.list<UserInputRequest>('user_input').some((q) => {
     if (q.status !== 'pending') return false;
-    const run = entity<Run>(context, 'run', q.runId);
+    const run = findEntity<Run>(context, 'run', q.runId);
     return (run ? runLane(context, run) : workQueueId(q.cardId, q.sourceThreadId)) === id;
   });
 };
@@ -112,8 +98,8 @@ export const runLane = (
   run: Pick<Run, 'cardId' | 'threadId' | 'rootRunId' | 'id' | 'routineId'>,
 ): string => {
   if (run.cardId) return workQueueId(run.cardId, run.threadId ?? '');
-  const root = entity<Run>(context, 'run', run.rootRunId);
-  const request = entity<ChatRequest>(context, 'chat_request', run.rootRunId);
+  const root = findEntity<Run>(context, 'run', run.rootRunId);
+  const request = findEntity<ChatRequest>(context, 'chat_request', run.rootRunId);
   const origin = root || run;
   if (origin.routineId) return `routine:${origin.routineId}`;
   return workQueueId(null, request ? request.threadId : (origin.threadId ?? origin.id));

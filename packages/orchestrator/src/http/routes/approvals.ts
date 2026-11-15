@@ -1,6 +1,6 @@
-import type { Card, Approval } from '@pitchcrew/core';
+import type { Card } from '@pitchcrew/core';
 import { assertReviewedContext, digestPacket } from '@pitchcrew/board';
-import { prepareVerifiedArtifacts, systemFonts, verifiedArtifact } from '@pitchcrew/packet';
+import { prepareVerifiedArtifacts, systemFonts } from '@pitchcrew/packet';
 import { resolveSubmission } from '@pitchcrew/mcp/computer';
 import type { FastifyInstance } from 'fastify';
 import { join } from 'node:path';
@@ -53,16 +53,6 @@ export const registerApprovalsRoutes = (app: FastifyInstance, service: CrewServi
       );
     res.status(201).send(service.board.requestApproval(card.id, artifacts, reports));
   });
-  app.get<{ Params: { id: string; name: string } }>(
-    '/api/approvals/:id/artifacts/:name',
-    (req, res) => {
-      const approval = service.board.get<Approval>('approval', req.params.id);
-      const artifact = approval.artifacts?.find((item) => item.name === req.params.name);
-      if (!artifact) throw new Error('Reviewed artifact not found.');
-      res.header('Content-Disposition', `inline; filename="${artifact.name}"`);
-      res.type(artifact.mimeType).send(verifiedArtifact(artifact));
-    },
-  );
   app.post<IdRoute>('/api/submissions/:id/resolve', (req, res) => {
     const input = z
       .object({

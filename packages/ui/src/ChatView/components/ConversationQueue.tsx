@@ -1,5 +1,5 @@
 import type { ChatViewModel } from '../types.ts';
-import { Queue, QueueSection, QueueSectionContent } from '@/components/ai-elements/queue/index.tsx';
+import { Trace, TraceCollapsible, TraceCollapsibleContent } from '@pitchcrew/design-system/trace';
 import { QueueHeading } from './QueueHeading.tsx';
 import {
   conversationQueue,
@@ -58,8 +58,8 @@ export const ConversationQueue = ({
       ) : null}
       {queued.length ? (
         <section className="chat-queue" data-tone={tone} aria-label="Queued messages">
-          <Queue>
-            <QueueSection key={thread} open={open} onOpenChange={setOpen}>
+          <Trace>
+            <TraceCollapsible key={thread} open={open} onOpenChange={setOpen}>
               <QueueHeading
                 count={count}
                 state={state}
@@ -69,7 +69,7 @@ export const ConversationQueue = ({
                 working={working}
                 onReview={() => setOpen(true)}
               />
-              <QueueSectionContent keepMounted>
+              <TraceCollapsibleContent keepMounted>
                 {explanation ? <p className="chat-queue-explanation">{explanation}</p> : null}
                 <QueuedMessageList
                   queued={queued}
@@ -78,9 +78,9 @@ export const ConversationQueue = ({
                   working={working}
                   onEdit={edit}
                 />
-              </QueueSectionContent>
-            </QueueSection>
-          </Queue>
+              </TraceCollapsibleContent>
+            </TraceCollapsible>
+          </Trace>
         </section>
       ) : null}
       {selection && selected ? (

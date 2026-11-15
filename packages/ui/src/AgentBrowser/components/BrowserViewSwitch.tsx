@@ -1,5 +1,5 @@
 import { FileText, Globe } from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger } from '@pitchcrew/design-system/tabs';
+import { Tabs, TabsIndicator, TabsList, TabsTrigger } from '@pitchcrew/design-system/tabs';
 import type { BrowserPanelView } from '../layout.ts';
 
 export const browserPagePanelId = 'agent-browser-page';
@@ -34,6 +34,7 @@ export const BrowserViewSwitch = ({
       >
         <Globe size={13} aria-hidden="true" /> Browser
       </TabsTrigger>
+      <TabsIndicator />
     </TabsList>
   </Tabs>
 );

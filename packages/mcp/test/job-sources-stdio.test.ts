@@ -43,7 +43,7 @@ afterEach(async () => {
 });
 
 it('exposes scan and link import tools over actual stdio only with discoverJobs and rechecks it per call', async () => {
-  const { daemon, request } = await setup(15471);
+  const { daemon, request } = await setup();
   daemon.service.jobSources.fetch = recordedBoards().fetcher;
   await request('/job-sources', 'POST', fixtureSources.lever);
   const scout = daemon.service.board.get<Role>('role', 'scout');

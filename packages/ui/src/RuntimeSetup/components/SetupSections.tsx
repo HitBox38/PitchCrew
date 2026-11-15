@@ -1,4 +1,4 @@
-import { TabsList, TabsTrigger } from '@pitchcrew/design-system/tabs';
+import { TabsIndicator, TabsList, TabsTrigger } from '@pitchcrew/design-system/tabs';
 import type { RuntimeAuthState, RuntimeInfo } from '@pitchcrew/core';
 import { runtimeSetupSections } from '../sections.ts';
 export const SetupSections = ({
@@ -35,6 +35,7 @@ export const SetupSections = ({
           </span>
         </TabsTrigger>
       ))}
+      <TabsIndicator />
     </TabsList>
   );
 };

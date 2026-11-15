@@ -30,12 +30,20 @@ export const roundMembers = (round: DelegationRound, tasks: AgentTask[]) => {
     member(round.collectionTaskId, round.leadId, 'collection'),
   ];
 };
+/** The collection failed and waits for Retry or Skip in the queue; the round is still open. */
+const collectionFailed = (round: DelegationRound, tasks: AgentTask[]) =>
+  round.status === 'collecting' &&
+  tasks.find((task) => task.id === round.collectionTaskId)?.status === 'failed';
 /** A bead for the whole round: the collection's own state once delegates settle. */
-export const roundBead = (round: DelegationRound): BeadStatus =>
+export const roundBead = (round: DelegationRound, tasks: AgentTask[] = []): BeadStatus =>
   round.status === 'completed'
     ? 'completed'
     : round.status === 'cancelled'
       ? 'cancelled'
       : round.status === 'queued'
         ? 'queued'
-        : 'running';
+        : collectionFailed(round, tasks)
+          ? 'failed'
+          : 'running';
+export const roundLabel = (round: DelegationRound, tasks: AgentTask[] = []) =>
+  collectionFailed(round, tasks) ? 'Collection failed' : roundStatusLabels[round.status];

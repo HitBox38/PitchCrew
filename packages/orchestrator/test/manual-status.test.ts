@@ -6,7 +6,7 @@ afterEach(cleanup);
 
 describe('manual board status API', () => {
   it('accepts every user status pair without generating packets, approvals, exports or runs', async () => {
-    const { daemon, request } = await setup(14590);
+    const { daemon, request } = await setup();
     const card = daemon.service.createCard({ company: 'Fictional Studio', title: 'Engineer' });
     for (const from of states)
       for (const to of states) {
@@ -23,7 +23,7 @@ describe('manual board status API', () => {
   });
 
   it('requires a local UI session and rechecks status validity and active work', async () => {
-    const { daemon, request } = await setup(14591);
+    const { daemon, request } = await setup();
     const card = daemon.service.createCard({ company: 'Fictional Studio', title: 'Engineer' });
     const path = `/cards/${card.id}/status`;
     const before = daemon.service.board.events();

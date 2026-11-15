@@ -26,7 +26,7 @@ const auth: RuntimeAuthState = {
   finishedAt: null,
 };
 beforeAll(async () => {
-  host = await setup(15766, false, { dev: false });
+  host = await setup(false, { dev: false });
 }, 60000);
 afterEach(() => vi.restoreAllMocks());
 afterAll(async () => cleanup());

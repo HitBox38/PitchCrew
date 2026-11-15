@@ -2,6 +2,7 @@ import type { SidebarMenuActionProps } from '../types.ts';
 import { cn } from '../../../lib/utils.ts';
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useRender } from '@base-ui/react/use-render';
+import { menuItemPresence } from '../presence.ts';
 
 export const SidebarMenuAction = ({
   className,
@@ -9,6 +10,7 @@ export const SidebarMenuAction = ({
   showOnHover = false,
   ...props
 }: SidebarMenuActionProps) => {
+  menuItemPresence.usePresent('action');
   return useRender({
     defaultTagName: 'button',
     props: mergeProps<'button'>(

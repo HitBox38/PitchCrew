@@ -1,7 +1,7 @@
 import { conversationMessages } from '../conversation-context.ts';
 import { conversation, canReadConversation } from '../conversations.ts';
 import type { AgentCapabilities } from '@pitchcrew/core';
-import { delegationRoundInput, roleIdSchema, type ChatMessage, type Run } from '@pitchcrew/core';
+import { delegationRoundInput, roleIdSchema, type Run } from '@pitchcrew/core';
 import { startRound } from '../delegation-rounds.ts';
 import { z } from 'zod';
 import type { CrewContext, RunCapability } from '../types.ts';
@@ -11,9 +11,16 @@ export const readMessages = async (
   capability: RunCapability,
 ): Promise<Record<string, unknown>> => {
   const run = context.board.get<import('@pitchcrew/core').Run>('run', capability.runId);
-  const threads = [
-    ...new Set(context.board.list<ChatMessage>('message').map((message) => message.threadId)),
-  ].filter((id) => canReadConversation(context, capability.roleId, id));
+  // Distinct threads in first-message order, read from the thread index alone.
+  const threads = (
+    context.board.db
+      .prepare(
+        "SELECT json_extract(json,'$.threadId') AS threadId FROM entities WHERE kind='message' GROUP BY 1 ORDER BY min(rowid)",
+      )
+      .all() as { threadId: string }[]
+  )
+    .map((row) => row.threadId)
+    .filter((id) => canReadConversation(context, capability.roleId, id));
   return {
     messages: threads
       .flatMap((id) => conversationMessages(context, id, capability.roleId, run.requestId))
@@ -50,17 +57,21 @@ export const queueMessage = async (
     )
       throw new Error('Choose a shared conversation with the same job scope.');
   }
-  return {
-    task: context.enqueue(
-      capability,
-      input.roleId,
-      action === 'message' ? 'chat' : input.mode,
-      input.content,
-      action,
-      input.conversationId,
-    ),
-  };
+  const mode = action === 'message' ? 'chat' : input.mode;
+  const task = context.enqueue(
+    capability,
+    input.roleId,
+    mode,
+    input.content,
+    action,
+    input.conversationId,
+  );
+  return mode === 'workflow' ? { task, delivered: false, note: workflowContentNote } : { task };
 };
+
+// Isolated workflow runs never see free-form crew text; say so instead of implying delivery.
+const workflowContentNote =
+  'Content is a visible handoff note only and is not sent to the isolated workflow run. To deliver a user correction to the Writer, use pitchcrew_application_quality with action writing_correct, the user message ID and an exact quote.';
 
 /** A lead assigns chat-only subtasks to several agents and collects every result in one turn. */
 export const delegateRound = (
@@ -115,9 +126,13 @@ export const notifyUser = (
     })
     .strict()
     .parse(data);
-  const messages = context.board.list<ChatMessage>('message');
-  if (messages.filter((m) => m.runId === capability.runId && m.notification).length >= 3)
-    throw new Error('Three user notifications maximum per run.');
+  // Count in SQLite instead of parsing every saved message.
+  const { sent } = context.board.db
+    .prepare(
+      "SELECT count(*) AS sent FROM entities WHERE kind='message' AND json_extract(json,'$.runId')=? AND json_extract(json,'$.notification') IS NOT NULL AND json_extract(json,'$.notification') NOT IN ('',0)",
+    )
+    .get(capability.runId) as { sent: number };
+  if (sent >= 3) throw new Error('Three user notifications maximum per run.');
   const run = context.board.get<import('@pitchcrew/core').Run>('run', capability.runId);
   return {
     message: context.addMessage(

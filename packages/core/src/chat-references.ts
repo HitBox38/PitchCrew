@@ -29,7 +29,7 @@ export const skillToken = (name: string, id?: string): string => {
 };
 
 /** Code, links and URLs cannot accidentally select instructions or recipients. */
-export const protectedChatRanges = (text: string): [number, number][] => {
+const protectedChatRanges = (text: string): [number, number][] => {
   const ranges: [number, number][] = [];
   const pattern = /(`+|~{3,})|!?\[[^\]\n]*\]\([^\n)]*\)|https?:\/\/\S+/g;
   for (let match = pattern.exec(text); match; match = pattern.exec(text)) {
@@ -58,6 +58,15 @@ export const chatTokens = (text: string): ChatToken[] => {
     });
   }
   return tokens;
+};
+/** @mentions of participants address only them; an unaddressed message goes to every participant. */
+export const mentionedParticipants = (content: string, participants: string[]): string[] => {
+  const mentions = new Set(
+    chatTokens(content)
+      .filter((token) => token.symbol === '@')
+      .map((token) => token.query),
+  );
+  return mentions.size ? participants.filter((id) => mentions.has(id)) : participants;
 };
 
 export const chatTrigger = (text: string, caret: number): ChatToken | null => {

@@ -28,6 +28,9 @@ export interface RuntimeModelCatalog {
   modelDetail: string;
 }
 export interface RuntimeInfo extends RuntimeHealth, RuntimeModelCatalog {
+  /** Adapter traits copied by the daemon for the UI. Absent means false. */
+  applicationIsolation?: boolean;
+  customReasoning?: boolean;
   /** Configuration can block execution independently of a compatible installation. */
   configurationError?: {
     code: 'credentials_unreadable';
@@ -77,6 +80,8 @@ export interface RuntimeAdapter {
   applicationIsolation?: true;
   /** Audited independent restricted CLI children; no native shell/subagent tools. */
   reviewSubagents?: { maxConcurrent: number };
+  /** Launch forwards `role.reasoning` as an explicit argument, so custom models may declare levels. */
+  customReasoning?: true;
   id: RuntimeId;
   sessionSupport?: 'resume';
   models: readonly RuntimeModel[];

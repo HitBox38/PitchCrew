@@ -10,7 +10,7 @@ import { modelReasoning } from '../reasoning.ts';
 import { cliEnvironment, terminateCli } from '../process.ts';
 import { runtimeCommand } from '../process/executable.ts';
 
-export const parseCopilotModels = (result: unknown): RuntimeModel[] => {
+const parseCopilotModels = (result: unknown): RuntimeModel[] => {
   const output = result as { models?: unknown } | undefined;
   if (!output || !Array.isArray(output.models)) throw new Error('Invalid Copilot model catalog.');
   return normalizeModels(

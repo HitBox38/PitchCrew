@@ -46,12 +46,13 @@ export const ProfileResizer = ({ workspace }: { workspace: ProfileWorkspaceModel
       onPointerMove={(event) => {
         if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
         const frame = event.currentTarget.parentElement!.getBoundingClientRect();
-        resize(event.clientX - frame.left - 4);
+        resize(event.clientX - frame.left - 4, false);
       }}
       onPointerUp={(event) => {
         if (event.currentTarget.hasPointerCapture(event.pointerId))
           event.currentTarget.releasePointerCapture(event.pointerId);
         setDragging(false);
+        resize(width);
       }}
       onLostPointerCapture={() => {
         setDragging(false);

@@ -13,7 +13,7 @@ import {
 } from './fonts.ts';
 import type { DocumentKind } from './types.ts';
 
-export const unshapedCharacter = (character: string, kind: DocumentKind) => {
+const unshapedCharacter = (character: string, kind: DocumentKind) => {
   const script = shapedScripts.find(([pattern]) => pattern.test(character));
   if (!script) return undefined;
   return new Error(
@@ -21,7 +21,7 @@ export const unshapedCharacter = (character: string, kind: DocumentKind) => {
   );
 };
 
-export const unsupportedCharacter = (character: string, kind: DocumentKind) => {
+const unsupportedCharacter = (character: string, kind: DocumentKind) => {
   const advice = isCjk(character)
     ? 'Install a Japanese, Chinese or Korean font such as Noto Sans CJK or Yu Gothic, or copy one into the fonts folder in the Pitchcrew data folder. You can also use DOCX or revise the packet'
     : 'Copy a font that has it into the fonts folder in the Pitchcrew data folder, use DOCX or revise the packet';

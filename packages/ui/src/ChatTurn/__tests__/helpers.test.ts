@@ -1,6 +1,6 @@
 import type { ChatMessage, Run, RunActivity } from '@pitchcrew/core';
 import { expect, it } from 'vitest';
-import { activityGroups, durationLabel, runModel, transcriptItems } from '../helpers.ts';
+import { activityGroups, elapsedLabel, runModel, transcriptItems } from '../helpers.ts';
 
 const startedAt = '2026-10-13T08:00:00.000Z';
 const entry: RunActivity = {
@@ -159,10 +159,11 @@ it('shows failures and stops even when a runtime never emitted activity or an an
   ]);
 });
 
-it('formats elapsed time for live, completed and malformed timestamps', () => {
-  expect(durationLabel(startedAt, null, Date.parse(startedAt) + 62000)).toBe('1m 2s');
-  expect(durationLabel(startedAt, startedAt, Date.parse(startedAt) + 62000)).toBe('0s');
-  expect(durationLabel('bad', null, 0)).toBe('0s');
+it('formats elapsed time for running, instant, negative and malformed durations', () => {
+  expect(elapsedLabel(62000)).toBe('1m 2s');
+  expect(elapsedLabel(0)).toBe('0s');
+  expect(elapsedLabel(-5000)).toBe('0s');
+  expect(elapsedLabel(Number.NaN)).toBe('0s');
 });
 
 it('names the model and reasoning a turn ran with, falling back to the runtime', () => {

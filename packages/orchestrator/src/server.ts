@@ -4,6 +4,8 @@ import { registerRuntimeConnectionRoutes } from './http/routes/runtime-connectio
 import { registerRuntimeModelPreferenceRoutes } from './http/routes/runtime-model-preferences.ts';
 import { registerSnapshot } from './http/snapshot.ts';
 import { registerExternalMcpRoutes } from './http/routes/external-mcp.ts';
+import { registerRemoteMcpRoutes } from './http/routes/remote-mcp.ts';
+import { RemoteMcpAccess } from './remote-mcp/index.ts';
 import { failureCategory } from '@pitchcrew/core/operational-logs';
 import { recordOperationalLog } from './telemetry/logs.ts';
 import { httpFailureOperation, httpLogCorrelation } from './telemetry/http.ts';
@@ -103,6 +105,7 @@ const startDaemon = async (options: DaemonOptions, releaseLock: () => Promise<vo
   );
   service.runtimeMaintenance.enabled = options.runtimeUpdateChecks ?? false;
   service.runtimeMaintenance.authenticationEnabled = options.runtimeAuthenticationChecks ?? false;
+  const remoteMcp = new RemoteMcpAccess(options.directory, service.externalCall);
   const app = Fastify({ bodyLimit: 1024 * 1024, forceCloseConnections: true });
   const http = app.server;
   const sessions = new Set<string>();
@@ -121,7 +124,11 @@ const startDaemon = async (options: DaemonOptions, releaseLock: () => Promise<vo
     http.closeAllConnections();
     for (const stream of chatStreams) stream.destroy();
     diagnostics.clear();
-    await service.close();
+    try {
+      await remoteMcp.stop();
+    } finally {
+      await service.close();
+    }
   });
   app.setErrorHandler((error, req, res) => {
     if (res.raw.headersSent) return;
@@ -157,6 +164,7 @@ const startDaemon = async (options: DaemonOptions, releaseLock: () => Promise<vo
     );
     registerJsonBody(app);
     app.register(async (routes) => registerExternalMcpRoutes(routes, service));
+    app.register(async (routes) => registerRemoteMcpRoutes(routes, remoteMcp));
     app.get('/api/health', () => ({
       app: 'pitchcrew',
       version: '0.1.0',

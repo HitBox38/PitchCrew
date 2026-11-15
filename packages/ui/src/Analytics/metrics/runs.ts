@@ -1,3 +1,4 @@
+import { runLifecycle } from '@pitchcrew/core/lifecycles';
 import type { DiagnosticSink, Run } from '@pitchcrew/core';
 import { durationLimitMs, runOutcomes, sanitizeRunMetric } from './sanitize.ts';
 
@@ -37,7 +38,7 @@ export const createRunMetrics = (
         if (!entry) {
           const start = Date.parse(run.startedAt);
           if (
-            !['running', 'waiting'].includes(run.status) ||
+            !runLifecycle.is('live', run.status) ||
             !Number.isFinite(start) ||
             start < sessionStart ||
             start > now() ||

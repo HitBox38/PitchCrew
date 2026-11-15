@@ -1,4 +1,4 @@
-import { timeAgo } from '@/lib/time.ts';
+import { timeAgo, useClock } from '@/lib/time.ts';
 
 export const MessageTimestamp = ({
   createdAt,
@@ -6,15 +6,18 @@ export const MessageTimestamp = ({
 }: {
   createdAt: string;
   timestamp?: string;
-}) => (
-  <time
-    dateTime={timestamp}
-    title={
-      timestamp !== createdAt
-        ? `Written ${new Date(createdAt).toLocaleString()} · Sent ${new Date(timestamp).toLocaleString()}`
-        : new Date(timestamp).toLocaleString()
-    }
-  >
-    {timeAgo(timestamp)}
-  </time>
-);
+}) => {
+  useClock();
+  return (
+    <time
+      dateTime={timestamp}
+      title={
+        timestamp !== createdAt
+          ? `Written ${new Date(createdAt).toLocaleString()} · Sent ${new Date(timestamp).toLocaleString()}`
+          : new Date(timestamp).toLocaleString()
+      }
+    >
+      {timeAgo(timestamp)}
+    </time>
+  );
+};

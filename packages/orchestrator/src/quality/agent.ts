@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
-import { assertConfirmedContext, digestPacket } from '@pitchcrew/board';
+import { assertConfirmedContext, digestPacket, runsWithStatus } from '@pitchcrew/board';
 import {
+  approvalLifecycle,
   qualityAgentInput,
   detectorRevisionPrefix,
   defaultCapabilities,
@@ -131,9 +132,9 @@ export const qualityAgentAction = async (
     if (workflowSeat(writer) !== 'writer')
       throw new Error('Choose an agent assigned to the Writer workflow.');
     if (
-      context.board
-        .list<Run>('run')
-        .some((r) => r.cardId === card.id && r.id !== run.id && r.status === 'running')
+      runsWithStatus(context.board, ['running']).some(
+        (r) => r.cardId === card.id && r.id !== run.id,
+      )
     )
       throw new Error('Another run owns this application.');
     const existing = context.board
@@ -172,15 +173,14 @@ export const qualityAgentAction = async (
       );
       for (const approval of context.board
         .list<Approval>('approval')
-        .filter((a) => a.cardId === card.id && ['pending', 'approved'].includes(a.status)))
+        .filter((a) => a.cardId === card.id && approvalLifecycle.is('open', a.status)))
         context.board.record(
           'approval',
           { ...approval, status: 'rejected', decidedAt: new Date().toISOString() },
           'user',
           'Correction invalidated unused export approval',
         );
-      context.board.record(
-        'card',
+      context.board.crewMove(
         {
           ...card,
           state: 'changes_requested',

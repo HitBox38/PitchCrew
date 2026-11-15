@@ -1,6 +1,0 @@
-import type { DropdownMenuPortalProps } from '../types.ts';
-import { Menu as MenuPrimitive } from '@base-ui/react/menu';
-
-export const DropdownMenuPortal = ({ ...props }: DropdownMenuPortalProps) => {
-  return <MenuPrimitive.Portal data-slot="dropdown-menu-portal" {...props} />;
-};

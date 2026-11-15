@@ -8,7 +8,7 @@ let browser: Browser;
 let page: Page;
 
 beforeAll(async () => {
-  host = await setup(14619);
+  host = await setup();
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
   const conversation = host.daemon.service.createConversation({
     title: 'Layout question',

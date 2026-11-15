@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 import { importLimits } from '@pitchcrew/core';
 
-export const normalizeTime = (value: unknown, stats: LegacyTrackerStats) => {
+const normalizeTime = (value: unknown, stats: LegacyTrackerStats) => {
   const text = String(value ?? '').trim();
   if (!text) return undefined;
   if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
@@ -13,7 +13,7 @@ export const normalizeTime = (value: unknown, stats: LegacyTrackerStats) => {
   const time = Date.parse(iso);
   return Number.isNaN(time) ? text : new Date(time).toISOString();
 };
-export const titleFromFolder = (folder: string, company: string) => {
+const titleFromFolder = (folder: string, company: string) => {
   const segments = String(folder)
     .split(/[\\/]+/)
     .map((segment) => segment.trim())

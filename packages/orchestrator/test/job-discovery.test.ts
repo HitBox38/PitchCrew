@@ -26,8 +26,8 @@ import {
   recordedBoards,
 } from './helpers/job-boards.ts';
 
-const withSources = async (port: number) => {
-  const context = await setup(port);
+const withSources = async () => {
+  const context = await setup();
   const boards = recordedBoards();
   context.daemon.service.jobSources.fetch = boards.fetcher;
   const added: JobSource[] = [];
@@ -86,7 +86,7 @@ const discovered = (cards: Card[]) => cards.filter((card) => card.discovery);
 
 describe('job sources over HTTP', () => {
   it('keeps source management and scans behind the local UI session', async () => {
-    const { daemon, request, cookie } = await setup(15461);
+    const { daemon, request, cookie } = await setup();
     const token = fakeRun(daemon, 'http-boundary');
     enableDiscovery(daemon, true);
     const attempts: Record<string, string>[] = [
@@ -121,7 +121,7 @@ describe('job sources over HTTP', () => {
   it.each(['pause', 'remove', 'edit'] as const)(
     'does not create stale leads when a source is changed during a scan: %s',
     async (change) => {
-      const { daemon } = await setup(15480);
+      const { daemon } = await setup();
       const manager = daemon.service.jobSources;
       const source = await manager.add(fixtureSources.lever);
       let release!: (response: Response) => void;
@@ -153,7 +153,7 @@ describe('job sources over HTTP', () => {
   );
 
   it('rechecks discovery permission before saving asynchronously fetched jobs', async () => {
-    const { daemon } = await setup(15481);
+    const { daemon } = await setup();
     const manager = daemon.service.jobSources;
     await manager.add(fixtureSources.lever);
     enableDiscovery(daemon, true);
@@ -178,7 +178,7 @@ describe('job sources over HTTP', () => {
   });
 
   it('adds, edits, pauses and removes sources with validation and caps', async () => {
-    const { request, added, directory } = await withSources(15462);
+    const { request, added, directory } = await withSources();
     expect(added.map((source) => source.filters)).toEqual(
       added.map(() => ({
         titleInclude: [],
@@ -235,7 +235,7 @@ describe('job sources over HTTP', () => {
   });
 
   it('previews matching postings without creating cards', async () => {
-    const { request, boards } = await withSources(15463);
+    const { request, boards } = await withSources();
     const { result } = await request<JobSourcePreview>('/job-sources/preview', 'POST', {
       ...fixtureSources.greenhouse,
       filters: { titleInclude: ['engineer'], titleExclude: ['intern'] },
@@ -250,7 +250,7 @@ describe('job sources over HTTP', () => {
   });
 
   it('scans into leads with provenance and never re-adds known or withdrawn jobs', async () => {
-    const { daemon, request, added, boards } = await withSources(15464);
+    const { daemon, request, added, boards } = await withSources();
     // A manually added card with the same canonical URL is a duplicate.
     await request('/cards', 'POST', {
       company: 'Fabrikam',
@@ -302,7 +302,7 @@ describe('job sources over HTTP', () => {
   });
 
   it('reports failed sources without stopping the others', async () => {
-    const { daemon, request } = await withSources(15465);
+    const { daemon, request } = await withSources();
     daemon.service.jobSources.fetch = recordedBoards({
       [fixtureUrls.lever]: () => jsonResponse({ message: 'Document not found' }, 404),
       [fixtureUrls.ashby]: () =>
@@ -324,7 +324,7 @@ describe('job sources over HTTP', () => {
 
 describe('agent scans', () => {
   it('requires discoverJobs and accepts only saved source IDs', async () => {
-    const { daemon, added } = await withSources(15466);
+    const { daemon, added } = await withSources();
     const token = fakeRun(daemon, 'agent-scan');
     expect(await daemon.service.agentCall(token, 'job_discovery_access', {})).toEqual({
       discoverJobs: false,
@@ -377,7 +377,7 @@ describe('agent scans', () => {
   });
 
   it('defaults discoverJobs off for every seeded role', async () => {
-    const { daemon } = await setup(15467);
+    const { daemon } = await setup();
     for (const role of daemon.service.board.list<Role>('role'))
       expect({ ...defaultCapabilities, ...role.capabilities }.discoverJobs, role.id).toBe(false);
     expect(daemon.service.board.get<Role>('role', 'scout').instructions).toContain(
@@ -399,7 +399,7 @@ describe('agent scans', () => {
         signalStarted(context.signal);
       });
     });
-    const { daemon, request } = await withSources(15468);
+    const { daemon, request } = await withSources();
     enableDiscovery(daemon, true);
     const routine = await request<{ id: string }>('/routines', 'POST', {
       name: 'Morning job scan',
@@ -435,7 +435,7 @@ describe('agent scans', () => {
 
 describe('event version 10', () => {
   it('replays discovered cards and keeps older versions decodable', async () => {
-    const { daemon, request } = await withSources(15469);
+    const { daemon, request } = await withSources();
     await scan(request);
     const before = daemon.service.board.list<Card>('card');
     const legacy = daemon.service.board.events(1)[0];
@@ -459,7 +459,7 @@ describe('event version 10', () => {
   });
 
   it('caps new leads per scan and leaves the rest for later', async () => {
-    const { daemon } = await setup(15470);
+    const { daemon } = await setup();
     const source = { id: 's', name: 'Fictional Many', provider: 'lever' as const, slug: 'many' };
     const items = Array.from({ length: 4 }, (_, index) => ({
       source,
@@ -485,8 +485,8 @@ describe('event version 10', () => {
 });
 
 describe('Comeet and Workable sources', () => {
-  const withMoreSources = async (port: number) => {
-    const context = await setup(port);
+  const withMoreSources = async () => {
+    const context = await setup();
     const boards = recordedBoards();
     context.daemon.service.jobSources.fetch = boards.fetcher;
     const added: JobSource[] = [];
@@ -503,7 +503,7 @@ describe('Comeet and Workable sources', () => {
       .join('\n');
 
   it('validates provider-specific identifiers over HTTP', async () => {
-    const { request } = await withMoreSources(15490);
+    const { request } = await withMoreSources();
     const { token: _token, ...withoutToken } = moreFixtureSources.comeet;
     for (const body of [
       withoutToken,
@@ -537,7 +537,7 @@ describe('Comeet and Workable sources', () => {
   });
 
   it('scans both into leads with provenance and keeps the token out of events and agents', async () => {
-    const { daemon, request, added, boards } = await withMoreSources(15491);
+    const { daemon, request, added, boards } = await withMoreSources();
     const first = await scan(request);
     expect(first.result).toMatchObject({ new: 7, duplicate: 0, filtered: 0, failedSources: 0 });
     expect(new Set(boards.calls.map((call) => call.url))).toEqual(
@@ -588,7 +588,7 @@ describe('Comeet and Workable sources', () => {
   });
 
   it('reports rejected Comeet credentials and redacts the token from errors', async () => {
-    const { daemon, request } = await withMoreSources(15492);
+    const { daemon, request } = await withMoreSources();
     daemon.service.jobSources.fetch = async (url) => {
       if (url.includes('comeet')) throw new Error(`connection reset while reading ${url}`);
       return jsonResponse({ error: 'unknown account' }, 404);
@@ -612,7 +612,7 @@ describe('Comeet and Workable sources', () => {
   });
 
   it('dedupes Comeet office-only scans and never saves echoed token text', async () => {
-    const { daemon, request, added } = await withMoreSources(15497);
+    const { daemon, request, added } = await withMoreSources();
     const office = {
       uid: 'A1.00D-B3.C4D',
       name: 'Engineer',
@@ -643,7 +643,7 @@ describe('Comeet and Workable sources', () => {
   });
 
   it('loads job-sources.json files saved before Comeet and Workable', async () => {
-    const { daemon, request } = await setup(15493);
+    const { daemon, request } = await setup();
     const manager = daemon.service.jobSources;
     const legacy = [
       {
@@ -686,7 +686,7 @@ describe('Comeet and Workable sources', () => {
   });
 
   it('replays Comeet and Workable provenance without a new event version', async () => {
-    const { daemon, request } = await withMoreSources(15494);
+    const { daemon, request } = await withMoreSources();
     await scan(request);
     const before = daemon.service.board.list<Card>('card');
     const legacy = daemon.service.board.events(1)[0];
@@ -726,7 +726,7 @@ describe('Comeet and Workable sources', () => {
 
 describe('Ashby board names with dots and spaces', () => {
   it('saves, scans and dedupes dotted and spaced Ashby boards', async () => {
-    const { daemon, request } = await setup(15495);
+    const { daemon, request } = await setup();
     const urls = {
       spaced:
         'https://api.ashbyhq.com/posting-api/job-board/Northwind%20Labs?includeCompensation=true',

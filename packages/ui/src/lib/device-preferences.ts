@@ -82,9 +82,9 @@ export const analyticsKey = 'pitchcrew-analytics-enabled-v1';
 export const diagnosticsKey = 'pitchcrew-diagnostics-enabled-v1';
 export const replayKey = 'pitchcrew-replay-enabled-v1';
 export const updatesKey = 'pitchcrew-automatic-updates-v1';
-export const jsonFormatOnSaveKey = 'pitchcrew-json-format-on-save-v1';
-export const jsonFormatOnPasteKey = 'pitchcrew-json-format-on-paste-v1';
-export const jsonFormatOnTypeKey = 'pitchcrew-json-format-on-type-v1';
+const jsonFormatOnSaveKey = 'pitchcrew-json-format-on-save-v1';
+const jsonFormatOnPasteKey = 'pitchcrew-json-format-on-paste-v1';
+const jsonFormatOnTypeKey = 'pitchcrew-json-format-on-type-v1';
 
 interface DevicePreferences {
   jsonFormatOnPaste: boolean;

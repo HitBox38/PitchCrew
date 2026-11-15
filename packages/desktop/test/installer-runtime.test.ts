@@ -2,6 +2,7 @@ import { afterEach, expect, test } from 'vitest';
 import {
   pruneRuntimeDependencies,
   materializeWorkspacePackages,
+  stageRuntimeSources,
 } from '../../../scripts/installer-runtime.ts';
 import { lstat, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -26,6 +27,23 @@ afterEach(async () => {
       throw new Error('Unsafe fixture cleanup path.');
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+test('stages dependency patches with their manifest before the frozen runtime install', async () => {
+  const directory = await workspace();
+  const root = join(directory, 'source');
+  const runtime = join(directory, 'runtime');
+  const patch = 'patches/@example%2Fui@1.0.0.patch';
+  const patchText = 'diff --git a/index.js b/index.js\n';
+  await packageAt(root, 'fixture', { patchedDependencies: { '@example/ui@1.0.0': patch } });
+  await mkdir(join(root, 'patches'), { recursive: true });
+  await writeFile(join(root, patch), patchText);
+  await writeFile(join(root, 'README.md'), 'Not needed in the runtime.');
+  await stageRuntimeSources(root, runtime, ['package.json', patch, 'README.md']);
+  const metadata = JSON.parse(await readFile(join(runtime, 'package.json'), 'utf8'));
+  for (const path of Object.values(metadata.patchedDependencies) as string[])
+    expect(await readFile(join(runtime, path), 'utf8')).toBe(patchText);
+  await expect(lstat(join(runtime, 'README.md'))).rejects.toMatchObject({ code: 'ENOENT' });
 });
 
 test('keeps transitive, nested, optional and installed peer dependencies while dropping unused UI packages', async () => {

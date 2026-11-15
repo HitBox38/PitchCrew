@@ -1,9 +1,11 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { detectCli, runCliText, withChat } from '../process.ts';
+import { withMcpConfigFile } from '../process/mcp-config.ts';
 import { copilotModelArgs, readCopilotModels } from './models.ts';
 
 export const copilotCli = withChat({
+  customReasoning: true,
   id: 'copilot-cli',
   // https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference#supported-models
   models: [
@@ -31,58 +33,63 @@ export const copilotCli = withChat({
       JSON.stringify({ disableAllHooks: true }),
       { mode: 0o600 },
     );
-    const args = [
-      '--output-format',
-      'json',
-      '--available-tools',
-      'pitchcrew/*',
-      '--allow-tool',
-      'pitchcrew',
-      '--deny-tool',
-      'shell,write,read,url,memory',
-      '--disable-builtin-mcps',
-      '--additional-mcp-config',
-      JSON.stringify({
-        mcpServers: { pitchcrew: { ...context.mcp, type: 'local', tools: ['*'] } },
-      }),
-      '--mode',
-      'interactive',
-      '--no-ask-user',
-      '--no-auto-update',
-      '--no-bash-env',
-      '--no-custom-instructions',
-      '--no-experimental',
-      '--no-remote',
-      '--no-remote-export',
-      '--log-level',
-      'none',
-      '--secret-env-vars',
-      'PITCHCREW_RUN_TOKEN',
-    ];
-    if (context.role.model) args.push('--model', context.role.model);
-    if (context.role.reasoning) args.push('--reasoning-effort', context.role.reasoning);
-    return runCliText(
-      'copilot',
-      args,
-      context,
-      prompt,
-      (event) => {
-        const data = event.data as { content?: string } | undefined;
-        return event.type === 'assistant.message' && typeof data?.content === 'string'
-          ? data.content
-          : null;
-      },
-      {
-        // Keep native keychain/environment authentication; never import config-file tokens.
-        COPILOT_HOME: configDirectory,
-        COPILOT_ALLOW_ALL: 'false',
-        COPILOT_AUTO_UPDATE: 'false',
-        COPILOT_SKILLS_DIRS: '',
-        COPILOT_CUSTOM_INSTRUCTIONS_DIRS: '',
-        COPILOT_MCP_TOOL_CACHE: 'false',
-        COPILOT_ENABLE_INTERRUPTED_SESSION_RESTORE: '0',
-        GITHUB_COPILOT_PROMPT_MODE_EXTENSIONS: 'false',
-        GITHUB_COPILOT_PROMPT_MODE_REPO_HOOKS: 'false',
+    return withMcpConfigFile(
+      context.directory,
+      { mcpServers: { pitchcrew: { ...context.mcp, type: 'local', tools: ['*'] } } },
+      (mcpConfig) => {
+        const args = [
+          '--output-format',
+          'json',
+          '--available-tools',
+          'pitchcrew/*',
+          '--allow-tool',
+          'pitchcrew',
+          '--deny-tool',
+          'shell,write,read,url,memory',
+          '--disable-builtin-mcps',
+          // `@path` keeps the scoped run token out of the process command line.
+          '--additional-mcp-config',
+          `@${mcpConfig}`,
+          '--mode',
+          'interactive',
+          '--no-ask-user',
+          '--no-auto-update',
+          '--no-bash-env',
+          '--no-custom-instructions',
+          '--no-experimental',
+          '--no-remote',
+          '--no-remote-export',
+          '--log-level',
+          'none',
+          '--secret-env-vars',
+          'PITCHCREW_RUN_TOKEN',
+        ];
+        if (context.role.model) args.push('--model', context.role.model);
+        if (context.role.reasoning) args.push('--reasoning-effort', context.role.reasoning);
+        return runCliText(
+          'copilot',
+          args,
+          context,
+          prompt,
+          (event) => {
+            const data = event.data as { content?: string } | undefined;
+            return event.type === 'assistant.message' && typeof data?.content === 'string'
+              ? data.content
+              : null;
+          },
+          {
+            // Keep native keychain/environment authentication; never import config-file tokens.
+            COPILOT_HOME: configDirectory,
+            COPILOT_ALLOW_ALL: 'false',
+            COPILOT_AUTO_UPDATE: 'false',
+            COPILOT_SKILLS_DIRS: '',
+            COPILOT_CUSTOM_INSTRUCTIONS_DIRS: '',
+            COPILOT_MCP_TOOL_CACHE: 'false',
+            COPILOT_ENABLE_INTERRUPTED_SESSION_RESTORE: '0',
+            GITHUB_COPILOT_PROMPT_MODE_EXTENSIONS: 'false',
+            GITHUB_COPILOT_PROMPT_MODE_REPO_HOOKS: 'false',
+          },
+        );
       },
     );
   },

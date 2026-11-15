@@ -2,28 +2,45 @@ import { useEffect } from 'react';
 import { create } from 'zustand';
 
 /**
- * A request, from anywhere in the shell (command palette, the sidebar's New menu), for Profile to
- * start a new note. Callers navigate to /profile and call `requestNewNote`; the mounted Profile
- * page consumes the request once through `useNewNoteRequest`.
+ * Requests, from anywhere in the shell (command palette, the sidebar's New menu), for Profile to
+ * start a new note or open an existing one. Callers navigate to /profile and call
+ * `requestNewNote` or `requestOpenNote`; the mounted Profile page consumes each request once.
  */
-const useNewNoteStore = create<{ pending: number; request: () => void; take: () => boolean }>(
-  (set, get) => ({
-    pending: 0,
-    request: () => set({ pending: get().pending + 1 }),
-    take: () => {
-      if (!get().pending) return false;
-      set({ pending: 0 });
-      return true;
-    },
-  }),
-);
+const useNoteRequests = create<{
+  pending: number;
+  open: { name: string; find: string } | null;
+  request: () => void;
+  take: () => boolean;
+}>((set, get) => ({
+  pending: 0,
+  open: null,
+  request: () => set({ pending: get().pending + 1 }),
+  take: () => {
+    if (!get().pending) return false;
+    set({ pending: 0 });
+    return true;
+  },
+}));
 
-export const requestNewNote = () => useNewNoteStore.getState().request();
+export const requestNewNote = () => useNoteRequests.getState().request();
+/** Opens a note on Profile; `find` (a search the user typed) moves the editor to its match. */
+export const requestOpenNote = (name: string, find = '') =>
+  useNoteRequests.setState({ open: { name, find } });
 
 /** Profile calls this with its own note creation; a pending request runs once. */
 export const useNewNoteRequest = (createNote: () => unknown) => {
-  const pending = useNewNoteStore((state) => state.pending);
+  const pending = useNoteRequests((state) => state.pending);
   useEffect(() => {
-    if (pending && useNewNoteStore.getState().take()) void createNote();
+    if (pending && useNoteRequests.getState().take()) void createNote();
   }, [pending, createNote]);
+};
+
+/** Profile calls this to open a note the palette chose; the request runs once. */
+export const useOpenNoteRequest = (openNote: (name: string, find: string) => void) => {
+  const open = useNoteRequests((state) => state.open);
+  useEffect(() => {
+    if (!open) return;
+    useNoteRequests.setState({ open: null });
+    openNote(open.name, open.find);
+  }, [open, openNote]);
 };

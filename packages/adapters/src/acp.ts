@@ -1,11 +1,6 @@
-import type { ChatContext, RunContext, RunResult } from '@pitchcrew/core';
+import type { ChatContext, RunContext } from '@pitchcrew/core';
 import { spawn } from 'node:child_process';
-import {
-  parseWorkflowResult,
-  runtimeEnvironment,
-  runtimeTimeLimit,
-  terminateCli,
-} from './process.ts';
+import { runtimeEnvironment, runtimeTimeLimit, terminateCli } from './process.ts';
 import { activityStream } from './activity/index.ts';
 import { replyPreview } from './streaming.ts';
 import { runtimeCommand } from './process/executable.ts';
@@ -13,15 +8,6 @@ import { terminalRedactor } from './process/sign-in-terminal-redaction.ts';
 import { redactRuntimeConnectionSecrets } from './process/runtime-connection.ts';
 
 // A single ACP session and prompt; the native runtime owns the agent loop.
-export const runAcp = async (
-  command: string,
-  args: string[],
-  context: RunContext,
-  prompt: string,
-  env: Record<string, string> = {},
-): Promise<RunResult> => {
-  return parseWorkflowResult(await runAcpText(command, args, context, prompt, env), context);
-};
 export const runAcpText = async (
   command: string,
   args: string[],

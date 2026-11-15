@@ -6,7 +6,7 @@ import { randomUUID } from 'node:crypto';
 
 afterEach(cleanup);
 it('sends a terminal run once after its live activity is removed, and skips old saved runs', async () => {
-  const { daemon } = await setup(15093);
+  const { daemon } = await setup();
   const run: Run = {
     id: randomUUID(),
     roleId: 'scout',
@@ -32,7 +32,7 @@ it('sends a terminal run once after its live activity is removed, and skips old 
 });
 
 it('streams the effective model and reasoning without the configuration snapshot', async () => {
-  const { daemon } = await setup(15094);
+  const { daemon } = await setup();
   const scout = daemon.service.board.get<Role>('role', 'scout');
   const role = { ...scout, model: 'sonnet', reasoning: null };
   const run: Run = {

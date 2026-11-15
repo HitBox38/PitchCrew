@@ -1,75 +1,88 @@
-import { Copy, FilePlus2, FolderPlus, MoreHorizontal, Search } from 'lucide-react';
+import { FilePlus2, FolderPlus, Search, X } from 'lucide-react';
 import { Input } from '@pitchcrew/design-system/input';
 import { Button } from '@pitchcrew/design-system/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@pitchcrew/design-system/dropdown-menu';
-import { copyText } from '@/lib/clipboard.ts';
+import { ProfileNotesLocation } from './ProfileNotesLocation.tsx';
 
+/**
+ * The explorer's head, like a code editor's: a "Notes" row with new note, new folder and where
+ * notes live, then a full-width search over names and text.
+ */
 export const ProfileTreeSearch = ({
   query,
   setQuery,
   folder,
   directory,
+  count,
   working,
   createNote,
   createFolder,
+  restore,
 }: {
   query: string;
   setQuery: (query: string) => void;
   folder: string;
   directory: string;
+  count: number;
   working: boolean;
   createNote: () => void;
   createFolder: () => void;
+  restore: (trashId: string) => Promise<boolean>;
 }) => {
-  const where = folder || 'profile folder';
+  const where = folder ? `in ${folder}` : 'at the top level';
   return (
-    <div className="profile-tree-search">
-      <div className="relative min-w-0 flex-1">
+    <div className="profile-tree-head">
+      <div className="profile-tree-title">
+        <h2>
+          {query.trim() ? 'Results' : 'Notes'} <span className="profile-tree-count">{count}</span>
+        </h2>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={`New note ${where}`}
+          title={`New note ${where}`}
+          disabled={working}
+          onClick={createNote}
+        >
+          <FilePlus2 size={16} aria-hidden="true" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={`New folder ${where}`}
+          title={`New folder ${where}`}
+          disabled={working}
+          onClick={createFolder}
+        >
+          <FolderPlus size={16} aria-hidden="true" />
+        </Button>
+        <ProfileNotesLocation directory={directory} restore={restore} />
+      </div>
+      <div className="profile-tree-search">
         <Search size={14} aria-hidden="true" className="profile-tree-search-icon" />
         <Input
           type="search"
-          aria-label="Search profile notes"
-          placeholder="Find a note"
+          aria-label="Search notes by name or text"
+          placeholder="Search names and text"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape' && query) {
+              event.preventDefault();
+              setQuery('');
+            }
+          }}
         />
+        {query ? (
+          <button
+            type="button"
+            className="profile-tree-search-clear"
+            aria-label="Clear search"
+            onClick={() => setQuery('')}
+          >
+            <X size={14} aria-hidden="true" />
+          </button>
+        ) : null}
       </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={<Button variant="ghost" size="icon-sm" />}
-          aria-label="Note tree actions"
-        >
-          <MoreHorizontal size={16} />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-64">
-          <DropdownMenuGroup>
-            <DropdownMenuLabel>In {where}</DropdownMenuLabel>
-            <DropdownMenuItem disabled={working} onClick={createNote}>
-              <FilePlus2 size={15} /> New note
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled={working} onClick={createFolder}>
-              <FolderPlus size={15} /> New folder
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuLabel className="profile-tree-path" title={directory}>
-              Saved on this device in {directory}
-            </DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => copyText(directory, 'Copied the notes folder path')}>
-              <Copy size={15} /> Copy notes folder path
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
     </div>
   );
 };

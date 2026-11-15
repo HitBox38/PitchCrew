@@ -43,7 +43,7 @@ export const jobNextAction = (model: CardDetailsModel): JobNextAction => {
       perform: () => act(`/runs/${run.id}/cancel`),
       secondary: true,
     };
-  const waiting = agents.find(({ run }) => run.status === 'waiting')?.run;
+  const waiting = agents.find(({ run, handedOff }) => run.status === 'waiting' && !handedOff)?.run;
   if (waiting?.threadId)
     return {
       label: 'Answer in job chat',

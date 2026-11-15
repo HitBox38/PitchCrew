@@ -29,15 +29,8 @@ it.skipIf(process.platform === 'win32').each(['.local/bin', '.grok/bin'])(
     const context = await contextFor('grok');
     vi.mocked(os.homedir).mockReturnValue(context.directory);
     vi.stubEnv('PATH', dirname(process.execPath));
-    for (const adapter of Object.values(adapters).filter((adapter) => adapter.id !== 'grok')) {
-      vi.spyOn(adapter, 'detect').mockResolvedValue({
-        id: adapter.id,
-        available: false,
-        version: '',
-        detail: '',
-      });
-    }
-    const { request } = await setup(14967, false, { dev: false });
+    // Every other runtime stays isolated; Grok is detected from the fixture installation.
+    const { request } = await setup(false, { dev: false, nativeRuntimes: ['grok'] });
     const before = (await request<Snapshot>('/snapshot')).result;
     expect(before.runtimes.find((runtime) => runtime.id === 'grok')?.available).toBe(false);
     const bin = join(context.directory, folder);

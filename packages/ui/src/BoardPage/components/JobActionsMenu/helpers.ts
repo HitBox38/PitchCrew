@@ -1,5 +1,7 @@
+import { cardLifecycle } from '@pitchcrew/core/lifecycles';
 import type { Card, CardState, Snapshot } from '@pitchcrew/core';
 import { workflowSeat } from '@pitchcrew/core/states';
+import { isolatesApplications } from '@/lib/runtimes.ts';
 import type { CrewShortcut } from './types.ts';
 
 export const quickStatuses = (state: CardState): CardState[] => {
@@ -29,9 +31,9 @@ export const crewShortcut = (card: Card, data: Snapshot): CrewShortcut | null =>
   const seat =
     card.state === 'lead'
       ? 'scout'
-      : ['shortlisted', 'changes_requested'].includes(card.state)
+      : cardLifecycle.is('draftable', card.state)
         ? 'writer'
-        : ['in_review', 'agreed', 'awaiting_approval'].includes(card.state)
+        : cardLifecycle.is('reviewable', card.state)
           ? 'reviewer'
           : null;
   if (!seat) return null;
@@ -43,7 +45,7 @@ export const crewShortcut = (card: Card, data: Snapshot): CrewShortcut | null =>
   const base = { label, roleId: role?.id, draft: seat === 'writer' };
   if (card.owner) return { ...base, reason: 'Wait for this job’s active work to finish.' };
   if (!role) return { ...base, reason: `Enable an agent in the ${seat} seat in Crew.` };
-  if (!['demo', 'codex', 'claude-code', 'opencode'].includes(role.runtime))
+  if (!isolatesApplications(data.runtimes, role.runtime))
     return { ...base, reason: 'Choose a runtime that supports isolated application work in Crew.' };
   if (!data.runtimes.some((runtime) => runtime.id === role.runtime && runtime.available))
     return { ...base, reason: 'Install this agent’s runtime in Settings.' };

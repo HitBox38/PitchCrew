@@ -1,3 +1,4 @@
+import { questionAnswered } from '@/lib/question-wait.ts';
 import type { Run } from '@pitchcrew/core';
 import { ChevronRight } from 'lucide-react';
 import { CollapsibleTrigger } from '@pitchcrew/design-system/collapsible';
@@ -17,11 +18,7 @@ const outcomes = {
 };
 
 export const TurnActivityTrigger = ({ run, open }: { run: Run; open: boolean }) => {
-  const answered = useWorkspaceStore((state) =>
-    state.data?.userInputs?.some(
-      (question) => question.runId === run.id && question.status === 'answered',
-    ),
-  );
+  const answered = useWorkspaceStore((state) => questionAnswered(run.id, state.data?.userInputs));
   const handedOff = run.status === 'waiting' && answered;
   // Waiting on the user (a browser request, or a page they hold): the turn says so, not "Working".
   const { approval, held, waiting } = useRunWait(run);

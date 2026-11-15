@@ -13,7 +13,7 @@ afterAll(async () => {
 });
 
 test('lazy pages and panels suspend the way development React expects', async () => {
-  const host = await setup(14785, false, { ui: 'dev', uiCache: 'temporary' });
+  const host = await setup(false, { ui: 'dev', uiCache: 'temporary' });
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
   const { result: card } = await host.request<Card>('/cards', 'POST', {
     company: 'Lazy Fixture (fictional)',

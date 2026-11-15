@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { adapters } from '@pitchcrew/adapters';
 import {
   defaultRuntimeModelPreferences,
   runtimeIds,
@@ -65,10 +66,7 @@ export const registerRuntimeModelPreferenceRoutes = (
           'Model choices changed in another window. Your draft is kept; review the latest choices and save again.',
       });
     // Only adapters with an explicit reasoning argument can honor custom metadata.
-    if (
-      !['codex', 'claude-code', 'opencode', 'copilot-cli', 'pi', 'oh-my-pi'].includes(id) &&
-      preferences.custom.some((model) => model.reasoning)
-    )
+    if (!adapters[id].customReasoning && preferences.custom.some((model) => model.reasoning))
       throw new Error('This runtime does not support custom reasoning controls.');
     assertCustomModelsUnused(service.board, id, store.current(id).preferences, preferences);
     return store.save(id, preferences, revision);

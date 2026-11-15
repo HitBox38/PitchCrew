@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-export const findTextRanges = (
+const findTextRanges = (
   root: HTMLElement,
   query: string,
   matchCase: boolean,

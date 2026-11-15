@@ -57,7 +57,3 @@ export const conversationTranscriptIndex = (
     hidden: hiddenTranscriptMessageIds(messages, tasks, requests, startedRequestIds),
   };
 };
-
-/** Compatibility for callers needing only exclusions; records and task delivery stay untouched. */
-export const hiddenTranscriptMessages = (board: Board, thread: string) =>
-  conversationTranscriptIndex(board, thread).hidden;

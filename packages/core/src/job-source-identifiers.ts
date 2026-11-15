@@ -9,13 +9,13 @@ export const jobProviderLabels: Record<JobProvider, string> = {
   workable: 'Workable',
 };
 /** Letters, digits, hyphens and underscores only: no dots, slashes, encodings or queries. */
-export const jobBoardSlugPattern = /^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/;
+const jobBoardSlugPattern = /^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/;
 /**
  * Ashby board names can hold dots and single inner spaces (`example.io`, `Northwind Labs`):
  * parts of letters, digits, hyphens and underscores joined by one dot or one space. No leading,
  * trailing or repeated dots or spaces, so no `.`/`..` segment; slashes, `?`, `#` and `%` never match.
  */
-export const ashbyBoardPattern = /^(?=.{1,80}$)[A-Za-z0-9][A-Za-z0-9_-]*(?:[. ][A-Za-z0-9_-]+)*$/;
+const ashbyBoardPattern = /^(?=.{1,80}$)[A-Za-z0-9][A-Za-z0-9_-]*(?:[. ][A-Za-z0-9_-]+)*$/;
 /**
  * A Comeet company UID, such as `A1.B2C`: two short groups of letters or digits joined by one
  * dot. The dot is never first or last, so it cannot form a `.` or `..` path segment.

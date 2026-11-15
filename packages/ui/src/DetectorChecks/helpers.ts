@@ -6,9 +6,9 @@ import type {
   DetectorStatus,
 } from '@pitchcrew/core';
 
-/** Mirrors core's threshold; only type imports of core are allowed here. */
-export const flagThreshold = 0.5;
-export const documentLabels: Record<DetectorDocument, string> = {
+/** A provider score at or above this reads as flagged. */
+const flagThreshold = 0.5;
+const documentLabels: Record<DetectorDocument, string> = {
   coverLetter: 'Cover letter',
   formAnswers: 'Form answers',
 };
@@ -32,7 +32,7 @@ export interface DocumentRow {
   advisories: AdvisoryRow[];
 }
 
-export const advisoryTone = (advisory: DetectorAdvisory): AdvisoryRow['tone'] =>
+const advisoryTone = (advisory: DetectorAdvisory): AdvisoryRow['tone'] =>
   advisory.confidence === 'low' ? 'low' : advisory.score >= flagThreshold ? 'flagged' : 'clear';
 
 /** One row per non-empty eligible document; resumes stay out of detector scope. */
@@ -68,7 +68,7 @@ export const scoreLabel = (row: AdvisoryRow) => {
   return row.outdated ? `${base} (outdated)` : base;
 };
 /** The flagged passages, longest first, for the Writer draft; never the whole document. */
-export const flaggedExcerpts = (row: AdvisoryRow, text: string, limit = 3) =>
+const flaggedExcerpts = (row: AdvisoryRow, text: string, limit = 3) =>
   row.advisory.passages
     .filter((passage) => passage.score >= flagThreshold)
     .sort((a, b) => b.end - b.start - (a.end - a.start))

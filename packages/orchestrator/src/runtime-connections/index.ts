@@ -232,4 +232,4 @@ export class RuntimeConnections {
   };
 }
 
-export { RuntimeConnectionConflict, RuntimeConnectionReadError } from './store.ts';
+export { RuntimeConnectionConflict } from './store.ts';

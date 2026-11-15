@@ -1,3 +1,4 @@
+import { deliveryLifecycle } from '@pitchcrew/core/lifecycles';
 import { useEffect, useRef, useState } from 'react';
 import type { ChatRequest } from '@pitchcrew/core';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
@@ -14,10 +15,10 @@ export const useQueueRequest = (request: ChatRequest, queueId: string, moves: Qu
   const action = useWorkspaceStore((state) => state.action);
   const working = useWorkspaceStore((state) => state.working);
   const pending = request.deliveries.some((delivery) =>
-    ['queued', 'paused', 'failed'].includes(delivery.status),
+    deliveryLifecycle.is('unsent', delivery.status),
   );
   const failed = request.deliveries.some((delivery) =>
-    ['paused', 'failed'].includes(delivery.status),
+    deliveryLifecycle.is('stopped', delivery.status),
   );
   const editable =
     !request.boardAction &&

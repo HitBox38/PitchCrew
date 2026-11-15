@@ -18,7 +18,7 @@ const hosts: Partial<Record<RuntimeId, readonly string[]>> = {
   ],
 };
 
-export const terminalPlainText = (output: string) =>
+const terminalPlainText = (output: string) =>
   // eslint-disable-next-line no-control-regex -- Strip native VT presentation before exposing copy/link actions.
   output.replace(/\u001b\[[0-?]*[ -/]*[@-~]/g, '');
 

@@ -45,7 +45,7 @@ describe('agent conversations and crew actions', () => {
           turns.push({ context, complete: (reply) => resolve({ reply }) });
         }),
     );
-    const { daemon, request, cookie } = await setup(14446);
+    const { daemon, request, cookie } = await setup();
     const states: ChatStreamState[] = [];
     const streams: { controller: AbortController; done: Promise<void> }[] = [];
     const connect = async () => {
@@ -165,7 +165,7 @@ describe('agent conversations and crew actions', () => {
         input.onReply!('Late text');
         return { reply: status === 'failed' ? '' : 'Late final text' };
       });
-      const { daemon, request } = await setup(status === 'cancelled' ? 14447 : 14448);
+      const { daemon, request } = await setup();
       const { result: run } = await request<Run>('/roles/scout/chat', 'POST', {
         content: 'Start a turn.',
       });
@@ -185,7 +185,7 @@ describe('agent conversations and crew actions', () => {
   );
 
   it('protects the live stream with the same session, client and origin checks as snapshots', async () => {
-    const { daemon, cookie } = await setup(14449);
+    const { daemon, cookie } = await setup();
     const deniedHeaders: Record<string, string>[] = [
       { 'x-pitchcrew-client': 'ui' },
       { cookie },
@@ -203,7 +203,7 @@ describe('agent conversations and crew actions', () => {
     const content = 'Help me understand your role.';
     const competingContent = 'A competing message.';
     const release = holdDemoChats([content, competingContent]);
-    const { daemon, request } = await setup(14422);
+    const { daemon, request } = await setup();
     const results = await Promise.all([
       request<Run>('/roles/scout/chat', 'POST', { content }),
       request<Run>('/roles/scout/chat', 'POST', { content: competingContent }),
@@ -249,7 +249,7 @@ describe('agent conversations and crew actions', () => {
     const disabledMessage = 'Try a disabled capability.';
     const revisionMessage = 'Request revision.';
     const release = holdDemoChats([rootMessage, disabledMessage, revisionMessage]);
-    const { daemon, request, directory } = await setup(14423);
+    const { daemon, request, directory } = await setup();
     await request('/profile', 'PUT', {
       name: 'profile.md',
       content: '# Example Candidate\n\n- Built React interfaces.',
@@ -303,16 +303,16 @@ describe('agent conversations and crew actions', () => {
       (await request(`/proposals/${proposal.id}/decide`, 'POST', { approved: true })).response
         .status,
     ).toBe(400);
-    expect(
-      (
-        await agent({
-          action: 'invoke',
-          roleId: 'writer',
-          mode: 'workflow',
-          content: 'Draft a source-backed packet.',
-        })
-      ).response.status,
-    ).toBe(200);
+    const writerInvoke = await agent<{ delivered?: boolean; note?: string }>({
+      action: 'invoke',
+      roleId: 'writer',
+      mode: 'workflow',
+      content: 'Draft a source-backed packet.',
+    });
+    expect(writerInvoke.response.status).toBe(200);
+    // Workflow content never reaches the isolated run, so the agent is told how to route corrections.
+    expect(writerInvoke.result).toMatchObject({ delivered: false });
+    expect(writerInvoke.result.note).toContain('writing_correct');
     expect(
       (
         await agent({
@@ -332,16 +332,14 @@ describe('agent conversations and crew actions', () => {
         })
       ).response.status,
     ).toBe(200);
-    expect(
-      (
-        await agent({
-          action: 'invoke',
-          roleId: 'scout',
-          mode: 'chat',
-          content: 'Summarize your plan.',
-        })
-      ).response.status,
-    ).toBe(200);
+    const chatInvoke = await agent<{ delivered?: boolean }>({
+      action: 'invoke',
+      roleId: 'scout',
+      mode: 'chat',
+      content: 'Summarize your plan.',
+    });
+    expect(chatInvoke.response.status).toBe(200);
+    expect(chatInvoke.result.delivered).toBeUndefined();
     release(rootMessage);
     const snapshot = await waitForSnapshot(
       request,
@@ -410,26 +408,24 @@ describe('agent conversations and crew actions', () => {
     await finish(request, reviewerChat.id);
   });
 
-  it('bounds recursive follow-ups and cancels the chain without launching queued work', async () => {
+  it('queues more than six follow-ups and cancels the chain without launching queued work', async () => {
     const content = 'Plan a discussion.';
     holdDemoChats([content]);
-    const { daemon, request } = await setup(14424);
+    const { daemon, request } = await setup();
     const { result: run } = await request<Run>('/roles/scout/chat', 'POST', {
       content,
     });
     const token = [...daemon.service.capabilities.keys()][0];
-    for (let i = 0; i < 6; i++)
+    for (let i = 0; i < 8; i++)
       await daemon.service.agentCall(token, 'invoke', {
         roleId: 'scout',
         content: `Follow-up ${i}`,
         mode: 'chat',
       });
-    await expect(
-      daemon.service.agentCall(token, 'message', {
-        roleId: 'writer',
-        content: 'Seventh follow-up',
-      }),
-    ).rejects.toThrow('six follow-up limit');
+    await daemon.service.agentCall(token, 'message', {
+      roleId: 'writer',
+      content: 'Another follow-up',
+    });
     await request(`/runs/${run.id}/cancel`, 'POST');
     await expect(daemon.service.agentCall(token, 'messages', {})).rejects.toThrow('expired');
     const snapshot = await waitForSnapshot(request, (s) =>
@@ -437,12 +433,14 @@ describe('agent conversations and crew actions', () => {
     );
     expect(snapshot.runs).toHaveLength(1);
     expect(snapshot.runs[0].status).toBe('cancelled');
+    expect(snapshot.tasks).toHaveLength(9);
+    expect(snapshot.tasks.every((t) => t.rootRunId === run.id)).toBe(true);
     expect(snapshot.tasks.every((t) => t.status === 'cancelled')).toBe(true);
     expect(snapshot.messages.some((m) => m.from === 'scout' && m.to === 'user')).toBe(false);
   });
 
   it('recovers interrupted chats and queued invocations on startup', async () => {
-    const { daemon } = await setup(14425);
+    const { daemon } = await setup();
     daemon.service.board.record(
       'run',
       {
@@ -486,9 +484,12 @@ describe('agent conversations and crew actions', () => {
     expect(daemon.service.controllers.size).toBe(0);
   });
 });
-it('bounds an actual recursive self-invocation chain across descendant chat turns', async () => {
-  const { request } = await setup(14426);
+it('runs more than six recursive self-invocations across descendant chat turns', async () => {
+  const { request } = await setup();
+  const followUps = 10;
+  let turnCount = 0;
   vi.spyOn(adapters.demo, 'chat').mockImplementation(async (context) => {
+    if (turnCount++ >= followUps) return { reply: 'Finished the fixture discussion.' };
     const response = await fetch(`${context.mcp.env.PITCHCREW_DAEMON_URL}/api/agent`, {
       method: 'POST',
       headers: {
@@ -511,11 +512,11 @@ it('bounds an actual recursive self-invocation chain across descendant chat turn
   const snapshot = await waitForSnapshot(
     request,
     (s) =>
-      s.runs.length === 7 &&
+      s.runs.length === followUps + 1 &&
       s.runs.every((r) => r.status === 'completed') &&
       s.tasks.every((t) => t.status === 'completed'),
   );
-  expect(snapshot.tasks).toHaveLength(6);
+  expect(snapshot.tasks).toHaveLength(followUps);
   expect(snapshot.tasks.every((t) => t.rootRunId === root.id)).toBe(true);
-  expect(snapshot.messages.at(-1)?.content).toContain('six follow-up limit');
+  expect(snapshot.messages.at(-1)?.content).toBe('Finished the fixture discussion.');
 });

@@ -63,6 +63,7 @@ export const requestFor = async (context: RunContext) => {
     args: string[];
     prompt: string;
     environment: Record<string, string>;
+    mcpConfig?: { path: string; mode: number; content: unknown };
   };
 };
 

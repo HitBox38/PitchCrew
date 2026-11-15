@@ -8,4 +8,3 @@ export { AttachmentDescription } from './components/AttachmentDescription.tsx';
 export { AttachmentActions } from './components/AttachmentActions.tsx';
 export { AttachmentAction } from './components/AttachmentAction.tsx';
 export { AttachmentTrigger } from './components/AttachmentTrigger.tsx';
-export { AttachmentGroup } from './components/AttachmentGroup.tsx';

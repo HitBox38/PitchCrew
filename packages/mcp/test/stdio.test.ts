@@ -8,23 +8,31 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { saveAttachments } from '../../orchestrator/src/crew/attachments/storage.ts';
 import { randomUUID } from 'node:crypto';
-import { expect, it } from 'vitest';
+import { afterEach, expect, it } from 'vitest';
 import { createDaemon } from '../../orchestrator/src/server.ts';
+import {
+  isolateRuntimes,
+  reservePort,
+  restoreRuntimes,
+} from '../../orchestrator/test/helpers/daemon.ts';
 import { packet, profile } from './fixtures/evaluation.ts';
 
+afterEach(restoreRuntimes);
 it('connects the real stdio server to a scoped daemon and preserves approval boundaries', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-mcp-test-'));
   expect(resolve(directory).startsWith(resolve(tmpdir(), 'pitchcrew-mcp-test-'))).toBe(true);
+  isolateRuntimes();
+  const reservation = await reservePort();
   const daemon = await createDaemon({
     dev: true,
     ui: false,
     directory,
-    port: 14431,
+    port: reservation.port,
     seedSkills: false,
   });
   const client = new Client({ name: 'pitchcrew-contract-test', version: '1.0.0' });
   try {
-    await new Promise<void>((resolve) => daemon.http.listen(14431, '127.0.0.1', resolve));
+    await reservation.listen(daemon.http);
     for (const file of profile) await daemon.service.saveProfile(file.name, file.content);
     const board = daemon.service.board;
     const card = board.createCard(
@@ -464,11 +472,13 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
 it('discovers permitted connector tools over stdio and rechecks role permissions on every call', async () => {
   const { vi } = await import('vitest');
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-mcp-test-'));
+  isolateRuntimes();
+  const reservation = await reservePort();
   const daemon = await createDaemon({
     dev: true,
     ui: false,
     directory,
-    port: 14432,
+    port: reservation.port,
     seedSkills: false,
   });
   const client = new Client({ name: 'connector-contract-test', version: '1.0.0' });
@@ -478,7 +488,7 @@ it('discovers permitted connector tools over stdio and rechecks role permissions
     .spyOn(daemon.service.connectors, 'call')
     .mockResolvedValue({ text: 'Fixture project' });
   try {
-    await new Promise<void>((resolve) => daemon.http.listen(14432, '127.0.0.1', resolve));
+    await reservation.listen(daemon.http);
     const current = daemon.service.board.get<Role>('role', 'scout');
     await daemon.service.configureRole('scout', {
       ...current,

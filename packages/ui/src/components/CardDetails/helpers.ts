@@ -1,7 +1,10 @@
+import { runLifecycle } from '@pitchcrew/core/lifecycles';
 import type { Card, Run, Snapshot } from '@pitchcrew/core';
 import { workflowSeat } from '@pitchcrew/core/states';
 import type { ApplicationSection, JobAgent } from './types.ts';
 import { packetNeedsReview } from '@/lib/job-step.ts';
+import { questionAnswered } from '@/lib/question-wait.ts';
+import { isolatesApplications } from '@/lib/runtimes.ts';
 
 /** Stream activity overrides persisted activity without losing run identity. */
 export const jobAgents = (cardId: string, data: Snapshot): JobAgent[] => {
@@ -9,9 +12,7 @@ export const jobAgents = (cardId: string, data: Snapshot): JobAgent[] => {
   for (const run of data.activityRuns ?? []) runs.set(run.id, { ...runs.get(run.id), ...run });
   const active = [...runs.values()].filter(
     (run) =>
-      run.cardId === cardId &&
-      ['running', 'waiting'].includes(run.status) &&
-      !run.reviewSeatReservation,
+      run.cardId === cardId && runLifecycle.is('live', run.status) && !run.reviewSeatReservation,
   );
   // Answered turns stay waiting until their continuation chain finishes. Follow question
   // links rather than grouping by role or root, which can also contain independent work.
@@ -52,6 +53,10 @@ export const jobAgents = (cardId: string, data: Snapshot): JobAgent[] => {
     .map((run): JobAgent => ({
       run,
       name: data.roles.find((role) => role.id === run.roleId)?.name ?? run.roleId,
+      // Answered but its continuation has not started yet: nothing is left for the user.
+      ...(run.status === 'waiting' && questionAnswered(run.id, data.userInputs)
+        ? { handedOff: true }
+        : {}),
     }));
   return agents.map((agent) => {
     const peers = agents.filter((other) => other.name === agent.name);
@@ -66,7 +71,10 @@ export const jobAgents = (cardId: string, data: Snapshot): JobAgent[] => {
     };
   });
 };
-export const turnPreview = (run: Run) => {
+/** What an agent chip says: asking the user, handed back after an answer, or working. */
+export const agentState = ({ run, handedOff }: JobAgent) =>
+  run.status !== 'waiting' ? 'Running' : handedOff ? 'Answer saved' : 'Waiting for you';
+export const turnPreview = (run: Run, handedOff = false) => {
   const commentary = run.activity?.findLast(
     (entry) => entry.kind === 'commentary' && entry.text?.trim(),
   );
@@ -75,7 +83,11 @@ export const turnPreview = (run: Run) => {
   );
   return {
     status:
-      run.status === 'waiting' ? 'Waiting for you' : (step?.label ?? run.message ?? 'Working…'),
+      run.status === 'waiting'
+        ? handedOff
+          ? 'Answer saved'
+          : 'Waiting for you'
+        : (step?.label ?? run.message ?? 'Working…'),
     commentary: commentary?.text,
   };
 };
@@ -85,7 +97,7 @@ export const jobRole = (data: Snapshot, seat: 'scout' | 'writer' | 'reviewer') =
 export const launchBlocker = (data: Snapshot, roleId: string | undefined) => {
   const role = data.roles.find((role) => role.id === roleId);
   if (!role?.enabled || role.retiredAt) return 'Enable an application agent in Crew.';
-  if (!['demo', 'codex', 'claude-code', 'opencode'].includes(role.runtime))
+  if (!isolatesApplications(data.runtimes, role.runtime))
     return 'Choose an isolated application runtime in Crew.';
   if (!data.runtimes.some((runtime) => runtime.id === role.runtime && runtime.available))
     return 'Install this agent’s runtime in Settings.';

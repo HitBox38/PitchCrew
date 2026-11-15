@@ -78,13 +78,6 @@
   color: var(--muted);
   font-size: 11px;
 }
-.chat-review-label {
-  padding: 4px 7px;
-  font-size: 11px;
-  color: var(--ochre);
-  background: var(--ochre-soft);
-  border-radius: 6px;
-}
 .chat-proposal [data-slot='accordion'] {
   margin-top: 15px;
 }
@@ -98,22 +91,6 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-top: 12px;
-}
-.chat-capability-changes {
-  list-style: none;
-  margin: 16px 0 0;
-  padding: 0;
-}
-.chat-capability-changes li {
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 8px 0;
-  font-size: 12px;
-  border-bottom: 1px solid var(--border);
-}
-.chat-capability-changes li > span:last-child {
-  white-space: nowrap;
 }
 .chat-proposal > footer {
   margin-top: 16px;
@@ -165,20 +142,14 @@
   flex: 0 0 19px;
   height: 19px;
   margin-top: 1px;
-  border: 1px solid var(--border-strong);
-  background: var(--paper-deep);
   color: var(--muted);
   border-radius: 50%;
 }
 .chat-task.completed .chat-task-marker {
-  background: var(--moss-soft);
   color: var(--moss);
-  border-color: transparent;
 }
 .chat-task.failed .chat-task-marker {
-  background: var(--rose-soft);
   color: var(--rose);
-  border-color: transparent;
 }
 .chat-task header {
   display: flex;
@@ -252,27 +223,12 @@
   line-height: 1.6;
   color: var(--muted);
 }
-.role-capabilities {
-  display: grid;
-  gap: 12px;
-  border: 1px solid var(--border);
-  padding: 14px;
-  border-radius: 8px;
-}
-.role-capabilities legend {
-  color: var(--ink);
-  padding: 0 5px;
-}
 @variant max-chat {
   .chat-work-content {
     padding: 18px 12px 24px;
   }
   .chat-instruction-comparison {
     grid-template-columns: minmax(0, 1fr);
-  }
-  .chat-capability-changes li {
-    flex-wrap: wrap;
-    gap: 4px;
   }
   .chat-proposal {
     padding: 14px;
@@ -284,25 +240,6 @@
     flex-wrap: wrap;
     gap: 3px 8px;
   }
-}
-.connector-settings {
-  margin-top: 2rem;
-}
-.connector-settings > .quiet {
-  margin-bottom: 1rem;
-}
-.connector-authorization {
-  margin-top: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-.connector-authorization a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 /* Delegation rounds: one card per round with a member row per delegate and the collection. */
@@ -383,7 +320,7 @@
 }
 .chat-round-error {
   margin: 2px 0 0;
-  color: var(--destructive);
+  color: var(--rose);
   font-size: var(--text-label);
 }
 .chat-round-state {

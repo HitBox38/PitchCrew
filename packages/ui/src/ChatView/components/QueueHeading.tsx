@@ -1,6 +1,6 @@
 import type { ChatRequest } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/types.ts';
-import { QueueSectionTrigger } from '@/components/ai-elements/queue/index.tsx';
+import { TraceCollapsibleTrigger } from '@pitchcrew/design-system/trace';
 import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
 import { requestStatus } from '@/ClayInterface/helpers.ts';
 import { QueueRecovery } from './QueueRecovery.tsx';
@@ -21,7 +21,7 @@ export const QueueHeading = ({
   onReview: () => void;
 }) => (
   <div className="chat-queue-heading">
-    <QueueSectionTrigger className="chat-queue-trigger" aria-label={`${count} · ${state}`}>
+    <TraceCollapsibleTrigger className="chat-queue-trigger" aria-label={`${count} · ${state}`}>
       <StatusBead
         status={requestStatus(
           queued.flatMap((request) => request.deliveries.map((item) => item.status)),
@@ -29,7 +29,7 @@ export const QueueHeading = ({
       />
       <strong className="chat-queue-count">{count}</strong>
       <span className="chat-queue-state">{state}</span>
-    </QueueSectionTrigger>
+    </TraceCollapsibleTrigger>
     <QueueRecovery {...recovery} />
   </div>
 );

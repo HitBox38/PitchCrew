@@ -3,8 +3,8 @@ import { defaultCapabilities, type Card, type Role, type StaleSubmission } from 
 import { afterEach, describe, expect, it } from 'vitest';
 import { insightsByteLimit } from '../src/crew/gateway/insights.ts';
 import { cleanup, resources, setup } from './helpers/daemon.ts';
-const fixture = async (port: number) => {
-  const context = await setup(port);
+const fixture = async () => {
+  const context = await setup();
   const { daemon } = context;
   const permit = (capabilities: Partial<typeof defaultCapabilities>) => {
     const role = daemon.service.board.get<Role>('role', 'scout');
@@ -43,7 +43,7 @@ afterEach(async () => {
 
 describe('learning signals over HTTP', () => {
   it('keeps weights, lessons, tag merges and stale cleanup behind the user session', async () => {
-    const { request, daemon, agent } = await fixture(15441);
+    const { request, daemon, agent } = await fixture();
     const card = (
       await request<Card>('/cards', 'POST', {
         company: 'Juniper Analytics',
@@ -95,7 +95,7 @@ describe('learning signals over HTTP', () => {
   });
 
   it('previews and applies stale submissions only for the selected cards', async () => {
-    const { request } = await fixture(15442);
+    const { request } = await fixture();
     const register = async (company: string, days: number) =>
       (
         await request<Card>('/tracking/external', 'POST', {
@@ -132,7 +132,7 @@ describe('learning signals over HTTP', () => {
 
 describe('application insights gateway', () => {
   it('requires read applications or pipeline review on an active run', async () => {
-    const { daemon, permit, agent, request } = await fixture(15443);
+    const { daemon, permit, agent, request } = await fixture();
     const card = (
       await request<Card>('/cards', 'POST', {
         company: 'Harbor Freight Labs',
@@ -169,7 +169,7 @@ describe('application insights gateway', () => {
   });
 
   it('bounds the response size by shortening lists', async () => {
-    const { daemon, permit, agent } = await fixture(15444);
+    const { daemon, permit, agent } = await fixture();
     permit({ readApplications: true });
     for (let index = 0; index < 60; index++) {
       const card = daemon.service.board.createCard({

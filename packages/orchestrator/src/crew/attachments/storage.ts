@@ -73,5 +73,5 @@ export const prepareAttachments = async (
 };
 
 const digest = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
-export const attachmentPath = (directory: string, id: string) =>
+const attachmentPath = (directory: string, id: string) =>
   join(directory, 'chat-attachments', z.uuid().parse(id));

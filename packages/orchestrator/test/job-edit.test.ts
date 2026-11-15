@@ -4,7 +4,7 @@ import { cleanup, setup } from './helpers/daemon.ts';
 afterEach(cleanup);
 
 it('updates a job through the user session endpoint and keeps stale or invalid writes from changing it', async () => {
-  const { daemon, request } = await setup(15634);
+  const { daemon, request } = await setup();
   const card = daemon.service.createCard({
     company: 'Fixture Studio',
     title: 'Engineer',

@@ -11,6 +11,8 @@ import {
   browserActionPublic,
   browserStepLabels,
 } from '@pitchcrew/core/browser-action-labels';
+import { findRun } from '@pitchcrew/board';
+import { findEntity } from '../queue/queries.ts';
 import { randomUUID } from 'node:crypto';
 import { recordChatActivity } from '../chat-activity.ts';
 import type { CrewContext } from '../types.ts';
@@ -68,9 +70,7 @@ const browserStep = (
       },
     };
   if (action !== 'computer_execute' || typeof data?.approvalId !== 'string') return undefined;
-  const approval = context.board
-    .list<ComputerApproval>('computer_approval')
-    .find((item) => item.id === data.approvalId);
+  const approval = findEntity<ComputerApproval>(context, 'computer_approval', data.approvalId);
   if (!approval) return undefined;
   const plain = browserActionPublic(approval.action, approval.page);
   const rows = rowsFor(context);
@@ -91,6 +91,10 @@ const browserStep = (
   };
 };
 
+/** Chat turns and deep-review stages show tool activity in a transcript. */
+const hasTranscript = (run: Run | undefined): boolean =>
+  !!run && (run.mode === 'chat' || !!run.deepReviewId);
+
 export const observeChatTool = (
   context: CrewContext,
   token: string,
@@ -104,9 +108,7 @@ export const observeChatTool = (
       !capability ||
       action.endsWith('_access') ||
       action === 'report_progress' ||
-      !context.board
-        .list<Run>('run')
-        .some((run) => run.id === capability.runId && (run.mode === 'chat' || !!run.deepReviewId))
+      !hasTranscript(findRun(context.board, capability.runId))
     )
       return () => {};
     const step = browserStep(context, action, data);

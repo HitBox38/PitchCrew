@@ -29,7 +29,7 @@ beforeAll(async () => {
     body{margin:0} #marker{position:fixed;left:0;top:0;width:64px;height:64px;background:rgb(0,0,0)}
     input{position:fixed;left:100px;top:80px;width:200px} main{height:20000px;background:repeating-linear-gradient(#fff 0 40px,#bbb 40px 80px)}
     </style><div id="marker"></div><input id="name" oninput="document.querySelector('#marker').style.background='rgb('+(this.value.length*10)+',0,0)'"><main></main>`);
-  host = await setup(23949, false, { browserLaunch: async () => driver });
+  host = await setup(false, { browserLaunch: async () => driver });
   const service = host.daemon.service;
   const role = service.board.get<Role>('role', 'writer');
   service.board.record(
@@ -82,7 +82,9 @@ test('takes private control, presents typed changes through the real HTTP stream
   await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
   await vi.waitFor(() => expect(website.viewportSize()!.width).toBeLessThan(1000));
   const target = (await website.locator('#name').boundingBox())!;
+  // Resizing the page for the panel replaces its frames, so the screen can be briefly absent.
   const surface = page.locator('.browser-screen');
+  await surface.waitFor();
   const bounds = (await surface.boundingBox())!;
   const scale = bounds.width / website.viewportSize()!.width;
   await surface.click({ position: { x: (target.x + 20) * scale, y: (target.y + 10) * scale } });

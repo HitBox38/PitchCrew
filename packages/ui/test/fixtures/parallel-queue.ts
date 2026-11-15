@@ -122,15 +122,14 @@ export const seedParallelQueue = (service: CrewService) => {
       createdAt: now,
       status: 'pending',
     };
-    board.record(
-      'chat_request',
-      {
-        ...request,
-        deliveries: [{ roleId: 'scout', status: 'waiting', runId: question.runId, error: '' }],
-      },
-      'system',
-      'Fixture waiting request',
-    );
+    // A delivery reaches waiting only from a running turn that asked a question.
+    for (const status of ['running', 'waiting'] as const)
+      board.record(
+        'chat_request',
+        { ...request, deliveries: [{ roleId: 'scout', status, runId: question.runId, error: '' }] },
+        'system',
+        'Fixture waiting request',
+      );
     board.record('user_input', question, 'scout', 'Fixture forwarded question');
     return target.id;
   };

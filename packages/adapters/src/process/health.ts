@@ -47,7 +47,7 @@ export const detectCli = async (
 };
 
 const execFileAsync = promisify(execFile);
-export const exec: typeof execFileAsync = ((command: string, args: string[], options: object) => {
+const exec: typeof execFileAsync = ((command: string, args: string[], options: object) => {
   const invocation = runtimeCommand(command, args);
   return execFileAsync(invocation.file, invocation.args, options);
 }) as typeof execFileAsync;

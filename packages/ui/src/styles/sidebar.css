@@ -305,7 +305,8 @@
   padding-inline: 10px;
   margin-top: auto;
 }
-.sidebar-notices:not(:has(.sidebar-setup-row, .sidebar-source-activity > *)) {
+/* Its rows render nothing when idle; :empty, not :has(), which Chrome rechecks on every change. */
+.sidebar-notices:empty {
   display: none;
 }
 .sidebar-setup-progress {
@@ -321,9 +322,6 @@
 }
 .sidebar-setup-progress + .sidebar-footer-beads {
   margin-left: 0;
-}
-.sidebar-source-activity:empty {
-  display: none;
 }
 .sidebar-source-activity a {
   width: 100%;

@@ -1,3 +1,4 @@
+import { deliveryLifecycle } from '@pitchcrew/core/lifecycles';
 import { queueRequestHeading } from '../helpers.ts';
 import type { Snapshot, WorkQueueView } from '@pitchcrew/core';
 import {
@@ -44,7 +45,7 @@ export const QueueCardRequests = ({ queue, data }: { queue: WorkQueueView; data:
                 group={`Requests for ${queue.id}`}
                 movable={(request) =>
                   !request.deliveries.some((delivery) =>
-                    ['running', 'waiting'].includes(delivery.status),
+                    deliveryLifecycle.is('engaged', delivery.status),
                   )
                 }
                 commit={(id, beforeId) =>

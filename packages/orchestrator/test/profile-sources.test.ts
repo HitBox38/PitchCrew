@@ -47,7 +47,7 @@ const input = { provider: 'github', repository: 'fictional/resumes', path: 'abou
 const sha = 'a'.repeat(40);
 describe('reviewed profile sources', () => {
   it('imports only selected exact reviewed files, pins nested reads, persists provenance and consumes previews', async () => {
-    const { daemon, directory, request } = await setup(14501);
+    const { daemon, directory, request } = await setup();
     const { documents, spy } = githubFixture(daemon);
     const preview = (await request<ProfileSourcePreview>('/profile/sources/preview', 'POST', input))
       .result;
@@ -110,7 +110,7 @@ describe('reviewed profile sources', () => {
     expect((await request<ProfileSource[]>('/profile/sources')).result).toEqual([]);
   });
   it('flags local edits, preserves removed documents and rejects notes edited since preview', async () => {
-    const { daemon, request } = await setup(14502);
+    const { daemon, request } = await setup();
     const { documents } = githubFixture(daemon);
     const preview = (await request<ProfileSourcePreview>('/profile/sources/preview', 'POST', input))
       .result;
@@ -152,7 +152,7 @@ describe('reviewed profile sources', () => {
     expect(notes).toHaveLength(3);
   });
   it('reviews an entirely removed upstream folder without deleting local copies, while rejecting empty first imports', async () => {
-    const { daemon, request } = await setup(14508);
+    const { daemon, request } = await setup();
     const { documents } = githubFixture(daemon);
     const original = (
       await request<ProfileSourcePreview>('/profile/sources/preview', 'POST', input)
@@ -175,7 +175,7 @@ describe('reviewed profile sources', () => {
     expect((await request<Snapshot>('/snapshot')).result.profile).toHaveLength(3);
   });
   it('rejects unauthorized source access, path traversal, payload changes and active-run mutations', async () => {
-    const { daemon, request } = await setup(14503);
+    const { daemon, request } = await setup();
     const { spy } = githubFixture(daemon);
     expect(
       (
@@ -220,7 +220,7 @@ describe('reviewed profile sources', () => {
     expect((await request<Snapshot>('/snapshot')).result.profile).toEqual([]);
   });
   it('skips documents a Profile note cannot hold without blocking the rest or reporting them removed', async () => {
-    const { daemon, request } = await setup(14509);
+    const { daemon, request } = await setup();
     const { documents } = githubFixture(daemon);
     const first = (await request<ProfileSourcePreview>('/profile/sources/preview', 'POST', input))
       .result;
@@ -252,7 +252,7 @@ describe('reviewed profile sources', () => {
     expect(fresh.result.error).toContain('50,000 characters');
   });
   it('serializes profile writes and refuses chat or workflow launches during an import', async () => {
-    const { daemon, request } = await setup(14507);
+    const { daemon, request } = await setup();
     await daemon.service.saveProfile(
       'fictional.md',
       '# Fictional applicant\n\n- Built a scheduling tool.',
@@ -279,18 +279,43 @@ describe('reviewed profile sources', () => {
       content: 'Fictional question',
     });
     expect(chat.result.error).toContain('profile update');
-    await expect(daemon.service.saveProfile('second.md', 'Concurrent edit')).rejects.toThrow(
-      'current profile update',
-    );
+    // A note save during the import waits its turn rather than failing or interleaving.
+    let saved = false;
+    const queued = daemon.service.saveProfile('second.md', 'Concurrent edit').then((profile) => {
+      saved = true;
+      return profile;
+    });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(saved).toBe(false);
     release([]);
     await pending;
+    await expect(queued).resolves.toHaveLength(2);
     expect((await request<Snapshot>('/snapshot')).result.runs).toEqual([]);
     await expect(
       daemon.service.saveProfile('second.md', '# Another fictional fact'),
     ).resolves.toHaveLength(2);
+    // A save that waited while an approved update was interrupted refuses once its turn comes.
+    let hold: (value: { name: string; content: string }[]) => void = () => {};
+    vi.mocked(daemon.service.profileSources.import).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          hold = resolve;
+        }),
+    );
+    const importing = daemon.service.importProfileSource({});
+    const waiting = daemon.service.saveProfile('second.md', 'Written after the interruption');
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    const list = daemon.service.board.list.bind(daemon.service.board);
+    vi.spyOn(daemon.service.board, 'list').mockImplementation(((kind: string) =>
+      kind === 'profile_proposal'
+        ? [{ id: 'fictional-proposal', status: 'applying' }]
+        : list(kind as 'card')) as typeof daemon.service.board.list);
+    hold([]);
+    await importing;
+    await expect(waiting).rejects.toThrow('Finish the approved profile update');
   });
   it('expires reviewed snapshots without saving source content', async () => {
-    const { daemon, request } = await setup(14504);
+    const { daemon, request } = await setup();
     githubFixture(daemon);
     const preview = (await request<ProfileSourcePreview>('/profile/sources/preview', 'POST', input))
       .result;
@@ -304,7 +329,7 @@ describe('reviewed profile sources', () => {
     expect((await request<Snapshot>('/snapshot')).result.profile).toEqual([]);
   });
   it('reads paginated nested Drive documents, skips PDFs and retains stable identity when a document is renamed', async () => {
-    const { daemon, request } = await setup(14505);
+    const { daemon, request } = await setup();
     let name = 'Background';
     vi.spyOn(daemon.service.connectors, 'call').mockImplementation(async (tool, value) => {
       const args = value as { fileId: string; query: string; pageToken?: string };
@@ -379,7 +404,7 @@ describe('reviewed profile sources', () => {
     expect(renamed.missing).toEqual([]);
   });
   it('rolls back imported file replacements if committing source metadata fails', async () => {
-    const { daemon, request } = await setup(14506);
+    const { daemon, request } = await setup();
     const { documents } = githubFixture(daemon);
     const original = (
       await request<ProfileSourcePreview>('/profile/sources/preview', 'POST', input)

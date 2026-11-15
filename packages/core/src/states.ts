@@ -1,5 +1,13 @@
 export const assertTransition = (from: CardState, to: CardState) => {
-  if (!transitions[from].includes(to)) throw new Error(`Cannot move ${from} to ${to}.`);
+  if (transitions[from].includes(to)) return;
+  const allowed = transitions[from];
+  throw new Error(
+    `Cannot move ${from} to ${to}. ${
+      allowed.length
+        ? `The workflow allows ${from} to become: ${allowed.join(', ')}.`
+        : `${from} has no further workflow moves.`
+    }`,
+  );
 };
 
 export const isRoleId = (value: string): boolean => {
@@ -82,6 +90,23 @@ export const transitions: Record<CardState, CardState[]> = {
   withdrawn: [],
   ghosted: ['screening', 'interviewing', 'withdrawn'],
 };
+/**
+ * Crew rework that skips a step of the normal graph: reviewing an existing packet again (a fresh
+ * or deep review from changes_requested, agreed or awaiting_approval) and a correction pass that
+ * goes straight from review back to drafting. Only orchestrator writes (`board.crewMove`) may use
+ * these; `board.move` and user drags keep the normal graph.
+ */
+export const reworkTransitions: Partial<Record<CardState, CardState[]>> = {
+  changes_requested: ['in_review'],
+  agreed: ['in_review'],
+  awaiting_approval: ['in_review'],
+  in_review: ['drafting'],
+};
+/** Moves crew work may make from a status: the normal graph plus its rework moves. */
+export const crewTransitions = (from: CardState): CardState[] => [
+  ...transitions[from],
+  ...(reworkTransitions[from] ?? []),
+];
 export const runtimeIds = [
   'demo',
   'claude-code',

@@ -4,7 +4,7 @@ import { cleanup, setup } from './helpers/daemon.ts';
 
 afterEach(cleanup);
 it('enforces computer capability and user-only decisions and expires approvals on restart', async () => {
-  const { daemon, request } = await setup(14467, false, {
+  const { daemon, request } = await setup(false, {
     browserLaunch: async () => ({
       snapshot: async () => ({
         url: 'https://example.com',
@@ -137,7 +137,7 @@ it('enforces computer capability and user-only decisions and expires approvals o
   ).toBe('rejected');
 });
 it('keeps each browser action in one latest row through intervening calls and duplicate executions', async () => {
-  const { daemon } = await setup(14468, false, {
+  const { daemon } = await setup(false, {
     browserLaunch: async () => ({
       snapshot: async () => ({
         url: 'https://example.com',
@@ -226,19 +226,20 @@ it('keeps each browser action in one latest row through intervening calls and du
   ]);
   // A request the user rejects is their decision, told plainly to the agent and shown as such.
   vi.mocked(service.computer.execute).mockRestore();
-  // The mocked execution never consumed the first approval; settle it as carried out.
-  service.board.record(
-    'computer_approval',
-    {
-      ...service.board.get<import('@pitchcrew/core').ComputerApproval>(
-        'computer_approval',
-        approval.id,
-      ),
-      status: 'consumed',
-    },
-    'user',
-    'Fixture consumed approval',
-  );
+  // The mocked execution never decided or consumed the first approval; settle it as carried out.
+  for (const status of ['approved', 'consumed'] as const)
+    service.board.record(
+      'computer_approval',
+      {
+        ...service.board.get<import('@pitchcrew/core').ComputerApproval>(
+          'computer_approval',
+          approval.id,
+        ),
+        status,
+      },
+      'user',
+      'Fixture consumed approval',
+    );
   const { approval: declined } = (await service.agentCall('rows-token', 'computer_request', {
     input: { kind: 'click', selector: '#submit' },
     reason: 'Submit fixture again',

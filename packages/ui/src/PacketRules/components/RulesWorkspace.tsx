@@ -1,7 +1,13 @@
 import { keyedItems } from '@/lib/list-keys.ts';
 import { lazy, Suspense, useState } from 'react';
 import { useLocation } from '@tanstack/react-router';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@pitchcrew/design-system/tabs';
+import {
+  Tabs,
+  TabsIndicator,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from '@pitchcrew/design-system/tabs';
 import { parseDraft, fileIssues, issueText } from '../helpers.ts';
 import { editableDocument } from '../form-helpers.ts';
 import type { PacketRulesController } from '../hooks/usePacketRules.ts';
@@ -45,6 +51,7 @@ export const RulesWorkspace = ({ controller }: { controller: PacketRulesControll
         <TabsTrigger value="source" className="settings-segment-option">
           Advanced JSON
         </TabsTrigger>
+        <TabsIndicator />
       </TabsList>
       <TabsContent value="form" keepMounted>
         {document ? <RuleFormList document={document} controller={controller} /> : null}

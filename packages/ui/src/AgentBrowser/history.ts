@@ -4,7 +4,7 @@ export interface BrowserHistoryEntry {
   visitedAt: number;
 }
 
-export const browserHistoryLimit = 50;
+const browserHistoryLimit = 50;
 export const browserClosedTabsLimit = 20;
 
 /** Keep navigable page addresses while excluding transient sign-in credentials. */

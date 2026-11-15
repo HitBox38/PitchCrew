@@ -30,7 +30,7 @@ The entry includes Tailwind 4's theme, preflight and utilities, the shared token
 
 The cascade order is `theme`, `base`, `primitives`, `components`, then unlayered caller utilities. Defaults use `primitive:` so ordinary caller classes override them. Set `data-theme="dark"` on the document root for dark mode; theme persistence belongs to the consumer. Surface transitions respect reduced motion without requiring an app provider.
 
-Families include buttons, inputs, textareas, checkboxes, switches, cards, badges, dialogs, sheets, menus, popovers, tooltips, tabs, accordions, collapsibles, command menus, calendar/time fields, sidebar, toasts and chat primitives (message, bubble, scroller, attachment, trace and code block). Import by family rather than through a single package-wide barrel. Prop types are exported with their families. Base UI composition uses `render`, and buttons default to `type="button"`.
+Families include buttons, inputs, textareas, checkboxes, switches, dialogs, sheets, menus, popovers, tooltips, tabs, accordions, collapsibles, command menus, calendar/time fields, sidebar, toasts and chat primitives (message, bubble, scroller, attachment, trace and code block). Import by family rather than through a single package-wide barrel. Prop types are exported with their families. Base UI composition uses `render`, and buttons default to `type="button"`.
 
 Vite consumes the source package directly. Next.js consumers can list `@pitchcrew/design-system` in `transpilePackages`. Keep imports inside this package relative; the local `@/` generator alias is only for shadcn scaffolding, not a dependency on the desktop app's alias. Run shadcn from this directory when adding shared primitives and expose new families explicitly in `package.json`.
 

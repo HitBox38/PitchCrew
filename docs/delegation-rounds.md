@@ -4,7 +4,7 @@ Agreed design for a lead agent assigning subtasks to several crew agents at once
 
 ## Why
 
-Agents in one standalone group already run at the same time after an unaddressed user message. What is missing is coordination: a lead cannot ask three agents for separate work and get all three answers together. Today each `pitchcrew_invoke_agent` call is an independent follow-up, follow-ups on a job run one at a time because any run on the card blocks the next, and a delegate's reply never wakes the lead. Three delegations plus three replies exhaust the six-follow-up budget before the lead can synthesize.
+Before delegation rounds, agents in one standalone group could already run at the same time after an unaddressed user message, but a lead could not assign separate work and collect every answer together. Each `pitchcrew_invoke_agent` call was an independent follow-up, follow-ups on a job ran one at a time, and a delegate's reply did not wake the lead. Rounds add concurrent chat subtasks and a collection turn. The former six-follow-up chain cap was removed on 2026-11-10.
 
 ## Agreed scope
 
@@ -19,9 +19,9 @@ Agents in one standalone group already run at the same time after an unaddressed
 
 **User-initiated.** `/delegate` in the composer opens a picker for one to four enabled crew agents, not limited to current members. The composer text becomes every delegate's subtask. The conversation's lead (the sole agent in a DM) collects. The user-initiated round is the initiating request; its collection turn is the chain's first follow-up.
 
-## Budget and capacity
+## Capacity and execution limits
 
-- An agent-initiated round, including its collection turn, costs **one** follow-up of the chain's six. A lead may run several rounds in one chain.
+- A lead may run several rounds in one chain. There is no per-chain follow-up count limit.
 - A round keeps its job or standalone lane's single workspace slot. Delegates run under it and are bounded only by the four-per-round cap, matching deep review's concurrent child allowance. Delegates are counted as executing agents on the Queue page; the slot count does not change.
 - Every delegate and the collection turn is an ordinary run with its own fixed 30-minute limit. There is no shared clock and no extension tool.
 - Permissions are rechecked at dispatch as for other follow-ups. A delegate whose role or runtime became unavailable after creation settles as a failed delegate result.
@@ -37,6 +37,7 @@ Agents in one standalone group already run at the same time after an unaddressed
 
 - Stopping one delegate, from its DM or the queue card, cancels only that run. It arrives as a cancelled result and the round still settles.
 - Stop on the originating conversation or job cancels every delegate and the collection and pauses the queue as today. Resume does not replay cancelled delegates.
+- A failed collection turn pauses the queue like any failed follow-up and keeps the round open, shown as Collection failed with a rose bead. Retry runs the collection again with the same delegate results; Skip settles the round as stopped.
 - Removing a delegate from a group, retiring it or pausing its role cancels its delegate run under existing rules; the result is recorded as cancelled or failed.
 - After a daemon restart, unstarted delegates stay queued and started ones follow the existing interrupted-follow-up recovery. The collection turn never runs before every delegate has settled.
 
@@ -49,20 +50,20 @@ Agents in one standalone group already run at the same time after an unaddressed
 
 ## Persistence
 
-Event version 34 adds a `delegation_round` entity (lead, initiator, chain root, lead run or anchoring request, delegate task IDs with their DM threads, collection task ID, status) and optional `roundId` and `roundPart` (`delegate` or `collection`) fields on tasks. Versions 1–33 remain decodable. Crew follow-up limit checks count a round as one entry (`chainFollowUpCount` in core). Rounds live in SQLite entities, so snapshot revision covers them, and snapshots expose them as `delegationRounds`.
+Event version 34 adds a `delegation_round` entity (lead, initiator, chain root, lead run or anchoring request, delegate task IDs with their DM threads, collection task ID, status) and optional `roundId` and `roundPart` (`delegate` or `collection`) fields on tasks. Versions 1–33 remain decodable. Rounds live in SQLite entities, so snapshot revision covers them, and snapshots expose them as `delegationRounds`.
 
 ## Implementation notes
 
-- `packages/orchestrator/src/crew/delegation-rounds.ts` validates and saves a round with its tasks in one transaction, decides task readiness (`taskParentReady`), builds the collection prompt, recomputes round status and lists open round roots so Stop reaches user-started rounds.
-- `tasks.ts` lets delegates of one round share a job while blocking other work on that card, fills the collection task's prompt just before launch and never pauses the queue for a failed delegate.
+- `packages/orchestrator/src/crew/delegation-rounds.ts` validates and saves a round with its tasks in one transaction, decides task readiness (`taskParentReady`), builds the collection prompt (following an answered question's continuation runs to the delegate's final reply), recomputes round status and lists open round roots so Stop reaches user-started rounds. A failed delegate needs Retry or Skip only while its collection has not started (for example after a restart interrupted it); afterwards it is a settled result that never blocks Resume or appears as a failed follow-up.
+- `tasks.ts` lets delegates of one round share a job while blocking other work on that card, fills the collection task's prompt just before launch and never pauses the queue for a failed delegate, whether it failed to launch or failed while running (`finishQueueRun` in `conversation-queue.ts` also keeps the round's admitted chain).
 - The gateway reports `delegate: true` from `execution_access`, the MCP CLI then omits delegation, grouping and deep-review tools, and the gateway rejects those actions regardless.
 - User-initiated rounds are a chat request with empty deliveries and a `roundId`; its tasks use the request ID as parent anchor and the user's authority replaces the originating-role permission check.
 - The shared chat prompt explains rounds to leads, tells delegates their boundaries and tells the collection turn what it received.
 
 ## Prompting
 
-The shared runtime prompt for chat turns describes rounds, their one-follow-up cost, the four-delegate cap, the no-nesting rule and that delegates should not be asked to edit the packet. Default role instructions are unchanged, so no instruction update notice is produced.
+The shared runtime prompt for chat turns describes rounds, the four-delegate cap, the no-nesting rule and that delegates should not be asked to edit the packet. Default role instructions are unchanged, so no instruction update notice is produced.
 
 ## Verification
 
-Deterministic orchestrator HTTP/MCP tests cover: concurrent delegates on one job holding one slot, rejection cases at creation, settlement with mixed completed/failed/cancelled delegates, question hold and continuation, per-delegate and lane-level Stop, restart recovery, budget accounting and the absence of delegation tools in delegate MCP configurations. UI tests cover the round card, queue representation and the `/delegate` picker with the Demo fixture. No live provider run is included.
+Deterministic orchestrator HTTP/MCP tests cover: concurrent delegates on one job holding one slot, rejection cases at creation, settlement with mixed completed/failed/cancelled delegates, question hold and continuation, per-delegate and lane-level Stop, restart recovery, follow-ups beyond six and the absence of delegation tools in delegate MCP configurations. UI tests cover the round card, queue representation and the `/delegate` picker with the Demo fixture. No live provider run is included.

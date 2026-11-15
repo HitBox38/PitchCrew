@@ -3,8 +3,6 @@ dist/
 /brag-output*/
 coverage/
 test-results/
-# Local settings review matrices may include host paths; keep only vetted final images.
-/docs/reviews/settings/images/v*-*.png
 *.log
 .env*
 !.env.example

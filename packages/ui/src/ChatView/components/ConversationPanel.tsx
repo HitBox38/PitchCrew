@@ -2,6 +2,7 @@ import { ConversationWelcome } from '@/ChatView/components/ConversationWelcome.t
 import { ConversationHistory } from './ConversationHistory.tsx';
 import type { ConversationPanelProps } from '@/ChatView/types.ts';
 import { TabsContent } from '@pitchcrew/design-system/tabs';
+import { usePendingSends } from '../send-flight.ts';
 
 export const ConversationPanel = ({
   answerQuestion,
@@ -20,6 +21,8 @@ export const ConversationPanel = ({
   conversation,
   readOnly,
 }: ConversationPanelProps) => {
+  // A first message being sent replaces the welcome at once, so its pending copy never moves.
+  const sending = usePendingSends((state) => !!state[thread]);
   return (
     <TabsContent
       value="conversation"
@@ -38,7 +41,7 @@ export const ConversationPanel = ({
         thread={thread}
         onOpenCard={onOpenCard}
       >
-        {!messages.length ? (
+        {!messages.length && !sending ? (
           <ConversationWelcome
             thread={thread}
             roleId={roleId}

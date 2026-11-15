@@ -1,3 +1,4 @@
+import { computerApprovalLifecycle } from '@pitchcrew/core/lifecycles';
 import type { Card, Run, Snapshot } from '@pitchcrew/core';
 import { closedStateSet } from '../board-stages.ts';
 import { packetNeedsAction } from '../lib/inbox.ts';
@@ -59,7 +60,7 @@ export const decisions = (data: Snapshot): Decision[] =>
         };
       }),
     ...data.computerApprovals
-      .filter((approval) => ['pending', 'approved'].includes(approval.status))
+      .filter((approval) => computerApprovalLifecycle.is('open', approval.status))
       .map((approval) => ({
         id: approval.id,
         kind: 'browser' as const,
@@ -92,7 +93,7 @@ export const decisions = (data: Snapshot): Decision[] =>
   ].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 
 /** A decision is the user's move, except an agent's packet preparation that is still going. */
-export const decisionWaits = (decision: Decision, data: Snapshot) => {
+const decisionWaits = (decision: Decision, data: Snapshot) => {
   if (decision.kind !== 'packet') return true;
   const approval = data.approvals.find((item) => item.id === decision.id);
   const card = data.cards.find((item) => item.id === decision.cardId);

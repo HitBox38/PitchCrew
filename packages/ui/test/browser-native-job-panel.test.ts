@@ -54,7 +54,7 @@ const resize = vi.fn(async (size: { width: number; height: number }) => {
 });
 
 beforeAll(async () => {
-  host = await setup(23960, false, {
+  host = await setup(false, {
     browserLaunch: async () => ({
       native,
       nativeState: async () => state,

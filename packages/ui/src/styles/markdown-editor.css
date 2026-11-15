@@ -1,0 +1,727 @@
+/* Shared Markdown editor (Profile and Skills): the CodeMirror source, its rendered preview, or
+ * both side by side. Both columns share one type scale and one centered reading measure, so
+ * switching modes never resizes or moves the text. Pages style the sheet around these. */
+.md-editor {
+  /* A task box (16px), its gap and the space after it; the hanging indent of a task line. */
+  --md-task-indent: calc(22px + 0.2em);
+  --md-box-edge: rgb(var(--tint) / 0.5);
+  /* Scroll shadows are always shade, never the (light, in dark mode) ink tint. */
+  --md-scroll-shadow: rgb(20 22 30 / 0.14);
+  --md-font-size: var(--text-prose);
+  --md-line-height: 1.6;
+  --md-pad-top: 28px;
+  --md-heading-gap: 0.45em;
+  --md-measure: 44rem;
+  --md-gutter: max(28px, calc((100% - var(--md-measure)) / 2));
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+}
+.md-editor[data-mode='split'] {
+  --md-measure: 38rem;
+  --md-gutter: max(24px, calc((100% - var(--md-measure)) / 2));
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.md-write {
+  --md-find-button: 32px;
+  container: md-pane / inline-size;
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+.md-write[hidden] {
+  display: none;
+}
+.md-surface {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+.md-surface > .cm-editor {
+  flex: 1;
+  min-width: 0;
+}
+/* The source text in the editor's own type while CodeMirror loads. */
+.md-loading {
+  flex: 1;
+  margin: 0;
+  padding: var(--md-pad-top) var(--md-gutter);
+  overflow: hidden;
+  color: var(--ink);
+  font: 400 var(--md-font-size) / var(--md-line-height) var(--font-sans);
+  white-space: pre-wrap;
+  opacity: 0.55;
+}
+.md-preview {
+  min-width: 0;
+  min-height: 0;
+  /* Half a screen past the end, as in Write, so a place near the end lines up in both. */
+  padding: var(--md-pad-top) var(--md-gutter) 50vh;
+  overflow: auto;
+  overscroll-behavior: contain;
+  color: var(--ink);
+  font-size: var(--md-font-size);
+  line-height: var(--md-line-height);
+}
+.md-editor[data-mode='split'] > .md-preview {
+  background: var(--surface);
+  box-shadow: inset 1px 0 0 var(--border);
+}
+.md-preview-empty {
+  margin: 0;
+  color: var(--muted);
+}
+/* A narrow sheet (the page's container) stacks Split: source above, preview below. Profile
+ * offers Split only from 40rem, so this applies to the skill editor's narrow sheet. */
+@container (width < 40rem) {
+  .md-editor[data-mode='split'] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .md-editor[data-mode='split'] > .md-preview {
+    box-shadow: inset 0 1px 0 var(--border);
+  }
+}
+@variant max-mobile {
+  .md-editor {
+    --md-gutter: 18px;
+    --md-pad-top: 20px;
+    /* 16px so focusing the editor never zooms the page. */
+    --md-font-size: 16px;
+  }
+}
+
+/* Rendered blocks on the editor's scale: one source line is one rendered line, and the blank
+ * line between blocks in the source is one body line of space here. Streamdown's own spacing
+ * utilities sit outside the cascade layers, so the block rhythm overrides them explicitly. */
+.md-rendered {
+  --md-line: calc(var(--md-font-size, 15px) * var(--md-line-height, 1.6));
+  line-height: var(--md-line-height, 1.6);
+}
+.md-rendered > * {
+  margin-block: var(--md-line) 0 !important;
+}
+.md-rendered > :first-child {
+  margin-top: 0 !important;
+}
+.md-rendered :is(.md-h1, .md-h2, .md-h3, .md-h4) {
+  padding-top: calc(var(--md-font-size, 15px) * 0.45);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  line-height: 1.3;
+}
+/* Lines break where the editor's do (plain wrapping), so switching modes never moves a word. */
+.md-editor .md-rendered,
+.md-editor .md-rendered * {
+  text-wrap: wrap;
+}
+.md-rendered .md-h1 {
+  font-size: 1.6em;
+  letter-spacing: -0.012em;
+}
+.md-rendered .md-h2 {
+  font-size: 1.3em;
+  letter-spacing: -0.006em;
+}
+.md-rendered .md-h3 {
+  font-size: 1.12em;
+  font-weight: 600;
+}
+.md-rendered .md-h4 {
+  font-size: 1em;
+  font-weight: 600;
+}
+.md-rendered .md-h1:first-child {
+  padding-top: 0;
+}
+.md-rendered .md-li {
+  padding-inline-start: 0;
+}
+.md-rendered :is(.md-ul, .md-ol) {
+  padding-left: 1em;
+}
+.md-rendered .md-ul {
+  list-style: disc;
+}
+.md-rendered .md-ol {
+  list-style: decimal;
+}
+.md-rendered .md-li::marker {
+  color: var(--ink-soft);
+}
+.md-rendered .md-li > :is(.md-ul, .md-ol) {
+  margin-top: 0;
+}
+.md-rendered .md-blockquote {
+  padding-left: 16px;
+  box-shadow: inset 3px 0 0 var(--border-strong);
+  color: var(--ink-soft);
+}
+.md-rendered .md-hr {
+  border: 0;
+  border-top: 1px solid var(--border-strong);
+}
+
+/* Formatting tools: one quiet band, kept in every mode so the note never jumps. */
+.md-toolbar {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 2px;
+  height: 44px;
+  padding: 0 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: var(--surface-bright);
+  box-shadow: inset 0 -1px 0 var(--border);
+  scrollbar-width: none;
+}
+.md-toolbar .md-tool {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+}
+.md-toolbar .md-tool:hover:not(:disabled) {
+  background: rgb(var(--tint) / 0.06);
+  color: var(--ink);
+}
+/* Pressed: the format around the caret, sunk into the band. */
+.md-toolbar .md-tool[aria-pressed='true'],
+.md-toolbar .md-heading-tool[data-popup-open] {
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  color: var(--ink);
+}
+.md-toolbar .md-heading-tool {
+  gap: 2px;
+  width: auto;
+  min-width: 52px;
+  padding: 0 6px 0 8px;
+  font-size: var(--text-label);
+}
+.md-heading-label {
+  min-width: 1.5em;
+  text-align: left;
+}
+:is(.md-toolbar .md-tool, .profile-tab-tools .md-tool):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+.md-toolbar-gap {
+  flex: none;
+  width: 1px;
+  height: 20px;
+  margin: 0 6px;
+  background: var(--border);
+}
+.md-toolbar-end {
+  position: sticky;
+  right: 0;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  padding-left: 16px;
+  background: linear-gradient(to right, transparent, var(--surface-bright) 14px);
+}
+.md-toolbar[data-disabled] :is(.md-tool:not(.md-tool-keep), .md-toolbar-gap) {
+  visibility: hidden;
+}
+.md-toolbar-note {
+  position: absolute;
+  left: 16px;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  line-height: var(--text-detail--line-height);
+}
+.md-tool-tip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+@media (pointer: coarse), (width < 48rem) {
+  .md-toolbar {
+    height: 52px;
+  }
+  /* CodeMirror's own theme is unlayered; overrides of its elements need !important here. */
+  .md-editor .cm-tooltip.cm-tooltip-autocomplete > ul > li {
+    min-height: 44px !important;
+  }
+  .md-toolbar .md-tool {
+    width: 44px;
+    height: 44px;
+  }
+  /* Keyboard hints mean nothing on touch. */
+  .md-tool-tip kbd,
+  .md-key-hint {
+    display: none;
+  }
+}
+
+/* Write | Split | Preview, compact enough to share the tab band. */
+.md-mode-switch > button {
+  height: 32px;
+  min-width: 32px;
+  padding: 0 10px;
+  gap: 6px;
+  font-size: var(--text-label);
+}
+@container (width < 26rem) {
+  .md-mode-label {
+    display: none;
+  }
+}
+
+/* Find: a compact bar floating at the top right of the note. */
+.md-find {
+  display: grid;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  background: var(--surface-bright);
+  box-shadow:
+    0 0 0 1px var(--border-strong),
+    var(--pop);
+  font-family: var(--font-sans);
+}
+:root[data-theme='dark'] .md-editor {
+  --md-scroll-shadow: rgb(0 0 0 / 0.55);
+}
+/* Dark paper: a tight shadow, so the bar never darkens the note around it. */
+:root[data-theme='dark'] .md-find {
+  box-shadow:
+    0 0 0 1px var(--border-strong),
+    0 4px 12px rgb(0 0 0 / 0.32);
+}
+.md-find-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.md-find-row[hidden] {
+  display: none;
+}
+.md-find-input {
+  width: 200px;
+  height: 32px;
+  margin: 0 2px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  color: var(--ink);
+  font-size: var(--text-label);
+}
+.md-find-input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -1px;
+}
+.md-find-replace .md-find-input {
+  margin-left: calc(var(--md-find-button) + 4px);
+}
+.md-find-count {
+  min-width: 72px;
+  padding: 0 6px;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+.md-find-count[data-empty='true'] {
+  color: var(--ochre);
+}
+.md-find-button {
+  display: inline-grid;
+  flex: none;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-soft);
+  font: 600 var(--text-detail) / 1 var(--font-sans);
+  cursor: pointer;
+}
+.md-find-button:hover {
+  background: rgb(var(--tint) / 0.06);
+  color: var(--ink);
+}
+.md-find-button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+.md-find-toggle {
+  font-family: var(--font-mono);
+}
+.md-find-toggle[aria-pressed='true'] {
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  color: var(--ink);
+}
+.md-find-expand svg {
+  transition: rotate var(--duration-press, 120ms) var(--ease);
+}
+.md-find-expand[aria-expanded='true'] svg {
+  rotate: 90deg;
+}
+.md-find-text {
+  padding: 0 10px;
+  font-size: var(--text-label);
+}
+@media (prefers-reduced-motion: reduce) {
+  .md-find-expand svg {
+    transition: none;
+  }
+}
+/* A narrow note (a phone, or a tablet with both side panels open): the query fills the first
+ * row; the count, previous, next, options and close share the second. */
+@container md-pane (width < 34rem) {
+  /* Here the bar is part of the editor's layout, so the note starts below it, never under it. */
+  .md-editor .md-write .cm-editor .cm-panels.cm-panels-top {
+    position: relative !important;
+    inset: auto !important;
+    padding: 8px 8px 4px !important;
+  }
+  .md-find {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .md-find-row:not(.md-find-replace) {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+  .md-find-row:not(.md-find-replace) > .md-find-input {
+    flex: 1 1 calc(100% - var(--md-find-button) - 8px);
+    width: auto;
+    min-width: 0;
+  }
+  .md-find-count {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .md-find-replace .md-find-input {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+  }
+}
+/* Touch: the app's 44px floor applies to the find buttons too, so the layout counts with it. */
+@media (width < 48rem), (pointer: coarse) {
+  .md-write {
+    --md-find-button: 44px;
+  }
+  .md-find-button,
+  .md-find-input {
+    min-width: 44px;
+    height: 44px;
+  }
+}
+@variant max-mobile {
+  .md-find-input {
+    font-size: 16px;
+  }
+}
+
+/* Outline: the note's headings, indented by level, the current section marked. */
+.md-outline {
+  width: min(320px, calc(100vw - 32px));
+  max-height: min(60vh, 480px);
+  overflow-y: auto;
+  padding: 6px;
+}
+.md-outline-title {
+  margin: 0;
+  padding: 6px 8px 4px;
+  color: var(--muted);
+  font: 600 var(--text-detail) / var(--text-detail--line-height) var(--font-sans);
+}
+.md-outline-list {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.md-outline-list button {
+  display: block;
+  width: 100%;
+  min-height: 32px;
+  padding: 6px 8px 6px calc(10px + var(--level, 0) * 14px);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-soft);
+  font: 400 var(--text-label) / var(--text-label--line-height) var(--font-sans);
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.md-outline-list button[data-level='1'],
+.md-outline-list button[data-level='2'] {
+  color: var(--ink);
+  font-weight: 600;
+}
+.md-outline-list button:hover {
+  background: rgb(var(--tint) / 0.06);
+  color: var(--ink);
+}
+.md-outline-list button[aria-current='location'] {
+  background: rgb(var(--tint) / 0.06);
+  box-shadow: inset 2px 0 0 var(--primary);
+  color: var(--primary-deep);
+}
+.md-outline-list button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+.md-outline-empty {
+  margin: 0;
+  padding: 4px 8px 8px;
+  color: var(--muted);
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+}
+@media (pointer: coarse) {
+  .md-outline-list button {
+    min-height: 44px;
+  }
+}
+
+/* Keyboard shortcuts reference. */
+.md-shortcuts {
+  width: min(480px, calc(100vw - 32px));
+}
+.md-shortcuts [data-slot='dialog-header'] {
+  margin-bottom: 12px;
+  padding-right: 48px;
+}
+.md-shortcut-list {
+  display: grid;
+  margin: 0;
+}
+.md-shortcut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 36px;
+  box-shadow: inset 0 -1px 0 var(--border);
+}
+.md-shortcut-row:last-child {
+  box-shadow: none;
+}
+.md-shortcut-row dt {
+  color: var(--ink);
+  font-size: var(--text-label);
+}
+.md-shortcut-row dd {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  white-space: nowrap;
+}
+
+/* Rendered task lists: no bullet, the box drawn like the editor's clay checkbox, and wrapped
+ * lines hanging under the text exactly as they do in Write. */
+.md-rendered
+  .md-li:has(> input[type='checkbox'], > .md-p:first-child > input[type='checkbox']:first-child) {
+  margin-left: -1em;
+  padding-left: var(--md-task-indent, calc(22px + 0.2em));
+  text-indent: calc(0px - var(--md-task-indent, calc(22px + 0.2em)));
+  list-style: none;
+}
+.md-rendered .md-li > :is(.md-ul, .md-ol) {
+  text-indent: 0;
+}
+.md-rendered input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  margin: 0 6px 0 0;
+  vertical-align: -2px;
+  border-radius: var(--radius-sm);
+  appearance: none;
+  background: var(--sunken-fill);
+  box-shadow:
+    inset 0 0 0 1px var(--md-box-edge, rgb(var(--tint) / 0.5)),
+    var(--clay-sunken);
+  text-indent: 0;
+}
+.md-rendered input[type='checkbox']:checked {
+  background:
+    no-repeat center / 12px
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"),
+    var(--glaze-fill);
+  box-shadow: var(--shadow-glaze);
+}
+.md-rendered .md-task-box {
+  cursor: pointer;
+}
+.md-rendered .md-task-box:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* "More formatting" appears only when the sheet is too narrow for every tool. */
+.md-toolbar .md-more-tool {
+  display: none;
+}
+@container (width < 38rem) {
+  .md-toolbar .md-tool[data-extra] {
+    display: none;
+  }
+  .md-toolbar .md-more-tool {
+    display: inline-flex;
+  }
+}
+
+.md-menu-check {
+  display: inline-grid;
+  width: 16px;
+  place-items: center;
+  color: var(--primary);
+}
+/* Grouped shortcuts with key chips. */
+.md-shortcut-group {
+  margin: 20px 0 4px;
+  color: var(--muted);
+  font: 600 var(--text-detail) / var(--text-detail--line-height) var(--font-sans);
+}
+section:first-child > .md-shortcut-group {
+  margin-top: 4px;
+}
+
+/* Rendered tables match the editor's: one hairline grid on the paper, no frame around a frame.
+ * Streamdown's wrapper utilities sit outside the cascade layers, hence the explicit overrides. */
+.md-rendered [data-streamdown='table-wrapper'] {
+  gap: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: none !important;
+}
+.md-rendered [data-streamdown='table-wrapper'] > div:has(> table) {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+}
+.md-rendered table {
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+}
+.md-rendered :is(th, td) {
+  padding: 6px 12px !important;
+  text-align: left;
+  box-shadow: inset 0 -1px 0 var(--border);
+}
+.md-rendered th {
+  background: rgb(var(--tint) / 0.045);
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.md-rendered tbody tr {
+  border: 0 !important;
+  background: none !important;
+}
+
+/* Code blocks match Write's well: the same tint and radius, an 8px band carrying the language
+ * chip at the right (with Copy beside it), and code starting where Write's first line does. */
+.md-rendered [data-streamdown='code-block'] {
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: rgb(var(--tint) / 0.045);
+}
+.md-rendered [data-streamdown='code-block'] > div:first-child {
+  justify-content: flex-end;
+  gap: 6px;
+  height: 28px;
+  padding: 8px 14px 0;
+}
+.md-rendered [data-streamdown='code-block'] > div:first-child > :first-child {
+  order: 2;
+  padding: 0 6px;
+  border-radius: var(--radius-sm);
+  background: rgb(var(--tint) / 0.07);
+  color: var(--muted);
+  font: 400 var(--text-detail) / var(--text-detail--line-height) var(--font-sans);
+}
+.md-rendered [data-streamdown='code-block'] > div:first-child > :nth-child(2) {
+  margin: 0;
+}
+/* 28px below the code: Write's hidden closing fence still takes a line (20px + 8px). */
+.md-rendered [data-streamdown='code-block'] > pre {
+  padding: 0 14px 28px;
+}
+.md-rendered [data-streamdown='code-block'] code {
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+}
+
+/* Write and Preview stay alike for the rest of the blocks too. Streamdown's own utilities sit
+ * outside the cascade layers, hence the explicit overrides. */
+/* Code wraps in Preview as it does in Write, instead of scrolling sideways. */
+.md-editor .md-rendered [data-streamdown='code-block'] :is(pre, code) {
+  min-width: 0 !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere;
+}
+.md-editor .md-rendered [data-streamdown='code-block'] code > * {
+  white-space: pre-wrap !important;
+}
+/* Inline code: the editor's chip (1px 4px, small radius, 7% ink, 0.88em mono). */
+.md-editor .md-rendered :is([data-streamdown='inline-code'], :not(pre) > code) {
+  padding: 1px 4px !important;
+  border: 0 !important;
+  border-radius: var(--radius-sm) !important;
+  background: rgb(var(--tint) / 0.07) !important;
+  font-size: 0.88em !important;
+}
+/* Tables size their columns by content, as the editor's drawn tables do. */
+.md-editor .md-rendered table {
+  width: 100% !important;
+  table-layout: auto !important;
+}
+/* Paragraphs inside a quote keep the blank line between them that the source has. */
+.md-editor .md-rendered .md-blockquote > * + * {
+  margin-top: var(--md-line) !important;
+}
+/* A table written as a list item (directly or inside a quote) shows no bullet in Write; nor
+ * here. */
+.md-editor
+  .md-rendered
+  .md-li:is(
+    :has(> [data-streamdown='table-wrapper']:first-child),
+    :has(> .md-blockquote:first-child > [data-streamdown='table-wrapper']:first-child)
+  ) {
+  list-style: none;
+}
+/* Task boxes that cannot be linked say why in the note: a quiet recessed tray (information,
+ * not something waiting on the user). */
+.md-tasks-locked {
+  margin: 0 0 var(--md-line, 24px);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  color: var(--ink-soft);
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+}
+.md-tasks-locked[hidden] {
+  display: none;
+}

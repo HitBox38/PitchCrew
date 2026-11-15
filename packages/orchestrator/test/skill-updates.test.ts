@@ -31,7 +31,7 @@ const latest: SkillPreview = {
 
 describe('user-reviewed registry skill updates', () => {
   it('checks without writes and applies the exact reviewed snapshot only after explicit approval', async () => {
-    const { daemon, request } = await setup(15081);
+    const { daemon, request } = await setup();
     const { result: skill } = await request<Skill>('/skills', 'POST', input);
     const load = vi.spyOn(skillDirectory, 'preview').mockResolvedValue(latest);
     const events = daemon.service.board.events();
@@ -85,7 +85,7 @@ describe('user-reviewed registry skill updates', () => {
   });
 
   it('reports unchanged skills without events, but shows local edits even at the same source revision', async () => {
-    const { daemon, request } = await setup(15082);
+    const { daemon, request } = await setup();
     const { result: skill } = await request<Skill>('/skills', 'POST', input);
     vi.spyOn(skillDirectory, 'preview').mockResolvedValue({
       name: input.name,
@@ -110,7 +110,7 @@ describe('user-reviewed registry skill updates', () => {
   });
 
   it('rejects stale, mismatched, deleted and expired reviews without writes', async () => {
-    const { daemon, request } = await setup(15083);
+    const { daemon, request } = await setup();
     const { result: skill } = await request<Skill>('/skills', 'POST', input);
     const { result: other } = await request<Skill>('/skills', 'POST', {
       ...input,
@@ -169,7 +169,7 @@ describe('user-reviewed registry skill updates', () => {
   });
 
   it('rejects skills without a registry and handles failed or concurrently edited checks', async () => {
-    const { daemon, request } = await setup(15084);
+    const { daemon, request } = await setup();
     const { source: _source, ...local } = input;
     const { result: custom } = await request<Skill>('/skills', 'POST', local);
     const load = vi
@@ -193,7 +193,7 @@ describe('user-reviewed registry skill updates', () => {
   });
 
   it('keeps preview and approval routes behind user sessions and origin checks', async () => {
-    const { daemon, request } = await setup(15085);
+    const { daemon, request } = await setup();
     const { result: skill } = await request<Skill>('/skills', 'POST', input);
     const load = vi.spyOn(skillDirectory, 'preview').mockResolvedValue(latest);
     const { result: review } = await request<SkillUpdatePreview>(
@@ -225,7 +225,7 @@ describe('user-reviewed registry skill updates', () => {
   });
 
   it('accepts updates above the former total and preserves the user delivery choice', async () => {
-    const { request } = await setup(15086);
+    const { request } = await setup();
     const { result: skill } = await request<Skill>('/skills', 'POST', {
       ...input,
       includeInEveryRun: true,

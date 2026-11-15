@@ -13,7 +13,7 @@ import { setup, cleanup } from '../../orchestrator/test/helpers/daemon.ts';
 import { gmailMessage } from '../src/connectors/tools/helpers.ts';
 
 it('searches, scans and verifies actual normalized Gmail evidence through real stdio and HTTP envelopes', async () => {
-  const { daemon, request } = await setup(14587);
+  const { daemon, request } = await setup();
   const client = new Client({ name: 'tracking-contract-test', version: '1.0.0' });
   try {
     const role = daemon.service.board.get<Role>('role', 'scout');

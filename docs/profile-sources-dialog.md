@@ -135,3 +135,7 @@ It uses an isolated daemon and fictional connector data to exercise the source
 APIs, reviewed imports, project watches, decisions and recovery without provider
 calls. The existing profile-source and maintenance suites cover server-side
 snapshot validation, conflicts and recovery contracts.
+
+## Contributor rules
+
+Profile source reads/imports and their setup, review selections, progress and results live in the shared workspace store for the current app session. Users can close the sources dialog or navigate away while work continues; the mounted shell shows source activity as a conditional link in the scrolling sidebar, and completion/errors use app-wide toasts. The link uses an icon on narrow screens and returns to Profile sources. Finished reads wait for document review without opening over another page. Proposal decisions keep their pending-review close guard. See [docs/profile-sources-dialog.md](profile-sources-dialog.md).

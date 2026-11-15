@@ -61,6 +61,18 @@ describe('Markdown document model', () => {
       expect(text).not.toContain(hidden);
   });
 
+  it('keeps backslashes inside words instead of reading them as LaTeX', () => {
+    expect(
+      outline(
+        parseMarkdown('Salary: N\\A, stack: CI\\CD on CORP\\rexample under C:\\Users\\Shared'),
+      ),
+    ).toEqual(['p Salary: N\\A, stack: CI\\CD on CORP\\rexample under C:\\Users\\Shared']);
+    // A standalone unknown command is still layout markup; known ones work glued to a word.
+    expect(outline(parseMarkdown('Lead \\faGithub engineer 2021\\hfill2024'))).toEqual([
+      'p Lead engineer 2021>>2024',
+    ]);
+  });
+
   it('keeps a leading rule when no frontmatter closes', () => {
     expect(outline(parseMarkdown('---\n\nNot metadata'))).toEqual(['---', 'p Not metadata']);
   });

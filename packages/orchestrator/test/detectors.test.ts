@@ -14,8 +14,8 @@ const response = (body: unknown, status = 200, type = 'application/json') =>
     status,
     headers: { 'content-type': type },
   });
-const prepared = async (port: number) => {
-  const env = await setup(port);
+const prepared = async () => {
+  const env = await setup();
   const card = env.daemon.service.createCard({ company: 'Fictional detector', title: 'Engineer' });
   await confirmFixtureApplication(env.request, card.id);
   env.daemon.service.board.updateCard(
@@ -29,7 +29,7 @@ const prepared = async (port: number) => {
 };
 
 it('saves a key on this device only, runs a user-authorized check and binds the result to the digest', async () => {
-  const { daemon, directory, request, card, digest } = await prepared(24651);
+  const { daemon, directory, request, card, digest } = await prepared();
   const fetch = vi.fn(async () =>
     response({
       score: 0.74,
@@ -102,7 +102,7 @@ it('saves a key on this device only, runs a user-authorized check and binds the 
 });
 
 it('refuses stale digests, short or empty documents, and never saves a failed check or echoes the key', async () => {
-  const { daemon, request, card, digest } = await prepared(24652);
+  const { daemon, request, card, digest } = await prepared();
   await request('/detectors/sapling/key', 'PUT', { key: 'sk-fixture-secret-key' });
   const stale = await request<{ error: string }>('/detectors/check', 'POST', {
     cardId: card.id,
@@ -169,7 +169,7 @@ it('refuses stale digests, short or empty documents, and never saves a failed ch
 });
 
 it('runs the Copyleaks sign-in before the check and requires the account email', async () => {
-  const { daemon, request, card, digest } = await prepared(24653);
+  const { daemon, request, card, digest } = await prepared();
   const missing = await request<{ error: string }>('/detectors/copyleaks/key', 'PUT', {
     key: 'copyleaks-fixture-key',
   });
@@ -205,7 +205,7 @@ it('runs the Copyleaks sign-in before the check and requires the account email',
 });
 
 it('keeps detector routes behind the local UI session', async () => {
-  const { daemon, card, digest } = await prepared(24654);
+  const { daemon, card, digest } = await prepared();
   const response = await fetch(`${daemon.url}/api/detectors/check`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

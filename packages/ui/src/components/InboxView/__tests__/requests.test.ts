@@ -1,6 +1,6 @@
 import type { Approval, ComputerApproval } from '@pitchcrew/core';
 import { describe, expect, it } from 'vitest';
-import { approvalRequests, selectedApprovalRequest } from '../helpers.ts';
+import { approvalRequests } from '../helpers.ts';
 
 const packetApproval = (status: Approval['status']): Approval => ({
   id: status,
@@ -62,20 +62,5 @@ describe('approval review requests', () => {
       'packet:rejected',
       'packet:consumed',
     ]);
-  });
-
-  it('reviews the exact approval snapshot rather than replacing its contents', () => {
-    const requests = approvalRequests(data, 'pending');
-    expect(selectedApprovalRequest(requests, 'packet:approved')?.approval).toBe(data.approvals[1]);
-    expect(selectedApprovalRequest(requests, 'browser:pending')?.approval).toBe(
-      data.computerApprovals[0],
-    );
-  });
-
-  it('selects another current request when a decision removes the selected request', () => {
-    const requests = approvalRequests(data, 'pending');
-    expect(selectedApprovalRequest(requests, 'packet:consumed')).toBe(requests[0]);
-    expect(selectedApprovalRequest(requests, null)).toBe(requests[0]);
-    expect(selectedApprovalRequest([], 'packet:pending')).toBeUndefined();
   });
 });

@@ -16,20 +16,18 @@ export const createAgentClient = (url: string, token: string) => {
           ? (result.image as { data: string; mimeType: string } | undefined)
           : undefined;
       const { image: _image, ...attachmentResult } = result;
+      // Images travel once, as image blocks; neither the text nor the structured result repeats
+      // their base64.
+      const described = page
+        ? approval
+          ? { ...result, approval: { ...approval, page: description } }
+          : { ...result, page: description }
+        : image
+          ? attachmentResult
+          : result;
       return {
         content: [
-          {
-            type: 'text' as const,
-            text: JSON.stringify(
-              page
-                ? approval
-                  ? { ...result, approval: { ...approval, page: description } }
-                  : { ...result, page: description }
-                : image
-                  ? attachmentResult
-                  : result,
-            ),
-          },
+          { type: 'text' as const, text: JSON.stringify(described) },
           ...(screenshot
             ? [{ type: 'image' as const, data: screenshot, mimeType: 'image/jpeg' }]
             : []),
@@ -37,7 +35,7 @@ export const createAgentClient = (url: string, token: string) => {
             ? [{ type: 'image' as const, data: image.data, mimeType: image.mimeType }]
             : []),
         ],
-        structuredContent: image ? attachmentResult : result,
+        structuredContent: described,
       };
     } catch (error) {
       return {

@@ -7,7 +7,7 @@ import { reviewSummary } from './helpers/review-summary.ts';
 
 afterEach(cleanup);
 it('creates an initial draft, applies seven perspectives and rechecks without exporting', async () => {
-  const { daemon, request, card } = await fixture(24501);
+  const { daemon, request, card } = await fixture();
   const originalRun = adapters.demo.run.bind(adapters.demo);
   const stages: string[] = [];
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {
@@ -50,7 +50,7 @@ it('creates an initial draft, applies seven perspectives and rechecks without ex
   expect(daemon.service.controllers.size).toBe(0);
 });
 it('keeps advisory findings from blocking the final packet and runs Writer corrections', async () => {
-  const { request, card } = await fixture(24502);
+  const { request, card } = await fixture();
   const originalRun = adapters.demo.run.bind(adapters.demo);
   const stages: string[] = [];
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {
@@ -80,7 +80,7 @@ it('keeps advisory findings from blocking the final packet and runs Writer corre
   expect(snapshot.cards.find((c) => c.id === card.id)?.state).toBe('agreed');
 });
 it('rejects unconfirmed context without starting any review', async () => {
-  const { daemon, request } = await setup(24503);
+  const { daemon, request } = await setup();
   const card = daemon.service.createCard({ company: 'Fixture', title: 'Engineer' });
   daemon.service.moveCard(card.id, 'shortlisted');
   const response = await request(`/cards/${card.id}/deep-reviews`, 'POST', {});
@@ -88,7 +88,7 @@ it('rejects unconfirmed context without starting any review', async () => {
   expect(daemon.service.board.list('deep_review')).toHaveLength(0);
 });
 it('runs more than two targeted subagents and records parent deadline extensions', async () => {
-  const { daemon, request, card } = await fixture(24504);
+  const { daemon, request, card } = await fixture();
   const originalRun = adapters.demo.run.bind(adapters.demo);
   const children: RunContext[] = [];
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {

@@ -2,22 +2,22 @@
  * Two rows on one paper: [agent · state chip · tabs · actions] and [navigation · address ·
  * tools], one hairline under the toolbar, no sunken tab well and no extra status strips. */
 
-[data-interface='clay'] .agent-browser-panel {
+.agent-browser-panel {
   background: var(--paper);
   box-shadow: none;
 }
 /* The resize handle is an invisible hit area; the panel's own border is the hairline. */
-[data-interface='clay'] .browser-resizer {
+.browser-resizer {
   background: transparent;
 }
-[data-interface='clay'] .browser-resizer:hover,
-[data-interface='clay'] .browser-resizer:focus-visible {
+.browser-resizer:hover,
+.browser-resizer:focus-visible {
   background: color-mix(in oklab, var(--primary) 18%, transparent);
   outline: 0;
 }
 
 /* Row 1: identity, the state chip, inline tabs and the panel's actions. */
-[data-interface='clay'] .browser-panel-heading {
+.browser-panel-heading {
   flex-wrap: nowrap;
   gap: 6px;
   min-height: 44px;
@@ -26,13 +26,13 @@
   background: var(--paper);
   box-shadow: none;
 }
-[data-interface='clay'] .browser-heading-identity {
+.browser-heading-identity {
   flex: none;
   flex-wrap: nowrap;
   gap: 4px;
 }
 /* A hairline after the state chip keeps it from reading as a tab. */
-[data-interface='clay'] .browser-heading-tabs {
+.browser-heading-tabs {
   display: flex;
   flex: 1 1 auto;
   align-items: center;
@@ -40,21 +40,21 @@
   min-width: 0;
   overflow: hidden;
 }
-[data-interface='clay'] .browser-heading-tabs::before {
+.browser-heading-tabs::before {
   content: '';
   flex: none;
   width: 1px;
   height: 16px;
   background: var(--border);
 }
-[data-interface='clay'] .browser-tab-strip {
+.browser-tab-strip {
   display: flex;
   flex: 1;
   align-items: center;
   gap: 2px;
   min-width: 0;
 }
-[data-interface='clay'] .browser-tab-strip > .browser-tabs {
+.browser-tab-strip > .browser-tabs {
   flex: 0 1 auto;
   gap: 2px;
   min-width: 0;
@@ -66,13 +66,13 @@
 }
 /* Tabs that overflow fade out only at the edge with more beyond it; New tab sits outside,
  * always visible. */
-[data-interface='clay'] .browser-tab-strip > .browser-tabs[data-overflow-end] {
+.browser-tab-strip > .browser-tabs[data-overflow-end] {
   mask-image: linear-gradient(to right, #000 calc(100% - 16px), transparent);
 }
-[data-interface='clay'] .browser-tab-strip > .browser-tabs[data-overflow-start] {
+.browser-tab-strip > .browser-tabs[data-overflow-start] {
   mask-image: linear-gradient(to right, transparent, #000 16px);
 }
-[data-interface='clay'] .browser-tab-strip > .browser-tabs[data-overflow-start][data-overflow-end] {
+.browser-tab-strip > .browser-tabs[data-overflow-start][data-overflow-end] {
   mask-image: linear-gradient(
     to right,
     transparent,
@@ -81,83 +81,83 @@
     transparent
   );
 }
-[data-interface='clay'] .browser-tab-strip > .browser-tabs::-webkit-scrollbar {
+.browser-tab-strip > .browser-tabs::-webkit-scrollbar {
   display: none;
 }
-[data-interface='clay'] .browser-tab-strip > .browser-tab-new {
+.browser-tab-strip > .browser-tab-new {
   flex: none;
 }
 /* Tabs shrink toward 96px before the strip scrolls, as in a desktop browser. */
-[data-interface='clay'] .browser-heading-tabs .browser-tab {
+.browser-heading-tabs .browser-tab {
   flex: 0 1 180px;
   min-width: 96px;
   max-width: 180px;
   border-radius: 9px;
 }
-[data-interface='clay'] .browser-heading-tabs .browser-tab[data-active='true'] {
+.browser-heading-tabs .browser-tab[data-active='true'] {
   background: var(--clay-fill);
   box-shadow: var(--clay);
 }
-[data-interface='clay'] .browser-heading-tabs .browser-tab-select {
+.browser-heading-tabs .browser-tab-select {
   height: 30px;
   font-weight: 500;
 }
 /* A tab being moved lifts as a raised pebble while its neighbours make room. */
-[data-interface='clay'] .browser-heading-tabs .browser-tab[data-dragging] {
+.browser-heading-tabs .browser-tab[data-dragging] {
   z-index: 1;
   background: var(--clay-fill);
   box-shadow: var(--clay);
   cursor: grabbing;
 }
-[data-interface='clay'] .browser-heading-tabs .browser-tab[data-active='true'] .browser-tab-select {
+.browser-heading-tabs .browser-tab[data-active='true'] .browser-tab-select {
   font-weight: 600;
 }
 /* A lone tab is the page's title as plain muted text: no pill, no close. */
-[data-interface='clay'] .browser-heading-tabs .browser-tab:only-of-type {
+.browser-heading-tabs .browser-tab:only-of-type {
   min-width: 0;
   background: none;
   box-shadow: none;
 }
-[data-interface='clay'] .browser-heading-tabs .browser-tab:only-of-type .browser-tab-select {
+.browser-heading-tabs .browser-tab:only-of-type .browser-tab-select {
   color: var(--muted);
   font-size: var(--text-label);
   font-weight: 500;
   cursor: default;
 }
-[data-interface='clay'] .browser-heading-tabs .browser-tab:only-of-type .browser-tab-close {
+.browser-heading-tabs .browser-tab:only-of-type .browser-tab-close {
   display: none;
 }
 /* Narrow panels give the tabs their own line under the identity and actions. */
 /* Narrow panels keep one fixed shape so a state change never reflows the page under review:
  * identity (the chip truncates) and actions on row one, the tabs always on row two. */
 @container browser-panel (max-width: 30rem) {
-  [data-interface='clay'] .browser-panel-heading {
+  .browser-panel-heading {
     flex-wrap: wrap;
     row-gap: 2px;
   }
-  [data-interface='clay'] .browser-heading-identity {
+  .browser-heading-identity {
     flex: 1 1 0;
     min-width: 0;
   }
-  [data-interface='clay'] .browser-heading-identity > .browser-state-slot {
+  .browser-heading-identity > .browser-state-slot {
     flex-shrink: 1;
     min-width: 0;
   }
-  [data-interface='clay'] .browser-heading-actions {
+  .browser-heading-actions {
     flex-wrap: nowrap;
   }
-  [data-interface='clay'] .browser-heading-tabs {
+  .browser-heading-tabs {
     order: 3;
     flex-basis: 100%;
   }
-  [data-interface='clay'] .browser-heading-tabs::before {
+  .browser-heading-tabs::before {
     display: none;
   }
 }
 
 /* The state chip: who has the page, as a bead and a label. Opens task details. One pill shape
  * and a fixed minimum width in every state, so a state change never moves the tabs beside it. */
-[data-interface='clay'] .browser-state-chip {
+.browser-state-chip {
   position: relative;
   justify-content: flex-start;
   gap: 6px;
@@ -172,13 +172,12 @@
   font-weight: 600;
 }
 /* A 32px hit area around the 28px chip. */
-[data-interface='clay'] .browser-state-chip::before {
+.browser-state-chip::before {
   content: '';
   position: absolute;
   inset: -2px;
 }
-[data-interface='clay']
-  .browser-state-chip:is(
+.browser-state-chip:is(
     [data-tone='idle'],
     [data-tone='closed'],
     [data-tone='opening'],
@@ -187,24 +186,23 @@
   background: transparent;
   box-shadow: none;
 }
-[data-interface='clay'] .browser-state-chip[data-tone='browsing']:not([data-nudged]) {
+.browser-state-chip[data-tone='browsing']:not([data-nudged]) {
   color: var(--primary-deep);
 }
-[data-interface='clay'] .browser-state-chip[data-tone='working'] {
+.browser-state-chip[data-tone='working'] {
   background: var(--plum-soft);
   color: var(--plum);
 }
-[data-interface='clay'] .browser-state-chip[data-tone='control'] {
+.browser-state-chip[data-tone='control'] {
   background: var(--primary-soft);
   color: var(--primary-deep);
 }
-[data-interface='clay']
-  .browser-state-chip:is([data-tone='waiting'], [data-tone='held'], [data-tone='paused']),
-[data-interface='clay'] .browser-state-chip[data-nudged] {
+.browser-state-chip:is([data-tone='waiting'], [data-tone='held'], [data-tone='paused']),
+.browser-state-chip[data-nudged] {
   background: var(--ochre-soft);
   color: var(--ochre);
 }
-[data-interface='clay'] .browser-state-chip[data-nudged] {
+.browser-state-chip[data-nudged] {
   animation: browser-chip-nudge 600ms ease-out 2;
 }
 @keyframes browser-chip-nudge {
@@ -212,54 +210,51 @@
     box-shadow: 0 0 0 4px color-mix(in oklab, var(--ochre) 30%, transparent);
   }
 }
-[data-interface='clay'] .browser-state-chip > .clay-job-spinner {
+.browser-state-chip > .clay-job-spinner {
   width: 10px;
   height: 10px;
   border-width: 1.5px;
 }
 @media (prefers-reduced-motion: reduce) {
-  [data-interface='clay'] .browser-state-chip[data-nudged],
-  [data-interface='clay'] .browser-handoff[data-nudged] {
+  .browser-state-chip[data-nudged],
+  .browser-handoff[data-nudged] {
     animation: none;
   }
 }
 /* The tray's control action ends its line; a press on a page the agent is using points at it. */
-[data-interface='clay'] .clay-tray-line > .browser-handoff,
-[data-interface='clay'] .clay-tray-state > .browser-handoff,
-[data-interface='clay'] .browser-pending-action > .browser-handoff {
+.clay-tray-line > .browser-handoff,
+.clay-tray-state > .browser-handoff,
+.browser-pending-action > .browser-handoff {
   flex-shrink: 0;
   height: 32px;
   padding-inline: 10px;
   font-size: var(--text-caption);
 }
-[data-interface='clay'] .clay-tray-line > .browser-handoff {
+.clay-tray-line > .browser-handoff {
   margin-left: auto;
 }
 /* Beside a request the control action is an icon in narrow panels and labelled in wide ones,
  * except beside a typed, chosen or uploaded value, which keeps the room so it reads whole. */
-[data-interface='clay'] .browser-pending-action > .browser-handoff[data-compact] {
+.browser-pending-action > .browser-handoff[data-compact] {
   width: 32px;
   height: 32px;
   padding: 0;
 }
-[data-interface='clay'] .browser-handoff[data-compact] > .browser-handoff-label {
+.browser-handoff[data-compact] > .browser-handoff-label {
   display: none;
 }
 @container browser-panel (min-width: 36rem) {
-  [data-interface='clay']
-    .browser-pending-action:not([data-value])
-    > .browser-handoff[data-compact] {
+  .browser-pending-action:not([data-value]) > .browser-handoff[data-compact] {
     width: auto;
     padding-inline: 10px;
   }
-  [data-interface='clay']
-    .browser-pending-action:not([data-value])
+  .browser-pending-action:not([data-value])
     > .browser-handoff[data-compact]
     > .browser-handoff-label {
     display: inline;
   }
 }
-[data-interface='clay'] .browser-handoff[data-nudged] {
+.browser-handoff[data-nudged] {
   box-shadow:
     var(--clay),
     0 0 0 3px color-mix(in oklab, var(--ochre) 35%, transparent);
@@ -267,47 +262,47 @@
 }
 
 /* Row 2: the toolbar on the same paper, with the only hairline in the chrome. */
-[data-interface='clay'] .browser-chrome {
+.browser-chrome {
   border-bottom: 1px solid var(--border);
   background: var(--paper);
   box-shadow: none;
 }
-[data-interface='clay'] .browser-chrome > .browser-toolbar {
+.browser-chrome > .browser-toolbar {
   min-height: 40px;
   padding: 2px 4px 4px 6px;
 }
-[data-interface='clay'] .browser-toolbar > [data-slot='button'] {
+.browser-toolbar > [data-slot='button'] {
   box-shadow: none;
 }
 
 /* The page runs flush under the toolbar's hairline in both the split and expanded views: one
  * frame, not three. The 1px border stays (transparent) so the page box and its viewport keep
  * their sizing. */
-[data-interface='clay'] .agent-browser-panel .browser-panel-body {
+.agent-browser-panel .browser-panel-body {
   padding: 0;
   background: var(--paper);
 }
-[data-interface='clay'] .agent-browser-panel .browser-page-region .browser-live-view {
+.agent-browser-panel .browser-page-region .browser-live-view {
   border-color: transparent;
   border-radius: 0;
   background: var(--paper);
   box-shadow: none;
 }
 /* Blank, failed and crashed pages fill the same flush frame as a live page. */
-[data-interface='clay'] .agent-browser-panel .browser-page-error.clay-browser-state {
+.agent-browser-panel .browser-page-error.clay-browser-state {
   border-radius: 0;
 }
 
 /* Approval tray: a 56px reservation. A waiting request reads as two short lines (what will
  * happen, then the agent's reason) on an ochre tint; the working tray is one plain line.
  * Autonomous preparation keeps its taller step list. */
-[data-interface='clay'] .browser-approvals[data-reserved] {
+.browser-approvals[data-reserved] {
   height: 3.5rem;
 }
-[data-interface='clay'] .browser-approvals[data-reserved][data-mode='autonomous'] {
+.browser-approvals[data-reserved][data-mode='autonomous'] {
   height: min(6.75rem, calc(var(--browser-viewport-height, 100dvh) * 0.3));
 }
-[data-interface='clay'] .browser-pending-action {
+.browser-pending-action {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -318,7 +313,7 @@
   background:
     linear-gradient(color-mix(in oklab, var(--ochre-soft) 55%, transparent) 0 0), var(--clay-fill);
 }
-[data-interface='clay'] .browser-pending-action .browser-approval-body {
+.browser-pending-action .browser-approval-body {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -331,19 +326,19 @@
   padding: 0;
   overflow: hidden;
 }
-[data-interface='clay'] .browser-pending-action .browser-approval-body > * {
+.browser-pending-action .browser-approval-body > * {
   flex: 0 0 auto;
   min-width: 0;
   margin: 0;
 }
-[data-interface='clay'] .browser-approval-line {
+.browser-approval-line {
   display: flex;
   align-items: center;
   gap: 7px;
   min-width: 0;
 }
 /* Verb and target never shorten; only the value gives way when the line runs out of room. */
-[data-interface='clay'] .browser-approval-title {
+.browser-approval-title {
   display: flex;
   gap: 0.28em;
   min-width: 0;
@@ -354,16 +349,14 @@
   line-height: 20px;
   white-space: nowrap;
 }
-[data-interface='clay'] .browser-approval-title > span {
+.browser-approval-title > span {
   flex: none;
 }
-[data-interface='clay']
-  .browser-approval-title
-  > :is(.browser-approval-value, .browser-approval-object) {
+.browser-approval-title > :is(.browser-approval-value, .browser-approval-object) {
   display: inline-flex;
   min-width: 0;
 }
-[data-interface='clay'] .browser-approval-title .browser-approval-text {
+.browser-approval-title .browser-approval-text {
   min-width: 1.5em;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -371,15 +364,15 @@
 /* The value gives way first, down to a few letters inside its quotes. */
 /* The value gives way first: its shrink weight dwarfs the target's, so the target only shortens
  * once the value is down to a few letters, and nothing shortens while the line has room. */
-[data-interface='clay'] .browser-approval-title > .browser-approval-value {
+.browser-approval-title > .browser-approval-value {
   flex: 0 1000 auto;
   font-weight: 500;
 }
-[data-interface='clay'] .browser-approval-title > .browser-approval-object {
+.browser-approval-title > .browser-approval-object {
   flex: 0 1 auto;
 }
 /* The request's two lines open its Details: a quiet row, not a button shape. */
-[data-interface='clay'] .browser-evidence-trigger {
+.browser-evidence-trigger {
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -395,18 +388,18 @@
   text-align: left;
   cursor: pointer;
 }
-[data-interface='clay'] .browser-evidence-trigger:hover {
+.browser-evidence-trigger:hover {
   background: color-mix(in oklab, var(--ochre) 8%, transparent);
 }
-[data-interface='clay'] .browser-evidence-trigger:focus-visible {
+.browser-evidence-trigger:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 1px;
 }
-[data-interface='clay'] .browser-approval-more {
+.browser-approval-more {
   flex: none;
   color: var(--muted);
 }
-[data-interface='clay'] .browser-pending-action .browser-approval-reason {
+.browser-pending-action .browser-approval-reason {
   overflow: hidden;
   padding-left: 15px;
   color: var(--muted);
@@ -415,14 +408,14 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-[data-interface='clay'] .browser-approval-lock {
+.browser-approval-lock {
   flex: none;
   color: var(--ochre);
 }
-[data-interface='clay'] .browser-pending-action > :not(.browser-approval-body) {
+.browser-pending-action > :not(.browser-approval-body) {
   flex: none;
 }
-[data-interface='clay'] .browser-pending-action .approval-footer {
+.browser-pending-action .approval-footer {
   position: static;
   gap: 6px;
   margin: 0;
@@ -430,10 +423,10 @@
   background: none;
   box-shadow: none;
 }
-[data-interface='clay'] .browser-pending-action .approval-footer > [data-slot='button'] {
+.browser-pending-action .approval-footer > [data-slot='button'] {
   height: 32px;
 }
-[data-interface='clay'] .clay-tray-line {
+.clay-tray-line {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -445,51 +438,51 @@
   font-size: var(--text-caption);
 }
 @container browser-panel (max-width: 34rem) {
-  [data-interface='clay'] .browser-approvals[data-reserved] {
+  .browser-approvals[data-reserved] {
     height: 6rem;
   }
-  [data-interface='clay'] .browser-pending-action {
+  .browser-pending-action {
     flex-wrap: wrap;
     align-content: center;
     row-gap: 6px;
     padding-block: 6px;
   }
-  [data-interface='clay'] .browser-pending-action .browser-approval-body {
+  .browser-approvals .browser-pending-action .browser-approval-body {
     flex-basis: 100%;
   }
-  [data-interface='clay'] .browser-pending-action .approval-footer {
+  .browser-pending-action .approval-footer {
     margin-left: auto;
   }
 }
 
 /* Failure orbs are round like every other state orb. */
-[data-interface='clay'] .clay-browser-orb[data-tone='rose'] {
+.clay-browser-orb[data-tone='rose'] {
   border-radius: 999px;
 }
 /* The expanded activity column uses the app's sans heading type. */
-[data-interface='clay'] .browser-run-heading > strong {
+.browser-run-heading > strong {
   font-family: var(--font-sans);
   font-size: var(--text-label);
   font-weight: 600;
 }
 
 /* Find: a pill under the Find button, over the page's top-right corner. */
-[data-interface='clay'] .browser-find-popover {
+.browser-find-popover {
   width: min(20rem, calc(100vw - 24px));
   border-radius: 999px;
 }
-[data-interface='clay'] .browser-find {
+.browser-find {
   gap: 2px;
   height: 36px;
   padding: 0 2px 0 10px;
   border-bottom: 0;
   background: none;
 }
-[data-interface='clay'] .browser-find > svg {
+.browser-find > svg {
   flex: none;
   color: var(--muted);
 }
-[data-interface='clay'] .browser-find > input {
+.browser-find > input {
   flex: 1;
   min-width: 0;
   height: 30px;
@@ -501,10 +494,10 @@
   font-size: var(--text-label);
   outline: none;
 }
-[data-interface='clay'] .browser-find > input::placeholder {
+.browser-find > input::placeholder {
   color: var(--muted);
 }
-[data-interface='clay'] .browser-find-count {
+.browser-find-count {
   flex: none;
   min-width: 0;
   white-space: nowrap;
@@ -513,38 +506,38 @@
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
-[data-interface='clay'] .browser-find > [data-slot='button'] {
+.browser-find > [data-slot='button'] {
   width: 30px;
   height: 30px;
   border-radius: 999px;
 }
-[data-interface='clay'] .browser-find:focus-within {
+.browser-find:focus-within {
   outline: 0;
 }
-[data-interface='clay'] .browser-find-popover:has(input:focus-visible) {
+.browser-find-popover:has(input:focus-visible) {
   box-shadow:
     var(--pop, 0 8px 24px rgb(0 0 0 / 0.18)),
     0 0 0 1px color-mix(in oklab, var(--primary) 40%, transparent);
 }
-[data-interface='clay'] .browser-find-count[data-empty] {
+.browser-find-count[data-empty] {
   color: var(--rose);
 }
 
 /* A menu row can end with its current value and a chevron (Profile · Default ›). */
-[data-interface='clay'] .browser-menu-row-value {
+.browser-menu-row-value {
   margin-left: auto;
   color: var(--muted);
   font-size: var(--text-caption);
 }
-[data-interface='clay'] .browser-menu-row > svg:last-child:not(:first-child) {
+.browser-menu-row > svg:last-child:not(:first-child) {
   color: var(--muted);
 }
 
 /* Small visual close buttons keep a 32px target. */
-[data-interface='clay'] .browser-tab .browser-tab-close {
+.browser-tab .browser-tab-close {
   position: relative;
 }
-[data-interface='clay'] .browser-tab .browser-tab-close::before {
+.browser-tab .browser-tab-close::before {
   content: '';
   position: absolute;
   inset: -5px;
@@ -552,14 +545,14 @@
 
 /* The chat header's Browser button rests flat like Job and Packet beside it and reads as pressed
  * only while the panel shows the page. */
-[data-interface='clay'] .chat-browser[data-open] {
+.chat-browser[data-open] {
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
   color: var(--ink);
 }
 
 /* A three-way segment in a menu row (website appearance): recessed track, raised choice. */
-[data-interface='clay'] .browser-menu-segment {
+.browser-menu-segment {
   display: inline-flex;
   gap: 2px;
   padding: 2px;
@@ -567,7 +560,7 @@
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
 }
-[data-interface='clay'] .browser-menu-segment > [data-slot='button'] {
+.browser-menu-segment > [data-slot='button'] {
   height: 26px;
   padding: 0 8px;
   border-radius: 7px;
@@ -575,21 +568,21 @@
   font-size: var(--text-caption);
   font-weight: 500;
 }
-[data-interface='clay'] .browser-menu-segment > [aria-pressed='true'] {
+.browser-menu-segment > [aria-pressed='true'] {
   background: var(--clay-fill);
   box-shadow: var(--clay);
   color: var(--ink);
   font-weight: 600;
 }
 /* History rows: title, then host and path; a quiet destructive clear that asks first. */
-[data-interface='clay'] .browser-history-heading {
+.browser-history-heading {
   margin: 0;
   padding: 6px 8px 2px;
   color: var(--muted);
   font-size: var(--text-caption);
   font-weight: 600;
 }
-[data-interface='clay'] .browser-history-entry {
+.browser-history-entry {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   justify-content: stretch;
@@ -601,29 +594,29 @@
   font-weight: 400;
   text-align: left;
 }
-[data-interface='clay'] .browser-history-title {
+.browser-history-title {
   max-width: 100%;
   color: var(--ink);
   font-size: var(--text-label);
   line-height: 20px;
 }
-[data-interface='clay'] .browser-history-where {
+.browser-history-where {
   max-width: 100%;
   color: var(--muted);
   font-size: var(--text-caption);
   line-height: 18px;
 }
-[data-interface='clay'] .browser-history-empty {
+.browser-history-empty {
   margin: 8px;
   color: var(--muted);
   font-size: var(--text-caption);
 }
-[data-interface='clay'] .browser-history-clear-start {
+.browser-history-clear-start {
   margin-top: 4px;
   color: var(--rose);
   font-weight: 500;
 }
-[data-interface='clay'] .browser-history-clear {
+.browser-history-clear {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -632,22 +625,22 @@
   color: var(--ink);
   font-size: var(--text-caption);
 }
-[data-interface='clay'] .browser-history-clear > span {
+.browser-history-clear > span {
   flex: 1;
 }
-[data-interface='clay'] .browser-history-clear-confirm {
+.browser-history-clear-confirm {
   color: var(--rose);
 }
 
 /* Narrow panels keep the agent's face and drop its name, leaving the row to the chip and tabs. */
 @container browser-panel (max-width: 40rem) {
-  [data-interface='clay'] :is(.browser-agent-name, .browser-agent-picker) > .truncate {
+  :is(.browser-agent-name, .browser-agent-picker) > .truncate {
     display: none;
   }
 }
 
 /* At rest the tray is a recessed line on the paper; it rises as a clay card only for a decision. */
-[data-interface='clay'] .browser-approvals[data-idle] {
+.browser-approvals[data-idle] {
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
 }
@@ -657,17 +650,17 @@
  * Needs your OK and a takeover never move the tabs. The tabs shift once when a run starts or ends;
  * at rest the chip hugs its label. Narrow panels, whose tabs have their own row, give the room
  * back. */
-[data-interface='clay'] .browser-state-slot {
+.browser-state-slot {
   display: inline-flex;
   flex: none;
   align-items: center;
 }
 @container browser-panel (width > 30rem) {
-  [data-interface='clay'] .browser-state-slot[data-reserve] {
+  .browser-state-slot[data-reserve] {
     min-width: calc(7.5rem + 12px);
   }
   /* The hairline follows the chip itself, so the reserved width reads as the tabs' indent. */
-  [data-interface='clay'] .browser-state-slot::after {
+  .browser-state-slot::after {
     content: '';
     flex: none;
     width: 1px;
@@ -675,26 +668,23 @@
     margin-left: 10px;
     background: var(--border);
   }
-  [data-interface='clay'] .browser-heading-tabs::before {
+  .browser-heading-tabs::before {
     display: none;
   }
 }
 /* The address keeps room for a host however many tools share the row (in panels wide enough
  * for both; a phone sheet shares the row more evenly). */
 @container browser-panel (min-width: 30rem) {
-  [data-interface='clay'] .browser-toolbar > .browser-address {
+  .browser-toolbar > .browser-address {
     min-width: 9rem;
   }
 }
 /* Beside the browser the chat header's rule would sit 21px above the toolbar's: one rule only. */
-[data-interface='clay']
-  .chat-page
-  .chat-workspace[data-browser-open='true']:has(> .agent-browser-panel)
-  .chat-heading {
+.chat-page .chat-workspace[data-browser-open='true'][data-has-browser-panel] .chat-heading {
   border-bottom-color: transparent;
 }
 /* The narrow sheet's own message box, with the expanded column's gutter and recessed field. */
-[data-interface='clay'] .agent-browser-panel > .browser-reply {
+.agent-browser-panel > .browser-reply {
   padding: 8px 8px 4px;
   border-top: 1px solid var(--border);
 }

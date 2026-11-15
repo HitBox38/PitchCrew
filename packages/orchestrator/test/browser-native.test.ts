@@ -6,7 +6,7 @@ const identity = {
   id: 'fdebb1e8-41d2-4e34-89c8-e50259ae47ab',
   ownerId: '82c426cd-12d2-480e-acd3-dab28bd2fe71',
 };
-const fixture = async (port: number) => {
+const fixture = async () => {
   const setManual = vi.fn(async (_manual: boolean) => {});
   const nativeCommand = vi.fn(async () => ({ ...identity, activeTab: 'tab', tabs: [] }));
   let closed = () => {};
@@ -31,7 +31,7 @@ const fixture = async (port: number) => {
     perform: vi.fn(async () => {}),
     close: vi.fn(async () => {}),
   };
-  const host = await setup(port, false, { browserLaunch: async () => driver });
+  const host = await setup(false, { browserLaunch: async () => driver });
   const service = host.daemon.service;
   const role = service.board.get<Role>('role', 'writer');
   service.board.record(
@@ -45,7 +45,7 @@ const fixture = async (port: number) => {
 };
 afterEach(cleanup);
 it('uses the user session and manual lease for native commands and synchronizes private control', async () => {
-  const { request, driver } = await fixture(14534);
+  const { request, driver } = await fixture();
   expect((await request('/browser/writer/native?threadId=writer')).result).toMatchObject(identity);
   expect((await request('/browser/writer/native?threadId=scout')).response.status).toBe(400);
   expect(
@@ -75,7 +75,7 @@ it('uses the user session and manual lease for native commands and synchronizes 
   expect(driver.setManual).toHaveBeenLastCalledWith(false);
 });
 it('keeps a failed native control recovery private and permits another recovery attempt', async () => {
-  const { service, request, driver } = await fixture(14537);
+  const { service, request, driver } = await fixture();
   const scope = { runId: 'private-recovery-run', roleId: 'writer', cardId: null };
   service.computer.bindBrowser({ ...scope, threadId: 'writer' });
   const path = '/browser/writer/control?threadId=writer';
@@ -97,7 +97,7 @@ it('keeps a failed native control recovery private and permits another recovery 
   expect(session.info.manual).toBe(false);
 });
 it('expires unused approvals on native reflow and terminates browser access after host loss', async () => {
-  const { service, request, driver, close } = await fixture(14535);
+  const { service, request, driver, close } = await fixture();
   const scope = { runId: 'native-run', roleId: 'writer', cardId: null };
   service.computer.bindBrowser({ ...scope, threadId: 'writer' });
   const approval = await service.computer.request(
@@ -128,7 +128,7 @@ it('expires unused approvals on native reflow and terminates browser access afte
   expect(service.board.get<ComputerApproval>('computer_approval', next.id).status).toBe('rejected');
 });
 it('validates and protects registration of the private desktop host', async () => {
-  const { request } = await fixture(14536);
+  const { request } = await fixture();
   const valid = {
     ownerId: identity.ownerId,
     origin: 'http://127.0.0.1:59001',

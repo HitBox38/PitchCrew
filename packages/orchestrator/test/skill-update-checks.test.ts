@@ -23,7 +23,7 @@ const latest = {
 
 describe('persistent user-only skill update checks', () => {
   it('checks every imported skill daily, ignores local-only edits, and respects the automatic switch', async () => {
-    const { daemon, request } = await setup(15731);
+    const { daemon, request } = await setup();
     const skill = daemon.service.saveSkill({ ...input, content: 'My local instructions.' });
     const load = vi.spyOn(skillDirectory, 'preview').mockResolvedValue(directorySkill);
     const events = daemon.service.board.events();
@@ -49,7 +49,7 @@ describe('persistent user-only skill update checks', () => {
   });
 
   it('persists decisions across restarts, reopens on a different version, and updates snapshot validators', async () => {
-    const { daemon, directory, request } = await setup(15732);
+    const { daemon, directory, request, port } = await setup();
     const skill = daemon.service.saveSkill(input);
     const load = vi.spyOn(skillDirectory, 'preview').mockResolvedValue(latest);
     const before = await daemon.service.snapshotRevision();
@@ -72,7 +72,7 @@ describe('persistent user-only skill update checks', () => {
     for (const entry of resources.splice(0)) await entry.daemon.close();
     const restarted = await createDaemon({
       directory,
-      port: 15732,
+      port,
       seedSkills: false,
       dev: true,
       ui: false,
@@ -94,7 +94,7 @@ describe('persistent user-only skill update checks', () => {
   });
 
   it('keeps known updates and success times when offline, then clears failures on recovery', async () => {
-    const { daemon } = await setup(15733);
+    const { daemon } = await setup();
     daemon.service.saveSkill(input);
     const load = vi.spyOn(skillDirectory, 'preview').mockResolvedValue(latest);
     const original = await daemon.service.checkSkillUpdates(false);
@@ -111,7 +111,7 @@ describe('persistent user-only skill update checks', () => {
   });
 
   it('deduplicates concurrent clients and drops stale results after edits or deletion', async () => {
-    const { daemon } = await setup(15734);
+    const { daemon } = await setup();
     const skill = daemon.service.saveSkill(input);
     let resolve!: (value: typeof latest) => void;
     const load = vi.spyOn(skillDirectory, 'preview').mockImplementation(
@@ -134,7 +134,7 @@ describe('persistent user-only skill update checks', () => {
   });
 
   it('removes an applied update through the existing exact-preview approval', async () => {
-    const { daemon, request } = await setup(15735);
+    const { daemon, request } = await setup();
     const skill = daemon.service.saveSkill(input);
     vi.spyOn(skillDirectory, 'preview').mockResolvedValue(latest);
     await daemon.service.checkSkillUpdates(false);
@@ -153,7 +153,7 @@ describe('persistent user-only skill update checks', () => {
   });
 
   it('rejects unauthenticated and cross-origin checks, preferences and decisions without network calls', async () => {
-    const { daemon, request } = await setup(15736);
+    const { daemon, request } = await setup();
     const skill = daemon.service.saveSkill(input);
     const load = vi.spyOn(skillDirectory, 'preview').mockResolvedValue(latest);
     for (const [path, method, body] of [

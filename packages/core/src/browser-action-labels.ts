@@ -95,7 +95,7 @@ export const publicText = (value: string) => {
  * The element a request names. The approval review may use an inspected control's label; public
  * labels use only the referenced element's name, which the daemon read with credential redaction.
  */
-export const browserActionTargetName = (
+const browserActionTargetName = (
   action: BrowserAction,
   page?: BrowserSnapshot,
   publicLabel = false,
@@ -155,7 +155,7 @@ export const browserActionParts = (
   return { verb: 'Click', target: element };
 };
 
-export const joinBrowserActionParts = ({ verb, value, joiner, target }: BrowserActionParts) =>
+const joinBrowserActionParts = ({ verb, value, joiner, target }: BrowserActionParts) =>
   [verb, value, joiner, target].filter(Boolean).join(' ');
 
 /** "Type “Ada Lovelace” into “Customer name”": what an approval will do. */

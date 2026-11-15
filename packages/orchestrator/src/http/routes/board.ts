@@ -1,13 +1,14 @@
 import { registerDeepReviewRoutes } from './deep-reviews.ts';
 import { registerCardChangeRoutes } from './card-changes.ts';
 import { roleIdSchema, states } from '@pitchcrew/core';
-import { deleteJob, editJob, setCardStatus } from '@pitchcrew/board';
+import { deleteJob, editJob, setCardStatus, runsWithStatus } from '@pitchcrew/board';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { IdRoute } from '../types.ts';
 import { CrewService } from '../../service.ts';
-import type { Card, Run } from '@pitchcrew/core';
+import type { Card } from '@pitchcrew/core';
 import { registerApplicationContextRoutes } from './application-context.ts';
+import { ProfileConflictError } from '../../profile-notes/index.ts';
 
 export const registerBoardRoutes = (app: FastifyInstance, service: CrewService) => {
   registerApplicationContextRoutes(app, service);
@@ -38,9 +39,7 @@ export const registerBoardRoutes = (app: FastifyInstance, service: CrewService) 
     const card = service.board.get<Card>('card', req.params.id);
     if (
       card.owner ||
-      service.board
-        .list<Run>('run')
-        .some((run) => run.cardId === card.id && run.status === 'running')
+      runsWithStatus(service.board, ['running']).some((run) => run.cardId === card.id)
     )
       throw new Error('Wait for the active run or cancel it before deleting this job.');
     deleteJob(service.board, req.params.id, 'user', 'User deleted the job');
@@ -76,10 +75,33 @@ export const registerBoardRoutes = (app: FastifyInstance, service: CrewService) 
   });
   app.put('/api/profile', async (req, res) => {
     const body = z
-      .object({ name: z.string().max(100), content: z.string().max(50000) })
+      .object({
+        name: z.string().max(100),
+        content: z.string().max(50000),
+        baseline: z
+          .string()
+          .regex(/^[a-f0-9]{64}$/)
+          .nullable()
+          .optional(),
+      })
       .parse(req.body);
-    res.send(await service.saveProfile(body.name, body.content));
+    try {
+      res.send(await service.saveProfile(body.name, body.content, body.baseline));
+    } catch (error) {
+      if (!(error instanceof ProfileConflictError)) throw error;
+      res.status(409).send({ error: error.message, current: error.current });
+    }
   });
+  app.post('/api/profile/rename', async (req, res) =>
+    res.send(await service.renameProfileNote(req.body)),
+  );
+  app.get('/api/profile/trash', async (_req, res) => res.send(await service.listProfileTrash()));
+  app.post('/api/profile/restore', async (req, res) =>
+    res.send(await service.restoreProfileNote(req.body)),
+  );
+  app.delete<{ Params: { name: string } }>('/api/profile/:name', async (req, res) =>
+    res.send(await service.deleteProfileNote(req.params.name)),
+  );
   app.post('/api/examples', async (_req, res) => {
     await service.loadExamples();
     res.send({ ok: true });

@@ -13,7 +13,7 @@ import { setup, cleanup, waitForSnapshot } from './helpers/daemon.ts';
 afterEach(cleanup);
 
 it('saves server-owned reference labels and digests, routes only real mentions and passes selected skills to the runtime', async () => {
-  const { request, daemon } = await setup(19631);
+  const { request, daemon } = await setup();
   const contexts: ChatContext[] = [];
   vi.spyOn(adapters.demo, 'chat').mockImplementation(async (context) => {
     contexts.push(context);
@@ -67,7 +67,7 @@ it('saves server-owned reference labels and digests, routes only real mentions a
   expect(saved.content).toBe(text);
 });
 it('rejects forged, deleted and unassigned selections before queuing anything', async () => {
-  const { request } = await setup(19632);
+  const { request } = await setup();
   const group = (
     await request<Conversation>('/conversations', 'POST', {
       title: 'Scope fixture',
@@ -96,7 +96,7 @@ it('rejects forged, deleted and unassigned selections before queuing anything', 
   expect((await post('`@writer` Explain this example.')).response.status).toBe(202);
 });
 it('fails a queued selection after its instructions change, and resolves fresh references when edited', async () => {
-  const { request } = await setup(19633);
+  const { request } = await setup();
   let complete!: (reply: ChatResult) => void;
   const turns: ChatContext[] = [];
   vi.spyOn(adapters.demo, 'chat').mockImplementation((context) => {
@@ -152,7 +152,7 @@ it('fails a queued selection after its instructions change, and resolves fresh r
 });
 
 it('persists agent mention labels and supplies scoped file citation identities to the runtime', async () => {
-  const { request, daemon } = await setup(19635);
+  const { request, daemon } = await setup();
   const contexts: ChatContext[] = [];
   vi.spyOn(adapters.demo, 'chat').mockImplementation(async (context) => {
     contexts.push(context);

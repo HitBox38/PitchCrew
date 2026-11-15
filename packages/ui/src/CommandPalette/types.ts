@@ -51,3 +51,5 @@ export type SettingsCommandsProps = Pick<
   | 'onCopyDirectory'
   | 'onTheme'
 >;
+
+export type NoteCommandsProps = Pick<CommandPaletteModel, 'notes' | 'run' | 'onOpenNote'>;

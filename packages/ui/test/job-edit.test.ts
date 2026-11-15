@@ -8,7 +8,7 @@ let page: Page;
 let card: Card;
 const errors: string[] = [];
 beforeAll(async () => {
-  host = await setup(14659);
+  host = await setup();
   browser = await chromium.launch({ headless: true });
   page = await browser.newPage({ viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
   page.setDefaultTimeout(10000);

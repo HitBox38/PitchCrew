@@ -50,7 +50,7 @@ describe('workspace onboarding', () => {
   });
 
   it('validates user decisions, shares them in snapshots and leaves board rules untouched', async () => {
-    const { daemon, request } = await setup(15270, false, { dev: false });
+    const { daemon, request } = await setup(false, { dev: false });
     const before = await daemon.service.snapshot();
     expect(before.onboarding?.status).toBe('welcome');
     const state = { version: 1, status: 'setup', step: 0 };

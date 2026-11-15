@@ -1,6 +1,7 @@
 import { DesktopBrowserHosts } from './native-host.ts';
 import type { Board } from '@pitchcrew/board';
 import {
+  computerApprovalLifecycle,
   browserActionSchema,
   browserErrorText,
   browserWaitSchema,
@@ -75,6 +76,13 @@ export class ComputerManager {
     return session;
   };
 
+  /** Switching tabs while a request or approved action is in flight would move the page it was
+   * fingerprinted against, so tab targeting waits for that action. */
+  private assertTabIdle = (runId: string) => {
+    if (this.busyRoles.has(this.browsers.keyForRun(runId)))
+      throw new Error('A browser action is in progress.');
+  };
+
   inspect = async (
     runId: string,
     options: { includeImage?: boolean; references?: boolean; tabId?: string } = {
@@ -88,6 +96,7 @@ export class ComputerManager {
     const generation = this.browsers.forRole(runId).observationGeneration;
     if (options.tabId) {
       if (!driver.targetTab) throw new Error('Browser tab targeting is unavailable.');
+      this.assertTabIdle(runId);
       await driver.targetTab(options.tabId);
     }
     const page = await driver.snapshot(options);
@@ -105,6 +114,7 @@ export class ComputerManager {
     if (condition.tabId) {
       this.browsers.assertAgent(runId);
       if (!driver.targetTab) throw new Error('Browser tab targeting is unavailable.');
+      this.assertTabIdle(runId);
       await driver.targetTab(condition.tabId);
     }
     if (!driver.matches) throw new Error('Browser waits are unavailable.');
@@ -183,7 +193,7 @@ export class ComputerManager {
             (approval) =>
               approval.roleId === session.info.roleId &&
               approval.runId === session.info.runId &&
-              ['pending', 'approved'].includes(approval.status),
+              computerApprovalLifecycle.is('open', approval.status),
           )
       );
     };
@@ -298,7 +308,7 @@ export class ComputerManager {
   private expire = (runId: string, error: string) => {
     for (const approval of this.board
       .list<ComputerApproval>('computer_approval')
-      .filter((a) => a.runId === runId && ['pending', 'approved'].includes(a.status)))
+      .filter((a) => a.runId === runId && computerApprovalLifecycle.is('open', a.status)))
       this.board.record(
         'computer_approval',
         { ...approval, status: 'rejected', error },
@@ -326,7 +336,7 @@ export class ComputerManager {
     if (
       this.board
         .list<ComputerApproval>('computer_approval')
-        .some((a) => a.runId === scope.runId && ['pending', 'approved'].includes(a.status))
+        .some((a) => a.runId === scope.runId && computerApprovalLifecycle.is('open', a.status))
     )
       throw new Error('Resolve the previous browser action first.');
     if (this.busy.has(scope.runId)) throw new Error('A browser action is in progress.');

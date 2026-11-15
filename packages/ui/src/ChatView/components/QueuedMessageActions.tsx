@@ -1,3 +1,4 @@
+import { deliveryLifecycle } from '@pitchcrew/core/lifecycles';
 import type { ChatRequest } from '@pitchcrew/core';
 import { QueuedMessageMenu } from './QueuedMessageMenu.tsx';
 import { Button } from '@pitchcrew/design-system/button';
@@ -26,9 +27,7 @@ export const QueuedMessageActions = ({
   queuePaused: boolean;
   canResume: boolean;
 }) => {
-  if (
-    !request.deliveries.some((delivery) => ['queued', 'paused', 'failed'].includes(delivery.status))
-  )
+  if (!request.deliveries.some((delivery) => deliveryLifecycle.is('unsent', delivery.status)))
     return null;
   const recovery = requestRecovery(request);
   return (
@@ -46,9 +45,7 @@ export const QueuedMessageActions = ({
           <Pencil size={13} />
         </Button>
       ) : null}
-      {request.deliveries.some((delivery) =>
-        ['queued', 'paused', 'failed'].includes(delivery.status),
-      ) ? (
+      {request.deliveries.some((delivery) => deliveryLifecycle.is('unsent', delivery.status)) ? (
         <QueuedMessageMenu
           request={request}
           update={update}

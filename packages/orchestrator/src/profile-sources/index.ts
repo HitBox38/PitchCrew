@@ -80,6 +80,21 @@ export class ProfileSourceManager {
     if (!sources.some((source) => source.id === id)) throw new Error('Profile source not found.');
     await this.store(sources.filter((source) => source.id !== id));
   };
+  /** Keep imported records tracking a renamed note; returns an undo for a failed rename. */
+  renameNote = async (from: string, to: string): Promise<() => Promise<void>> => {
+    const sources = await this.list();
+    if (sources.some((source) => source.files.some((file) => file.name === to)))
+      throw new Error('An imported source still tracks this filename. Choose another name.');
+    if (!sources.some((source) => source.files.some((file) => file.name === from)))
+      return async () => {};
+    await this.store(
+      sources.map((source) => ({
+        ...source,
+        files: source.files.map((file) => (file.name === from ? { ...file, name: to } : file)),
+      })),
+    );
+    return () => this.store(sources);
+  };
   watchProject = async (value: unknown) => {
     const input = sourceInput.parse(value);
     if (input.provider !== 'github')

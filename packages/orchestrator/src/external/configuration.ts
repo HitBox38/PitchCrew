@@ -22,11 +22,23 @@ export const externalMcpConfiguration = (
   },
 });
 
-export const externalMcpInfo = async (settings: DaemonSettings): Promise<ExternalMcpInfo> => {
+export const externalMcpInfo = async (
+  settings: DaemonSettings,
+  lastRequest?: { token: string; action: string; at: string },
+  lastAttempt?: { token: string } & NonNullable<ExternalMcpInfo['lastAttempt']>,
+): Promise<ExternalMcpInfo> => {
   const access = await readExternalAccess(settings.directory);
   return {
     enabled: !!access,
     write: access?.write ?? false,
+    lastRequest:
+      access && lastRequest?.token === access.token
+        ? { action: lastRequest.action, at: lastRequest.at }
+        : null,
+    lastAttempt:
+      access && lastAttempt?.token === access.token
+        ? { action: lastAttempt.action, at: lastAttempt.at, outcome: lastAttempt.outcome }
+        : null,
     configuration: externalMcpConfiguration(settings),
   };
 };

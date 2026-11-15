@@ -38,10 +38,10 @@ export const WorkspaceMobileBar = ({
       >
         <Menu aria-hidden="true" />
       </Button>
+      <div className="workspace-mobile-title-slot" ref={titleRef} />
       <span className="workspace-mobile-title" aria-hidden="true">
         {title}
       </span>
-      <div className="workspace-mobile-title-slot" ref={titleRef} />
       <div className="workspace-mobile-primary" ref={primaryRef} />
       <NotificationBell className="workspace-mobile-bell" side="bottom" align="end" />
       <MobileOverflow onSearch={onSearch} onAddJob={onAddJob} />

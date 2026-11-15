@@ -1,7 +1,7 @@
 import { RestrictToElement } from '@dnd-kit/dom/modifiers';
 
 // Keep the preview level with the tabs and inside the visible, scrollable strip.
-export class ProfileTabRow extends RestrictToElement {
+class ProfileTabRow extends RestrictToElement {
   constructor(manager: ConstructorParameters<typeof RestrictToElement>[0]) {
     super(manager, {
       element: ({ source }) => source?.element?.closest('.profile-document-tabs') ?? null,

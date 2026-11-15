@@ -1,12 +1,26 @@
-import { expect, it, vi, beforeEach } from 'vitest';
+import { afterAll, expect, it, vi, beforeEach } from 'vitest';
+import { mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import type { ChatContext } from '@pitchcrew/core';
 import { cardInput } from '@pitchcrew/core';
 import { codex } from '../src/codex/index.ts';
 import { claudeCode } from '../src/claude-code/index.ts';
 import { chatCli, runCli } from '../src/process.ts';
 
+const mcpConfigs = vi.hoisted(() => [] as { path: string; mode: number; content: string }[]);
 vi.mock('../src/process.ts', () => ({
-  chatCli: vi.fn(async (_command, _args, context, extract) => {
+  chatCli: vi.fn(async (_command, args: string[], context, extract) => {
+    // Claude reads its MCP configuration file at startup; record it while the adapter owns it.
+    const index = args.indexOf('--mcp-config');
+    if (index >= 0) {
+      const path = args[index + 1];
+      mcpConfigs.push({
+        path,
+        mode: statSync(path).mode & 0o777,
+        content: readFileSync(path, 'utf8'),
+      });
+    }
     extract({ type: 'thread.started', thread_id: '11111111-1111-4111-8111-111111111111' });
     return { reply: 'Fixture reply.' };
   }),
@@ -14,7 +28,16 @@ vi.mock('../src/process.ts', () => ({
   promptFor: vi.fn(),
   runCli: vi.fn(),
 }));
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  mcpConfigs.length = 0;
+});
+const runDirectory = mkdtempSync(join(tmpdir(), 'pitchcrew-adapter-'));
+afterAll(() => {
+  if (!resolve(runDirectory).startsWith(resolve(tmpdir(), 'pitchcrew-adapter-')))
+    throw new Error('Refusing unsafe cleanup target.');
+  rmSync(runDirectory, { recursive: true, force: true });
+});
 const context: ChatContext = {
   card: null,
   role: {
@@ -30,7 +53,7 @@ const context: ChatContext = {
   profile: [],
   messages: [],
   request: 'Next request.',
-  directory: '/fixture/run',
+  directory: runDirectory,
   session: { directory: '/fixture/session' },
   mcp: {
     command: 'node',
@@ -142,10 +165,19 @@ it('assigns Claude session identity and refreshes strict MCP configuration on re
       'dontAsk',
     ]),
   );
-  expect(
-    JSON.parse(flags[flags.indexOf('--mcp-config') + 1]).mcpServers.pitchcrew.env
-      .PITCHCREW_RUN_TOKEN,
-  ).toBe('next-token');
+  // The token travels in a private per-launch file, never on the process command line.
+  const configPath = flags[flags.indexOf('--mcp-config') + 1];
+  expect(configPath.startsWith(join(runDirectory, 'pitchcrew-mcp-'))).toBe(true);
+  expect(mcpConfigs[0].path).not.toBe(configPath);
+  expect(mcpConfigs[1].path).toBe(configPath);
+  expect(JSON.parse(mcpConfigs[1].content).mcpServers.pitchcrew.env.PITCHCREW_RUN_TOKEN).toBe(
+    'next-token',
+  );
+  if (process.platform !== 'win32') expect(mcpConfigs[1].mode).toBe(0o600);
+  for (const call of vi.mocked(chatCli).mock.calls)
+    expect(call[1].some((arg) => /fresh-token|next-token/.test(arg))).toBe(false);
+  // The token-bearing file is removed once the CLI exits.
+  expect(() => statSync(configPath)).toThrow();
 });
 it('retains ephemeral isolation for ordinary turns without a conversation session', async () => {
   await codex.chat({ ...context, session: undefined });

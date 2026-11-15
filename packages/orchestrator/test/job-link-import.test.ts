@@ -16,9 +16,10 @@ import {
   moreFixtureSources,
 } from './helpers/job-boards.ts';
 import { postingLinks, recordedPostings } from './helpers/job-links.ts';
+import { rewind } from './helpers/rewind.ts';
 
 const withImport = async () => {
-  const context = await setup(15631);
+  const context = await setup();
   const service = context.daemon.service;
   const boards = recordedPostings();
   service.jobSources.fetch = boards.fetcher;
@@ -144,7 +145,7 @@ describe('agent posting link imports', () => {
     setDiscovery(true, { enabled: true });
     service.board.record('run', { ...run, status: 'completed' }, 'scout', 'Fixture end');
     await expect(importLink(input)).rejects.toThrow('ended');
-    service.board.record('run', run, 'scout', 'Fixture restart');
+    rewind(service.board, 'run', run, 'scout', 'Fixture restart');
     service.controllers.delete(runId);
     await expect(importLink(input)).rejects.toThrow('ended');
     service.controllers.set(runId, controller);

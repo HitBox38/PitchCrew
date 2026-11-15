@@ -27,8 +27,9 @@ export const AgentBrowser = (props: AgentBrowserProps) => {
     thread,
     browserPanel.refresh,
     props.conversation?.cardId,
-    // No agent run is using this browser: the user can browse without Take control first.
-    session?.status === 'open' && !session.runId,
+    // No agent run is using this browser: the user can browse without Take control first. A session
+    // still marked manual without a lease here lapsed or is held elsewhere and needs Recover control.
+    session?.status === 'open' && !session.runId && !session.manual,
   );
   const presentation = useBrowserPresentation();
   const layout = useBrowserLayout(props, presentation);

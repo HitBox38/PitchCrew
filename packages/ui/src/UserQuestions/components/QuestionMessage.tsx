@@ -1,3 +1,4 @@
+import { deliveryLifecycle } from '@pitchcrew/core/lifecycles';
 import { Link } from '@tanstack/react-router';
 import type { Snapshot, UserInputRequest } from '@pitchcrew/core';
 import { Button } from '@pitchcrew/design-system/button';
@@ -59,14 +60,14 @@ export const QuestionMessage = ({
         </Button>
       ) : null}
       {question.status === 'cancelled' ? <small>{question.cancellationReason}</small> : null}
-      {delivery && ['failed', 'paused'].includes(delivery.status) ? (
+      {delivery && deliveryLifecycle.is('stopped', delivery.status) ? (
         <small className="user-question-resume">
           <StatusBead status={delivery.status} />
           Your answer is saved. Resume this agent’s continuation from the queue.
         </small>
       ) : null}
       {delivery &&
-      ['failed', 'paused'].includes(delivery.status) &&
+      deliveryLifecycle.is('stopped', delivery.status) &&
       continuation.threadId !== question.threadId ? (
         <Button
           variant="outline"

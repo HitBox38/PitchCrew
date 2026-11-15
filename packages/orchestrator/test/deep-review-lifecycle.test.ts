@@ -23,7 +23,7 @@ const passing = () => ({
   assessment: assessment(),
 });
 it('reports a failed optional child while completing the parent, and denies child delegation', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24511);
+  const { daemon, request, card } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {
     if (context.role.workflow === 'writer') return original(context);
@@ -59,7 +59,7 @@ it('reports a failed optional child while completing the parent, and denies chil
   expect(daemon.service.board.list<ReviewSubagent>('review_subagent')[0]!.status).toBe('failed');
 });
 it('routes a Writer time request through a separate parent decision without giving Writer extension authority', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24512);
+  const { daemon, request, card } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   let decisions = 0;
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {
@@ -94,7 +94,7 @@ it('routes a Writer time request through a separate parent decision without givi
   expect(daemon.service.board.list<DeepReview>('deep_review')[0]!.extensions[0]!.minutes).toBe(10);
 });
 it('cancels the parent and all running subagents together', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24513);
+  const { daemon, request, card } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   const aborted: string[] = [];
   const started: string[] = [];
@@ -138,7 +138,7 @@ it('cancels the parent and all running subagents together', async () => {
   expect(daemon.service.board.get<Card>('card', card.id).owner).toBeNull();
 });
 it('waits for missing information and resumes the same report using only review-scoped user clarifications', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24514);
+  const { daemon, request, card } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   let asked = false;
   let sawAnswer = false;
@@ -186,7 +186,7 @@ it('waits for missing information and resumes the same report using only review-
   );
 });
 it('rejects changed Profile evidence instead of applying a stale review', async () => {
-  const { daemon, directory, request, card } = await deepReviewFixture(24515);
+  const { daemon, directory, request, card } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {
     if (context.role.workflow === 'writer') return original(context);
@@ -207,7 +207,7 @@ it('rejects changed Profile evidence instead of applying a stale review', async 
   expect(daemon.service.board.get<Card>('card', card.id).packetReview).toBeUndefined();
 });
 it('continues without subagents when the runtime does not advertise support', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24516);
+  const { daemon, request, card } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   const support = adapters.demo.reviewSubagents;
   adapters.demo.reviewSubagents = undefined;
@@ -238,7 +238,7 @@ it('continues without subagents when the runtime does not advertise support', as
   }
 });
 it('cancels a waiting review and its question when the job is deleted', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24517);
+  const { daemon, request, card } = await deepReviewFixture();
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {
     await daemon.service.agentCall(context.mcp.env.PITCHCREW_RUN_TOKEN!, 'ask_user', {
       input: { question: 'Which supported experience should be emphasized?' },
@@ -257,7 +257,7 @@ it('cancels a waiting review and its question when the job is deleted', async ()
   expect(daemon.service.board.list<UserInputRequest>('user_input')[0]?.status).toBe('cancelled');
 });
 it('reserves Writer across review stages and releases both seats when the task finishes', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24518);
+  const { daemon, request, card } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {
     if (context.role.workflow === 'writer') return original(context);
@@ -279,7 +279,7 @@ it('reserves Writer across review stages and releases both seats when the task f
   expect(daemon.service.controllers.size).toBe(0);
 });
 it('resumes a final recheck without replacing the original before assessment or repeating completed corrections', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24519);
+  const { daemon, request, card } = await deepReviewFixture();
   const original = adapters.demo.run.bind(adapters.demo);
   const stages: string[] = [];
   let asked = false;
@@ -336,7 +336,7 @@ it('resumes a final recheck without replacing the original before assessment or 
 });
 
 it('corrects the packet after a required personal answer changes the confirmed context during recheck', async () => {
-  const { daemon, request, card } = await deepReviewFixture(24520);
+  const { daemon, request, card } = await deepReviewFixture();
   const application = daemon.service.board.get<Card>('card', card.id).applicationContext!;
   saveApplicationContext(
     daemon.service.board,

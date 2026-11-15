@@ -36,7 +36,7 @@ export interface CardLesson {
   createdAt: string;
 }
 /** Advisory rating of the complete packet against one exact job brief. Event v27. */
-export interface PacketFit {
+interface PacketFit {
   score: number;
   reasons: string[];
   fitReasons: string[];

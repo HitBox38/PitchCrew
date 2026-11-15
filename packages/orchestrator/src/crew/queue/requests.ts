@@ -141,7 +141,7 @@ export const requestProblem = async (
   if (!card) return 'This job was deleted.';
   const action = request.boardAction;
   if (action === 'reevaluate' && !card.packet) return 'Draft a packet before reevaluating.';
-  if (action === 'fit' && card.state !== 'lead') return 'Evaluate fit needs a job in New leads.';
+  if (action === 'fit' && card.state !== 'lead') return 'Evaluate fit needs a job in Leads.';
   if (action === 'draft' && !['shortlisted', 'changes_requested'].includes(card.state))
     return 'Shortlist this job or request changes before drafting.';
   if (action === 'review' && !card.packet) return 'Needs a draft before review.';
@@ -175,7 +175,7 @@ export const requestIsHead = (context: CrewContext, request: ChatRequest): boole
   return entries[0]?.id === request.id;
 };
 
-export const queueBoardInput = z.object({
+const queueBoardInput = z.object({
   cardId: z.uuid(),
   action: z.enum(['fit', 'draft', 'review', 'deep-review', 'reevaluate']),
   roleId: z.string().optional(),

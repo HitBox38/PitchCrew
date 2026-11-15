@@ -1,3 +1,4 @@
+import { deliveryLifecycle } from '@pitchcrew/core/lifecycles';
 import type { ChatRequest, Snapshot } from '@pitchcrew/core';
 
 export const queueRowState = (request: ChatRequest, data: Snapshot) => {
@@ -11,7 +12,7 @@ export const queueRowState = (request: ChatRequest, data: Snapshot) => {
       (!queue?.requests.length || queue.requests[0]?.id === request.id) &&
       !queue?.tasks.some((task) => task.status === 'failed'),
     reordering: !request.deliveries.some((delivery) =>
-      ['running', 'waiting'].includes(delivery.status),
+      deliveryLifecycle.is('engaged', delivery.status),
     ),
     busy: data.runs.some((run) => run.status === 'running' && run.threadId === request.threadId),
     occupying: request.deliveries.some((delivery) =>

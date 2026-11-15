@@ -133,6 +133,7 @@ export const routineInput = (routine: Routine): RoutineInput => {
     roleId,
     content,
     cardId,
+    conversationId,
     startAt,
     timezone,
     cron,
@@ -141,11 +142,14 @@ export const routineInput = (routine: Routine): RoutineInput => {
     endsAt,
     enabled,
   } = routine;
+  // Every saved field goes back: the daemon replaces the routine, so an omitted conversation
+  // would silently move later runs to a new one.
   return {
     name,
     roleId,
     content,
     cardId,
+    conversationId,
     startAt,
     timezone,
     cron,

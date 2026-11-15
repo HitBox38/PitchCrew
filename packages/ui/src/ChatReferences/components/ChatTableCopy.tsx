@@ -27,7 +27,6 @@ export const ChatTableCopy = ({
       setStatus('error');
     }
   };
-  const Icon = status === 'copied' ? Check : Copy;
   return (
     <>
       <output
@@ -49,7 +48,15 @@ export const ChatTableCopy = ({
         onClick={copy}
         disabled={disabled}
       >
-        <Icon size={13} aria-hidden="true" /> {status === 'copied' ? 'Copied' : 'Copy'}
+        <span
+          data-slot="icon-swap"
+          data-swapped={status === 'copied' || undefined}
+          aria-hidden="true"
+        >
+          <Copy size={13} />
+          <Check size={13} />
+        </span>{' '}
+        {status === 'copied' ? 'Copied' : 'Copy'}
       </Button>
     </>
   );

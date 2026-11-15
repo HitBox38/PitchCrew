@@ -1,4 +1,4 @@
-export const uniqueTags = (tags: string[]): string[] => {
+const uniqueTags = (tags: string[]): string[] => {
   const seen = new Set<string>();
   return tags
     .map((tag) => tag.trim())

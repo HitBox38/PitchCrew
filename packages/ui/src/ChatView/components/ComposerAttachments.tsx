@@ -23,7 +23,7 @@ export const ComposerAttachments = ({
 }) => {
   if (!files.length) return null;
   return (
-    <ul aria-label="Files to attach" className="flex w-full flex-wrap gap-2">
+    <ul aria-label="Files to attach" className="chat-composer-files flex w-full flex-wrap gap-2">
       {keyedItems(files, (file) =>
         JSON.stringify([file.name, file.size, file.type, file.lastModified]),
       ).map(({ item: file, key }, index) => (

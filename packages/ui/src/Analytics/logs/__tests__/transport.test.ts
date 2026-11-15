@@ -90,6 +90,42 @@ describe('native PostHog OTLP logs', () => {
     expect(request!.body).not.toContain('/Users');
     transport.dispose();
   });
+  it('sends an undeclared lifecycle move only with table names and statuses', async () => {
+    const { transport, send } = setup();
+    expect(
+      await transport.capture('operational_log', {
+        code: 'daemon_lifecycle_violation',
+        area: 'daemon',
+        lifecycle: 'Run',
+        from_status: 'completed',
+        to_status: 'running',
+        entityId: 'private-run-id',
+      }),
+    ).toBe(true);
+    const body = send.mock.lastCall![1]!.body as string;
+    const record = JSON.parse(body).resourceLogs[0].scopeLogs[0].logRecords[0];
+    expect(record.severityText).toBe('WARN');
+    expect(record.attributes).toEqual(
+      expect.arrayContaining([
+        { key: 'code', value: { stringValue: 'daemon_lifecycle_violation' } },
+        { key: 'lifecycle', value: { stringValue: 'Run' } },
+        { key: 'from_status', value: { stringValue: 'completed' } },
+        { key: 'to_status', value: { stringValue: 'running' } },
+      ]),
+    );
+    expect(body).not.toContain('private');
+    // A status outside the named table is not a fixed value, so the record is dropped.
+    expect(
+      await transport.capture('operational_log', {
+        code: 'daemon_lifecycle_violation',
+        area: 'daemon',
+        lifecycle: 'Run',
+        from_status: 'completed',
+        to_status: 'private text',
+      }),
+    ).toBe(false);
+    transport.dispose();
+  });
   it('retains fixed HTTP operation context through transport sanitization and OTLP encoding', async () => {
     const { transport, send } = setup();
     for (const operation of ['packet_export_requested', 'packet_exported', 'workflow_started']) {

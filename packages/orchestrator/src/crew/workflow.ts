@@ -13,6 +13,7 @@ import {
   cancelUserQuestions,
 } from './user-input/lifecycle.ts';
 import { finishDelivery } from './conversation-queue.ts';
+import { startTaskRun } from './task-start.ts';
 import { relatedConversation } from './conversations.ts';
 import { drainConversationQueue } from './conversation-queue.ts';
 import { requireRole } from './roles.ts';
@@ -21,6 +22,7 @@ import { runConfiguration, packetDigest } from './pipeline/snapshots.ts';
 import { adapters } from '@pitchcrew/adapters';
 import { beginAiRun } from '../telemetry/ai.ts';
 import {
+  cardLifecycle,
   runResultSchema,
   workflowSeat,
   type AgentTask,
@@ -103,11 +105,11 @@ const startRunPrepared = async (
           : 'application-review',
   );
   const allowed = {
-    scout: ['lead'],
-    writer: ['shortlisted', 'changes_requested'],
-    reviewer: ['in_review', 'agreed', 'awaiting_approval'],
+    scout: card.state === 'lead',
+    writer: cardLifecycle.is('draftable', card.state),
+    reviewer: cardLifecycle.is('reviewable', card.state),
   };
-  if (!packetEvaluation && !allowed[seat].includes(card.state))
+  if (!packetEvaluation && !allowed[seat])
     throw new Error(`The ${roleId} cannot run on a card in ${card.state}.`);
   const sourceThread =
     task?.threadId ??
@@ -196,8 +198,7 @@ const startRunPrepared = async (
   crewContext.capabilities.set(token, { runId: run.id, cardId, roleId });
   if (seat === 'writer') crewContext.board.move(cardId, 'drafting', 'orchestrator');
   if (seat === 'reviewer' && card.state !== 'in_review')
-    crewContext.board.record(
-      'card',
+    crewContext.board.crewMove(
       { ...card, state: 'in_review', packetReview: undefined, updatedAt: new Date().toISOString() },
       'orchestrator',
       'Started fresh review of the existing packet',
@@ -209,6 +210,7 @@ const startRunPrepared = async (
     `${role.name} claimed this application`,
   );
   crewContext.board.record('run', run, 'orchestrator', `Started ${role.name} on ${role.runtime}`);
+  startTaskRun(crewContext, run);
   const context = {
     writingGuide: run.writingGuide,
     request: correction?.instruction,
@@ -264,7 +266,7 @@ const startRunPrepared = async (
       crewContext.board.record(
         'run',
         {
-          ...run,
+          ...crewContext.board.get<Run>('run', run.id),
           status: 'completed',
           outputPacketDigest: packetDigest(crewContext.board.get<Card>('card', cardId)),
           message: `${role.name} finished`,
@@ -288,7 +290,7 @@ const startRunPrepared = async (
       crewContext.board.record(
         'run',
         {
-          ...run,
+          ...crewContext.board.get<Run>('run', run.id),
           status: controller.signal.aborted ? 'cancelled' : 'failed',
           message,
           finishedAt: new Date().toISOString(),
@@ -459,13 +461,15 @@ export const cancelRun = (context: CrewContext, id: string): void => {
   const parentId = reviewRun.deepReviewId
     ? (context.deepReviewExecutions.get(reviewRun.deepReviewId)?.runId ?? id)
     : id;
-  const queue = context.board
-    .list<import('@pitchcrew/core').WorkQueue>('work_queue')
-    .find((q) => q.id === runLane(context, reviewRun));
-  if (queue && !queue.id.startsWith('routine:'))
-    patchQueue(context, queue.id, { paused: true, pauseKind: 'user', reason: 'Paused by you.' });
+  // Check before pausing: a stale Stop must not leave the queue on hold with nothing running.
   const controller = context.controllers.get(parentId);
   if (!controller) throw new Error('This run is no longer active.');
+  const lane = runLane(context, reviewRun);
+  const queue = context.board
+    .list<import('@pitchcrew/core').WorkQueue>('work_queue')
+    .find((q) => q.id === lane);
+  if (queue && !queue.id.startsWith('routine:'))
+    patchQueue(context, queue.id, { paused: true, pauseKind: 'user', reason: 'Paused by you.' });
   controller.abort();
   const run = context.board.get<Run>('run', id);
   const rootRunId = run.rootRunId ?? run.id;

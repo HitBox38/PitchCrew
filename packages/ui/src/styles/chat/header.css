@@ -26,10 +26,10 @@
   flex-shrink: 0;
 }
 @container chat-desk (width < 64rem) {
-  [data-interface='clay'] .clay-job-title-meta {
+  .clay-job-title-meta {
     display: none;
   }
-  [data-interface='clay'] .clay-job-title h1 {
+  .clay-job-title h1 {
     display: flex;
     flex-direction: column;
     line-height: 20px;
@@ -43,7 +43,7 @@
     font-size: var(--text-detail);
     line-height: 18px;
   }
-  [data-interface='clay'] .clay-job-title h1 > span {
+  .clay-job-title h1 > span {
     color: var(--ink);
     font-size: var(--text-label);
   }
@@ -58,8 +58,7 @@
 .chat-heading-identity > .clay-participants {
   order: 1;
 }
-.chat-heading-identity > .role-avatar,
-.chat-heading-identity > .crew-chat-icon {
+.chat-heading-identity > .role-avatar {
   flex-shrink: 0;
 }
 .chat-heading-copy {
@@ -124,8 +123,6 @@
   color: var(--muted);
 }
 .chat-view-switch [data-slot='tabs-trigger'][data-active] {
-  background: var(--clay-fill);
-  box-shadow: var(--clay);
   color: var(--ink);
   font-weight: 600;
 }
@@ -166,8 +163,6 @@
   .chat-heading h1 {
     font-size: 16px;
   }
-  .chat-heading-actions .chat-role-state,
-  .chat-settings > span,
   .chat-browser > span:not(.chat-role-dot),
   .chat-runtime > span {
     display: none;
@@ -180,7 +175,7 @@
   .chat-heading:not(:has(.chat-mobile-view))
     > .chat-heading-actions
     > [data-slot='button']
-    > span:not(.chat-role-dot, .clay-bead) {
+    > span:not(.clay-bead) {
     position: absolute;
     width: 1px;
     height: 1px;

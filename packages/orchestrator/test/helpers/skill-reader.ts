@@ -4,8 +4,8 @@ import { confirmFixtureJob } from '../../../board/test/fixtures/application-cont
 import { runConfiguration } from '../../src/crew/pipeline/snapshots.ts';
 import { cleanup, resources, setup } from './daemon.ts';
 
-export const skillReaderFixture = async (port: number) => {
-  const fixture = await setup(port);
+export const skillReaderFixture = async () => {
+  const fixture = await setup();
   const service = fixture.daemon.service;
   const role = service.board.get<Role>('role', 'writer');
   const input = {

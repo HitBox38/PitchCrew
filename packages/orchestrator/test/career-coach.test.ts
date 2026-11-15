@@ -34,7 +34,7 @@ it('uses offline coaching skills, scoped evidence and memory across a durable pr
     await new Promise((resolve) => setTimeout(resolve, 1200));
     return prepareAttachments(...args);
   });
-  const { daemon, request } = await setup(19748, true);
+  const { daemon, request } = await setup(true);
   const waitForTurn = (count: number) =>
     vi.waitFor(
       () => {

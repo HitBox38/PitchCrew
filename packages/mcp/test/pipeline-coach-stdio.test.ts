@@ -17,7 +17,7 @@ afterEach(async () => {
   await cleanup();
 });
 it('exposes enabled Coach tools over actual stdio, preserves the HTTP input envelope and rechecks revocation', async () => {
-  const { daemon, request } = await setup(14805);
+  const { daemon, request } = await setup();
   const role = daemon.service.board.get<Role>('role', 'scout');
   await daemon.service.configureRole(role.id, {
     ...role,

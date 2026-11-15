@@ -14,14 +14,17 @@ const readPublicText = async (url: string, signal?: AbortSignal): Promise<string
   let bytes = 0,
     text = '';
   const reader = response.body.getReader();
+  // One streaming decoder: a multi-byte character may be split across network chunks.
+  const decoder = new TextDecoder();
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       bytes += value.length;
       if (bytes > 256_000) throw new Error('Runtime release metadata exceeded its limit.');
-      text += new TextDecoder().decode(value, { stream: true });
+      text += decoder.decode(value, { stream: true });
     }
+    text += decoder.decode();
   } finally {
     await reader.cancel();
   }

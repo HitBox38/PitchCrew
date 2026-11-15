@@ -1,7 +1,5 @@
-import type { ApplicationImportReport } from '@pitchcrew/core';
 import { describe, expect, it, vi } from 'vitest';
 import {
-  importCounts,
   importFormat,
   importPath,
   importReason,
@@ -49,13 +47,7 @@ describe('application import helpers', () => {
       ...converted,
     });
   });
-  it('summarizes counts and planned status paths in plain words', () => {
-    const report = {
-      digest: '0'.repeat(64),
-      rows: [],
-      counts: { new: 3, created: 0, imported: 1, duplicate: 2, invalid: 0, failed: 0 },
-    } satisfies ApplicationImportReport;
-    expect(importCounts(report)).toBe('3 new · 1 already imported · 2 duplicate');
+  it('summarizes planned status paths in plain words', () => {
     expect(importPath(['submitted', 'interviewing', 'offer'])).toBe(
       'Submitted → Interviewing → Offer',
     );

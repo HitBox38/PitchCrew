@@ -6,7 +6,7 @@ import { expect, it } from 'vitest';
 import { setup, cleanup } from '../../orchestrator/test/helpers/daemon.ts';
 
 it('serves read-only application insights through real stdio with capability gating', async () => {
-  const { daemon, request } = await setup(15445);
+  const { daemon, request } = await setup();
   const client = new Client({ name: 'insights-contract-test', version: '1.0.0' });
   try {
     const role = daemon.service.board.get<Role>('role', 'writer');

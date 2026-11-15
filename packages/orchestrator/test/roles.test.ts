@@ -39,7 +39,7 @@ const schedule = {
 
 describe('stored configurable roles', () => {
   it('runs custom drafting and review seats through the existing packet and approval boundary', async () => {
-    const { daemon, request } = await setup(14526);
+    const { daemon, request } = await setup();
     await daemon.service.saveProfile(
       'fictional.md',
       '# Fictional Candidate\n- Built fictional accessible interfaces.',
@@ -77,7 +77,7 @@ describe('stored configurable roles', () => {
   });
 
   it('reserves creation IDs synchronously before writing generated instructions', async () => {
-    const { daemon } = await setup(14527);
+    const { daemon } = await setup();
     const outcomes = await Promise.allSettled([
       daemon.service.createRole(custom),
       daemon.service.createRole(custom),
@@ -94,7 +94,7 @@ describe('stored configurable roles', () => {
       turn = context;
       return { reply: 'Fictional research completed.' };
     });
-    const { daemon, request } = await setup(14521);
+    const { daemon, request } = await setup();
     const created = await request<Role>('/roles', 'POST', custom);
     expect(created.response.status).toBe(201);
     expect(created.result).toMatchObject({
@@ -168,7 +168,7 @@ describe('stored configurable roles', () => {
   });
 
   it('rejects identity reuse and unknown role actions without recording changes', async () => {
-    const { daemon, request } = await setup(14522);
+    const { daemon, request } = await setup();
     expect((await request('/roles', 'POST', { ...custom, id: '../escape' })).response.status).toBe(
       400,
     );
@@ -200,7 +200,7 @@ describe('stored configurable roles', () => {
   });
 
   it('keeps built-in workflow compatibility and custom workflow result identity separate', async () => {
-    const { daemon, request } = await setup(14523);
+    const { daemon, request } = await setup();
     await daemon.service.saveProfile(
       'fictional.md',
       '# Fictional Candidate\n- Built fictional accessible interfaces.',
@@ -251,7 +251,7 @@ describe('stored configurable roles', () => {
           complete = resolve;
         }),
     );
-    const { daemon, request } = await setup(14524);
+    const { daemon, request } = await setup();
     const role = await daemon.service.createRole(custom);
     const skill = daemon.service.saveSkill({
       name: 'Fictional research',
@@ -332,7 +332,7 @@ describe('stored configurable roles', () => {
   });
 
   it('allows only user restoration of retired roles and rejects missing, invalid or busy roles', async () => {
-    const { daemon, request } = await setup(14527);
+    const { daemon, request } = await setup();
     const role = await daemon.service.createRole(custom);
     const notRetired = await request<{ error: string }>(`/roles/${role.id}/restore`, 'POST', {});
     expect(notRetired.response.status).toBe(400);
@@ -369,7 +369,7 @@ describe('stored configurable roles', () => {
   });
 
   it('enforces source and target stored-role checks for every scoped gateway call and never grants approval', async () => {
-    const { daemon } = await setup(14525);
+    const { daemon } = await setup();
     const source = await daemon.service.createRole({
       ...custom,
       capabilities: { ...defaultCapabilities },
