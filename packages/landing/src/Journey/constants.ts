@@ -39,7 +39,7 @@ export const steps: Step[] = [
     role: 'submitter',
     reaches: 5,
     title: 'Submitter fills, you press send.',
-    text: 'After you approve the packet, Submitter can prepare the application form in a built-in browser. Every submit, button and dialog is an exact request you approve or deny. Sign-in and CAPTCHAs stay yours.',
+    text: 'After you approve the packet, Submitter can prepare the form in a built-in browser. Choose Supervised or Autonomous preparation as each agent’s default, and override it per conversation. Autonomous preparation works on sites you allow; submitting, buttons, keys and dialogs still need your approval. Sign-in and CAPTCHAs stay yours.',
   },
   {
     id: 'track',
