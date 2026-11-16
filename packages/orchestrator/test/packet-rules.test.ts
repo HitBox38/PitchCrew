@@ -243,7 +243,7 @@ describe('packet rules', () => {
     ).toBe(403);
   });
 
-  it('fails closed when the rules file is edited into an invalid state', async () => {
+  it.each([false, true])('fails closed with invalid rules (resumeOnly=%s)', async (resumeOnly) => {
     const { daemon, directory } = await setup();
     const path = join(directory, 'packet-rules.json');
     await writeFile(path, '{"version":1,"rules":[');
@@ -258,9 +258,11 @@ describe('packet rules', () => {
     const state = daemon.service.packetRules.current();
     expect(state.error).toContain('rules.0.pattern: Nested repeats');
     const { packet } = await import('../../board/test/fixtures/packet.ts');
-    const check = await daemon.service.packetRules.check(packet, [
-      { name: 'profile.md', content: 'Built React interfaces.' },
-    ]);
+    const check = await daemon.service.packetRules.check(
+      packet,
+      [{ name: 'profile.md', content: 'Built React interfaces.' }],
+      resumeOnly ? ['resume'] : undefined,
+    );
     expect(check.errors).toEqual([expect.stringContaining('Fix it in Settings')]);
     await writeFile(path, JSON.stringify(houseRules));
     expect(daemon.service.packetRules.current()).toEqual({
@@ -294,31 +296,87 @@ describe('packet rules', () => {
     await utimes(path, timestamp, timestamp);
     expect(daemon.service.packetRules.current().rules.rules[0]).toMatchObject({ pattern: 'other' });
   });
-  it('fails closed if rules change while a worker checks the prior snapshot', async () => {
+  it.each([false, true])(
+    'fails closed if rules change during checks (resumeOnly=%s)',
+    async (resumeOnly) => {
+      const { daemon } = await setup();
+      const { packet } = await import('../../board/test/fixtures/packet.ts');
+      daemon.service.packetRules.save({
+        version: 1,
+        rules: [
+          {
+            id: 'initial',
+            kind: 'pattern',
+            severity: 'error',
+            documents: ['resume'],
+            pattern: 'forbidden',
+          },
+        ],
+      });
+      const pending = daemon.service.packetRules.check(
+        packet,
+        [{ name: 'profile.md', content: 'Built React interfaces.' }],
+        resumeOnly ? ['resume'] : undefined,
+      );
+      daemon.service.packetRules.save({
+        version: 1,
+        rules: [
+          {
+            id: 'stricter',
+            kind: 'word_limit',
+            severity: 'error',
+            documents: [resumeOnly ? 'coverLetter' : 'resume'],
+            max: 1,
+          },
+        ],
+      });
+      expect((await pending).errors).toEqual([expect.stringContaining('rules changed')]);
+    },
+  );
+  it('checks only selected documents without changing saved rules or suppressing claim findings', async () => {
     const { daemon } = await setup();
     const { packet } = await import('../../board/test/fixtures/packet.ts');
-    daemon.service.packetRules.save({
+    const store = daemon.service.packetRules;
+    const state = store.save({
       version: 1,
       rules: [
         {
-          id: 'initial',
+          id: 'blocked',
           kind: 'pattern',
           severity: 'error',
-          documents: ['resume'],
+          documents: ['resume', 'coverLetter', 'formAnswers', 'note'],
           pattern: 'forbidden',
+        },
+        {
+          id: 'advice',
+          kind: 'pattern',
+          severity: 'warn',
+          documents: ['resume', 'coverLetter'],
+          pattern: 'interfaces',
         },
       ],
     });
-    const pending = daemon.service.packetRules.check(packet, [
-      { name: 'profile.md', content: 'Built React interfaces.' },
+    const candidate = {
+      ...packet,
+      coverLetter: 'forbidden',
+      formAnswers: 'forbidden',
+      note: 'forbidden',
+    };
+    const profile = [{ name: 'profile.md', content: 'Built React interfaces.' }];
+    const scoped = await store.check(candidate, profile, ['resume']);
+    expect(scoped.errors).toEqual([]);
+    expect(scoped.findings).toEqual([
+      expect.objectContaining({ ruleId: 'advice', severity: 'warn', document: 'resume' }),
     ]);
-    daemon.service.packetRules.save({
-      version: 1,
-      rules: [
-        { id: 'stricter', kind: 'word_limit', severity: 'error', documents: ['resume'], max: 1 },
-      ],
-    });
-    expect((await pending).errors).toEqual([expect.stringContaining('rules changed')]);
+    expect(
+      (await store.check(candidate, profile)).findings
+        .filter((finding) => finding.severity === 'error')
+        .map((finding) => finding.document),
+    ).toEqual(['coverLetter', 'formAnswers', 'note']);
+    expect((await store.check(candidate, [], ['resume'])).errors).toContain(
+      'Source does not support: Built React interfaces.',
+    );
+    expect(store.current()).toEqual(state);
   });
   it('accepts an unchanged effective default configuration across save and reset', async () => {
     const { daemon } = await setup();

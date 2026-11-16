@@ -86,7 +86,7 @@ export const artifactPages = async (
 // Renders the formatted PDFs without storing them, so agents can fit the resume to one page.
 export const checkLayout = async (
   packet: Packet,
-  { fonts = systemFonts() }: RenderOptions = {},
+  { fonts = systemFonts(), sources = ['resume', 'coverLetter'] }: RenderOptions = {},
 ): Promise<LayoutReport> => {
   const { formattedPdf } = await import('./documents/pdf.ts');
   const warnings: string[] = [];
@@ -98,8 +98,8 @@ export const checkLayout = async (
         return null;
       },
     );
-  const resumePages = await count('resume');
-  const coverLetterPages = await count('coverLetter');
+  const resumePages = sources.includes('resume') ? await count('resume') : null;
+  const coverLetterPages = sources.includes('coverLetter') ? await count('coverLetter') : null;
   if (resumePages !== null && resumePages > resumePageTarget)
     warnings.push(resumePageWarning(resumePages));
   return { resumePages, coverLetterPages, warnings };
