@@ -108,6 +108,8 @@ Version 24 added persisted work queues and workspace concurrency settings. Versi
 
 Before fit assessment, extract or manually prepare the job brief. Before drafting, review and confirm its complete context and application requirements in the job overview. Confirmed changes require a fresh packet review; unchanged refreshes preserve accepted personal answers. The job's Draft application control also supports custom chat-only agents with a supported runtime. Source-discussion chat cannot create a managed application packet.
 
+Fit agents can ask necessary practical-constraint questions through `pitchcrew_ask_user` without `applicationRequirementId`. Asking ends the turn; the saved question and user-authored answer reach the same agent's isolated assessment continuation as job-specific reference data. These clarifications do not confirm an application requirement or become Profile evidence. Fit and packet-evaluation tool schemas omit the binding field; only isolated drafting/review can bind confirmed requirement answers. Packet evaluation continues to report missing personal application answers as limitations rather than blocking on them.
+
 Codex, Claude Code and OpenCode support the isolated application modes; Demo supports fictional development examples. Other runtimes continue to support ordinary conversations but must not fall back to raw descriptions for application runs. See [application source safety](application-source-safety.md).
 
 ## Deep resume review
