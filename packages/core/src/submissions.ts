@@ -1,8 +1,9 @@
 import { z } from 'zod';
 import type { BrowserSnapshot } from './computer.ts';
 import type { RoleId } from './states.ts';
+import type { FormControlEvidence } from './form-constraints.ts';
 
-export interface FormControl {
+export interface FormControl extends FormControlEvidence {
   selector: string;
   frame?: string;
   label: string;
@@ -13,6 +14,9 @@ export interface FormControl {
   accept: string;
   options: string[];
   maxLength?: number;
+  /** Live ARIA choice states; not personal answers or confirmed requirements. */
+  checked?: boolean | 'mixed';
+  pressed?: boolean | 'mixed';
 }
 export const formAssessmentInput = z
   .object({
@@ -59,4 +63,32 @@ export interface SubmissionAttempt {
   createdAt: string;
   resolvedAt?: string;
   dialogApprovalIds?: string[];
+}
+
+export const submissionAttemptQuery = z
+  .object({
+    cardId: z.uuid().optional(),
+    offset: z.number().int().min(0).max(100000).default(0),
+    limit: z.number().int().min(1).max(50).default(20),
+  })
+  .strict();
+
+/** Read-only preflight metadata. Browser evidence and approval payloads stay private. */
+export interface SubmissionAttemptSummary {
+  id: string;
+  cardId: string;
+  runId: string;
+  roleId: RoleId;
+  status: SubmissionAttempt['status'];
+  createdAt: string;
+  resolvedAt: string | null;
+  confirmation: { browserCaptured: boolean; externalVerifiedAt: string | null };
+}
+
+export interface SubmissionAttemptHistory {
+  cardId: string;
+  attempts: SubmissionAttemptSummary[];
+  total: number;
+  nextOffset: number | null;
+  hasUncertainAttempts: boolean;
 }

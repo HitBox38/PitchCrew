@@ -22,7 +22,7 @@ export const questions = [
   {
     question: 'Will the crew apply to jobs without me?',
     answer:
-      'No. You choose which jobs to pursue, and exports need your approval. Browser assistance is supervised by default. You can let an agent prepare forms on sites you approve, but submitting, pressing buttons or keys, and answering dialogs always wait for your decision. Sign-in and CAPTCHAs stay with you.',
+      'No. You choose which jobs to pursue, and exports need your approval. Browser assistance starts supervised. In Crew, choose Supervised or Autonomous preparation as each agent’s default, with overrides per conversation. Autonomous preparation can browse and fill recognized forms on sites you approve, but submitting, pressing buttons or keys, and answering dialogs always wait for your decision. Scheduled routines stay supervised. Sign-in and CAPTCHAs stay with you.',
   },
   {
     question: 'Can a job posting trick the agents?',

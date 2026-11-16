@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { Session } from 'electron';
+import { formConstraintsHtml } from '../../../mcp/test/fixtures/form-constraints.ts';
 
 export const nativeFixtureOrigin = 'https://8.8.8.8';
 export const nativeFixturePath = '/pitchcrew-native-fixture';
@@ -88,13 +89,15 @@ export const installNativeFixtureSite = (session: Session, directory: string) =>
     if (path === '/unavailable') return Response.error();
     if (path === '/slow') await new Promise((resolve) => setTimeout(resolve, 1500));
     const body =
-      path === '/form'
-        ? form
-        : path === '/frame'
-          ? "<!doctype html><title>Fictional iframe</title><label>Frame answer<input id=\"frame-answer\"></label><button id=\"frame-go\" onclick=\"this.textContent='Frame interaction received'\">Frame continue</button><script>for(const type of ['mousedown','mouseup','click','keydown'])document.addEventListener(type,event=>parent.postMessage({fixtureFrameInput:{type,x:event.clientX,y:event.clientY,target:event.target.id,trusted:event.isTrusted}},'*'),true)</script>"
-          : path === '/popup'
-            ? '<!doctype html><title>Fictional sign in</title><button id="complete" onclick="opener.postMessage(\'fictional-popup-complete\',\'*\');window.close()">Complete fictional sign in</button>'
-            : `<!doctype html><title>Fictional next page</title><h1>Fictional next page</h1><a href="${nativeFixturePath}/form">Application</a><script>window.fixtureLoadedAt=performance.timeOrigin</script>`;
+      path === '/constraints'
+        ? formConstraintsHtml
+        : path === '/form'
+          ? form
+          : path === '/frame'
+            ? "<!doctype html><title>Fictional iframe</title><label>Frame answer<input id=\"frame-answer\"></label><button id=\"frame-go\" onclick=\"this.textContent='Frame interaction received'\">Frame continue</button><script>for(const type of ['mousedown','mouseup','click','keydown'])document.addEventListener(type,event=>parent.postMessage({fixtureFrameInput:{type,x:event.clientX,y:event.clientY,target:event.target.id,trusted:event.isTrusted}},'*'),true)</script>"
+            : path === '/popup'
+              ? '<!doctype html><title>Fictional sign in</title><button id="complete" onclick="opener.postMessage(\'fictional-popup-complete\',\'*\');window.close()">Complete fictional sign in</button>'
+              : `<!doctype html><title>Fictional next page</title><h1>Fictional next page</h1><a href="${nativeFixturePath}/form">Application</a><script>window.fixtureLoadedAt=performance.timeOrigin</script>`;
     return new Response(body, { headers: { 'Content-Type': 'text/html' } });
   });
 };

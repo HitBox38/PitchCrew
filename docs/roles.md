@@ -8,6 +8,8 @@ Every ordinary production runtime turn has a fixed 30-minute limit per workflow 
 
 Startup supplies Scout, Writer, Reviewer, Submitter, Tracker, Documenter, Pipeline Coach and Career Coach. Production defaults start paused. Before seeding missing roles, Pitchcrew checks every supported runtime installed on the daemon's machine and loads bounded native model catalogs for installed runtimes that support discovery. It selects a role-specific recommended runtime, model and supported reasoning level. Development defaults use Demo. These are ordinary editable, retireable roles using the same configuration and tools as custom agents.
 
+A runtime held by a surviving installer is represented as unavailable before its first check, so initial crew creation can finish without probing or releasing that runtime. Recommendations use the other available runtimes or the paused preferred setup when none are available. Later recovery never rewrites the seeded choices.
+
 | Agent          | Preferred runtime | Preferred model                     | Reasoning |
 | -------------- | ----------------- | ----------------------------------- | --------- |
 | Scout          | Codex             | GPT-6.1 Sol                         | Medium    |
@@ -29,11 +31,13 @@ Scout's instructions cover evidence-based fit, unknowns and the user's shortlist
 | -------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
 | Submitter      | Application search, browser, form assessments, submission receipts | Attach an application; review/export its packet before submission and choose browser supervision and approve final submission. |
 | Tracker        | Application search, email reconciliation, own routines             | Connect Google and enable Gmail for this role before scanning.                                                                 |
-| Documenter     | Profile maintenance, own routines                                  | Connect the relevant account, enable GitHub/Drive for this role, and choose watched sources in Profile.                        |
+| Documenter     | Direct profile editing, watched maintenance, own routines          | Enable the role for local edits. Connect GitHub for source sync; enable connector capabilities and watches for checks.         |
 | Pipeline Coach | Pipeline review, targeted crew-change proposals, own routines      | Choose the review scope; approve proposed changes before adoption.                                                             |
 | Career Coach   | Application search, Insights, supervised browser, own memory       | Enable the role; supply interview details, career goals or offer documents. Chromium is needed for public research.            |
 
 The five support roles use the chat workflow seat and can message the crew. They cannot invoke other agents or manage packet workflow transitions. Account connectors stay disabled until enabled by the user. No schedules, source watches, runs or external actions are created by seeding. Shared skills apply normally; Pipeline Coach also receives the bundled, role-assigned `improve-system` skill for user-requested retrospectives. Instructions ask for the user's cadence before creating periodic work and preserve all existing approval gates.
+
+New Documenter defaults enable `editProfile`: a direct user chat request can create, edit or remove notes and sync attached GitHub profile sources. Scheduled and crew-triggered maintenance continues through reviewed proposals. Existing Documenter configurations keep their saved tools; adopting new instructions does not enable editing. Source-bound sync uses `editProfile`, independently of general GitHub access. See [profile editing and maintenance](profile-maintenance.md).
 
 Startup backfills missing default IDs in existing workspaces in one transaction. It never overwrites existing configurations, enables paused roles, reuses retired IDs or resets skill assignments. An existing custom role with a default ID wins. Backfill respects the 50-identity limit, including retired roles, adding missing defaults in the order above while space remains. Shared skill content has no combined creation budget. Existing default instructions and capabilities are not silently updated on later startups. Crew offers newer default instructions for review instead; see [default instruction updates](#default-instruction-updates).
 
@@ -80,6 +84,8 @@ Optionally add a first routine with a task, attached job, timezone, recurrence a
 
 The optional `workflow` is `chat`, `scout`, `writer` or `reviewer`. It selects an existing structured result and the corresponding card-state eligibility; it never defines arbitrary transitions. Legacy role records without this field map Scout/Writer/Reviewer IDs to their original seats. Other identities default to chat.
 
+Writer prompts state each packet document's character limit from `packetTextLimits` in `packages/core/src/packets.ts` (resume 20,000; cover letter, form answers and note 12,000 each), because the result schema rejects longer text. The note is an internal handoff for the user and Reviewer: Writer rewrites it for each draft rather than appending to the previous note, and an omitted or `null` note is saved as empty. A rejected workflow result names up to four known schema fields with a fixed reason (missing, wrong type, empty, too short, too long, out of range or invalid) and never echoes runtime output or values.
+
 Adapters keep the actual role ID for prompts, capability scope and paths, while result prompts/parsers and deterministic Demo dispatch use the workflow seat. A custom research role with the Scout seat returns a Scout fit result and remains the custom role in board history. Chat-only roles cannot start card workflow runs. The card panel chooses the first enabled, non-retired role with the appropriate seat; crew invocations can address a particular role ID when multiple roles share a seat.
 
 `pitchcrew_list_roles` discovers current identities, responsibilities, enabled state and workflow seats. Messages, invocations, skills, routines and HTTP routes accept validated dynamic IDs and check against stored role entities. Paused/retired sources cannot use the scoped agent gateway. Retired/nonexistent targets cannot receive new actions; scheduled and queued execution rechecks permissions and role availability.
@@ -103,6 +109,8 @@ Version 24 added persisted work queues and workspace concurrency settings. Versi
 ## Application source review
 
 Before fit assessment, extract or manually prepare the job brief. Before drafting, review and confirm its complete context and application requirements in the job overview. Confirmed changes require a fresh packet review; unchanged refreshes preserve accepted personal answers. The job's Draft application control also supports custom chat-only agents with a supported runtime. Source-discussion chat cannot create a managed application packet.
+
+Fit agents can ask necessary practical-constraint questions through `pitchcrew_ask_user` without `applicationRequirementId`. Asking ends the turn; the saved question and user-authored answer reach the same agent's isolated assessment continuation as job-specific reference data. These clarifications do not confirm an application requirement or become Profile evidence. Fit and packet-evaluation tool schemas omit the binding field; only isolated drafting/review can bind confirmed requirement answers. Packet evaluation continues to report missing personal application answers as limitations rather than blocking on them.
 
 Codex, Claude Code and OpenCode support the isolated application modes; Demo supports fictional development examples. Other runtimes continue to support ordinary conversations but must not fall back to raw descriptions for application runs. See [application source safety](application-source-safety.md).
 

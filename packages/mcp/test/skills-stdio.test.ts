@@ -1,7 +1,9 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { fileURLToPath } from 'node:url';
+import type { Card } from '@pitchcrew/core';
 import { afterEach, describe, expect, it } from 'vitest';
+import { chatPromptFor, promptFor } from '../../adapters/src/process.ts';
 import {
   cleanupSkillReaders,
   skillReaderFixture,
@@ -45,6 +47,10 @@ describe('assigned skill MCP reader', () => {
       expect(tool).toBeDefined();
       expect(Object.keys(tool!.inputSchema.properties ?? {})).toEqual(['skillId']);
       expect(tool!.inputSchema.required).toEqual(['skillId']);
+      expect(tool!.inputSchema.properties?.skillId).toMatchObject({
+        type: 'string',
+        format: 'uuid',
+      });
       expect(tool!.inputSchema.additionalProperties).toBe(false);
       expect(tool!.annotations).toMatchObject({
         readOnlyHint: true,
@@ -68,6 +74,11 @@ describe('assigned skill MCP reader', () => {
       });
       expect(forbidden.isError).toBe(true);
       expect(JSON.stringify(forbidden)).not.toContain(other.content);
+      const byName = await client.callTool({
+        name: 'pitchcrew_read_skill',
+        arguments: { skillId: skill.name },
+      });
+      expect(byName.isError).toBe(true);
       const injected = await client.callTool({
         name: 'pitchcrew_read_skill',
         arguments: { skillId: skill.id, path: '/private/profile.md' },
@@ -90,9 +101,38 @@ describe('assigned skill MCP reader', () => {
   ] as const)(
     'exposes frozen instruction reading in %s without adding wider application tools',
     async (mode) => {
-      const { daemon, run, isolated, updateRun, skill } = await skillReaderFixture();
-      if (mode !== 'chat') isolated(mode === 'child' ? 'application-review' : mode);
+      const { daemon, run, isolated, updateRun, skill, other, service, role } =
+        await skillReaderFixture();
+      const active =
+        mode === 'chat' ? run : isolated(mode === 'child' ? 'application-review' : mode);
       if (mode === 'child') updateRun({ deepReviewId: 'review', reviewSubagentId: 'child' });
+      const context = {
+        role,
+        skills: active.configuration!.skills,
+        profile: [],
+        directory: '/fictional',
+        mcp: { command: '', args: [], env: {} },
+        signal: new AbortController().signal,
+        onMessage: () => {},
+      };
+      const prompt =
+        mode === 'chat'
+          ? chatPromptFor({ ...context, card: null, messages: [] })
+          : promptFor({
+              ...context,
+              card: service.board.get<Card>('card', active.cardId!),
+              purpose: active.purpose,
+              ...(mode === 'child'
+                ? {
+                    deepReview: {
+                      subagent: { perspective: 'impact', focus: 'Inspect evidence.' },
+                    } as never,
+                  }
+                : {}),
+            });
+      const skillId = /Skill ID \(skillId\): ([\da-f-]{36})/.exec(prompt)?.[1];
+      expect(skillId).toBe(skill.id);
+      expect(prompt).not.toContain(other.id);
       const client = await connect(daemon.url, run.id);
       try {
         const names = (await client.listTools()).tools.map((tool) => tool.name);
@@ -109,10 +149,19 @@ describe('assigned skill MCP reader', () => {
         }
         const result = await client.callTool({
           name: 'pitchcrew_read_skill',
-          arguments: { skillId: skill.id },
+          arguments: { skillId },
         });
         expect(result.isError).not.toBe(true);
+        expect(result.structuredContent).toMatchObject({
+          skill: { id: skillId, content: skill.content },
+        });
         expect(JSON.stringify(result)).not.toContain('RAW-POSTING-INSTRUCTIONS');
+        const forbidden = await client.callTool({
+          name: 'pitchcrew_read_skill',
+          arguments: { skillId: other.id },
+        });
+        expect(forbidden.isError).toBe(true);
+        expect(JSON.stringify(forbidden)).not.toContain(other.content);
       } finally {
         await client.close();
       }

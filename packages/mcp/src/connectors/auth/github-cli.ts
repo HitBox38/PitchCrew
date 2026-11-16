@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { GithubCliMissingError } from './github-cli-process.ts';
 import type { ConnectorManagerContext } from './types.ts';
 
-const githubCliAccount = async (context: ConnectorManagerContext, signal: AbortSignal) => {
+export const githubCliAccount = async (context: ConnectorManagerContext, signal: AbortSignal) => {
   const result = await context.runGithubCli(
     ['api', '--hostname', 'github.com', '--method', 'GET', 'user'],
     signal,

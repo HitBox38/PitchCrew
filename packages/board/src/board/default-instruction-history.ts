@@ -167,6 +167,12 @@ export const defaultInstructionHistory: Record<string, RecordedRevision[]> = {
       date: '2026-10-04',
       summary: 'First default: propose profile updates from sources you watch.',
     },
+    {
+      revision: 'abd1d7eee54443b2',
+      date: '2026-11-16',
+      summary:
+        'Applies directly requested profile edits and synchronizes attached GitHub sources; autonomous updates still require review.',
+    },
   ],
   'career-coach': [
     {

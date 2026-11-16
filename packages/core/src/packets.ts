@@ -1,10 +1,19 @@
 import { z } from 'zod';
 
+/** Character limits for packet text. Writer prompts state them so a returned packet fits. */
+export const packetTextLimits = {
+  resume: 20000,
+  coverLetter: 12000,
+  formAnswers: 12000,
+  note: 12000,
+} as const;
+
 export const packetSchema = z.object({
-  resume: z.string().min(1).max(20000),
-  coverLetter: z.string().min(1).max(12000),
-  formAnswers: z.string().max(12000),
-  note: z.string().max(5000),
+  resume: z.string().min(1).max(packetTextLimits.resume),
+  coverLetter: z.string().min(1).max(packetTextLimits.coverLetter),
+  formAnswers: z.string().max(packetTextLimits.formAnswers),
+  // Internal handoff for the user and Reviewer, never employer-facing; an omitted note is empty.
+  note: z.string().max(packetTextLimits.note).default(''),
   claims: z
     .array(
       z.object({
@@ -17,6 +26,15 @@ export const packetSchema = z.object({
     .max(80),
 });
 export type Packet = z.infer<typeof packetSchema>;
+
+/** Lint input for targeted resume readers only; never a draft, full review or export packet. */
+export const resumeReviewPacketSchema = packetSchema.extend({
+  coverLetter: z.literal(''),
+  formAnswers: z.literal(''),
+  note: z.literal('').default(''),
+  // A full packet can have claims only in documents hidden from this reader.
+  claims: z.array(packetSchema.shape.claims.element).max(80),
+});
 
 const handoffLine = z.string().trim().min(1).max(600);
 /** Reviewer's account of a passed packet for the user deciding on approval. Event v32. */

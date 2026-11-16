@@ -10,7 +10,18 @@ export const detect = async (context: CrewContext): Promise<RuntimeInfo[]> => {
       .filter((adapter) => context.dev || adapter.id !== 'demo')
       .map(async (adapter) => {
         if (context.runtimeMaintenance.isUpdating(adapter.id))
-          return context.runtimes.find((entry) => entry.id === adapter.id)!;
+          return (
+            context.runtimes.find((entry) => entry.id === adapter.id) ?? {
+              // Startup may recover a surviving installer before this daemon has checked it.
+              id: adapter.id,
+              available: false,
+              version: '',
+              detail: 'This runtime is being set up or updated. Wait for verification.',
+              applicationIsolation: adapter.applicationIsolation === true,
+              customReasoning: adapter.customReasoning === true,
+              ...suggestedModels(adapter),
+            }
+          );
         const health = await context.runtimeMaintenance
           .metadata(adapter.id, () => adapter.detect())
           .catch(async (error: unknown) => {

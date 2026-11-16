@@ -32,6 +32,8 @@ Path changes reserve the runtime synchronously and are rejected while runs, meta
 
 Implementation: [setup manager](../packages/orchestrator/src/runtime-setup/index.ts), [setup storage](../packages/orchestrator/src/runtime-setup/store.ts) and [maintenance reservations](../packages/orchestrator/src/runtime-maintenance/index.ts).
 
+After a daemon restart, a runtime with a surviving update worker remains listed even before its first installation check. It is unavailable with a maintenance explanation and labeled model suggestions; installation checks and native model discovery wait for the worker to exit. Recovery never restarts the installer, and Update stays disabled during the hold even when release checks are enabled. See [restart recovery](runtime-checks.md#verification-and-restart-recovery).
+
 ## Managed first installation
 
 Managed installation is available for a missing runtime when npm is available, in-app runtime maintenance is enabled and the runtime is idle. It does not replace an existing global installation or a saved executable selection.

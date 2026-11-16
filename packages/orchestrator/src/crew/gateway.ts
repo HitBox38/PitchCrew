@@ -1,7 +1,7 @@
 import { findRun } from '@pitchcrew/board';
 import { subagentCard } from './deep-reviews/inputs.ts';
 import { qualityAgentAction } from '../quality/agent.ts';
-import { inspectPacketDocuments } from '../quality/documents.ts';
+import { lintRunPacket } from './gateway/packet.ts';
 import { startDeepReview } from './deep-reviews/index.ts';
 import { reviewAgentAction } from './deep-reviews/subagents.ts';
 import { randomUUID } from 'node:crypto';
@@ -19,15 +19,13 @@ import {
   describePacketRules,
   workflowSeat,
   draftingCard,
-  runResultSchema,
   reviewPerspectiveSchema,
   type Approval,
   type Card,
   type Role,
 } from '@pitchcrew/core';
-import { checkLayout, readProfile, systemFonts } from '@pitchcrew/packet';
+import { readProfile } from '@pitchcrew/packet';
 import { z } from 'zod';
-import { join } from 'node:path';
 import { pipelineAction } from './gateway/pipeline.ts';
 import { computerAction } from './gateway/computer.ts';
 import { connectorAccess, connectorAction } from './gateway/connectors.ts';
@@ -37,6 +35,7 @@ import { proposeRole, proposeSkill } from './gateway/proposals.ts';
 import { changeWorkflow } from './gateway/workflow.ts';
 import { correctJobDetails } from './gateway/job-details.ts';
 import { profileAction } from './gateway/profile.ts';
+import { profileEditAction } from './gateway/profile-edit.ts';
 import { routineAction } from './gateway/routines.ts';
 import { trackingAction } from './gateway/tracking.ts';
 import { insightsAction } from './gateway/insights.ts';
@@ -245,7 +244,9 @@ const dispatchAgentCall = async (
   if (action === 'application_insights')
     return insightsAction(context, capability, token, data.input);
   if (action === 'quality') return qualityAgentAction(context, capability, data.input);
-  if (['applications', 'tracking_scan', 'tracking_reconcile'].includes(action))
+  if (
+    ['applications', 'submission_attempts', 'tracking_scan', 'tracking_reconcile'].includes(action)
+  )
     return trackingAction(context, capability, token, action, data);
   if (action === 'pipeline_access')
     return {
@@ -267,6 +268,8 @@ const dispatchAgentCall = async (
     return jobSourceAction(context, capability, token, action, data);
   if (['routines', 'save_routine', 'delete_routine'].includes(action))
     return routineAction(context, capability, action, data);
+  if (['profile_edit_sources', 'update_profile'].includes(action))
+    return profileEditAction(context, capability, token, action, data.input);
   if (
     [
       'watched_profile_sources',
@@ -374,23 +377,7 @@ const dispatchAgentCall = async (
     const events = context.board.history(capability.cardId!, query.beforeEventId, query.limit);
     return { events, nextCursor: events.length === query.limit ? events.at(-1)!.id : null };
   }
-  if (action === 'lint') {
-    const parsed = runResultSchema.parse({ role: 'writer', packet: data.packet });
-    if (parsed.role !== 'writer') throw new Error('Invalid packet.');
-    const check = await context.packetRules.check(
-      parsed.packet,
-      await readProfile(context.directory),
-    );
-    return {
-      problems: check.errors,
-      warnings: check.warnings,
-      findings: check.findings,
-      documents: await inspectPacketDocuments(context.directory, parsed.packet),
-      layout: await checkLayout(parsed.packet, {
-        fonts: systemFonts({ folders: [join(context.directory, 'fonts')] }),
-      }),
-    };
-  }
+  if (action === 'lint') return lintRunPacket(context, data.packet, !!activeRun?.reviewSubagentId);
   if (action === 'packet_rules') {
     const state = context.packetRules.current();
     return {

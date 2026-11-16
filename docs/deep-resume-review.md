@@ -42,6 +42,8 @@ Children inherit Reviewer's saved runtime/model by default. The user can explici
 
 Each child has a separate run directory, scoped capability, cancellation signal and saved result. Native shell, file, web and subagent tools remain disabled. Children cannot delegate, ask the user directly, export, submit, use connectors or change the shared deadline. The parent alone consolidates findings; child opinions do not establish facts or approve a packet.
 
+`pitchcrew_lint_packet` accepts the resume-only packet returned to a targeted child. The hidden cover letter, form answers and note stay empty; projected claims may be empty when none occur in the resume. The authenticated child run selects this scope in both MCP input validation and the daemon. Lint checks the supplied resume's registered source quotations, applicable house rules and rendered document, and returns `scope: "resume"`. It never reads hidden packet documents to fill them in. Hidden documents have no verification reports and `layout.coverLetterPages` is `null`. This result cannot establish full-packet readiness: the parent assessment, final recheck and export still validate the complete packet.
+
 Unavailable, failed, cancelled and unfinished opinions are recorded explicitly. Their technical failure does not independently block an otherwise valid packet; missing evidence, required answers and factual problems still do. Unperformed user-requested opinions cannot be presented as completed review. The parent can finish using available findings and must report the incomplete work.
 
 ## Shared execution budget

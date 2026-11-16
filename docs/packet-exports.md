@@ -110,6 +110,8 @@ Pitchcrew counts pages from the frozen bytes, so approvals made before this feat
 
 The resume target is one page. Inbox shows each document's page count and a warning when a resume runs longer. `pitchcrew_lint_packet` also reports formatted page counts and layout warnings so Writer and Reviewer can shorten the resume before review. The warning does not block approval, because some resumes are meant to be longer.
 
+Targeted deep-review children lint only their supplied resume. Their lint result identifies `scope: "resume"`, omits hidden-document verification reports and sets `layout.coverLetterPages` to `null`. It does not render or certify the hidden cover letter. Full-packet lint, final review and approval-gated export retain the complete document checks.
+
 ## Deterministic output
 
 The same packet and layout always produce the same bytes, given the same available fonts. PDFs use fixed metadata dates and fixed font subset names, and they do not replace ligatures, so extracted text matches the source words. Bundled fonts have fixed subset tags. Installed fonts are tagged by order of first use and named by their PostScript name, such as `PCRXAA+YuGothic-Regular`, so the PDF records which font was used without recording a file path. Approvals freeze the bytes, so installing or removing a font later does not change an approved document. DOCX files get fixed document dates, ordered hyperlink IDs and a ZIP writer with fixed timestamps.

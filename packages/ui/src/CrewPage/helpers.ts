@@ -49,7 +49,8 @@ export const capabilityLine = (role: Role): CapabilityLine => {
   if (seat === 'scout') return { icon: 'fit', label: 'Scores job fit' };
   if (caps.trackApplications || caps.gmail) return { icon: 'mail', label: 'Reads Gmail' };
   if (caps.reviewPipeline) return { icon: 'crew', label: 'Reviews the crew' };
-  if (caps.maintainProfile) return { icon: 'notes', label: 'Keeps your profile current' };
+  if (caps.maintainProfile || caps.editProfile)
+    return { icon: 'notes', label: 'Keeps your profile current' };
   if (caps.discoverJobs) return { icon: 'fit', label: 'Finds jobs' };
   return { icon: 'chat', label: 'Chat only' };
 };

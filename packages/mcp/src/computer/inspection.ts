@@ -1,6 +1,7 @@
 import type { FormControl } from '@pitchcrew/core';
 import type { Page } from 'playwright';
 import { credentialSelector, redactCredentials } from './credentials.ts';
+import { readFormControls } from './form-controls.ts';
 
 export const inspectControls = async (page: Page) => {
   const controls: FormControl[] = [];
@@ -21,44 +22,7 @@ export const inspectControls = async (page: Page) => {
       frameSelector = `:nth-match(:is(iframe,frame), ${index + 1})`;
     }
     try {
-      const evidence = await frame.evaluate(() => ({
-        html: document.documentElement.outerHTML,
-        controls: Array.from(document.querySelectorAll('input,textarea,select'))
-          .slice(0, 100)
-          .map((element, index) => {
-            const field = element as HTMLInputElement;
-            return {
-              selector: `:nth-match(:is(input,textarea,select), ${index + 1})`,
-              label: (
-                field.labels?.[0]?.textContent ??
-                field.getAttribute('aria-label') ??
-                field.name ??
-                ''
-              )
-                .trim()
-                .slice(0, 500),
-              type: field.type || field.tagName.toLowerCase(),
-              required: field.required || field.getAttribute('aria-required') === 'true',
-              visible:
-                field.getClientRects().length > 0 &&
-                getComputedStyle(field).visibility !== 'hidden',
-              disabled: field.disabled,
-              accept: field.getAttribute('accept') ?? '',
-              ...(field.maxLength >= 0 ? { maxLength: field.maxLength } : {}),
-              options:
-                field.tagName === 'SELECT'
-                  ? Array.from((element as HTMLSelectElement).options)
-                      .map((option) => option.text)
-                      .slice(0, 100)
-                  : [],
-            };
-          }),
-        values: Array.from(document.querySelectorAll('input,textarea,select')).map((element) => {
-          const field = element as HTMLInputElement;
-          return { value: field.value, checked: field.checked };
-        }),
-        overflow: document.querySelectorAll('input,textarea,select').length > 100,
-      }));
+      const evidence = await frame.evaluate(readFormControls, credentialSelector);
       const secrets = await frame
         .locator(credentialSelector)
         .evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).value));

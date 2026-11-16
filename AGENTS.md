@@ -52,7 +52,7 @@ packages/
     src/pi/
     src/oh-my-pi/
     src/hermes/
-  mcp/            # stdio tools, read-only connector clients/auth and shared export/browser gates
+  mcp/            # stdio tools, connector clients/auth, scoped profile sync and export/browser gates
   packet/         # source quotation checks, packet rule evaluation, versioned Markdown files, PDF/DOCX rendering
   design-system/  # reusable React primitives, utilities and shared theme for app and landing
   ui/             # browser/Electron React renderer and app-specific AI Elements compositions
@@ -127,7 +127,7 @@ Vitest builds the production UI once when UI test files are selected. Full-app b
 
 These must stay true. A change that breaks one is a bug even if tests pass.
 
-1. **No outward action without approval.** Anything that sends, submits, posts or emails must go through a gated MCP tool checking an unused approval bound to the exact payload. The check belongs in MCP, not in prompts or UI. Browser interactions use an exact-action gate bound to run, role, card, page fingerprint and upload contents. User-approved task site browsing grants can authorize bounded HTTPS read navigation, hover and scroll, while separate preparation grants authorize only the bounded preparation rules described above; submission, buttons, keys, dialogs and unfamiliar controls always require an exact user decision. Website-controlled scripts remain outside payload verification. Local export also uses its gate. Configured anonymous app analytics follows the device opt-out preference described above; it never carries application content or grants agents an outward-action bypass.
+1. **No outward action without approval.** Anything that sends, submits, posts or emails must go through a gated MCP tool checking an unused approval bound to the exact payload. The check belongs in MCP, not in prompts or UI. A direct user chat request plus `editProfile` authorizes source-bound GitHub profile commits through the dedicated profile tool without a second approval; the gateway verifies the owning user delivery, the editing grant and connected account, imported folder scope and optimistic file baselines. Scheduled and crew-triggered changes still require reviewed proposals. See [docs/profile-maintenance.md](docs/profile-maintenance.md). Browser interactions use an exact-action gate bound to run, role, card, page fingerprint and upload contents. User-approved task site browsing grants can authorize bounded HTTPS read navigation, hover and scroll, while separate preparation grants authorize only the bounded preparation rules described above; submission, buttons, keys, dialogs and unfamiliar controls always require an exact user decision. Website-controlled scripts remain outside payload verification. Local export also uses its gate. Configured anonymous app analytics follows the device opt-out preference described above; it never carries application content or grants agents an outward-action bypass.
 2. **Provider code stays in packages/adapters/.** The orchestrator, board and UI see only the runtime interface and normalized results/progress.
 3. **Agents coordinate through the board only.** Internal messages and invocations are persisted board entities with scoped MCP tools; no adapter-to-adapter messaging and no shared runtime sessions across roles.
 4. **Events are append-only and stay decodable.** Never rewrite or delete stored events. Schema changes add a new version and retain a decoder for every old version.
@@ -233,7 +233,7 @@ Read the matching file before changing the area; it holds the contributor rules 
 | -------------------------------------------------- | -------------------------------------------------------------------------- |
 | Profile workspace, notes and the editor            | [docs/profile.md](docs/profile.md)                                         |
 | Profile sources dialog and imports                 | [docs/profile-sources-dialog.md](docs/profile-sources-dialog.md)           |
-| Profile maintenance proposals                      | [docs/profile-maintenance.md](docs/profile-maintenance.md)                 |
+| Direct profile edits, GitHub sync and maintenance  | [docs/profile-maintenance.md](docs/profile-maintenance.md)                 |
 | Packet files, rendering and export                 | [docs/packet-exports.md](docs/packet-exports.md)                           |
 | Packet rules                                       | [docs/packet-rules.md](docs/packet-rules.md)                               |
 | Application source safety and context confirmation | [docs/application-source-safety.md](docs/application-source-safety.md)     |

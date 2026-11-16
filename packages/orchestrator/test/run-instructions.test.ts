@@ -84,6 +84,8 @@ it('keeps deferred bodies out of native instructions while retaining exact skill
   expect(instructions).toContain(role.instructions);
   expect(instructions).toContain(skills[0]!.content);
   expect(instructions).toContain(skills[1]!.content);
+  for (const item of skills.slice(0, 2))
+    expect(instructions).toContain(`Skill ID (skillId): ${item.id}`);
   expect(instructions).not.toContain(skills[2]!.content);
   expect(instructions).toContain('pitchcrew_read_skill using its id');
   expect(instructions).toContain(

@@ -9,10 +9,14 @@ import {
   type Card,
   type ComputerApproval,
   type FormAssessment,
+  type FormControl,
   type RoleId,
   type SubmissionAttempt,
 } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
+
+const requirementControl = ({ checked: _checked, pressed: _pressed, ...control }: FormControl) =>
+  control;
 
 export const saveAssessment = (
   board: Board,
@@ -36,7 +40,7 @@ export const saveAssessment = (
     if (matches.length !== 1)
       throw new Error('Assessment fields must reference exactly one server-inspected control.');
   }
-  const fields = (page.controls ?? []).map((control) => {
+  const fields = (page.controls ?? []).map(requirementControl).map((control) => {
     const annotation = input.fields.find(
       (field) => field.selector === control.selector && field.frame === control.frame,
     );
@@ -51,7 +55,7 @@ export const saveAssessment = (
     id: randomUUID(),
     ...scope,
     cardId: scope.cardId,
-    page: pageEvidence(page),
+    page: pageEvidence({ ...page, controls: page.controls?.map(requirementControl) }),
     fields,
     blockers: input.blockers,
     uninspected: [...(page.uninspected ?? []), ...input.uninspected],

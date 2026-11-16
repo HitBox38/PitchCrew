@@ -79,7 +79,24 @@ it('exposes no extraction tools and only application-scoped drafting/review tool
           client.callTool({ name: 'pitchcrew_read_profile', arguments: {} }),
         ).rejects.toThrow('Method not found');
       } else {
-        const names = (await client.listTools()).tools.map((tool) => tool.name);
+        const tools = (await client.listTools()).tools;
+        const names = tools.map((tool) => tool.name);
+        const ask = tools.find((tool) => tool.name === 'pitchcrew_ask_user')!;
+        if (['fit', 'packet-evaluation'].includes(purpose)) {
+          expect(ask.inputSchema.properties).not.toHaveProperty('applicationRequirementId');
+          expect(ask.description).toContain('assessment');
+          expect(ask.description).toContain('without applicationRequirementId');
+          const questions = daemon.service.board.list('user_input').length;
+          const rejected = await client.callTool({
+            name: 'pitchcrew_ask_user',
+            arguments: { question: 'Which location?', applicationRequirementId: 'location' },
+          });
+          expect(rejected.isError).toBe(true);
+          expect(daemon.service.board.list('user_input')).toHaveLength(questions);
+        } else {
+          expect(ask.inputSchema.properties).toHaveProperty('applicationRequirementId');
+          expect(ask.description).toContain('confirmed personal requirement');
+        }
         expect(names.sort()).toEqual(
           [
             'pitchcrew_ask_user',

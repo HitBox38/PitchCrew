@@ -25,7 +25,15 @@ const writes = new WeakMap<CrewContext, Promise<unknown>>();
 export const changeProfile = async <T>(
   context: CrewContext,
   action: () => Promise<T>,
-  { allowActive = false, recovery }: { allowActive?: boolean; recovery?: true | string } = {},
+  {
+    allowActive = false,
+    activeRunId,
+    recovery,
+  }: {
+    allowActive?: boolean;
+    activeRunId?: string;
+    recovery?: true | string;
+  } = {},
 ): Promise<T> => {
   const previous = writes.get(context) ?? Promise.resolve();
   let release!: () => void;
@@ -48,7 +56,8 @@ export const changeProfile = async <T>(
       assertProfileReady(context);
     if (
       !allowActive &&
-      (context.controllers.size || runsWithStatus(context.board, ['running']).length > 0)
+      ([...context.controllers.keys()].some((id) => id !== activeRunId) ||
+        runsWithStatus(context.board, ['running']).some((run) => run.id !== activeRunId))
     )
       throw new Error('Wait for active runs to finish before changing their source profile.');
     context.profileWriting = true;

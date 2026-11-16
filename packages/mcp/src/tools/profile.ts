@@ -5,6 +5,46 @@ import { readOnly } from './constants.ts';
 
 export const registerProfileTools = (server: McpServer, call: AgentCall) => {
   server.registerTool(
+    'pitchcrew_list_profile_edit_sources',
+    {
+      title: 'Read profile edit sources and baselines',
+      description:
+        'Requires editProfile and a direct user chat request. Read local note SHA-256 baselines and connected profile import mappings. Use pitchcrew_read_profile for content. Project watches are excluded. No account credentials are returned.',
+      inputSchema: {},
+      annotations: readOnly,
+    },
+    () => call('profile_edit_sources'),
+  );
+  server.registerTool(
+    'pitchcrew_update_profile',
+    {
+      title: 'Update profile and its connected GitHub source',
+      description:
+        'Only carry out profile changes the user directly requested in this chat. Requires editProfile. Save creates/edits a Markdown note; delete moves it to recoverable trash. Supply the current baseline from pitchcrew_list_profile_edit_sources (null for a new note). Attached GitHub notes sync to their saved path with the connected source account; a new note can choose sourceId/path, otherwise the sole GitHub import is used. Multiple imports require a choice. Sync checks the remote blob revision. Local changes are kept if sync fails: report unsynced and inspect GitHub before any retry. Scheduled/crew turns must use proposals. Never infer personal facts from code.',
+      inputSchema: {
+        action: z.enum(['save', 'delete']),
+        name: z.string().min(1).max(100),
+        baseline: z
+          .string()
+          .regex(/^[a-f0-9]{64}$/)
+          .nullable(),
+        content: z.string().max(50000).optional(),
+        sourceId: z
+          .string()
+          .regex(/^[a-f0-9]{24}$/)
+          .optional(),
+        path: z.string().min(1).max(500).optional(),
+      },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: false,
+        openWorldHint: true,
+      },
+    },
+    (input) => call('update_profile', { input }),
+  );
+  server.registerTool(
     'pitchcrew_list_watched_profile_sources',
     {
       title: 'List watched profile sources',
