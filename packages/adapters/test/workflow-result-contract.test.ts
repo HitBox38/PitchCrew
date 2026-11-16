@@ -103,6 +103,20 @@ describe('workflow prompt result examples', () => {
     }
   });
 
+  it('states packet character limits and how to write the note in every writer prompt', () => {
+    const writerPrompts = Object.entries(variants).filter(([name]) => /draft|revision/.test(name));
+    expect(writerPrompts).toHaveLength(4);
+    for (const [, prompt] of writerPrompts) {
+      expect(prompt).toContain(
+        'resume 20,000, coverLetter 12,000, formAnswers 12,000, note 12,000',
+      );
+      expect(prompt).toContain('instead of appending to an earlier note');
+      expect(prompt).toContain('use "" when there is nothing to add');
+    }
+    for (const name of ['reviewer', 'scout'] as const)
+      expect(variants[name]).not.toContain('formAnswers 12,000');
+  });
+
   it('treats a packet drafted for an older brief revision as a first draft in isolated runs', () => {
     const stale = context('writer', {
       packet,
@@ -159,6 +173,34 @@ describe('workflow result diagnostics', () => {
     expect(parseWorkflowResult(fenced, writer)).toMatchObject({ changes: ['Fixed a claim.'] });
   });
 
+  it('accepts an omitted or null note as an empty note and allows long handoff notes', () => {
+    const { note: _omitted, ...withoutNote } = packet;
+    for (const candidate of [withoutNote, { ...packet, note: null }]) {
+      const result = parseWorkflowResult(
+        JSON.stringify({ role: 'writer', packet: candidate }),
+        writer,
+      );
+      expect(result).toMatchObject({ role: 'writer', packet: { note: '' } });
+    }
+    const long = { ...packet, note: 'Fictional limitation. '.repeat(400) };
+    expect(long.note.length).toBeGreaterThan(5000);
+    expect(
+      parseWorkflowResult(JSON.stringify({ role: 'writer', packet: long }), writer),
+    ).toMatchObject({ packet: { note: long.note } });
+  });
+
+  it.each([
+    [{ ...packet, note: 'x'.repeat(12001) }, 'packet.note (too long)'],
+    [{ ...packet, note: ['Fictional bullet'] }, 'packet.note (wrong type)'],
+    [{ ...packet, resume: undefined }, 'packet.resume (missing)'],
+    [{ ...packet, coverLetter: '' }, 'packet.coverLetter (empty)'],
+  ])('says why a field was rejected without echoing it (%#)', (candidate, wording) => {
+    const error = failure(JSON.stringify({ role: 'writer', packet: candidate }), writer);
+    expect(error).toMatchObject({ resultProblem: 'schema', fields: [wording.split(' ')[0]] });
+    expect(error.message).toContain(`its writer result had invalid or missing fields: ${wording}`);
+    expect(error.message).not.toMatch(/xxxx|Fictional/);
+  });
+
   it.each([
     ['', 'missing', 'finished without a final answer'],
     ['  \n ', 'missing', 'finished without a final answer'],
@@ -192,7 +234,9 @@ describe('workflow result diagnostics', () => {
   it('names known rejected fields, including an empty change list, but never values', () => {
     const error = failure(JSON.stringify({ role: 'writer', packet, changes: [] }), writer);
     expect(error).toMatchObject({ resultProblem: 'schema', fields: ['changes'] });
-    expect(error.message).toContain('its writer result had invalid or missing fields: changes');
+    expect(error.message).toContain(
+      'its writer result had invalid or missing fields: changes (empty)',
+    );
     expect(error.message).not.toMatch(/café|Fictional|sign-in|model/i);
   });
 

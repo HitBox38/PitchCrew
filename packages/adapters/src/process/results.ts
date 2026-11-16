@@ -45,36 +45,79 @@ const knownFields = new Set([
 ]);
 const maxFields = 4;
 
+interface ResultIssue {
+  code: string;
+  path: readonly PropertyKey[];
+  origin?: string;
+  minimum?: unknown;
+}
+/** A rejected field and a fixed reason word; neither carries the rejected value. */
+interface RejectedField {
+  name: string;
+  reason: string;
+}
+
+const valueAt = (data: unknown, path: readonly PropertyKey[]) =>
+  path.reduce<unknown>(
+    (value, key) =>
+      value && typeof value === 'object' ? (value as Record<PropertyKey, unknown>)[key] : undefined,
+    data,
+  );
+const lengthChecked = (origin?: string) => origin === 'string' || origin === 'array';
+const issueReason = (issue: ResultIssue, data: unknown) => {
+  if (issue.code === 'invalid_type')
+    return valueAt(data, issue.path) == null ? 'missing' : 'wrong type';
+  if (issue.code === 'too_big') return lengthChecked(issue.origin) ? 'too long' : 'out of range';
+  if (issue.code !== 'too_small') return 'invalid';
+  if (!lengthChecked(issue.origin)) return 'out of range';
+  return issue.minimum === 1 ? 'empty' : 'too short';
+};
+
 /** Dotted schema paths for rejected fields, dropping array indexes and unknown keys. */
-const rejectedFields = (error: {
-  issues: ReadonlyArray<{ code: string; path: readonly PropertyKey[] }>;
-}) => {
-  const fields = new Set<string>();
+const rejectedFields = (error: { issues: readonly ResultIssue[] }, data: unknown) => {
+  const fields = new Map<string, string>();
   for (const issue of error.issues) {
     if (issue.code === 'unrecognized_keys') continue;
     const names = issue.path.filter((part): part is string => typeof part === 'string');
     if (!names.length || !names.every((name) => knownFields.has(name))) continue;
-    fields.add(names.join('.'));
+    const name = names.join('.');
+    if (!fields.has(name)) fields.set(name, issueReason(issue, data));
   }
-  return [...fields].slice(0, maxFields);
+  return [...fields].slice(0, maxFields).map(([name, reason]): RejectedField => ({ name, reason }));
 };
 
-const detail = (problem: ResultProblem, seat: string, fields: string[]) => {
+const detail = (problem: ResultProblem, seat: string, fields: RejectedField[]) => {
   if (problem === 'missing') return 'it finished without a final answer';
   if (problem === 'invalid_json') return 'its final answer was not valid JSON';
   if (problem === 'wrong_role') return `its answer was not a ${seat} result`;
   return fields.length
-    ? `its ${seat} result had invalid or missing fields: ${fields.join(', ')}`
+    ? `its ${seat} result had invalid or missing fields: ${fields.map((field) => `${field.name} (${field.reason})`).join(', ')}`
     : `its ${seat} result did not match the expected shape`;
 };
 
+/** A Writer may report an empty note as null; treat it like the omitted note the schema accepts. */
+const withoutNullNote = (data: object): object => {
+  const packet = (data as { packet?: unknown }).packet;
+  if (!packet || typeof packet !== 'object' || (packet as { note?: unknown }).note !== null)
+    return data;
+  return { ...data, packet: { ...packet, note: '' } };
+};
+
 /** A rejected result: fixed wording, a category and known field names only. */
-const runtimeResultError = (resultProblem: ResultProblem, fields: string[], seat: string) =>
+const runtimeResultError = (
+  resultProblem: ResultProblem,
+  rejected: RejectedField[],
+  seat: string,
+) =>
   Object.assign(
     new Error(
-      `The runtime did not return a valid structured result: ${detail(resultProblem, seat, fields)}. Nothing was saved from this run. Retry the step.`,
+      `The runtime did not return a valid structured result: ${detail(resultProblem, seat, rejected)}. Nothing was saved from this run. Retry the step.`,
     ),
-    { code: 'PITCHCREW_RUNTIME_RESULT_INVALID', resultProblem, fields },
+    {
+      code: 'PITCHCREW_RUNTIME_RESULT_INVALID',
+      resultProblem,
+      fields: rejected.map((field) => field.name),
+    },
   );
 
 /**
@@ -93,12 +136,13 @@ export const parseWorkflowResult = (text: string, context: RunContext): RunResul
   }
   if (!data || typeof data !== 'object' || Array.isArray(data))
     throw runtimeResultError('schema', [], seat);
+  data = withoutNullNote(data);
   const parsed = runResultSchema.safeParse(data);
   if (!parsed.success) {
     const role = (data as { role?: unknown }).role;
     if (typeof role === 'string' && role !== seat && ['scout', 'writer', 'reviewer'].includes(role))
       throw runtimeResultError('wrong_role', [], seat);
-    throw runtimeResultError('schema', rejectedFields(parsed.error), seat);
+    throw runtimeResultError('schema', rejectedFields(parsed.error, data), seat);
   }
   if (parsed.data.role !== seat) throw runtimeResultError('wrong_role', [], seat);
   return parsed.data;
