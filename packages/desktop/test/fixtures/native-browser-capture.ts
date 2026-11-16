@@ -27,6 +27,10 @@ export const checkNativeCaptureRecovery = async (
   id: string,
   fixture: NativeFixture,
 ) => {
+  await assert.rejects(
+    fixture({ kind: 'mask-paint-timeout', id: 'missing-capture-fixture', operation: 'arm' }),
+    /Native capture fixture group not found/,
+  );
   await fixture({ kind: 'mask-paint-timeout', id, operation: 'arm' });
   try {
     await assert.rejects(

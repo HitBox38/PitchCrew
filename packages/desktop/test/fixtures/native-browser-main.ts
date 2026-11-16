@@ -156,7 +156,8 @@ void app
         commandKind = command.kind;
         commandId = command.id;
         const group = host.groups.get(command.id);
-        if (command.kind === 'mask-paint-timeout' && group) {
+        if (command.kind === 'mask-paint-timeout') {
+          if (!group) throw new Error('Native capture fixture group not found.');
           if (command.operation === 'arm')
             stalledPaints.set(
               group.id,
