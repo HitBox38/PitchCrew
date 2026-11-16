@@ -66,6 +66,7 @@ export const inspectedApplicationForm = (
       accept: field.accept,
       options: field.options,
       ...(field.maxLength === undefined ? {} : { maxLength: field.maxLength }),
+      ...(field.buttonType === undefined ? {} : { buttonType: field.buttonType }),
       ...(field.constraints === undefined ? {} : { constraints: field.constraints }),
       ...(field.optionsTotal === undefined ? {} : { optionsTotal: field.optionsTotal }),
       ...(field.optionsTruncated === undefined ? {} : { optionsTruncated: field.optionsTruncated }),

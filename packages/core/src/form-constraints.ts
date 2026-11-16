@@ -7,6 +7,8 @@ const attributeEvidence = z.discriminatedUnion('status', [
 ]);
 
 export const formControlEvidence = {
+  // A semantic toggle may still have native submit behavior when its type is omitted.
+  buttonType: z.enum(['button', 'submit', 'reset']).optional(),
   // Missing evidence on historical records means unavailable, never absent or unlimited.
   constraints: z
     .object({

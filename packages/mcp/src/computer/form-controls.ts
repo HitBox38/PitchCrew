@@ -41,6 +41,14 @@ export const readFormControls = (credentials: string) => {
       return { status: 'unavailable' };
     return { status: 'declared', value };
   };
+  const choiceState = (value: string | null, mixed = true) =>
+    value === 'true'
+      ? true
+      : value === 'false'
+        ? false
+        : mixed && value === 'mixed'
+          ? 'mixed'
+          : undefined;
   const entries = [native, custom].flatMap((selector) =>
     Array.from(document.querySelectorAll(selector))
       .map((element, index) => ({
@@ -83,7 +91,16 @@ export const readFormControls = (credentials: string) => {
       type:
         role === 'radio' || role === 'checkbox'
           ? role
-          : field.type || element.tagName.toLowerCase(),
+          : element.matches('button[aria-pressed]')
+            ? 'toggle'
+            : field.type || element.tagName.toLowerCase(),
+      ...(element instanceof HTMLButtonElement ? { buttonType: element.type } : {}),
+      ...(role === 'radio' || role === 'checkbox'
+        ? { checked: choiceState(element.getAttribute('aria-checked'), role === 'checkbox') }
+        : {}),
+      ...(element.matches('button[aria-pressed]')
+        ? { pressed: choiceState(element.getAttribute('aria-pressed')) }
+        : {}),
       required:
         !!field.required ||
         element.getAttribute('aria-required') === 'true' ||

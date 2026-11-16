@@ -14,6 +14,9 @@ export interface FormControl extends FormControlEvidence {
   accept: string;
   options: string[];
   maxLength?: number;
+  /** Live ARIA choice states; not personal answers or confirmed requirements. */
+  checked?: boolean | 'mixed';
+  pressed?: boolean | 'mixed';
 }
 export const formAssessmentInput = z
   .object({

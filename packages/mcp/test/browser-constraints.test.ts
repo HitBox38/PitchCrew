@@ -31,11 +31,29 @@ it('inspects bounded declared constraints and semantic groups, persists them wit
       expect(field.group).toEqual(control.group);
       expect(field.optionsTotal).toEqual(control.optionsTotal);
       expect(field.optionsTruncated).toEqual(control.optionsTruncated);
+      expect(field.buttonType).toEqual(control.buttonType);
       expect(field.assessed).toBe(true);
       expect(await page.locator(control.selector).count()).toBe(1);
     }
     expect(JSON.stringify(form)).not.toContain('Private draft');
     expect(JSON.stringify(form)).not.toContain('selector');
+    for (const control of [
+      ...assessment.fields,
+      ...(assessment.page.controls ?? []),
+      ...form.fields,
+    ]) {
+      expect(control).not.toHaveProperty('checked');
+      expect(control).not.toHaveProperty('pressed');
+    }
+    const initialDigest = snapshot.digest;
+    await page.getByRole('button', { name: 'Selected toggle', exact: true }).evaluate((element) => {
+      element.setAttribute('aria-pressed', 'false');
+    });
+    const changedState = await driver.snapshot({ includeImage: false });
+    expect(
+      changedState.controls?.find((control) => control.label === 'Selected toggle')?.pressed,
+    ).toBe(false);
+    expect(changedState.digest).not.toBe(initialDigest);
     board.rebuild();
     expect(board.get<FormAssessment>('form_assessment', assessment.id)).toEqual(assessment);
     await page.locator('#summary').evaluate((field) => {
