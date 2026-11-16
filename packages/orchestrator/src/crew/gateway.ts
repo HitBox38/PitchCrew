@@ -244,7 +244,9 @@ const dispatchAgentCall = async (
   if (action === 'application_insights')
     return insightsAction(context, capability, token, data.input);
   if (action === 'quality') return qualityAgentAction(context, capability, data.input);
-  if (['applications', 'tracking_scan', 'tracking_reconcile'].includes(action))
+  if (
+    ['applications', 'submission_attempts', 'tracking_scan', 'tracking_reconcile'].includes(action)
+  )
     return trackingAction(context, capability, token, action, data);
   if (action === 'pipeline_access')
     return {
