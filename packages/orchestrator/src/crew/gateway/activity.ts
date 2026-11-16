@@ -162,6 +162,8 @@ const labels: Record<string, string> = {
   extend_review_deadline: 'Extending shared review deadline',
   request_review_time: 'Requesting more review time',
   profile: 'Reading profile',
+  profile_edit_sources: 'Reading profile edit sources',
+  update_profile: 'Updating profile and its GitHub source',
   card: 'Reading job details',
   history: 'Reading application history',
   messages: 'Reading conversations',

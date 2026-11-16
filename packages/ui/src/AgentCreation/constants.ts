@@ -38,7 +38,7 @@ export const toolGroups = [
     ],
   },
   { title: 'Job discovery', keys: ['discoverJobs'] },
-  { title: 'Profile maintenance', keys: ['maintainProfile'] },
+  { title: 'Profile', keys: ['maintainProfile', 'editProfile'] },
   { title: 'Browser and forms', keys: ['computerUse', 'assessForms', 'recordSubmissions'] },
 ] as const;
 export const toolHelp = {
@@ -47,7 +47,8 @@ export const toolHelp = {
   manageWorkflow:
     'List board jobs, move them between any statuses and delete them, individually or in bulk.',
   manageRoutines: 'Manage schedules. Cross-role schedules also require invoking agents.',
-  github: 'Read-only access through your connected GitHub account.',
+  github:
+    'Read-only access through your connected GitHub account. Profile source synchronization uses the separate profile-edit permission.',
   gmail: 'Read-only email access through your connected Google account.',
   drive: 'Read-only access to Drive files and Docs.',
   calendar: 'Read-only access to calendar events.',
@@ -63,7 +64,9 @@ export const toolHelp = {
   discoverJobs:
     'Scan saved sources, add leads from public posting links or refresh an existing job from its link. Pages requiring login or JavaScript may need pasted posting text. Agents cannot change sources.',
   maintainProfile:
-    'Requires GitHub or Drive access and watched sources set up in Profile. Every update needs your review.',
+    'Check watched GitHub or Drive sources and propose updates for your review. Requires access to the source service.',
+  editProfile:
+    'Direct requests can create, edit or remove any local profile note and sync attached GitHub profile sources when the source account is connected. Scheduled and crew requests still need proposal review.',
   computerUse:
     'Open this agent’s local browser in chat. Supervised mode asks for each interaction; bounded autonomous preparation is optional.',
   assessForms: 'Requires browser access. Inspect fields and report what an application form needs.',

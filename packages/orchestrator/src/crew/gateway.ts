@@ -37,6 +37,7 @@ import { proposeRole, proposeSkill } from './gateway/proposals.ts';
 import { changeWorkflow } from './gateway/workflow.ts';
 import { correctJobDetails } from './gateway/job-details.ts';
 import { profileAction } from './gateway/profile.ts';
+import { profileEditAction } from './gateway/profile-edit.ts';
 import { routineAction } from './gateway/routines.ts';
 import { trackingAction } from './gateway/tracking.ts';
 import { insightsAction } from './gateway/insights.ts';
@@ -267,6 +268,8 @@ const dispatchAgentCall = async (
     return jobSourceAction(context, capability, token, action, data);
   if (['routines', 'save_routine', 'delete_routine'].includes(action))
     return routineAction(context, capability, action, data);
+  if (['profile_edit_sources', 'update_profile'].includes(action))
+    return profileEditAction(context, capability, token, action, data.input);
   if (
     [
       'watched_profile_sources',

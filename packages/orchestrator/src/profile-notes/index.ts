@@ -1,7 +1,7 @@
 import type { ProfileFile, ProfileOrganization } from '@pitchcrew/core';
 import { readProfile } from '@pitchcrew/packet';
 import { randomUUID } from 'node:crypto';
-import { rename, rm } from 'node:fs/promises';
+import { rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { z } from 'zod';
 import type { CrewContext } from '../crew/types.ts';
@@ -89,26 +89,46 @@ export const deleteProfileNote = async (
 ): Promise<{ trashId: string; profile: ProfileFile[] }> => {
   const name = noteNameSchema.parse(value);
   assertProfileReady(context);
-  return changeProfile(context, async () => {
-    if (!(await noteExists(context.directory, name))) throw notFound('This note no longer exists.');
-    await pruneTrash(context.directory);
-    const trashId = randomUUID();
-    const folder = context.profileOrganization.get().locations[name];
-    await moveToTrash(context.directory, trashId, {
-      name,
-      deletedAt: new Date().toISOString(),
-      ...(folder === undefined ? {} : { folder }),
-    });
-    try {
-      context.profileOrganization.placeNote(name, undefined);
-    } catch (error) {
-      const { entry, file } = await readTrash(context.directory, trashId);
-      await rename(file, join(noteFolder(context.directory), name));
-      await rm(entry, { recursive: true, force: true });
-      throw error;
-    }
-    return { trashId, profile: await readProfile(context.directory) };
+  return changeProfile(context, () => trashProfileNote(context, name));
+};
+
+/** Caller owns the serialized profile write. */
+export const writeProfileNote = async (
+  context: CrewContext,
+  name: string,
+  content: string,
+  baseline: string | null | undefined,
+) => {
+  await checkBaseline(context, name, baseline);
+  const temporary = join(noteFolder(context.directory), `.${randomUUID()}.tmp`);
+  try {
+    await writeFile(temporary, content, { encoding: 'utf8', mode: 0o600 });
+    await rename(temporary, join(noteFolder(context.directory), name));
+  } finally {
+    await rm(temporary, { force: true });
+  }
+};
+
+/** Caller owns the serialized profile write. Keeps the same user-restorable trash. */
+export const trashProfileNote = async (context: CrewContext, name: string) => {
+  if (!(await noteExists(context.directory, name))) throw notFound('This note no longer exists.');
+  await pruneTrash(context.directory);
+  const trashId = randomUUID();
+  const folder = context.profileOrganization.get().locations[name];
+  await moveToTrash(context.directory, trashId, {
+    name,
+    deletedAt: new Date().toISOString(),
+    ...(folder === undefined ? {} : { folder }),
   });
+  try {
+    context.profileOrganization.placeNote(name, undefined);
+  } catch (error) {
+    const { entry, file } = await readTrash(context.directory, trashId);
+    await rename(file, join(noteFolder(context.directory), name));
+    await rm(entry, { recursive: true, force: true });
+    throw error;
+  }
+  return { trashId, profile: await readProfile(context.directory) };
 };
 
 export const restoreProfileNote = async (

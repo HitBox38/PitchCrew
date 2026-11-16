@@ -3,6 +3,7 @@ import { createConnectorManagerContext } from './auth/context.ts';
 import type { ConnectorManagerContext } from './auth/types.ts';
 import type { GithubCliRunner } from './auth/github-cli-process.ts';
 import type { GoogleCliRunner } from './auth/google-cli-process.ts';
+import { writeProfileGithub } from './auth/github-profile.ts';
 
 export { googleScopes } from './auth/helpers.ts';
 export class ConnectorManager {
@@ -36,6 +37,9 @@ export class ConnectorManager {
   };
   call = (name: string, input: unknown, signal: AbortSignal): Promise<Record<string, unknown>> => {
     return this.context.call(name, input, signal);
+  };
+  writeProfileGithub = (input: unknown, signal: AbortSignal, authorize?: () => Promise<void>) => {
+    return writeProfileGithub(this.context, input, signal, authorize);
   };
   close = (): Promise<void> => {
     return this.context.close();

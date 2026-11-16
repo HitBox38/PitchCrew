@@ -92,6 +92,7 @@ describe('default crew', () => {
     });
     expect(roles[5].capabilities).toMatchObject({
       maintainProfile: true,
+      editProfile: true,
       manageRoutines: true,
       readApplications: false,
     });
@@ -111,6 +112,7 @@ describe('default crew', () => {
         recordSubmissions: false,
         trackApplications: false,
         maintainProfile: false,
+        editProfile: false,
         manageRoutines: false,
         reviewPipeline: false,
         proposeCrewChanges: false,
@@ -119,6 +121,39 @@ describe('default crew', () => {
     expect(board.events().every((event) => event.kind === 'role')).toBe(true);
     expect(board.list('routine')).toEqual([]);
     expect(board.list('run')).toEqual([]);
+  });
+
+  it('keeps profile editing separate from existing watched-source grants', () => {
+    const board = create();
+    const documenter = defaultRoles('demo', true).find((role) => role.id === 'documenter')!;
+    const { editProfile: _editProfile, ...capabilities } = documenter.capabilities!;
+    const saved = { ...documenter, capabilities };
+    const historical = JSON.stringify({
+      id: 1,
+      version: 36,
+      kind: 'role',
+      entityId: saved.id,
+      data: saved,
+      actor: 'user',
+      message: 'Existing watched-source access',
+      createdAt: '2026-11-01T00:00:00Z',
+    });
+    board.db.prepare('INSERT INTO events(json) VALUES (?)').run(historical);
+    board.rebuild();
+    board.seedRoles();
+    expect(board.get<Role>('role', 'documenter')).toEqual(saved);
+    expect(board.get<Role>('role', 'documenter').capabilities?.editProfile).toBeUndefined();
+    expect(
+      board
+        .list<Role>('role')
+        .filter((role) => role.id !== 'documenter')
+        .every((role) => role.capabilities?.editProfile !== true),
+    ).toBe(true);
+    board.rebuild();
+    expect(board.get<Role>('role', 'documenter')).toEqual(saved);
+    expect(
+      (board.db.prepare('SELECT json FROM events WHERE id=1').get() as { json: string }).json,
+    ).toBe(historical);
   });
 
   it('backfills missing defaults without replacing customized, colliding or retired identities', () => {

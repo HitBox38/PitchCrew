@@ -6,7 +6,7 @@ export const createGithubCliRunner = (
   command = 'gh',
   prefix: readonly string[] = [],
 ): GithubCliRunner => {
-  return (args, signal) =>
+  return (args, signal, input) =>
     new Promise((resolve, reject) => {
       if (signal.aborted) {
         reject(new Error('Connector request cancelled.'));
@@ -26,9 +26,14 @@ export const createGithubCliRunner = (
         env,
         shell: false,
         windowsHide: true,
-        stdio: ['ignore', 'pipe', 'pipe'],
+        stdio: [input === undefined ? 'ignore' : 'pipe', 'pipe', 'pipe'],
         signal: AbortSignal.any([signal, AbortSignal.timeout(20000)]),
       });
+      if (input !== undefined) {
+        // Profile content travels over stdin instead of the command line or a temporary file.
+        child.stdin?.on('error', () => {});
+        child.stdin?.end(input);
+      }
       const chunks: Buffer[] = [];
       let bytes = 0;
       const consume = (chunk: Buffer, keep: boolean) => {
@@ -42,8 +47,8 @@ export const createGithubCliRunner = (
           );
         } else if (keep) chunks.push(chunk);
       };
-      child.stdout.on('data', (chunk: Buffer) => consume(chunk, true));
-      child.stderr.on('data', (chunk: Buffer) => consume(chunk, false));
+      child.stdout?.on('data', (chunk: Buffer) => consume(chunk, true));
+      child.stderr?.on('data', (chunk: Buffer) => consume(chunk, false));
       child.once('error', (error: NodeJS.ErrnoException) =>
         reject(
           error.code === 'ENOENT'
@@ -68,6 +73,7 @@ export const createGithubCliRunner = (
 export type GithubCliRunner = (
   args: readonly string[],
   signal: AbortSignal,
+  input?: string,
 ) => Promise<{
   stdout: string;
   exitCode: number;

@@ -87,6 +87,17 @@ describe('agent setup decisions', () => {
     draft.skills = [{ id: 'removed', updatedAt: '2030-01-01T00:00:00Z' }];
     expect(stepError(3, draft, data)).toContain('changed or was removed');
   });
+  it('keeps local profile editing independent of watched sources and connected account grants', () => {
+    const draft = initialCreation(data);
+    expect(draft.role.capabilities?.editProfile).toBe(false);
+    draft.role.capabilities = { ...draft.role.capabilities!, editProfile: true };
+    expect(setupWarnings(draft, data)).toContain(
+      'Direct requests can change local profile notes. Syncing attached GitHub profile sources needs a connected account; general GitHub access is separate.',
+    );
+    expect(draft.role.capabilities.maintainProfile).toBe(false);
+    expect(draft.role.capabilities.github).toBe(false);
+    expect(draft.role.capabilities.drive).toBe(false);
+  });
   it('allows large shared and selected skills without treating assignment as a prompt budget', () => {
     const skills = [
       {

@@ -79,6 +79,8 @@ export const mcpGatewayTools = Object.freeze({
   update_pipeline_review: 'pitchcrew_update_pipeline_review',
   propose_crew_changes: 'pitchcrew_propose_crew_changes',
   watched_profile_sources: 'pitchcrew_list_watched_profile_sources',
+  profile_edit_sources: 'pitchcrew_list_profile_edit_sources',
+  update_profile: 'pitchcrew_update_profile',
   detect_profile_changes: 'pitchcrew_detect_profile_changes',
   read_project_watch_file: 'pitchcrew_read_project_watch_file',
   propose_profile_note: 'pitchcrew_propose_profile_note',
