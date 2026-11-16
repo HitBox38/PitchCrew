@@ -71,6 +71,7 @@ export const mcpGatewayTools = Object.freeze({
   assess_form: 'pitchcrew_assess_form',
   capture_submission: 'pitchcrew_capture_submission',
   applications: 'pitchcrew_search_applications',
+  submission_attempts: 'pitchcrew_read_submission_attempts',
   application_insights: 'pitchcrew_application_insights',
   tracking_scan: 'pitchcrew_scan_application_mail',
   tracking_reconcile: 'pitchcrew_reconcile_application_mail',

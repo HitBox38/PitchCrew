@@ -18,6 +18,7 @@ export type { LifecycleMode } from './board/lifecycle.ts';
 
 export { digestPacket, digestArtifacts } from './board/helpers.ts';
 export { setCardStatus } from './board/manual-status.ts';
+export { readSubmissionAttempts } from './board/submission-attempts.ts';
 export {
   jobSourceRevision,
   assertExtractedContext,

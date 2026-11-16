@@ -3,11 +3,14 @@ import {
   completeTrackingMessage,
   applyTrackingSignal,
   trackingConflict,
+  findRun,
+  readSubmissionAttempts,
 } from '@pitchcrew/board';
 import {
   defaultCapabilities,
   trackingReconciliation,
   normalizeApplicationText,
+  submissionAttemptQuery,
   type Card,
   type Role,
   type TrackingScan,
@@ -62,8 +65,31 @@ export const trackingAction = async (
   action: string,
   data: Record<string, unknown>,
 ): Promise<Record<string, unknown>> => {
-  const signal = authorize(context, capability, token, action !== 'applications');
+  const signal = authorize(
+    context,
+    capability,
+    token,
+    !['applications', 'submission_attempts'].includes(action),
+  );
   if (action === 'applications') return searchApplications(context.board, data.input ?? {});
+  if (action === 'submission_attempts') {
+    const run = findRun(context.board, capability.runId);
+    if (
+      !run ||
+      run.status !== 'running' ||
+      run.roleId !== capability.roleId ||
+      run.cardId !== capability.cardId
+    )
+      throw new Error('Submission history requires an active matching run.');
+    const query = submissionAttemptQuery.parse(data.input ?? {});
+    if (capability.cardId && query.cardId && query.cardId !== capability.cardId)
+      throw new Error('Submission history is scoped to the attached application.');
+    const cardId = capability.cardId ?? query.cardId;
+    if (!cardId) throw new Error('Choose an application to read its submission history.');
+    const card = context.board.get<Card>('card', cardId);
+    if (card.deletedAt) throw new Error('This job was deleted.');
+    return { ...readSubmissionAttempts(context.board, cardId, query.offset, query.limit) };
+  }
   const mailbox = account(context);
   if (action === 'tracking_scan') {
     const { query } = z

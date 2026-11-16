@@ -1,5 +1,10 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { applicationQuery, insightsQuery, trackingReconciliation } from '@pitchcrew/core';
+import {
+  applicationQuery,
+  insightsQuery,
+  submissionAttemptQuery,
+  trackingReconciliation,
+} from '@pitchcrew/core';
 import { z } from 'zod';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
@@ -10,11 +15,22 @@ export const registerTrackingTools = (server: McpServer, call: AgentCall) => {
     {
       title: 'Search tracked applications',
       description:
-        'Requires readApplications. Bounded cross-application search with saved tracking evidence and pagination. Search company AND title, job URL or identifier to check duplicates. No direct database access.',
+        'Requires readApplications. Bounded cross-application search with saved tracking evidence and pagination. Search company AND title, job URL or identifier to check duplicates, then use pitchcrew_read_submission_attempts for durable attempt history on a matched card. No direct database access.',
       inputSchema: { input: applicationQuery },
       annotations: readOnly,
     },
     (input) => call('applications', input),
+  );
+  server.registerTool(
+    'pitchcrew_read_submission_attempts',
+    {
+      title: 'Read submission attempt history',
+      description:
+        'Requires readApplications and an active run. Read durable submission attempt metadata for one card, newest first (20 by default, maximum 50; use nextOffset). Omit cardId for the attached card; an attached run cannot read another card. Standalone chats must supply a cardId from application search. Returns attempt/run/role IDs, uncertain/confirmed/not_submitted status, creation/resolution times, and confirmation presence or external verification time. hasUncertainAttempts covers the entire card history, including later pages. Browser evidence, entered values, URLs, packet digests and approval payloads are excluded. Captured confirmation alone is not user verification. This read never resolves uncertainty or authorizes interactions, retries, export or submission. Never retry an uncertain submission; ask the user to verify its outcome.',
+      inputSchema: { input: submissionAttemptQuery.optional() },
+      annotations: readOnly,
+    },
+    (input) => call('submission_attempts', input),
   );
   server.registerTool(
     'pitchcrew_application_insights',

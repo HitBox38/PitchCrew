@@ -27,6 +27,15 @@ export const packetSchema = z.object({
 });
 export type Packet = z.infer<typeof packetSchema>;
 
+/** Lint input for targeted resume readers only; never a draft, full review or export packet. */
+export const resumeReviewPacketSchema = packetSchema.extend({
+  coverLetter: z.literal(''),
+  formAnswers: z.literal(''),
+  note: z.literal('').default(''),
+  // A full packet can have claims only in documents hidden from this reader.
+  claims: z.array(packetSchema.shape.claims.element).max(80),
+});
+
 const handoffLine = z.string().trim().min(1).max(600);
 /** Reviewer's account of a passed packet for the user deciding on approval. Event v32. */
 export const packetReviewSummarySchema = z.object({

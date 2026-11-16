@@ -53,6 +53,8 @@ bun run mcp disable
 
 All tools use the `pitchcrew_` prefix and return JSON text plus MCP structured content.
 
+The crew's `pitchcrew_read_submission_attempts` is an internal run-scoped tool, requiring the role's `readApplications` capability. It is not part of this external allowlist; external credentials cannot call it through `/api/agent`. See [application tracking](tracking.md#permissions-and-tools) for its bounded metadata contract. External access grants no submission verification or browser authority.
+
 | Tool                   | Purpose                                                                      |
 | ---------------------- | ---------------------------------------------------------------------------- |
 | `status`               | Job counts by status and crew IDs/availability                               |

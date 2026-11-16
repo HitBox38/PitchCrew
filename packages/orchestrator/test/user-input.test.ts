@@ -1,6 +1,6 @@
-import { confirmFixtureJob } from '../../board/test/fixtures/application-context.ts';
 import { afterEach, expect, it, vi } from 'vitest';
 import { adapters } from '@pitchcrew/adapters';
+import { jobSourceRevision, saveApplicationContext } from '@pitchcrew/board';
 import { defaultCapabilities } from '@pitchcrew/core';
 import type {
   ChatContext,
@@ -8,6 +8,7 @@ import type {
   ChatRequest,
   Conversation,
   Run,
+  Card,
   Snapshot,
   UserInputRequest,
 } from '@pitchcrew/core';
@@ -285,12 +286,40 @@ it('ends a workflow without applying a partial result and resumes its original w
     title: 'Engineer',
     description: 'Accessible interfaces.',
   });
-  confirmFixtureJob(daemon.service.board, card.id);
+  const before = saveApplicationContext(
+    daemon.service.board,
+    card.id,
+    jobSourceRevision(card),
+    null,
+    {
+      brief: {
+        companyContext: 'Fictional fixture employer.',
+        responsibilities: ['Build accessible interfaces.'],
+        qualifications: ['React and TypeScript.'],
+        constraints: ['Location must be compatible.'],
+      },
+      requirements: [
+        { id: 'location', question: 'Which location?', personal: true, required: true, answer: '' },
+      ],
+      flagged: [],
+    },
+    false,
+  ).applicationContext;
+  expect(before?.confirmedAt).toBeUndefined();
   const run = await daemon.service.startRun(card.id, 'scout');
   await vi.waitFor(() => expect(contexts).toHaveLength(1));
+  expect(contexts[0].purpose).toBe('fit');
+  await expect(
+    daemon.service.agentCall(contexts[0].mcp.env.PITCHCREW_RUN_TOKEN, 'ask_user', {
+      question: 'Which location?',
+      applicationRequirementId: 'location',
+    }),
+  ).rejects.toThrow('Application answers require an isolated application run.');
+  expect(daemon.service.board.list('user_input')).toHaveLength(0);
   const q = (
     await daemon.service.agentCall(contexts[0].mcp.env.PITCHCREW_RUN_TOKEN, 'ask_user', {
       question: 'Which location?',
+      continuationNotes: 'UNTRUSTED-CONTINUATION-NOTES',
     })
   ).question as UserInputRequest;
   await waitForSnapshot(request, (s) => s.runs[0].status === 'waiting');
@@ -301,7 +330,21 @@ it('ends a workflow without applying a partial result and resumes its original w
   await request(`/user-input/${q.id}/answer`, 'POST', { text: 'Remote' });
   await waitForSnapshot(request, (s) => s.runs.every((r) => r.status === 'completed'));
   expect(contexts[1].request).toBeUndefined();
-  expect(contexts[1].userAnswers).toEqual([expect.objectContaining({ answer: 'Remote' })]);
+  expect(contexts[1].purpose).toBe('fit');
+  expect(contexts[1].userAnswers).toEqual([
+    {
+      questionId: q.id,
+      messageId: expect.any(String),
+      question: 'Which location?',
+      answer: 'Remote',
+    },
+  ]);
+  expect(JSON.stringify(contexts[1])).not.toContain('UNTRUSTED-CONTINUATION-NOTES');
+  expect(q.applicationRequirementId).toBeUndefined();
+  expect(q.applicationContextRevision).toBeUndefined();
+  expect(daemon.service.board.get<Card>('card', card.id).applicationContext).toEqual(before);
+  expect((await daemon.service.snapshot()).profile[0].content).not.toContain('Remote');
+  expect(daemon.service.board.list('approval')).toHaveLength(0);
   expect(daemon.service.board.get<Run>('run', run.id).status).toBe('completed');
   expect(daemon.service.board.get<import('@pitchcrew/core').Card>('card', card.id).fit).toBe(80);
 });

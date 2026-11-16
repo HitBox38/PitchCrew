@@ -15,6 +15,7 @@ import { ComputerManager } from '../../mcp/src/computer.ts';
 import { electronExecutable } from '../../../scripts/electron-path.ts';
 import type { DesktopBrowserHost } from '../../core/src/native-browser.ts';
 import { writeNativeCommand } from './fixtures/native-browser-command.ts';
+import { checkNativeCaptureRecovery } from './fixtures/native-browser-capture.ts';
 
 const formsOnly = process.argv.includes('--forms-only');
 const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-native-browser-'));
@@ -256,7 +257,7 @@ try {
   await driver.nativeCommand!({ kind: 'select-tab', tabId: native.activeTab });
   await manager.resizeBrowser(key, { width: 700, height: 500 }, lease);
   await manager.returnControl(key, lease);
-  const resumed = await manager.inspect(scope.runId);
+  const resumed = await checkNativeCaptureRecovery(manager, scope, native.id, fixture);
   if (!resumed.text.includes('Human') || resumed.text.includes('fictional-password'))
     throw new Error('Native inspection or credential redaction failed.');
   await writeFile(join(directory, 'masked.jpeg'), Buffer.from(resumed.screenshot, 'base64'));

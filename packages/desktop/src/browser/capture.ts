@@ -86,6 +86,13 @@ export const captureNativePage = async (
   const generation = queue.generation;
   let expired = false;
   let phase = 'waiting for the previous capture';
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => {
+      expired = true;
+      reject(new Error(`Native browser capture timed out while ${phase}.`));
+    }, 5000);
+  });
   const assertCurrent = () => {
     if (expired) throw new Error('Native browser capture timed out.');
     if (queue.generation !== generation || !current())
@@ -100,10 +107,15 @@ export const captureNativePage = async (
       phase = 'waiting for credential masks to paint';
       // capturePage can copy the previous surface before Playwright's mask styles paint.
       // A separate world keeps the page from replacing these scheduling primitives.
-      await contents.executeJavaScriptInIsolatedWorld(1001, [
-        {
-          code: 'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(resolve, 0))))',
-        },
+      // A paint wait has not started a copy: expire it so an unanswered renderer
+      // promise cannot poison the queue. A late paint result cannot reach readback.
+      await Promise.race([
+        contents.executeJavaScriptInIsolatedWorld(1001, [
+          {
+            code: 'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(resolve, 0))))',
+          },
+        ]),
+        deadline,
       ]);
       assertCurrent();
       try {
@@ -129,17 +141,8 @@ export const captureNativePage = async (
   void complete.then(() => {
     if (queue.tail === complete) queue.tail = undefined;
   });
-  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    const captured = await Promise.race([
-      pending,
-      new Promise<never>((_resolve, reject) => {
-        timer = setTimeout(() => {
-          expired = true;
-          reject(new Error(`Native browser capture timed out while ${phase}.`));
-        }, 5000);
-      }),
-    ]);
+    const captured = await Promise.race([pending, deadline]);
     if (captured.isEmpty()) throw new Error('The native browser returned an empty image.');
     const size = captured.getSize();
     const logicalSize = rect && size.width === rect.width && size.height === rect.height;

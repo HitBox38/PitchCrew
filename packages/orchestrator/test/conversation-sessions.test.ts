@@ -146,6 +146,10 @@ it('does not resume an interrupted native session', () => {
 it.each([
   { label: 'pre-delivery', version: {} },
   { label: 'six-follow-up', version: { skillDeliveryVersion: 1 } },
+  {
+    label: 'name-only-included-skills',
+    version: { chatPromptVersion: 1, skillDeliveryVersion: 1 },
+  },
 ])(
   'starts a new session for $label native transcripts even when their skills are unchanged',
   ({ version }) => {

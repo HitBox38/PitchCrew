@@ -1,11 +1,7 @@
 import { z } from 'zod';
 
-export const userQuestionInput = z
+export const unboundUserQuestionInput = z
   .object({
-    applicationRequirementId: z
-      .string()
-      .regex(/^[a-z0-9-]{1,80}$/)
-      .optional(),
     question: z.string().trim().min(1).max(2000),
     reason: z.string().trim().max(2000).default(''),
     continuationNotes: z.string().trim().max(8000).default(''),
@@ -25,6 +21,12 @@ export const userQuestionInput = z
     (input) => new Set(input.options.map((option) => option.id)).size === input.options.length,
     'Question option IDs must be unique.',
   );
+export const userQuestionInput = unboundUserQuestionInput.extend({
+  applicationRequirementId: z
+    .string()
+    .regex(/^[a-z0-9-]{1,80}$/)
+    .optional(),
+});
 export const userAnswerInput = z
   .object({
     selected: z.array(z.string().max(80)).max(20).default([]),
