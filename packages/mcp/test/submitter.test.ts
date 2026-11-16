@@ -169,6 +169,34 @@ it('persists only server-inspected fields and clearly separates conditional anno
   );
 });
 
+it('saves confirmation evidence and form requirements from page text, so a failing image cannot block them', async () => {
+  const { board, card, exported, manager, driver, scope, signal, page } = await fixture();
+  // A native guest once failed every image of a scrolled form, while text inspection worked.
+  let imagesFail = false;
+  driver.snapshot.mockImplementation(async (options?: { includeImage?: boolean }) => {
+    if (imagesFail && options?.includeImage !== false)
+      throw new Error('screenshot: Protocol error (Page.captureScreenshot): UnknownVizError');
+    return { ...page };
+  });
+  // Approval requests still show the user the page, so they still take its image.
+  const approval = await manager.request(
+    scope,
+    { kind: 'click', selector: '#submit', purpose: 'submission', exportApprovalId: exported.id },
+    'Submit exact exported fictional packet',
+  );
+  manager.decide(approval.id, true);
+  await manager.execute(scope.runId, approval.id, signal, () => {}, 0);
+  imagesFail = true;
+  page.text = 'Your application was received.';
+  page.digest = 'confirmation';
+  const attempt = board.list<SubmissionAttempt>('submission_attempt')[0];
+  await expect(
+    manager.capture(scope, attempt.id, 'Your application was received.'),
+  ).resolves.toMatchObject({ evidence: 'Your application was received.' });
+  const assessment = await manager.assess(scope, { fields: [{ selector: '#resume' }] });
+  expect(board.get<Card>('card', card.id).formAssessments).toEqual([assessment]);
+});
+
 it('recovers after a run ends using explicit user external evidence without reversing later tracked status', async () => {
   const { board, card, exported, manager, scope, signal } = await fixture();
   const approval = await manager.request(

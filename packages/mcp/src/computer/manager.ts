@@ -718,7 +718,9 @@ export class ComputerManager {
     input: unknown,
     authorize: () => void = () => {},
   ) => {
-    const page = await this.inspect(scope.runId);
+    // Saved evidence never keeps an image (pageEvidence drops it), so reading the form does not
+    // wait on, or fail with, a screenshot.
+    const page = await this.inspect(scope.runId, { includeImage: false, references: true });
     if (this.stopped.has(scope.runId)) throw new Error('Browser session has ended.');
     authorize();
     return saveAssessment(this.board, scope, page, input);
@@ -736,7 +738,7 @@ export class ComputerManager {
       attempt.status !== 'uncertain'
     )
       throw new Error('This run cannot capture this submission.');
-    const page = await this.inspect(scope.runId);
+    const page = await this.inspect(scope.runId, { includeImage: false, references: true });
     if (this.stopped.has(scope.runId)) throw new Error('Browser session has ended.');
     if (!evidence.trim() || !page.text.includes(evidence) || page.digest === attempt.before.digest)
       throw new Error('Use an exact quotation from changed browser confirmation evidence.');

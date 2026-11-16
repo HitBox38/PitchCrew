@@ -53,7 +53,10 @@ const fixture = () => {
         },
       };
     if (method === 'Page.getLayoutMetrics')
-      return { cssLayoutViewport: { clientWidth: 1280, clientHeight: 800 } };
+      return {
+        cssLayoutViewport: { clientWidth: 1280, clientHeight: 800 },
+        cssVisualViewport: { pageX: 0, pageY: 640 },
+      };
     if (method === 'Page.captureScreenshot') return { data: png() };
     return {};
   });
@@ -91,10 +94,11 @@ it('returns the clicked element cropped, labelled from its own text and never a 
     url: 'https://jobs.example/apply',
     label: 'Button “Apply now”',
   });
-  // The element's box, padded by 8px, is what the screenshot clips to.
+  // The element's box, padded by 8px, is what the screenshot clips to, in document space like
+  // any CDP clip: the page is scrolled 640px down.
   expect(send).toHaveBeenCalledWith(
     'Page.captureScreenshot',
-    { format: 'png', clip: { x: 12, y: 22, width: 136, height: 56, scale: 1 } },
+    { format: 'png', clip: { x: 12, y: 662, width: 136, height: 56, scale: 1 } },
     undefined,
     expect.stringMatching(/^pick:7:/),
   );
@@ -135,11 +139,11 @@ it('names, measures and reads picked elements conservatively', () => {
   expect(
     pickedBox([500, 500, 600, 500, 600, 600, 500, 600], { width: 100, height: 100 }),
   ).toBeNull();
-  // A screenshot clip is in DIPs: page zoom scales the CSS-pixel box, or the crop shows
-  // whatever sits above and left of the element.
-  expect(pickedClip({ x: 12, y: 22, width: 136, height: 56 }, 1.25)).toEqual({
-    x: 15,
-    y: 27.5,
+  // A clip's origin is in document CSS pixels and its size in DIPs: page zoom scales the
+  // CSS-pixel box's size, or the crop misses the element's right and bottom.
+  expect(pickedClip({ x: 12, y: 22, width: 136, height: 56 }, 1.25, { x: 4, y: 300 })).toEqual({
+    x: 16,
+    y: 322,
     width: 170,
     height: 70,
     scale: 1,
