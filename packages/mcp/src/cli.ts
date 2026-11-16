@@ -39,7 +39,12 @@ if (purpose === 'source-extraction') {
   server.server.setRequestHandler(ListToolsRequestSchema, () => ({ tools: [] }));
 } else {
   registerDiagnosticTools(server, call);
-  registerPacketTools(server, call, isolated);
+  registerPacketTools(
+    server,
+    call,
+    isolated,
+    execution.structuredContent.reviewMode === 'subagent',
+  );
   if (execution.structuredContent.readSkills === true) registerSkillTools(server, call);
 
   if (isolated) {

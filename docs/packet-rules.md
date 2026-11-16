@@ -38,6 +38,8 @@ Only you can change rules, through the local UI session. Agents can read them:
 - `pitchcrew_get_packet_rules` returns the rules and the summary.
 - `pitchcrew_lint_packet` checks a draft and returns `problems` (errors), `warnings`, `findings` and `layout`. Each finding has a rule id, severity, document and message. Claim problems use the rule id `claims`. The layout report includes formatted PDF page counts and advisory layout warnings, independently of the packet rules.
 
+Lint normally returns `scope: "packet"` and requires the full packet, including a nonempty cover letter and at least one registered claim. Targeted deep-review children instead get `scope: "resume"`, selected by their authenticated run rather than an input option. Their intentionally hidden cover letter, form answers and note must remain empty, and their filtered claims may be empty. Only resume house-rule targets and resume document checks run; supplied claims still require exact Profile quotations and inclusion in the resume. This does not change the saved rules. Invalid rule files, worker failures and rules changing during checks still fail closed. Parent review, final recheck and export continue to check all packet documents under the full rules.
+
 No agent tool writes rules.
 
 ## File format
