@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { Card } from './cards.ts';
+import { formControlEvidence } from './form-constraints.ts';
 
 const text = z.string().max(2000);
 export const applicationFormSchema = z.discriminatedUnion('status', [
@@ -12,6 +13,7 @@ export const applicationFormSchema = z.discriminatedUnion('status', [
         .array(
           z
             .object({
+              ...formControlEvidence,
               label: text,
               type: z.string().max(100),
               required: z.boolean(),
@@ -64,6 +66,10 @@ export const inspectedApplicationForm = (
       accept: field.accept,
       options: field.options,
       ...(field.maxLength === undefined ? {} : { maxLength: field.maxLength }),
+      ...(field.constraints === undefined ? {} : { constraints: field.constraints }),
+      ...(field.optionsTotal === undefined ? {} : { optionsTotal: field.optionsTotal }),
+      ...(field.optionsTruncated === undefined ? {} : { optionsTruncated: field.optionsTruncated }),
+      ...(field.group === undefined ? {} : { group: field.group }),
       assessed: field.assessed,
       condition: field.condition,
       missingAnswer: field.missingAnswer,

@@ -1,8 +1,9 @@
 import { z } from 'zod';
 import type { BrowserSnapshot } from './computer.ts';
 import type { RoleId } from './states.ts';
+import type { FormControlEvidence } from './form-constraints.ts';
 
-export interface FormControl {
+export interface FormControl extends FormControlEvidence {
   selector: string;
   frame?: string;
   label: string;

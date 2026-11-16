@@ -10,6 +10,7 @@ import type { ComputerManager } from '../../../mcp/src/computer.ts';
 import { exportApprovedPacket } from '../../../mcp/src/index.ts';
 import { renderArtifacts } from '../../../packet/src/index.ts';
 import { nativeFixtureOrigin, nativeFixturePath } from './native-browser-site.ts';
+import { assertFormConstraints } from '../../../mcp/test/fixtures/form-constraints.ts';
 
 export interface NativeFixtureCommand {
   kind: string;
@@ -74,6 +75,8 @@ export const checkNativeBrowserFunctionality = async (
 Geometry: ${JSON.stringify(await query(`(()=>{const rect=document.querySelector('#child')?.getBoundingClientRect();return {rect:rect?.toJSON(),at:rect?document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2)?.outerHTML:null,scrollX,scrollY,innerWidth,innerHeight,active:document.activeElement?.outerHTML,frameSignals:window.fixtureFrameSignals}})()`))}
 Native input: ${JSON.stringify(await fixture({ kind: 'input-signals', id: state.id }))}`);
   };
+  await act({ kind: 'navigate', url: `${origin}/constraints` });
+  assertFormConstraints(await inspectText());
   await act({ kind: 'navigate', url: `${origin}/form` });
   await waitFor('Frame continue');
   await assert.rejects(
