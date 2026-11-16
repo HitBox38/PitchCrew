@@ -490,8 +490,13 @@ export class RuntimeMaintenance {
           this.store.save();
         }),
     );
-    const failure = restored.find((result) => result.status === 'rejected');
-    if (failure) throw failure.reason;
+    const failures = restored.filter((result) => result.status === 'rejected');
+    if (failures.length === 1) throw failures[0]!.reason;
+    if (failures.length > 1)
+      throw new AggregateError(
+        failures.map((failure) => failure.reason),
+        'Runtime installation recovery failed.',
+      );
     this.recovered = !waiting;
   };
   finishBeforeShutdown = async () => {

@@ -154,7 +154,10 @@ it('drains pending ownership lookups before rejecting startup after a persistenc
     expect(settled).toBe(false);
     test.gates[1].finish(null);
     test.gates[2].finish(null);
-    await expect(creation).rejects.toThrow();
+    const failure = await creation.catch((error: unknown) => error);
+    expect(failure).toBeInstanceOf(AggregateError);
+    expect((failure as AggregateError).errors).toHaveLength(3);
+    for (const error of (failure as AggregateError).errors) expect(error).toBeInstanceOf(Error);
     await rm(join(test.directory, 'runtime-maintenance.json.tmp'), { recursive: true });
     // Failed startup releases its board and data-folder lock for a normal retry.
     const retry = await test.start();
