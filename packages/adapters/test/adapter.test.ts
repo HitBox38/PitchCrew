@@ -263,3 +263,21 @@ it('gives Writer and Reviewer writing-quality guidance only in isolated drafting
   ])
     expect(prompt).not.toContain('Writing quality:');
 });
+
+it('asks fit clarifications without application answer binding or drafting instructions', () => {
+  const prompt = promptFor({ ...context, purpose: 'fit' });
+  expect(prompt).toContain('pitchcrew_ask_user');
+  expect(prompt).toContain('without applicationRequirementId');
+  expect(prompt).toContain('saved question and answer');
+  expect(prompt).not.toContain('and its applicationRequirementId');
+  expect(prompt).not.toContain('Prefer the confirmed applicationRequirementId');
+  expect(prompt).not.toContain('explain them in the packet note');
+  for (const purpose of ['application-draft', 'application-review'] as const) {
+    const application = promptFor({ ...context, purpose });
+    expect(application).toContain('and its applicationRequirementId');
+    expect(application).toContain('exact unique field label');
+  }
+  const evaluation = promptFor({ ...context, purpose: 'packet-evaluation' });
+  expect(evaluation).toContain('Report missing personal answers as limitations');
+  expect(evaluation).not.toContain('Prefer the confirmed applicationRequirementId');
+});

@@ -17,6 +17,7 @@ import { registerApplicationInputTools } from './tools/application-input.ts';
 import { registerLinkedInTools } from './tools/linkedin.ts';
 import { registerDiagnosticTools } from './tools/diagnostics.ts';
 import { registerSkillTools } from './tools/skills.ts';
+import type { Run } from '@pitchcrew/core';
 
 const url = process.env.PITCHCREW_DAEMON_URL;
 const token = process.env.PITCHCREW_RUN_TOKEN;
@@ -44,7 +45,7 @@ if (purpose === 'source-extraction') {
 
   if (isolated) {
     if (!['subagent', 'budget'].includes(String(execution.structuredContent.reviewMode)))
-      registerApplicationInputTools(server, call);
+      registerApplicationInputTools(server, call, purpose as Run['purpose']);
     if (execution.structuredContent.reviewMode)
       registerDeepReviewTools(
         server,
