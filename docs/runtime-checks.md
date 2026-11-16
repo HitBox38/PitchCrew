@@ -53,6 +53,8 @@ Persist enough maintenance metadata to retain update notices, the automatic-chec
 
 After a crash or forced shutdown, an unfinished operation is interrupted, not successful. Do not automatically rerun its installer. Reconcile any surviving owned updater before releasing its reservation or offering Retry, then recheck the installation before allowing waiting work to resume. Preserve the existing daemon ownership rules and the existing handling of crew work interrupted by daemon shutdown.
 
+Initial detection must include every supported runtime even when saved maintenance holds one before this daemon has detected it. Retain an existing entry during a hold; otherwise expose an unavailable entry with an unknown installed version, a maintenance explanation, adapter traits and labeled model suggestions. Do not probe that runtime or discover its models while its worker survives. This lets initial role seeding and HTTP readiness finish without releasing the hold, enabling Update or replaying the installer, including when release checks are disabled. Once the worker exits, recovery marks the operation interrupted and rechecks the installation before releasing work; seeded role choices remain unchanged.
+
 ### Shared UI and desktop lifecycle
 
 Extend Settings > Runtimes with separate version/compatibility and authentication status, last-check information, setup instructions, Recheck, available-update details, Update and progress/result presentation. Keep manual instructions available when updating from Pitchcrew is unsupported. Use the shared controls and SourceBlock for commands and bounded installer output; keep each production TSX file within the repository's size limit.

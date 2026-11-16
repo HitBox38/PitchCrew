@@ -8,6 +8,8 @@ Every ordinary production runtime turn has a fixed 30-minute limit per workflow 
 
 Startup supplies Scout, Writer, Reviewer, Submitter, Tracker, Documenter, Pipeline Coach and Career Coach. Production defaults start paused. Before seeding missing roles, Pitchcrew checks every supported runtime installed on the daemon's machine and loads bounded native model catalogs for installed runtimes that support discovery. It selects a role-specific recommended runtime, model and supported reasoning level. Development defaults use Demo. These are ordinary editable, retireable roles using the same configuration and tools as custom agents.
 
+A runtime held by a surviving installer is represented as unavailable before its first check, so initial crew creation can finish without probing or releasing that runtime. Recommendations use the other available runtimes or the paused preferred setup when none are available. Later recovery never rewrites the seeded choices.
+
 | Agent          | Preferred runtime | Preferred model                     | Reasoning |
 | -------------- | ----------------- | ----------------------------------- | --------- |
 | Scout          | Codex             | GPT-6.1 Sol                         | Medium    |
