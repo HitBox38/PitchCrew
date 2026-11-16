@@ -280,4 +280,8 @@ it('asks fit clarifications without application answer binding or drafting instr
   const evaluation = promptFor({ ...context, purpose: 'packet-evaluation' });
   expect(evaluation).toContain('Report missing personal answers as limitations');
   expect(evaluation).not.toContain('Prefer the confirmed applicationRequirementId');
+  for (const assessment of [prompt, evaluation])
+    expect(assessment).toContain(
+      'Inspecting or confirming requirements never authorizes filling, uploading or submission.',
+    );
 });
