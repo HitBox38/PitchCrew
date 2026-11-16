@@ -75,6 +75,14 @@ Use deterministic subprocess and release-metadata fixtures. Automated tests must
 
 Run the relevant adapter, orchestrator, UI and desktop checks as those layers change, plus repository lint, formatting, types and production builds. Update `AGENTS.md`, `docs/runtimes.md`, `docs/model-discovery.md` and the relevant lifecycle documentation when the implementation changes their current behavior. Keep the supported authentication and installer matrix current when extending this feature.
 
+## Startup recovery
+
+Before HTTP readiness, runtime maintenance reconciles interrupted updates and validates installer ownership for saved update controls. Independent ownership lookups run concurrently across the bounded saved runtime list. Readiness waits for every lookup, including when a metadata save fails, so startup cleanup cannot leave an unjoined lookup writing after the daemon closes. A single metadata-save failure retains its original exception; multiple failures are retained together in an `AggregateError` after every lookup settles. Matching installation identities restore controls; changed or unreadable installations require a fresh check. A surviving installer worker keeps its runtime held. Recovery never replays an installer, and every later Update action still verifies ownership again.
+
+An offline local benchmark is available with `bun --no-env-file --no-install packages/orchestrator/test/fixtures/startup/benchmark.ts`. It creates a temporary fictional workspace with paused roles and three saved update entries, replaces every runtime check and execution path, rejects network access, and gives each ownership lookup a fixed 200 ms delay. It measures daemon preparation through listening, with the server import reported separately. It serves APIs only and excludes Electron, rendered UI, real installers, credentials, remote starter skills and OS launch time.
+
+On 2026-11-16, on macOS arm64 with Bun 1.4.4 and a warmed filesystem cache, three fresh-process runs on the serial implementation took 650, 653 and 653 ms for preparation (maximum one active lookup); the concurrent implementation took 254, 246 and 249 ms (three active lookups). Import times were 170–176 ms before and 168–173 ms after. These controlled delays demonstrate removal of additive waiting, not production speedup or the cause of any particular desktop startup. Deferred-result regression tests enforce overlap, readiness, ownership rejection and cleanup without timing thresholds.
+
 ## Reference
 
 [T3 Code provider constraints](https://github.com/pingdotgg/t3code/blob/main/docs/internals/providers.md) describes checking installation ownership before running the owning installer and verifying the resulting runtime version. Preserving the installation method is agreed above; its particular resolver, runner and verification mechanisms remain references for the discussion.

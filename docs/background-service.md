@@ -91,6 +91,8 @@ The background service waits instead of failing. It checks every 15 seconds and 
 
 The launcher stops only a daemon it started itself. Closing the window never stops the background service. While the service runs, `bun run desktop` shows the production daemon, so Demo is not available.
 
+On daemon startup, independent installer-ownership checks for saved runtime-update controls overlap; readiness still waits for all of them and for interrupted-work recovery. This applies to desktop-owned and service-owned daemons. See [startup recovery and its offline benchmark](runtime-checks.md#startup-recovery).
+
 ## Logs
 
 The service daemon writes to `background-service/daemon.log` in the data folder. When the file reaches 5 MB it moves to `daemon.log.1`, replacing the older copy, so the logs use at most about 10 MB. `bun run service logs` prints the newest lines from both files.
