@@ -1,7 +1,7 @@
 import type { Skill } from './skills.ts';
 
 /** Invalidate native sessions when instruction delivery changes, even for unchanged skills. */
-export const skillDeliveryVersion = 1;
+export const skillDeliveryVersion = 2;
 
 /** Saved skills predating delivery settings keep their original full inclusion. */
 export const skillIncludedEveryRun = (skill: Pick<Skill, 'includeInEveryRun'>): boolean =>

@@ -51,6 +51,7 @@ it.each([
   'packet-evaluation',
   'application-draft',
   'application-review',
+  'review-child',
 ] as const)('delivers included bodies and an exact metadata catalog in %s', (mode) => {
   const historical = skill('historical');
   const always = skill('always', true);
@@ -59,10 +60,23 @@ it.each([
   const prompt =
     mode === 'chat'
       ? chatPromptFor({ ...turn, card: null, messages: [] })
-      : promptFor({ ...turn, purpose: mode === 'workflow' ? undefined : mode });
+      : promptFor({
+          ...turn,
+          purpose:
+            mode === 'workflow' ? undefined : mode === 'review-child' ? 'application-review' : mode,
+          ...(mode === 'review-child'
+            ? {
+                deepReview: {
+                  subagent: { perspective: 'impact', focus: 'Check impact.' },
+                } as never,
+              }
+            : {}),
+        });
 
   expect(prompt).toContain(historical.content);
   expect(prompt).toContain(always.content);
+  for (const item of [historical, always])
+    expect(prompt).toContain(`Skill ID (skillId): ${item.id}`);
   expect(prompt).not.toContain(deferred.content);
   expect(prompt).toContain(
     JSON.stringify([{ id: deferred.id, name: deferred.name, description: deferred.description }]),
@@ -86,6 +100,7 @@ it('includes exact assigned bodies once for explicit selections above the former
   ]) {
     expect(prompt).toContain(first.content);
     expect(prompt).toContain(second.content);
+    expect(prompt).toContain(`Skill ID (skillId): ${second.id}`);
     expect(prompt).not.toContain('Changed caller copy.');
     expect(prompt.match(/first-body/g)).toHaveLength(1);
     expect(prompt.match(/selected-body/g)).toHaveLength(1);
