@@ -42,4 +42,9 @@ describe('agent tool blockers', () => {
       '1 of 3 on',
     );
   });
+  it('allows local profile edits without a connector or watched-source grant', () => {
+    const capabilities = { ...capabilityDefaults, editProfile: true };
+    expect(toolBlocker('editProfile', capabilities, none)).toBeUndefined();
+    expect(groupSummary(['maintainProfile', 'editProfile'], capabilities)).toBe('1 of 2 on');
+  });
 });

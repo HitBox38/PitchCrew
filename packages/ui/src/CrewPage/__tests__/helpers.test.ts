@@ -92,6 +92,9 @@ describe('agent card facts', () => {
       'Reads Gmail',
     );
     expect(capabilityLine(role('helper', { workflow: 'chat' })).label).toBe('Chat only');
+    expect(capabilityLine(role('helper', { capabilities: { editProfile: true } })).label).toBe(
+      'Keeps your profile current',
+    );
   });
   it('uses the installed catalog label for the model', () => {
     expect(runtimeLine(role('writer'), base)).toBe('Codex · GPT Fictional');

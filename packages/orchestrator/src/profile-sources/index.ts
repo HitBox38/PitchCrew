@@ -80,6 +80,29 @@ export class ProfileSourceManager {
     if (!sources.some((source) => source.id === id)) throw new Error('Profile source not found.');
     await this.store(sources.filter((source) => source.id !== id));
   };
+  /** After a confirmed GitHub commit; caller holds the serialized profile write. */
+  recordWrite = async (id: string, name: string, file: ImportedProfileFile | null) => {
+    const sources = await this.list();
+    const source = sources.find((item) => item.id === id);
+    if (!source || source.mode || source.input.provider !== 'github')
+      throw new Error('The GitHub profile source is no longer connected.');
+    const old = source.files.find((item) => item.name === name);
+    await this.store(
+      sources.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              importedAt: new Date().toISOString(),
+              files: [
+                ...item.files.filter((entry) => entry.name !== name),
+                ...(file ? [file] : []),
+              ],
+              missingFiles: item.missingFiles?.filter((path) => path !== (file?.path ?? old?.path)),
+            }
+          : item,
+      ),
+    );
+  };
   /** Keep imported records tracking a renamed note; returns an undo for a failed rename. */
   renameNote = async (from: string, to: string): Promise<() => Promise<void>> => {
     const sources = await this.list();

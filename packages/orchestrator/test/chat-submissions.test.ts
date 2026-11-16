@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { Board } from '@pitchcrew/board';
+import { currentEventVersion } from '@pitchcrew/core';
 import type {
   ChatMessage,
   ChatRequest,
@@ -64,7 +65,9 @@ it('coalesces simultaneous uploads, persists one message/receipt, and replays it
   ]);
   expect(first.id).toBe(second.id);
   expect(context.board.list<ChatRequest>('chat_request')).toHaveLength(1);
-  expect(context.board.events().find((event) => event.kind === 'chat_request')?.version).toBe(36);
+  expect(context.board.events().find((event) => event.kind === 'chat_request')?.version).toBe(
+    currentEventVersion,
+  );
   expect(context.board.list<ChatMessage>('message')).toHaveLength(1);
   expect(await readdir(join(resource.directory, 'chat-attachments'))).toHaveLength(1);
   context.board.close();

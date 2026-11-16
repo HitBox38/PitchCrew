@@ -240,6 +240,15 @@ it('bounds transformed output and sanitizes malformed CLI JSON', async () => {
 });
 
 const fixture = fileURLToPath(new URL('./fixtures/github-cli.ts', import.meta.url));
+it('passes large UTF-8 profile request bodies over subprocess stdin', async () => {
+  const input = JSON.stringify({ content: 'Fictional note 😀'.repeat(5000) });
+  const result = await createGithubCliRunner(process.execPath, [fixture, 'stdin'])(
+    ['--input', '-'],
+    signal(),
+    input,
+  );
+  expect(result).toEqual({ stdout: input, exitCode: 0 });
+});
 it('uses native process arguments without a shell and suppresses interactive/debug output', async () => {
   vi.stubEnv('GH_DEBUG', 'api');
   const result = await createGithubCliRunner(process.execPath, [fixture, 'inspect'])(

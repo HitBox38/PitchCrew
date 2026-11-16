@@ -118,6 +118,10 @@ export const setupWarnings = (draft: CreationDraft, data: Snapshot): string[] =>
     warnings.push(
       'Profile maintenance needs watched sources in Profile and access to their GitHub or Drive service.',
     );
+  if (caps.editProfile)
+    warnings.push(
+      'Direct requests can change local profile notes. Syncing attached GitHub profile sources needs a connected account; general GitHub access is separate.',
+    );
   for (const service of ['github', 'gmail', 'drive', 'calendar', 'sheets'] as const)
     if (
       caps[service] &&
