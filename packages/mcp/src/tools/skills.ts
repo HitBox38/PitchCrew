@@ -9,7 +9,7 @@ export const registerSkillTools = (server: McpServer, call: AgentCall) => {
     {
       title: 'Read assigned skill instructions',
       description:
-        'Read the complete instructions of one skill assigned to this run by its catalog ID. Returns the exact saved version captured when this run started, including after later edits or deletion. Read relevant skills before following their guidance. This does not install or update skills, grant capabilities or approve actions.',
+        'Read the complete instructions of one skill assigned to this run. Pass the UUID shown as Skill ID or catalog id in the supplied skill guidance as skillId. Returns the exact saved version captured when this run started, including after later edits or deletion. Read relevant skills before following their guidance. This does not install or update skills, grant capabilities or approve actions.',
       inputSchema: z.object({ skillId: z.uuid() }).strict(),
       annotations: readOnly,
     },
