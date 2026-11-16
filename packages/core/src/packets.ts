@@ -1,10 +1,19 @@
 import { z } from 'zod';
 
+/** Character limits for packet text. Writer prompts state them so a returned packet fits. */
+export const packetTextLimits = {
+  resume: 20000,
+  coverLetter: 12000,
+  formAnswers: 12000,
+  note: 12000,
+} as const;
+
 export const packetSchema = z.object({
-  resume: z.string().min(1).max(20000),
-  coverLetter: z.string().min(1).max(12000),
-  formAnswers: z.string().max(12000),
-  note: z.string().max(5000),
+  resume: z.string().min(1).max(packetTextLimits.resume),
+  coverLetter: z.string().min(1).max(packetTextLimits.coverLetter),
+  formAnswers: z.string().max(packetTextLimits.formAnswers),
+  // Internal handoff for the user and Reviewer, never employer-facing; an omitted note is empty.
+  note: z.string().max(packetTextLimits.note).default(''),
   claims: z
     .array(
       z.object({
