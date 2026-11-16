@@ -55,3 +55,51 @@ export const checkNativeCaptureRecovery = async (
     await fixture({ kind: 'mask-paint-timeout', id, operation: 'release' });
   }
 };
+
+/**
+ * Agent evidence on a scrolled document. Playwright clips a viewport screenshot in document
+ * space; the native copy must show what is on screen, credential masks included, rather than
+ * read a rect below the view and fail.
+ */
+export const checkNativeScrolledCapture = async (
+  manager: ComputerManager,
+  scope: { runId: string; roleId: string; cardId: null },
+  id: string,
+  fixture: NativeFixture,
+) => {
+  const scrolled = await fixture<number>({
+    kind: 'fixture',
+    id,
+    before: `document.body.insertAdjacentHTML('beforeend', '<div id="scrolled-form" style="position:absolute;left:0;top:0;width:100%;height:4000px;pointer-events:none"><div id="scrolled-marker" style="position:absolute;left:0;top:1520px;width:100%;height:120px;background:rgb(0,200,0)"></div><input id="scrolled-password" type="password" value="fictional-password" style="position:absolute;left:20px;top:1700px;width:240px;height:48px;pointer-events:auto"></div>'); scrollTo(0, 1500);`,
+    expression: 'scrollY',
+  });
+  assert.equal(scrolled, 1500);
+  const pixel = (image: string, selector: string) =>
+    fixture<number[]>({ kind: 'frame-pixel', id, image, selector });
+  // Bitmaps may be BGRA: green and magenta read the same either way. JPEG evidence shifts
+  // colors, so test which channels dominate.
+  const green = (value: number[]) => value[1] > 150 && value[0] < 120 && value[2] < 120;
+  const magenta = (value: number[]) => value[0] > 200 && value[1] < 80 && value[2] > 200;
+  try {
+    const inspected = await manager.inspect(scope.runId);
+    assert.ok(green(await pixel(inspected.screenshot, '#scrolled-marker')));
+    const request = await manager.request(
+      scope,
+      { kind: 'hover', selector: '#scrolled-marker' },
+      'Inspect a control further down the fictional form',
+    );
+    assert.equal(request.status, 'pending');
+    assert.ok(green(await pixel(request.page.screenshot, '#scrolled-marker')));
+    const password = await pixel(request.page.screenshot, '#scrolled-password');
+    assert.ok(magenta(password), `Scrolled credential was not masked: ${JSON.stringify(password)}`);
+    // Evidence only: leave the action unperformed.
+    manager.decide(request.id, false);
+  } finally {
+    await fixture({
+      kind: 'fixture',
+      id,
+      before: `document.querySelector('#scrolled-form')?.remove(); scrollTo(0, 0);`,
+      expression: 'scrollY',
+    });
+  }
+};

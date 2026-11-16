@@ -1,10 +1,14 @@
-import { captureNativePage } from '../src/browser/capture.ts';
+import { captureNativePage, nativeCaptureOrigin } from '../src/browser/capture.ts';
+import { pickedClip } from '../src/browser/pick.ts';
 import { EventEmitter } from 'node:events';
 import type { WebContents } from 'electron';
 import type { WebSocket } from 'ws';
 import { expect, it, vi } from 'vitest';
 import { connectBrowserRelay, type RelayGroup, type RelayPage } from '../src/browser/cdp.ts';
 import { guestAutomation } from '../src/browser/automation.ts';
+
+/** Where the paint script finds the visual viewport: the top of an unscrolled page. */
+const top = { x: 0, y: 0 };
 
 const fixture = () => {
   const events = Object.assign(new EventEmitter(), { sendCommand: vi.fn(async () => ({})) });
@@ -260,7 +264,8 @@ it('captures a hidden native guest without the CDP screenshot command that stall
   const events = new EventEmitter();
   const contents = Object.assign(events, {
     isDestroyed: () => false,
-    executeJavaScriptInIsolatedWorld: vi.fn(async () => {}),
+    executeJavaScriptInIsolatedWorld: vi.fn(async () => top),
+    getZoomFactor: () => 1,
     capturePage,
     debugger: { sendCommand },
   }) as unknown as WebContents;
@@ -296,7 +301,8 @@ it('rejects empty, mismatched and excessive native captures instead of distortin
   const image = { isEmpty: () => false, getSize: () => ({ width: 700, height: 500 }) };
   const capturePage = vi.fn(async () => image);
   const contents = Object.assign(new EventEmitter(), {
-    executeJavaScriptInIsolatedWorld: vi.fn(async () => {}),
+    executeJavaScriptInIsolatedWorld: vi.fn(async () => top),
+    getZoomFactor: () => 1,
     capturePage,
   }) as unknown as WebContents;
   await expect(
@@ -319,7 +325,8 @@ it('normalizes exact display backing pixels without accepting a changed viewport
     resize: vi.fn(() => normalized),
   };
   const contents = Object.assign(new EventEmitter(), {
-    executeJavaScriptInIsolatedWorld: vi.fn(async () => {}),
+    executeJavaScriptInIsolatedWorld: vi.fn(async () => top),
+    getZoomFactor: () => 1,
     capturePage: vi.fn(async () => image),
   }) as unknown as WebContents;
   const params = {
@@ -362,8 +369,8 @@ it.each(['paint', 'capture'])(
 
 it('waits for the credential-mask paint before reading the native surface', async () => {
   let painted: (() => void) | undefined;
-  const frame = new Promise<void>((resolve) => {
-    painted = resolve;
+  const frame = new Promise<typeof top>((resolve) => {
+    painted = () => resolve(top);
   });
   const executeJavaScriptInIsolatedWorld = vi.fn(() => frame);
   const bytes = Buffer.from('masked-frame');
@@ -374,6 +381,7 @@ it('waits for the credential-mask paint before reading the native surface', asyn
   }));
   const contents = Object.assign(new EventEmitter(), {
     executeJavaScriptInIsolatedWorld,
+    getZoomFactor: () => 1,
     capturePage,
   }) as unknown as WebContents;
   const result = captureNativePage(contents, {
@@ -391,4 +399,75 @@ it('waits for the credential-mask paint before reading the native surface', asyn
   expect(executeJavaScriptInIsolatedWorld).toHaveBeenCalledWith(1001, [
     expect.objectContaining({ code: expect.stringContaining('requestAnimationFrame') }),
   ]);
+});
+
+const scrolledGuest = (
+  position: unknown,
+  zoom: number,
+  size: { width: number; height: number },
+) => {
+  const bytes = Buffer.from('scrolled-masked-page');
+  const capturePage = vi.fn(async () => ({
+    isEmpty: () => false,
+    getSize: () => size,
+    toJPEG: () => bytes,
+    toPNG: () => bytes,
+  }));
+  const contents = Object.assign(new EventEmitter(), {
+    executeJavaScriptInIsolatedWorld: vi.fn(async () => position),
+    getZoomFactor: () => zoom,
+    capturePage,
+  }) as unknown as WebContents;
+  return { contents, capturePage, data: bytes.toString('base64') };
+};
+
+it('copies the visible view of a scrolled page instead of a rect below it', async () => {
+  // Playwright's viewport screenshot of a page scrolled 1500px down: a document-space origin.
+  const scrolled = scrolledGuest({ x: 0, y: 1500 }, 1, { width: 700, height: 500 });
+  await expect(
+    captureNativePage(scrolled.contents, {
+      format: 'jpeg',
+      quality: 40,
+      clip: { x: 0, y: 1500, width: 700, height: 500, scale: 1 },
+      captureBeyondViewport: false,
+    }),
+  ).resolves.toEqual({ data: scrolled.data });
+  expect(scrolled.capturePage).toHaveBeenCalledWith(
+    { x: 0, y: 0, width: 700, height: 500 },
+    { stayHidden: true, stayAwake: true },
+  );
+  // At 125% Playwright still sizes the clip from the view, with a CSS scroll origin.
+  const zoomed = scrolledGuest({ x: 0, y: 700 }, 1.25, { width: 700, height: 500 });
+  await captureNativePage(zoomed.contents, {
+    format: 'jpeg',
+    clip: { x: 0, y: 700, width: 700, height: 500, scale: 1 },
+  });
+  expect(zoomed.capturePage).toHaveBeenCalledWith(
+    { x: 0, y: 0, width: 700, height: 500 },
+    expect.anything(),
+  );
+  // An element pick on the same zoomed, scrolled page crops the element where it is shown.
+  const picked = scrolledGuest({ x: 0, y: 700 }, 1.25, { width: 170, height: 70 });
+  await captureNativePage(picked.contents, {
+    format: 'png',
+    clip: pickedClip({ x: 12, y: 22, width: 136, height: 56 }, 1.25, { x: 0, y: 700 }),
+  });
+  expect(picked.capturePage).toHaveBeenCalledWith(
+    { x: 15, y: 27, width: 170, height: 70 },
+    expect.anything(),
+  );
+});
+
+it('absorbs sub-pixel scroll rounding but refuses a clip the page scrolled away from', async () => {
+  expect(nativeCaptureOrigin({ x: 0, y: 1500 }, { x: 0, y: 1500.5 }, 1)).toEqual({ x: 0, y: 0 });
+  expect(nativeCaptureOrigin({ x: 40, y: 1520 }, { x: 0, y: 1500 }, 1.5)).toEqual({ x: 60, y: 30 });
+  const moved = scrolledGuest({ x: 0, y: 1600 }, 1, { width: 700, height: 500 });
+  await expect(
+    captureNativePage(moved.contents, { clip: { x: 0, y: 1500, width: 700, height: 500 } }),
+  ).rejects.toThrow('The page scrolled during capture.');
+  const unknown = scrolledGuest(undefined, 1, { width: 700, height: 500 });
+  await expect(
+    captureNativePage(unknown.contents, { clip: { x: 0, y: 0, width: 700, height: 500 } }),
+  ).rejects.toThrow('could not read the page position');
+  for (const guest of [moved, unknown]) expect(guest.capturePage).not.toHaveBeenCalled();
 });
