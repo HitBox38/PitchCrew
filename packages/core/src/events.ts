@@ -60,7 +60,8 @@ export const decodeEvent = (raw: string): BoardEvent => {
     event.version !== 34 &&
     event.version !== 35 &&
     event.version !== 36 &&
-    event.version !== 37
+    event.version !== 37 &&
+    event.version !== 38
   )
     throw new Error(`Unsupported event version: ${event.version}`);
   return event;
@@ -105,7 +106,8 @@ export interface BoardEvent {
     | 34
     | 35
     | 36
-    | 37;
+    | 37
+    | 38;
   kind:
     | 'writing_guide'
     | 'writing_correction'
@@ -175,5 +177,5 @@ export interface BoardEvent {
     | DelegationRound;
   createdAt: string;
 }
-/** Version 37 adds opt-in direct profile editing; versions 1-36 remain readable. */
-export const currentEventVersion = 37 as const;
+/** Version 38 adds bounded form constraint evidence; versions 1-37 remain readable. */
+export const currentEventVersion = 38 as const;

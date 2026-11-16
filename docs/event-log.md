@@ -4,7 +4,8 @@ Rules for contributors and coding agents. If a change makes anything here false,
 
 New events use the current version (`currentEventVersion` in `packages/core/src/events.ts`). Every earlier version stays decodable; never rewrite or delete stored events.
 
-- **Event log.** Version 37 adds the optional `editProfile` role capability; absent historical grants remain disabled and versions 1–36 remain decodable.
+- **Event log.** Version 38 adds optional bounded declared constraint, semantic group and choice-completeness evidence to inspected controls and confirmed form requirements; historical missing evidence stays unavailable and versions 1–37 remain decodable.
+- Version 37 adds the optional `editProfile` role capability; absent historical grants remain disabled and versions 1–36 remain decodable.
 - Version 36 adds optional chat_request submission UUID/digest receipts; versions 1–35 remain decodable.
 - Version 35 adds the optional user-owned skill includeInEveryRun delivery setting; absent historical settings mean full inclusion and versions 1–34 remain decodable.
 - Version 34 adds `delegation_round` entities and optional `roundId`/`roundPart` fields on tasks; versions 1–33 remain decodable.
