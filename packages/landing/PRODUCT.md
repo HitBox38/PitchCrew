@@ -28,7 +28,7 @@ Supporting proof:
 - Setup: download the installer (bundles Node, local server and Chromium), install and sign in to a supported AI CLI separately, add factual profile notes, add a job.
 - Supported runtimes: Codex, Claude Code, Gemini CLI, OpenCode, GitHub Copilot CLI, Cursor Agent, Goose, Kiro CLI, Grok Build, Pi, oh-my-pi and Hermes Agent.
 - Job sources: public Greenhouse, Ashby, Lever, Comeet and Workable boards, single posting links, manual entry, and import of past applications (JSON/CSV/legacy SQLite trackers).
-- Exports: Markdown, PDF and DOCX packets after approval. Optional browser assistance: supervised by default; user-granted autonomous preparation on approved sites may navigate and fill forms, but submission, buttons, keys and dialogs always need an exact user decision. Sign-in and CAPTCHAs stay manual.
+- Exports: Markdown, PDF and DOCX packets after approval. Optional browser assistance: starts supervised; users choose Supervised or Autonomous preparation as each agent’s default in Crew, with overrides per conversation. User-granted autonomous preparation on approved sites may navigate and fill recognized forms, but submission, buttons, keys and dialogs always need an exact user decision. Scheduled routines stay supervised. Sign-in and CAPTCHAs stay manual.
 - Installers are currently unsigned on Windows and macOS, and macOS builds are not notarized.
 
 ## Capabilities and Constraints
