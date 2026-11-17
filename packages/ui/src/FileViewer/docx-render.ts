@@ -1,3 +1,5 @@
+/** Frames this wide or narrower reflow Word pages to their width, so no fit mode applies. */
+export const narrowFrame = 640;
 export const renderDocx = async (bytes: string, signal: AbortSignal) => {
   const { renderAsync } = await import('docx-preview');
   signal.throwIfAborted();
@@ -41,7 +43,7 @@ export const renderDocx = async (bytes: string, signal: AbortSignal) => {
       margin: 0 auto 24px;
       box-shadow: 0 0 0 1px rgb(20 22 30 / 0.06), 0 1px 2px rgb(20 22 30 / 0.06), 0 12px 32px -12px rgb(20 22 30 / 0.24);
     }
-    @media (max-width: 640px) {
+    @media (max-width: ${narrowFrame}px) {
       /* Phones reflow each page to the frame instead of shrinking it to its longest line. */
       .docx-wrapper { align-items: stretch !important; }
       .docx-wrapper > section.docx {

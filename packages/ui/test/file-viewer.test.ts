@@ -417,6 +417,20 @@ test('keeps a Word page’s proportion on a phone', async () => {
       }),
     )
     .toBeGreaterThan(1.25);
+  // Reflowed pages have nothing to fit: the menu offers text sizes only, and they stay in the frame.
+  await dialog.getByRole('button', { name: /^Zoom, / }).click();
+  await page.getByRole('menuitemradio', { name: '150%' }).waitFor();
+  expect(await page.getByRole('menuitemradio', { name: /^(Automatic|Fit width)$/ }).count()).toBe(
+    0,
+  );
+  await expect.poll(() => page.getByText('Text size', { exact: true }).isVisible()).toBe(true);
+  await page.getByRole('menuitemradio', { name: '150%' }).click();
+  await expect.poll(() => shown(dialog)).toBe(150);
+  const fits = await dialog.locator('iframe').evaluate((frame: HTMLIFrameElement) => {
+    const section = frame.contentDocument!.querySelector<HTMLElement>('section.docx')!;
+    return section.getBoundingClientRect().right <= frame.clientWidth + 0.5;
+  });
+  expect(fits).toBe(true);
   await dialog.getByRole('button', { name: 'Close viewer', exact: true }).click();
   await dialog.waitFor({ state: 'detached' });
   await page.setViewportSize({ width: 1440, height: 900 });

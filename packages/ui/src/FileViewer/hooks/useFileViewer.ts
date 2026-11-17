@@ -5,6 +5,7 @@ import { useDocumentFind } from './useDocumentFind.ts';
 import { useViewerZoom } from './useViewerZoom.ts';
 import { useReadingAnchor } from './useReadingAnchor.ts';
 import { downloadFile } from '../attachments.ts';
+import { createPinch } from '../pinch.ts';
 import { applyScroll, readScroll, scrollerOf, type ScrollPosition } from '../scroller.ts';
 export const useFileViewer = (
   files: ViewerFile[],
@@ -91,7 +92,7 @@ export const useFileViewer = (
   const zoom = useViewerZoom(file, settings, change);
   // Trackpad pinch and Ctrl+wheel zoom the file at the pointer, never the app. The listener must
   // not be passive to stop the browser's own page zoom; pinch deltas add up to one preset step.
-  const pinch = useRef({ delta: 0, step: (_event: WheelEvent) => {} });
+  const pinch = useRef({ steps: createPinch(), step: (_event: WheelEvent) => {} });
   const zoomAt = (direction: 1 | -1, point?: { x: number; y: number }) => {
     pinchPoint.current = point ?? null;
     zoom.zoomBy(direction);
@@ -101,14 +102,23 @@ export const useFileViewer = (
   pinch.current.step = (event) => {
     if (!event.ctrlKey) return;
     event.preventDefault();
-    pinch.current.delta += event.deltaY;
-    if (Math.abs(pinch.current.delta) < 40) return;
-    const direction = pinch.current.delta < 0 ? 1 : -1;
-    pinch.current.delta = 0;
+    const direction = pinch.current.steps(event);
+    if (!direction) return;
     const over = body.current?.contains(event.target as Node);
     zoomAt(direction, over ? { x: event.clientX, y: event.clientY } : undefined);
   };
   const onWheel = useCallback((event: WheelEvent) => pinch.current.step(event), []);
+  // Stable, so the dialog's wheel listener is added once per document region, not every render.
+  const attachBody = useCallback(
+    (element: HTMLElement | null) => {
+      const dialog = (node: HTMLElement | null) =>
+        node?.closest<HTMLElement>('[data-slot="dialog-content"]');
+      dialog(body.current)?.removeEventListener('wheel', onWheel);
+      body.current = element;
+      dialog(element)?.addEventListener('wheel', onWheel, { passive: false });
+    },
+    [onWheel],
+  );
   // After a zoom, fit or rotation re-lays out the document, put the reader's place back; once
   // more a frame later and after the Word frame or late page sizes settle.
   useEffect(() => {
@@ -181,15 +191,7 @@ export const useFileViewer = (
     },
     openFind,
     closeFind,
-    attachBody: (element: HTMLElement | null) => {
-      body.current
-        ?.closest<HTMLElement>('[data-slot="dialog-content"]')
-        ?.removeEventListener('wheel', onWheel);
-      body.current = element;
-      element
-        ?.closest<HTMLElement>('[data-slot="dialog-content"]')
-        ?.addEventListener('wheel', onWheel, { passive: false });
-    },
+    attachBody,
     zoomAt,
     /** Where focus starts when the viewer opens: the document, not the first toolbar button. */
     initialFocus: () => body.current ?? true,

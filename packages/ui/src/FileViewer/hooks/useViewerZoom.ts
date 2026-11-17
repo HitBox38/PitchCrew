@@ -12,9 +12,16 @@ export const useViewerZoom = (
   change: (patch: Partial<ViewerSettings>) => void,
 ) => {
   const [base, setBase] = useState<number | null>(null);
-  const onScale = useCallback((scale: number) => setBase(scale), []);
-  // Word Source is plain text: its zoom is the type size, with no page to fit.
-  const options = file.kind === 'docx' && settings.mode === 'source' ? [] : fitOptions(file.kind);
+  const [reflowed, setReflowed] = useState(false);
+  /** Renderers report their fit's base scale; a narrow Word frame reports that no fit applies. */
+  const onScale = useCallback((scale: number, fitted = true) => {
+    setBase(scale);
+    setReflowed(!fitted);
+  }, []);
+  // Word Source is plain text, and a narrow Word frame reflows its pages to the frame width:
+  // either way the zoom is the type size, with no page to fit.
+  const options =
+    file.kind === 'docx' && (settings.mode === 'source' || reflowed) ? [] : fitOptions(file.kind);
   const fits = options.length > 0;
   const scale = fits && base ? base : 1;
   const shown = shownZoom(settings, scale);
@@ -33,6 +40,9 @@ export const useViewerZoom = (
     // A view without fit modes (text, Word Source) resets its type size and leaves the
     // file's fit (Word Preview's Automatic) alone.
     resetZoom: () => change(fits ? { zoom: 100, fit: 'actual' } : { zoom: 100 }),
-    resetBase: () => setBase(null),
+    resetBase: () => {
+      setBase(null);
+      setReflowed(false);
+    },
   };
 };

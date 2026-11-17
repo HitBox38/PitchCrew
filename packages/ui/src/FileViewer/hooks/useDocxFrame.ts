@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { ViewerSettings } from '../types.ts';
 import { fitScale } from '../zoom.ts';
 import { readGutters } from '../gutters.ts';
+import { narrowFrame } from '../docx-render.ts';
+import { createPinch } from '../pinch.ts';
 /** A Word section's declared page size in CSS pixels (docx-preview writes it in points). */
 const declared = (page: HTMLElement) => {
   const pixels = (value: string) =>
@@ -14,7 +16,7 @@ export const useDocxFrame = (
   onRoot: (root: HTMLElement | null) => void,
   onFind: () => void,
   onEscape: () => void,
-  onScale: (scale: number) => void,
+  onScale: (scale: number, fitted?: boolean) => void,
   /** Viewer zoom inside the frame: 1 in, −1 out, 0 reset; pinches pass their frame point. */
   onZoom: (direction: -1 | 0 | 1, point?: { x: number; y: number }) => void,
 ) => {
@@ -38,16 +40,17 @@ export const useDocxFrame = (
       }
       const gutter = readGutters(target);
       doc.documentElement.style.padding = `${gutter.top}px ${gutter.x}px ${gutter.bottom}px`;
-      // Narrow frames reflow each page to the frame (docx-render), so they keep natural size.
-      const fit =
-        target.clientWidth <= 640
-          ? 1
-          : fitScale(settings.fit, declared(page), {
-              // The frame's own scrollbar is outside its root's client width.
-              width: (doc.documentElement.clientWidth || target.clientWidth) - gutter.x * 2,
-              height: target.clientHeight - gutter.top - gutter.bottom,
-            });
-      onScale(fit);
+      // Narrow frames reflow each page to the frame (docx-render), so they keep natural size and
+      // offer no fit modes.
+      const reflowed = target.clientWidth <= narrowFrame;
+      const fit = reflowed
+        ? 1
+        : fitScale(settings.fit, declared(page), {
+            // The frame's own scrollbar is outside its root's client width.
+            width: (doc.documentElement.clientWidth || target.clientWidth) - gutter.x * 2,
+            height: target.clientHeight - gutter.top - gutter.bottom,
+          });
+      onScale(fit, !reflowed);
       doc.body.style.zoom = String((fit * settings.zoom) / 100);
     };
     const observer = new ResizeObserver(resize);
@@ -81,16 +84,14 @@ export const useDocxFrame = (
       }
     });
     // Pinch and Ctrl+wheel inside the frame zoom the preview, adding deltas up to a preset step.
-    let pinch = 0;
+    const pinch = createPinch();
     doc.addEventListener(
       'wheel',
       (event) => {
         if (!event.ctrlKey) return;
         event.preventDefault();
-        pinch += event.deltaY;
-        if (Math.abs(pinch) < 40) return;
-        handlers.current.onZoom(pinch < 0 ? 1 : -1, { x: event.clientX, y: event.clientY });
-        pinch = 0;
+        const direction = pinch(event);
+        if (direction) handlers.current.onZoom(direction, { x: event.clientX, y: event.clientY });
       },
       { passive: false },
     );
