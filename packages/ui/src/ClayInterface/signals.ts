@@ -99,6 +99,14 @@ const decisionWaits = (decision: Decision, data: Snapshot) => {
   return !approval || packetWaitsOnUser(approval, card, data);
 };
 
+/** The kinds of decision on this job that wait on the user, for the steps that own them. */
+export const jobWaitingKinds = (cardId: string, data: Snapshot) =>
+  new Set(
+    decisions(data)
+      .filter((decision) => decision.cardId === cardId && decisionWaits(decision, data))
+      .map((decision) => decision.kind),
+  );
+
 /** Whether anything on this job waits on the user, for its stage track's current bead. */
 export const jobAsks = (cardId: string, data: Snapshot) =>
   decisions(data).some((decision) => decision.cardId === cardId && decisionWaits(decision, data));

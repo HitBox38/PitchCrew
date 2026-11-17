@@ -16,10 +16,10 @@ export const PerspectiveAssessment = ({
 }) => {
   return (
     <section className="grid gap-3" aria-label={title}>
-      <h3>{title}</h3>
+      <h5>{title}</h5>
       <p>{assessment.summary}</p>
       {assessment.packetFeedback?.length ? (
-        <ul className="list-disc pl-5">
+        <ul className="feedback">
           {keyedItems(assessment.packetFeedback, (value) => value).map(({ item: note, key }) => (
             <li key={key}>
               <strong>Packet blocker: </strong>
@@ -29,7 +29,7 @@ export const PerspectiveAssessment = ({
         </ul>
       ) : null}
       {assessment.suggestions?.length ? (
-        <ul className="list-disc pl-5">
+        <ul className="feedback">
           {keyedItems(assessment.suggestions, (value) => value).map(({ item: note, key }) => (
             <li key={key}>
               <strong>Suggestion: </strong>
@@ -50,12 +50,10 @@ export const PerspectiveAssessment = ({
               <div className="mt-2 grid gap-2">
                 <p>{item.rationale}</p>
                 {item.weakestLine ? (
-                  <blockquote className="border-l-2 border-border pl-3">
-                    {item.weakestLine}
-                  </blockquote>
+                  <blockquote className="review-quote">{item.weakestLine}</blockquote>
                 ) : null}
                 {item.interviewQuestions.length ? (
-                  <ul className="list-disc pl-5">
+                  <ul className="feedback">
                     {keyedItems(item.interviewQuestions, (value) => value).map(
                       ({ item: question, key }) => (
                         <li key={key}>{question}</li>

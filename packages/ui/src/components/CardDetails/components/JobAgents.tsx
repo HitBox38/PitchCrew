@@ -52,7 +52,8 @@ export const JobAgents = ({
                   {detail}
                 </span>
               ) : null}
-              <span className="detail-agent-status">{state}</span>
+              {/* The dock says what the agent is doing; the chip keeps it for assistive tech. */}
+              <span className="detail-agent-status sr-only">{state}</span>
             </TooltipTrigger>
             <TooltipContent
               side="bottom"

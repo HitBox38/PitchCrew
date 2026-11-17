@@ -55,6 +55,8 @@ export const runCliText = async (
   prompt: string,
   extract: (event: Record<string, unknown>) => string | null,
   env: Record<string, string | undefined> = {},
+  /** A runtime that reports a failed turn as a stream event (not on stderr) names it here. */
+  failure?: (event: Record<string, unknown>) => string | null,
 ): Promise<string> => {
   if (context.signal.aborted) throw new Error('Run cancelled.');
   const environment = runtimeEnvironment(context, env);
@@ -72,7 +74,18 @@ export const runCliText = async (
     let buffer = '',
       result = '',
       error = '',
+      reported = '',
       bytes = 0;
+    const read = (event: Record<string, unknown>) => {
+      stream.event(event);
+      const reason = failure?.(event);
+      if (reason) reported = redactRuntimeConnectionSecrets(reason).slice(0, 1000);
+      const text = extract(event);
+      if (text) {
+        result = text;
+        stream.replace(text);
+      }
+    };
     let timedOut = false;
     const kill = () => terminateCli(child);
     const clearDeadline = watchRuntimeDeadline(context, () => {
@@ -94,13 +107,7 @@ export const runCliText = async (
         const line = buffer.slice(0, end);
         buffer = buffer.slice(end + 1);
         try {
-          const event = JSON.parse(line) as Record<string, unknown>;
-          stream.event(event);
-          const text = extract(event);
-          if (text) {
-            result = text;
-            stream.replace(text);
-          }
+          read(JSON.parse(line) as Record<string, unknown>);
         } catch {
           /* CLIs may print a non-JSON startup line. */
         }
@@ -117,6 +124,14 @@ export const runCliText = async (
       reject(err);
     });
     child.on('close', (code, signal) => {
+      // A last event without a trailing newline still counts, including a reported failure.
+      if (buffer.trim()) {
+        try {
+          read(JSON.parse(buffer) as Record<string, unknown>);
+        } catch {
+          /* No final complete JSON event. */
+        }
+      }
       error = (error + redactStderr('', true)).slice(-3000);
       stream.finish();
       clearDeadline();
@@ -138,26 +153,20 @@ export const runCliText = async (
       }
       if (code !== 0) {
         reject(
-          Object.assign(new Error(error.trim() || `Runtime exited with code ${code}.`), {
-            code: 'PITCHCREW_RUNTIME_EXIT',
-            exitCode: code,
-            signal,
-          }),
+          // The runtime's own reported reason comes first; bare exit codes explain nothing.
+          Object.assign(
+            new Error(
+              [reported, error.trim()].filter(Boolean).join('\n') ||
+                `Runtime exited with code ${code}.`,
+            ),
+            {
+              code: 'PITCHCREW_RUNTIME_EXIT',
+              exitCode: code,
+              signal,
+            },
+          ),
         );
         return;
-      }
-      if (buffer.trim()) {
-        try {
-          const event = JSON.parse(buffer) as Record<string, unknown>;
-          stream.event(event);
-          const text = extract(event);
-          if (text) {
-            result = text;
-            stream.replace(text);
-          }
-        } catch {
-          /* No final complete JSON event. */
-        }
       }
       resolve(result);
     });

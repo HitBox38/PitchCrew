@@ -16,8 +16,8 @@ export const smokeStyles = `(() => {
     const material = getComputedStyle(probe);
     const materialHeight = material.height === '38px';
     const materialSurface = material.backgroundImage.includes('linear-gradient') && material.boxShadow !== 'none';
-    // Utilities the renderer already uses, so the built stylesheet contains them.
-    probe.classList.add('h-8', 'px-2', 'pt-2', 'pb-3', 'text-body');
+    // Use utilities present in the renderer; pt-2 overrides the top half of py-3.
+    probe.classList.add('h-8', 'px-2', 'py-3', 'pt-2', 'text-body');
     const overrides = getComputedStyle(probe);
     const utilityHeight = overrides.height === '32px';
     const utilityPadding = overrides.paddingLeft === '8px' && overrides.paddingRight === '8px' && overrides.paddingTop === '8px' && overrides.paddingBottom === '12px';

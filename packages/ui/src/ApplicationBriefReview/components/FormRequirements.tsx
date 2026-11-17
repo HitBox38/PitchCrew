@@ -1,48 +1,53 @@
 import type { ExtractedJob } from '@pitchcrew/core';
+import { timeAgo } from '@/lib/time.ts';
+import { formFindings, pageName } from '../helpers.ts';
+import { FormFindings } from './FormFindings.tsx';
+import { FormFieldList } from './FormFieldList.tsx';
 
-export const FormRequirements = ({ form }: { form: ExtractedJob['form'] }) => {
-  if (!form || form.status === 'manual')
+/**
+ * An inspected form reads as one summary line, the findings that change what the user prepares,
+ * then every field on request. A manual choice is stated once, by the form section.
+ */
+export const FormRequirements = ({
+  form,
+  checkedAt,
+  selectors,
+  reviewing,
+}: {
+  form: ExtractedJob['form'];
+  checkedAt?: string;
+  selectors?: string[];
+  reviewing: boolean;
+}) => {
+  if (form?.status === 'manual') return null;
+  if (!form)
     return (
       <p className="quiet">
-        The application form has not been checked. Required answers, files and formats may still be
-        missing.
+        Not checked yet. Required answers, files and formats may still be missing.
       </p>
     );
+  const { required } = formFindings(form);
+  const count = form.fields.length;
   return (
-    <div className="grid gap-2" aria-label="Form requirements for this packet">
+    <div className="grid gap-3" aria-label="Form requirements for this packet">
       <p className="quiet">
-        Inspected page: {form.url}. Review these requirements before drafting.
+        {count === 1 ? '1 field' : `${count} fields`}, {required} required · {pageName(form.url)}
+        {checkedAt ? (
+          <>
+            {' · '}
+            <time dateTime={checkedAt} title={new Date(checkedAt).toLocaleString()}>
+              {timeAgo(checkedAt)}
+            </time>
+          </>
+        ) : null}
       </p>
-      <ul className="grid gap-2">
-        {form.fields.map((field, index) => (
-          <li key={index}>
-            <strong>{field.label || `Field ${index + 1}`}</strong> · {field.type} ·{' '}
-            {field.required ? 'Required' : 'No required flag'}
-            {field.accept ? <p>Accepted files: {field.accept}</p> : null}
-            {field.maxLength !== undefined ? (
-              <p>Maximum length: {field.maxLength} characters</p>
-            ) : null}
-            {field.options.length ? <p>Choices: {field.options.join(', ')}</p> : null}
-            {!field.visible || field.disabled || !field.assessed ? (
-              <p className="quiet">
-                Hidden, disabled or not fully assessed; requirements may change.
-              </p>
-            ) : null}
-            {field.condition ? <p>Conditional: {field.condition}</p> : null}
-            {field.missingAnswer ? <p>Missing: {field.missingAnswer}</p> : null}
-          </li>
-        ))}
-      </ul>
-      {form.blockers.map((item, index) => (
-        <p className="form-error" key={index}>
-          Blocker: {item}
-        </p>
-      ))}
-      {form.uninspected.map((item, index) => (
-        <p className="quiet" key={index}>
-          Uninspected: {item}
-        </p>
-      ))}
+      <FormFindings form={form} />
+      <FormFieldList
+        key={String(reviewing)}
+        fields={form.fields}
+        selectors={selectors?.length === form.fields.length ? selectors : undefined}
+        defaultOpen={reviewing}
+      />
     </div>
   );
 };

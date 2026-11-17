@@ -1,21 +1,26 @@
 import { keyedItems } from '@/lib/list-keys.ts';
 import type { ReviewFinding } from '@pitchcrew/core';
 import { reviewPerspectives } from '@pitchcrew/core/deep-review-labels';
-export const ReviewFindings = ({ findings }: { findings: ReviewFinding[] }) => {
+/** Findings quote the resume; blockers come first and read in rose, suggestions stay quiet. */
+export const ReviewFindings = ({
+  findings,
+  title = 'Prioritized findings',
+}: {
+  findings: ReviewFinding[];
+  title?: string;
+}) => {
   return (
-    <section className="grid gap-3" aria-label="Review findings">
-      <h3>Prioritized findings</h3>
+    <section className="deep-review-findings" aria-label={title}>
+      <h4>{title}</h4>
       {findings.length ? (
-        <ol className="grid list-decimal gap-5 pl-5">
+        <ol className="grid gap-4">
           {keyedItems(findings, (item) => JSON.stringify(item)).map(({ item, key }) => (
-            <li key={key} className="space-y-2 pl-1">
-              <p>
-                <strong>{item.severity === 'blocking' ? 'Blocker' : 'Suggestion'}</strong> ·{' '}
-                {item.perspectives.map((id) => reviewPerspectives[id]).join(', ')}
+            <li key={key} className="grid gap-1.5" data-severity={item.severity}>
+              <p className="deep-review-finding-head">
+                <strong>{item.severity === 'blocking' ? 'Blocker' : 'Suggestion'}</strong>
+                <span>{item.perspectives.map((id) => reviewPerspectives[id]).join(', ')}</span>
               </p>
-              <blockquote className="border-l-2 border-border pl-3 whitespace-pre-wrap">
-                {item.quote}
-              </blockquote>
+              <blockquote className="review-quote whitespace-pre-wrap">{item.quote}</blockquote>
               <p>{item.reason}</p>
               <p>
                 <strong>Correction: </strong>
@@ -25,10 +30,7 @@ export const ReviewFindings = ({ findings }: { findings: ReviewFinding[] }) => {
           ))}
         </ol>
       ) : (
-        <p>
-          No additional resume findings. The packet’s evidence and required answers are checked
-          separately.
-        </p>
+        <p className="quiet">Nothing open. Evidence and required answers are checked separately.</p>
       )}
     </section>
   );

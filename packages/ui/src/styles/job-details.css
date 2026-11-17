@@ -1,33 +1,282 @@
+/* Job details: a 680px sheet (full width on phones). Identity sits on the paper in two rows and one
+ * progress row, Job / Application / Activity is a recessed segment, the body is one reading column
+ * with no raised objects or glaze, and the Now dock is the sheet's one raised surface. */
+.modal.card-details-panel,
+.modal.add-job-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+.modal.drawer.card-details-panel {
+  width: min(680px, 100vw);
+}
+.job-details-reading {
+  display: contents;
+}
+/* Short sheets scroll their identity and section controls together; the dock stays put. */
+@media (height < 40rem) {
+  .card-details-panel .job-details-reading {
+    display: block;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+  .card-details-panel .job-details-reading .job-sections {
+    display: block;
+  }
+}
+
+/* Header: company · place · pay, the title, then where the job stands. */
+.card-details-panel .job-summary {
+  padding: 16px 20px 0;
+  background: transparent;
+  box-shadow: none;
+}
 .detail-company {
   display: flex;
   gap: 12px;
-  align-items: center;
-  margin-top: 16px;
+  align-items: flex-start;
+  min-width: 0;
+}
+.detail-company > div {
+  min-width: 0;
 }
 .detail-company .company-mark {
-  width: 40px;
-  height: 40px;
-  font-size: 19px;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  font-size: 15px;
 }
 .detail-company > div > span {
   display: flex;
-  gap: 8px;
-  align-items: center;
-  font-size: var(--text-body);
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  font-size: var(--text-label);
+  line-height: 20px;
+}
+.detail-company-name {
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.detail-facts {
+  font-size: var(--text-caption);
+  line-height: 18px;
   color: var(--muted);
 }
 .detail-company h2 {
-  font-size: 24px;
-  line-height: 1.25;
   margin-top: 2px;
+  font: 600 var(--text-title) / var(--text-title--line-height) var(--font-sans);
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+.detail-header-actions {
+  margin-right: -6px;
+}
+.detail-progress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  min-height: 24px;
+  margin-top: 12px;
+}
+.detail-state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+  margin-left: auto;
+  font-size: var(--text-caption);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.detail-state strong {
+  margin-left: 3px;
+  font-size: var(--text-label);
+  color: var(--ink);
+}
+.detail-closed {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.detail-state .state-pill {
+  font-size: var(--text-caption);
+  padding: 2px 9px;
+}
+.detail-source-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 12px 20px 0;
+  color: var(--error-ink);
+}
+
+/* Live agents: quiet pebbles. Hover or focus previews the turn; the dock says what it is doing. */
+.card-details-panel .detail-agent {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  padding: 2px 8px 2px 3px;
+  border-radius: 999px;
+  font-size: var(--text-caption);
+  color: var(--ink);
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+.card-details-panel .detail-agent:hover {
+  background: var(--clay-fill-hover);
+  box-shadow: var(--clay-hover);
+}
+.card-details-panel .detail-agent:active {
+  box-shadow: var(--clay-sunken);
+}
+.card-details-panel .detail-agent:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.card-details-panel .detail-agent[aria-disabled='true'] {
+  opacity: 0.65;
+}
+
+/* Sections segment; its hairline appears only once the reading column scrolls under it. */
+.card-details-panel .detail-navigation {
+  padding: 14px 20px 12px;
+  transition: box-shadow var(--duration-surface) var(--ease);
+}
+.card-details-panel[data-scrolled] .detail-navigation {
+  box-shadow: 0 1px 0 var(--border);
+}
+.card-details-panel .detail-tabs {
+  width: max-content;
+  max-width: 100%;
+  height: 36px;
+  margin: 0;
+  padding: 3px;
+  gap: 2px;
+  justify-content: flex-start;
+}
+.card-details-panel .detail-tabs button {
+  flex: none;
+  min-width: 0;
+  padding-inline: 14px;
+}
+
+/* The reading column: 16/22 headings, 14/20 text, 24px between sections. */
+.card-details-panel .detail-tab-content {
+  padding: 4px 20px 24px;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  overflow-wrap: anywhere;
+}
+.card-details-panel .detail-tab-content[hidden] {
+  display: none;
+}
+.card-details-panel .detail-tab-content :is(h2, h3) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin: 0 0 8px;
+  font: 600 var(--text-section) / var(--text-section--line-height) var(--font-sans);
+}
+.card-details-panel .detail-tab-content p {
+  font-size: var(--text-body);
+  line-height: 1.25rem;
+  color: var(--ink-soft);
+}
+.detail-aside {
+  margin-left: auto;
+  font-size: var(--text-caption);
+  font-weight: 400;
+  color: var(--muted);
+}
+.detail-job > * + *,
+.detail-activity > * + * {
+  margin-top: 24px;
+}
+/* Every tab starts on the same 4px text edge as the ledger and Activity rows; hairlines stay full. */
+.card-details-panel .detail-job > :not(.detail-source) {
+  padding-inline-start: 4px;
+}
+.card-details-panel .detail-source [data-slot='accordion-trigger'] {
+  padding-inline: 4px;
+}
+/* Consecutive Activity disclosures share their hairlines, like the Application ledger. */
+.detail-activity > [data-slot='accordion'] + [data-slot='accordion'] {
+  margin-top: 0;
+}
+.card-details-panel .detail-tab-content .detail-posting > p {
+  margin: 0;
+  font: inherit;
+  color: inherit;
+}
+/* List lines hang their wrapped text under the words, not the marker. */
+.card-details-panel .detail-tab-content .detail-posting > p[data-bullet] {
+  padding-left: 1.2ch;
+  text-indent: -1.2ch;
+}
+.card-details-panel .detail-tab-content .detail-posting {
+  max-width: 68ch;
+  white-space: pre-wrap;
+  font-size: var(--text-prose);
+  line-height: var(--text-prose--line-height);
+  color: var(--ink);
+}
+.prewrap {
+  white-space: pre-wrap;
+}
+.feedback {
+  display: grid;
+  gap: 4px;
+  list-style: disc;
+  font-size: var(--text-body);
+  color: var(--ink-soft);
+  line-height: 1.25rem;
+  padding-left: 18px;
+}
+.feedback li::marker {
+  color: var(--faint);
+}
+.detail-job .tags {
+  margin-top: 14px;
+}
+.card-details-panel [data-slot='accordion-header'] {
+  margin: 0;
+}
+
+/* Disclosures in the reading column are hairline rows, never recessed trays. */
+.card-details-panel .detail-source,
+.card-details-panel .detail-activity > [data-slot='accordion'] > [data-slot='accordion-item'],
+.card-details-panel .detail-application > [data-slot='accordion'] > [data-slot='accordion-item'] {
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.card-details-panel .detail-source {
+  border-top: 1px solid var(--border);
+}
+.card-details-panel .detail-source [data-slot='accordion-content'] {
+  padding-bottom: 14px;
 }
 .detail-meta {
   display: flex;
-  gap: 16px;
   flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-block: 0 8px;
   color: var(--muted);
-  font-size: var(--text-label);
-  margin: 14px 0;
+  font-size: var(--text-caption);
 }
 .detail-meta span,
 .detail-meta a {
@@ -35,64 +284,300 @@
   align-items: center;
   gap: 5px;
 }
-.detail-state {
+
+/* Application ledger: one 48px line per step (bead, title, status), the current step open. */
+.card-details-panel .detail-application-sections {
   display: flex;
-  gap: 12px;
-  align-items: center;
-  margin: 14px 0;
+  flex-direction: column;
 }
-.detail-state .state-pill {
-  font-size: var(--text-caption);
-  padding: 2px 9px;
+.card-details-panel .detail-application-sections > [data-slot='accordion-item'] {
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
-.detail-state strong {
+.card-details-panel
+  :is(.detail-application, .detail-activity)
+  [data-slot='accordion-item']
+  > [data-slot='accordion-header']
+  > [data-slot='accordion-trigger'] {
+  min-height: 48px;
+  padding: 10px 4px;
+  border-radius: 8px;
   font-size: var(--text-label);
-  color: var(--ink);
+  font-weight: 600;
+}
+.card-details-panel .detail-section-status {
+  margin-left: 8px;
+  font-size: var(--text-caption);
+  font-weight: 400;
+  color: var(--muted);
+}
+.card-details-panel .detail-application-sections [data-slot='accordion-content'] {
+  padding: 0 4px 20px 34px;
+}
+.card-details-panel .detail-section-body [data-slot='accordion-content'][hidden] {
+  padding: 0;
+}
+.detail-application > * + * {
+  margin-top: 16px;
+}
+.detail-packet-fit {
+  display: grid;
+  gap: 8px;
+  padding: 8px 4px 0;
+}
+.detail-packet-fit h3 strong {
   font-variant-numeric: tabular-nums;
 }
-.action-hint {
+.detail-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin-left: -12px;
+}
+
+/* Compare with posting: the saved posting stacks above the brief, or sits beside it on wide
+ * screens, where the sheet widens while Application is open. */
+.modal.drawer.card-details-panel {
+  transition: width var(--duration-surface) var(--ease);
+}
+.brief-compare-posting {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  max-height: 20rem;
+  overflow-y: auto;
+  border-radius: 10px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+.card-details-panel .brief-compare-posting h4 {
+  margin-bottom: 6px;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  color: var(--muted);
+}
+.card-details-panel .detail-tab-content .brief-compare-posting p {
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  color: var(--ink);
+}
+@variant wide {
+  .modal.drawer.card-details-panel[data-comparing] {
+    width: min(1120px, 100vw);
+  }
+  .card-details-panel[data-comparing] .brief-compare {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+  }
+  .card-details-panel[data-comparing] .brief-compare-posting {
+    position: sticky;
+    top: 0;
+    max-height: calc(100dvh - 22rem);
+    margin: 0;
+  }
+}
+
+/* Inside a ledger row (and for Packet match below it), headings are 14/600 like the row titles,
+ * so nothing in a step outranks the step itself. */
+.card-details-panel .detail-application-sections [data-slot='accordion-content'] :is(h3, h4),
+.card-details-panel .detail-packet-fit h3 {
+  font: 600 var(--text-label) / var(--text-label--line-height) var(--font-sans);
+}
+/* An idle socket needs a visible rim at 9px in both themes; the hairline token can't carry it. */
+.card-details-panel .detail-application-sections .clay-bead[data-empty],
+.detail-closed > .clay-bead[data-empty] {
+  box-shadow:
+    var(--clay-sunken),
+    0 0 0 1px color-mix(in srgb, var(--faint) 70%, transparent);
+}
+/* Secondary text in the reading column is muted, on the body rhythm. */
+.card-details-panel .detail-tab-content .quiet {
+  color: var(--muted);
+  line-height: var(--text-body--line-height);
+}
+.card-details-panel .brief-review blockquote + p {
+  margin-top: 2px;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+}
+.card-details-panel .detail-tab-content .detail-run-meta {
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  color: var(--muted);
+}
+/* One row: what to check, and Compare with posting at its right end. */
+.brief-intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+.card-details-panel .detail-tab-content .brief-intro p {
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  color: var(--muted);
+}
+.brief-intro > [data-slot='button'] {
+  margin-right: -12px;
+}
+/* Brief subsections are 14/20 labels. An inspected form reads as one summary line, a findings
+ * list (label column, then what it means) and every field on request, one hairline row each. */
+.card-details-panel .brief-review h4 {
+  font: 600 var(--text-label) / var(--text-label--line-height) var(--font-sans);
+  color: var(--ink);
+}
+.form-findings {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+.form-findings > div {
+  display: grid;
+  grid-template-columns: 8.5rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 2px 12px;
+}
+.form-findings dt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  color: var(--muted);
+}
+.form-findings dd {
+  margin: 0;
+}
+.form-findings dd > small {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  color: var(--muted);
+}
+.form-findings ul,
+.form-field-list li {
+  font-size: var(--text-body);
+  line-height: 1.25rem;
+  color: var(--ink);
+}
+.form-findings ul {
+  display: grid;
+  gap: 2px;
+}
+.form-field-list {
+  display: grid;
+  margin: 0;
+  border-top: 1px solid var(--border);
+}
+.form-field-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0 16px;
+  padding-block: 7px;
+  border-bottom: 1px solid var(--border);
+}
+.form-field-list small {
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  color: var(--muted);
+  text-align: right;
+}
+.form-field-list .form-field-note {
+  grid-column: 1 / -1;
+  text-align: left;
+}
+@variant max-mobile {
+  /* Wrapped under its line on phones, Compare aligns with the text edge instead. */
+  .brief-intro > [data-slot='button'] {
+    margin: 0 0 0 -12px;
+  }
+  .form-findings > div,
+  .form-field-list li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .form-field-list small {
+    text-align: left;
+  }
+}
+
+/* Activity: a compact timeline, one line per event on its bead. */
+/* Activity's status: one 48px hairline row like the ledger, with a quiet Change… menu. */
+.card-details-panel .detail-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding-left: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.card-details-panel .detail-tab-content .detail-status-row p {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--ink);
+}
+.detail-status-row small {
   font-size: var(--text-caption);
   color: var(--muted);
-  margin: 6px 0 18px;
-}
-.detail-tabs {
-  width: 100%;
-  height: auto;
-  margin-top: 22px;
-  justify-content: flex-start;
-}
-.detail-tabs button {
-  flex: 1;
-}
-.detail-tab-content {
-  padding-top: 18px;
-}
-.detail-tab-content h3 {
-  font-size: 16px;
-  margin: 22px 0 8px;
-}
-.detail-tab-content p {
-  font-size: 14px;
-  color: var(--ink-soft);
-  line-height: 1.65;
-}
-.prewrap {
-  white-space: pre-wrap;
-}
-.feedback {
-  list-style: disc;
-  font-size: 14px;
-  color: var(--ink-soft);
-  line-height: 1.65;
-  padding-left: 18px;
 }
 .tracking-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 6px;
 }
-/* One row of documents; narrow sheets tighten padding and scroll rather than wrap a lone tab. */
+.detail-history > div {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  min-height: 32px;
+  padding: 6px 0 6px 4px;
+}
+/* The agent choice reads as one row, like "Application form … Add application link". */
+.card-details-panel .brief-review .brief-agent-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 32px;
+}
+.card-details-panel .brief-review .brief-agent-row > label {
+  font: 600 var(--text-label) / var(--text-label--line-height) var(--font-sans);
+  color: var(--ink);
+}
+/* The bead sits on the entry's first line, however many lines the entry wraps to. */
+.detail-history > div > .clay-bead {
+  margin-top: 5.5px;
+}
+.detail-history > div > div {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 12px;
+  min-width: 0;
+}
+.detail-history strong {
+  flex: 1 1 16rem;
+  font-size: var(--text-body);
+  font-weight: 400;
+  color: var(--ink);
+}
+.card-details-panel .detail-history p {
+  font-size: var(--text-caption);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Packet documents read as a paper sheet; Source keeps the exact saved text for copying. */
 .document-select {
   max-width: 100%;
   overflow-x: auto;
@@ -103,7 +588,6 @@
     padding-inline: 10px;
   }
 }
-/* Packet documents read as a paper sheet; Source keeps the exact saved text for copying. */
 .job-packet-document {
   display: grid;
   gap: 8px;
@@ -129,17 +613,17 @@
 }
 .job-packet-sheet h1 {
   margin-bottom: 4px;
-  font-size: 20px;
-  line-height: 1.25;
+  font-size: 18px;
+  line-height: 1.3;
 }
 .job-packet-sheet h2 {
   margin-top: 16px;
-  font-size: 12px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  color: var(--ink-soft);
 }
 .job-packet-sheet h3 {
-  font-size: 14px;
+  font-size: var(--text-body);
 }
 @variant max-mobile {
   .job-packet-sheet {
@@ -150,8 +634,7 @@
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
+  padding: 8px 0;
 }
 .evidence > svg {
   color: var(--moss);
@@ -159,255 +642,360 @@
   margin-top: 4px;
 }
 .evidence small {
-  font-size: 12px;
-  color: var(--muted);
-  font-family: var(--font-mono);
-}
-.detail-history > div {
-  display: flex;
-  gap: 12px;
-  padding: 11px 0;
-  border-bottom: 1px solid var(--border);
-}
-.detail-history strong {
-  font-size: var(--text-body);
-  font-weight: 600;
-}
-.detail-history p {
   font-size: var(--text-caption);
   color: var(--muted);
 }
+.submission-receipt {
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+.submission-receipt[data-status='confirmed'] > strong {
+  color: var(--moss);
+}
 
-/* The job sheet reserves a compact identity header and one contextual action footer. */
-/* Job details: a 680 sheet (full width on phones) with an identity header on the sheet's paper,
- * Job / Application / Activity as a segment, section headings rather than a card per section,
- * and one contextual footer. */
-.modal.card-details-panel,
-.modal.add-job-panel {
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  overflow: hidden;
-}
-.modal.drawer.card-details-panel {
-  width: min(680px, 100vw);
-}
-.job-details-reading {
-  display: contents;
-}
-/* Short sheets scroll their identity and section controls together; the action footer stays put. */
-@media (height < 40rem) {
-  .card-details-panel .job-details-reading {
-    display: block;
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-gutter: stable;
-  }
-  .card-details-panel .job-details-reading .job-sections {
-    display: block;
-  }
-}
-.card-details-panel .detail-company {
-  margin-top: 0;
-  align-items: flex-start;
-}
-.card-details-panel .detail-company > div {
-  min-width: 0;
-}
-.card-details-panel .detail-company .company-mark {
+/* The Now dock: recessed while someone else has the move, raised (one glaze) when it is the
+ * user's, ochre-tinted for a question or decision. Both shadows share the clay token structure,
+ * so the change morphs rather than snaps. */
+.card-details-panel .detail-footer {
   flex-shrink: 0;
-  width: 34px;
-  height: 34px;
-  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  margin: 0 12px max(12px, env(safe-area-inset-bottom));
+  padding: 10px 12px 10px 16px;
+  border-radius: 14px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  transition:
+    background var(--duration-surface) var(--ease),
+    box-shadow var(--duration-surface) var(--ease);
 }
-.card-details-panel .detail-company h2 {
-  margin-top: 2px;
-  font: 600 1.25rem/1.3 var(--font-sans);
-  letter-spacing: -0.01em;
-  overflow-wrap: anywhere;
+.card-details-panel .detail-footer[data-material='rest'] {
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
 }
-.card-details-panel .detail-company > div > span {
-  flex-wrap: wrap;
-  font-size: 13px;
+.card-details-panel .detail-footer[data-material='ask'] {
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--ochre-soft) 55%, var(--surface-bright)) 0%,
+    var(--ochre-soft) 100%
+  );
 }
-.card-details-panel .detail-meta {
-  gap: 6px 14px;
-  margin-block: 10px;
-  font-size: 13px;
-}
-.card-details-panel .detail-state {
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 0;
-}
-/* Three labels in a segment sized to them, left-aligned under the stage line. */
-.card-details-panel .detail-tabs {
-  width: max-content;
-  max-width: 100%;
-  height: 36px;
-  margin: 0;
-  padding: 3px;
-  gap: 2px;
-}
-.card-details-panel .detail-tabs button {
-  flex: none;
+.job-dock-text {
+  display: grid;
+  flex: 1;
+  gap: 1px;
   min-width: 0;
-  padding-inline: 14px;
+  animation: clay-settle-in 200ms var(--ease);
 }
-.card-details-panel .detail-navigation {
-  padding-block: 2px 12px;
+.job-dock-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: var(--text-label);
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--ink);
 }
-.card-details-panel .job-summary {
-  background: transparent;
-  box-shadow: none;
+.job-dock-sentence {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
-.card-details-panel .detail-tab-content {
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
-  overflow-wrap: anywhere;
+.card-details-panel .job-dock-detail {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--text-caption);
+  line-height: 18px;
+  color: var(--muted);
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
-.card-details-panel .detail-tab-content[hidden] {
+.card-details-panel .detail-footer[data-material='rest'] .job-dock-detail {
+  color: var(--ink-soft);
+}
+.card-details-panel .job-dock-detail[data-failure] {
+  color: var(--error-ink);
+}
+.job-dock-detail[data-failure] > .clay-bead {
+  display: inline-block;
+  margin-right: 6px;
+  vertical-align: 0.05em;
+}
+.job-dock-actions {
+  display: flex;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  max-width: 62%;
+}
+.job-dock-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.job-dock-menu {
   display: none;
 }
-.card-details-panel
-  :is(.detail-application, .detail-activity)
-  > [data-slot='accordion']
-  > [data-slot='accordion-item'] {
+/* A question's answer form opens above the dock's sentence, inside the same raised surface. */
+.job-dock-root {
+  flex-shrink: 0;
+}
+.card-details-panel .detail-footer[data-panel] {
+  flex-wrap: wrap;
+}
+.job-dock-panel {
+  position: relative;
+  flex: 1 0 100%;
+  max-height: min(24rem, 50dvh);
+  overflow-y: auto;
+}
+.job-dock-panel-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+}
+
+@variant max-mobile {
+  .card-details-panel .job-summary {
+    padding: 14px 16px 0;
+  }
+  /* Phones fold the progress row away once the reading column scrolls; identity and tabs stay. */
+  .card-details-panel .detail-progress {
+    max-height: 3rem;
+    overflow: hidden;
+    transition:
+      max-height var(--duration-surface) var(--ease),
+      margin var(--duration-surface) var(--ease),
+      opacity 160ms var(--ease),
+      visibility 0s linear;
+  }
+  .card-details-panel[data-condensed] .detail-progress {
+    max-height: 0;
+    margin-top: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      max-height var(--duration-surface) var(--ease),
+      margin var(--duration-surface) var(--ease),
+      opacity 160ms var(--ease),
+      visibility 0s linear var(--duration-surface);
+  }
+  .card-details-panel .detail-navigation {
+    padding: 12px 16px 10px;
+  }
+  .card-details-panel .detail-tabs {
+    width: 100%;
+  }
+  .card-details-panel .detail-tabs button {
+    flex: 1;
+    min-height: 38px;
+  }
+  .card-details-panel .detail-tab-content {
+    padding: 4px 16px 20px;
+  }
+  .card-details-panel .detail-application-sections [data-slot='accordion-content'] {
+    padding-left: 4px;
+  }
+  .card-details-panel .detail-section-status {
+    display: block;
+    margin: 2px 0 0;
+  }
+  .card-details-panel .detail-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin: 0 8px max(8px, env(safe-area-inset-bottom));
+    padding: 12px;
+  }
+  .job-dock-actions {
+    max-width: none;
+  }
+  .job-dock-actions > [data-slot='button'] {
+    min-height: 44px;
+  }
+  .job-dock-actions > [data-slot='button']:last-child {
+    flex: 1;
+  }
+  .job-dock-choices {
+    display: none;
+  }
+  .job-dock-menu {
+    display: inline-flex;
+    flex: 1;
+  }
+  .card-details-panel .detail-agent {
+    min-height: 32px;
+  }
+}
+
+/* Reviews: requested changes, the deep review block and its report. Shared quote style for
+ * findings and perspectives: a recessed passage rather than a ruled line. */
+.detail-requested {
+  display: grid;
+  gap: 6px;
+  padding-bottom: 4px;
+}
+.review-quote {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: var(--text-body);
+  line-height: 1.25rem;
+  color: var(--ink);
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+.deep-review-block {
+  display: grid;
+  gap: 6px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+/* Alone in Reviews, the block starts under the row's own hairline rather than a second one. */
+.deep-review-block:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+.deep-review-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.card-details-panel .deep-review-head h3 {
+  margin: 0;
+}
+.deep-review-reports {
+  display: grid;
+  gap: 16px;
+  margin-top: 10px;
+}
+.deep-review-history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-left: -10px;
+}
+.deep-review-report {
+  display: grid;
+  gap: 20px;
+}
+.deep-review-report :is(h4, h5) {
+  font-size: var(--text-label);
+  line-height: 1.25rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.deep-review-report h5 {
+  margin-top: 10px;
+  color: var(--muted);
+}
+.deep-review-stages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: var(--text-caption);
+  color: var(--muted);
+}
+.deep-review-stages li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.deep-review-stages [aria-current='step'] {
+  color: var(--ink);
+  font-weight: 600;
+}
+.deep-review-findings,
+.deep-review-perspectives,
+.deep-review-opinions {
+  display: grid;
+  gap: 8px;
+}
+.deep-review-findings [data-severity='blocking'] .deep-review-finding-head strong {
+  color: var(--rose);
+}
+.deep-review-finding-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  font-size: var(--text-caption);
+  color: var(--muted);
+}
+.deep-review-finding-head strong {
+  color: var(--ink-soft);
+}
+.deep-review-verdict {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 12px;
+  font-weight: 400;
+}
+.deep-review-verdict strong {
+  font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+.deep-review-perspectives [data-slot='accordion-item'],
+.deep-review-opinions [data-slot='accordion-item'] {
   border: 0;
   border-bottom: 1px solid var(--border);
   border-radius: 0;
   background: transparent;
   box-shadow: none;
 }
-.card-details-panel .detail-application-sections {
-  display: flex;
-  flex-direction: column;
+
+/* Deep review setup dialog: three numbered steps, quiet crew lines, grouped perspectives. */
+.deep-review-plan {
+  display: grid;
+  gap: 6px;
+  padding-left: 22px;
+  list-style: decimal;
+  color: var(--ink-soft);
 }
-.card-details-panel
-  :is(.detail-application, .detail-activity)
-  > [data-slot='accordion']
-  > [data-slot='accordion-item']
-  > [data-slot='accordion-header']
-  > [data-slot='accordion-trigger'] {
-  min-height: 52px;
-  padding: 12px 4px;
-  border-radius: 8px;
-}
-.card-details-panel
-  :is(.detail-application, .detail-activity)
-  > [data-slot='accordion']
-  > [data-slot='accordion-item']
-  > [data-slot='accordion-content'] {
-  padding: 0 4px 20px;
-}
-.card-details-panel .detail-source {
-  padding-inline: 14px;
-  border-radius: 12px;
-  background: var(--sunken-fill);
-  box-shadow: var(--clay-sunken);
-}
-.card-details-panel .detail-source [data-slot='accordion-content'] {
-  padding-bottom: 14px;
-}
-.card-details-panel .detail-source .detail-meta {
-  margin-block: 0 8px;
-}
-.card-details-panel .detail-tab-content h2,
-.card-details-panel .detail-tab-content h3 {
-  font: 600 1rem/1.35 var(--font-sans);
-  margin-top: 0;
-}
-.card-details-panel [data-slot='accordion-header'] {
-  margin: 0;
-}
-.card-details-panel .detail-tab-content p {
-  font-size: 14px;
-}
-.card-details-panel .detail-section-status {
-  display: block;
-  margin-top: 3px;
-  font-size: 12px;
-  font-weight: 400;
+.deep-review-plan li::marker {
   color: var(--muted);
+  font-weight: 600;
 }
-.card-details-panel .detail-section-body [data-slot='accordion-content'][hidden] {
-  padding: 0;
+.deep-review-opinion-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 14px 20px;
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 0 28px;
+  border: 0;
 }
-.card-details-panel .detail-footer {
-  flex-shrink: 0;
+.deep-review-seats {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  min-height: 64px;
-  padding: 12px 20px max(12px, env(safe-area-inset-bottom));
-  border-top: 1px solid var(--border);
-  background: transparent;
-  box-shadow: none;
-}
-.card-details-panel .action-hint {
-  font-size: 12px;
-  line-height: 1.5;
-  margin: 0;
-}
-.card-details-panel .detail-footer .form-error {
-  font-size: 12px;
-  margin-top: 4px;
-  overflow-wrap: anywhere;
-}
-.card-details-panel .detail-agent {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  border-radius: 8px;
-  font-size: 12px;
-  color: var(--ink);
-  padding: 4px 8px;
-  background: var(--clay-fill);
-  box-shadow: var(--clay);
-}
-.card-details-panel .detail-agent:hover {
-  background: var(--clay-fill-hover);
-  box-shadow: var(--clay-hover);
-}
-.card-details-panel .detail-agent:active {
-  box-shadow: var(--clay-sunken);
-}
-.card-details-panel .detail-agent:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 3px;
-}
-.card-details-panel .detail-agent-status {
+  gap: 2px 16px;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
   color: var(--muted);
 }
-.card-details-panel .detail-agent[aria-disabled='true'] {
-  opacity: 0.65;
+.deep-review-setup-footer p {
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
 }
-@variant max-mobile {
-  .card-details-panel .detail-company h2 {
-    font-size: 20px;
-  }
-  .card-details-panel .detail-footer {
-    padding-inline: 16px;
-  }
-  .card-details-panel .detail-footer > div:first-child {
-    flex-basis: 100%;
-  }
-  .card-details-panel .detail-footer > div:last-child {
-    width: 100%;
-    justify-content: flex-end;
-  }
-  .card-details-panel .detail-agent {
-    min-height: 36px;
-  }
-}
-.submission-receipt {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface-bright);
-}
-.submission-receipt[data-status='confirmed'] > strong {
-  color: var(--moss);
+.deep-review-setup-footer {
+  display: grid;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
 }

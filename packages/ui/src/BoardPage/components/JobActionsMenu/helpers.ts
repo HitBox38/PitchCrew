@@ -1,3 +1,4 @@
+import { statusActionLabels } from '@/lib/labels.ts';
 import { cardLifecycle } from '@pitchcrew/core/lifecycles';
 import type { Card, CardState, Snapshot } from '@pitchcrew/core';
 import { workflowSeat } from '@pitchcrew/core/states';
@@ -63,13 +64,5 @@ export const crewShortcut = (card: Card, data: Snapshot): CrewShortcut | null =>
   };
 };
 
-export const shortcutLabels: Partial<Record<CardState, string>> = {
-  shortlisted: 'Shortlist',
-  submitted: 'Mark submitted',
-  screening: 'Record screening',
-  interviewing: 'Record interview',
-  offer: 'Record offer',
-  rejected: 'Mark rejected',
-  ghosted: 'Mark no response',
-  withdrawn: 'Mark withdrawn',
-};
+/** Status changes as actions; shared with the job sheet's Change… menu. */
+export const shortcutLabels = statusActionLabels;

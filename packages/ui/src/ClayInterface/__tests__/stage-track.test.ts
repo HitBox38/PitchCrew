@@ -198,9 +198,9 @@ describe('job details footer at the handoff', () => {
   it('continues the application in Decisions and keeps recording secondary', () => {
     const next = model(job(), snapshot([fixtures.manual]));
     const action = jobNextAction(next);
-    expect(action.label).toBe('Continue application');
+    expect(action.label).toBe('Open in Decisions');
     expect(action.hint).toContain('Nothing has been sent');
-    expect(action.hint).toContain('only after you have applied');
+    expect(action.hint).toContain('only after you’ve applied');
     action.perform();
     expect(next.openInbox).toHaveBeenCalledOnce();
     expect(next.act).not.toHaveBeenCalled();
@@ -216,12 +216,12 @@ describe('job details footer at the handoff', () => {
 
   it('never offers recording while an agent prepares, and words an approved packet', () => {
     const preparing = jobNextAction(model(job(), snapshot([fixtures.agent])));
-    expect(preparing.label).toBe('Continue application');
+    expect(preparing.label).toBe('Open in Decisions');
     expect(preparing.alternates).toBeUndefined();
     expect(preparing.hint).toContain('Nothing is submitted until you approve');
     const approved = model(job(), snapshot([fixtures.approved]), { exported: false });
     expect(jobNextAction(approved)).toMatchObject({
-      label: 'Continue application',
+      label: 'Open in Decisions',
       hint: expect.stringContaining('Choose how to apply'),
     });
     expect(
@@ -230,8 +230,9 @@ describe('job details footer at the handoff', () => {
     const uncertain = job({
       submissionAttempts: [{ exportApprovalId: 'approval', status: 'uncertain' }],
     } as Partial<Card>);
+    // Without captured confirmation the dock opens the evidence rather than claiming to verify.
     expect(jobNextAction(model(uncertain, snapshot([fixtures.agent], {}, uncertain))).label).toBe(
-      'Verify submission',
+      'Check submission evidence',
     );
   });
 });

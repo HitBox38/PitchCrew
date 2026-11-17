@@ -4,6 +4,48 @@ import { modelListCommand, parseOpenCodeModels } from '../model-discovery.ts';
 import { apiModels } from '../models.ts';
 import { detectCli, runCliText, withChat } from '../process.ts';
 
+/**
+ * OpenCode 2 dropped `--pure`, `--verbose` and `--variant` (a model takes `#variant`) and sends
+ * `run` through a shared background service unless `--standalone`. Only a private server applies
+ * this run's isolated configuration. Fail closed: only a readable 0.x or 1.x version keeps the
+ * `--pure` flags; a 2.x CLI, or one whose version can't be read (a failed or slow `--version`),
+ * runs standalone and must pass the scoped-agent check before it starts.
+ */
+const legacyOpenCode = async () => {
+  const { available, version } = await detectCli('opencode', 'opencode');
+  const major = available ? version.match(/(?:^|[^\d.])(\d+)\.\d+\.\d+/)?.[1] : undefined;
+  return major !== undefined && Number(major) <= 1;
+};
+
+type AgentRule = { action?: unknown; effect?: unknown };
+/**
+ * The scoped agent must exist and its last wildcard rule must deny, with nothing but Pitchcrew
+ * tools allowed after it (OpenCode applies later rules over earlier ones).
+ */
+export const assertScopedAgent = (text: string) => {
+  let agents: { id?: unknown; permissions?: AgentRule[] }[] = [];
+  try {
+    agents = JSON.parse(text) as typeof agents;
+  } catch {
+    // Unreadable output is treated like a missing agent below.
+  }
+  const rules = (Array.isArray(agents) ? agents : []).find(
+    (agent) => agent.id === 'pitchcrew',
+  )?.permissions;
+  const last = rules?.findLastIndex((rule) => rule.action === '*') ?? -1;
+  const scoped =
+    rules !== undefined &&
+    last >= 0 &&
+    rules[last].effect === 'deny' &&
+    rules
+      .slice(last + 1)
+      .every((rule) => rule.effect !== 'allow' || String(rule.action).startsWith('pitchcrew_'));
+  if (!scoped)
+    throw new Error(
+      'OpenCode did not apply Pitchcrew’s isolated configuration, so the run was not started. Update OpenCode or choose another runtime in Crew.',
+    );
+};
+
 export const opencode = withChat({
   applicationIsolation: true,
   customReasoning: true,
@@ -13,7 +55,11 @@ export const opencode = withChat({
   detect: () => detectCli('opencode', 'opencode'),
   listModels: async (signal) =>
     parseOpenCodeModels(
-      await modelListCommand('opencode', ['models', '--pure', '--verbose'], signal),
+      await modelListCommand(
+        'opencode',
+        (await legacyOpenCode()) ? ['models', '--pure', '--verbose'] : ['models'],
+        signal,
+      ),
     ),
   launch: async (context, prompt) => {
     if (context.signal.aborted) throw new Error('Run cancelled.');
@@ -36,9 +82,50 @@ export const opencode = withChat({
         },
       },
     };
-    const args = ['run', '--pure', '--format', 'json', '--agent', 'pitchcrew'];
-    if (context.role.model) args.push('--model', context.role.model);
-    if (context.role.reasoning) args.push('--variant', context.role.reasoning);
+    const two = !(await legacyOpenCode());
+    const args = [
+      'run',
+      two ? '--standalone' : '--pure',
+      '--format',
+      'json',
+      '--agent',
+      'pitchcrew',
+    ];
+    const { model, reasoning } = context.role;
+    if (two && model) args.push('--model', reasoning ? `${model}#${reasoning}` : model);
+    else {
+      if (model) args.push('--model', model);
+      if (reasoning) args.push('--variant', reasoning);
+    }
+    const environment = {
+      // Config discovery is isolated; XDG_DATA_HOME is untouched so sign-in stays with OpenCode.
+      XDG_CONFIG_HOME: configDirectory,
+      OPENCODE_CONFIG_DIR: configDirectory,
+      OPENCODE_TEST_HOME: context.directory,
+      OPENCODE_CONFIG: '',
+      OPENCODE_CONFIG_CONTENT: JSON.stringify(config),
+      OPENCODE_PERMISSION: JSON.stringify(permission),
+      OPENCODE_DISABLE_PROJECT_CONFIG: 'true',
+      OPENCODE_DISABLE_AUTOUPDATE: 'true',
+      OPENCODE_AUTO_SHARE: 'false',
+      OPENCODE_DISABLE_DEFAULT_PLUGINS: 'false',
+    };
+    // Fail closed: before a 2.x run, read the private server's effective agents with this exact
+    // environment and refuse to start unless the scoped agent ends in deny-all.
+    if (two) {
+      // A CLI that can't answer the check (an older one taken here because its version was
+      // unreadable) is refused like one that answers without the scoped agent.
+      const agents = await modelListCommand(
+        'opencode',
+        ['--standalone', 'debug', 'agents'],
+        context.signal,
+        environment,
+      ).catch(() => {
+        if (context.signal.aborted) throw new Error('Run cancelled.');
+        return '';
+      });
+      assertScopedAgent(agents);
+    }
     return runCliText(
       'opencode',
       args,
@@ -50,18 +137,15 @@ export const opencode = withChat({
           ? part.text
           : null;
       },
-      {
-        // Config discovery is isolated; XDG_DATA_HOME is untouched so sign-in stays with OpenCode.
-        XDG_CONFIG_HOME: configDirectory,
-        OPENCODE_CONFIG_DIR: configDirectory,
-        OPENCODE_TEST_HOME: context.directory,
-        OPENCODE_CONFIG: '',
-        OPENCODE_CONFIG_CONTENT: JSON.stringify(config),
-        OPENCODE_PERMISSION: JSON.stringify(permission),
-        OPENCODE_DISABLE_PROJECT_CONFIG: 'true',
-        OPENCODE_DISABLE_AUTOUPDATE: 'true',
-        OPENCODE_AUTO_SHARE: 'false',
-        OPENCODE_DISABLE_DEFAULT_PLUGINS: 'false',
+      environment,
+      // OpenCode 2 reports a failed turn (usage limits, unknown models) as an error event on
+      // stdout and exits 1 with an empty stderr.
+      (event) => {
+        if (event.type !== 'error') return null;
+        const message = (event.error as { message?: unknown } | undefined)?.message;
+        return typeof message === 'string' && message.trim()
+          ? `OpenCode: ${message.trim()}`
+          : 'OpenCode reported an error without details.';
       },
     );
   },

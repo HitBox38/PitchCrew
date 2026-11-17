@@ -8,6 +8,16 @@ import { LearningSignals } from '@/LearningSignals/index.tsx';
 import { ApplicationTracking } from '@/ApplicationTracking/index.tsx';
 import { ExternalSubmissionRegistration } from '@/ExternalSubmissionRegistration/index.tsx';
 import { AccordionSection } from '@pitchcrew/design-system/accordion';
+import { stateLabels } from '@/lib/labels.ts';
+import { stepLabel, trackIndex } from '@/ClayInterface/helpers.ts';
+import { dockRecordsOutcome, outcomeTargets } from '../helpers.ts';
+import type { CardState } from '@pitchcrew/core';
+
+// The same word the header's track uses for this stage ("Lead", not "New lead").
+const statusLabel = (state: CardState) => {
+  const index = trackIndex(state);
+  return index === null ? stateLabels[state] : stepLabel(state, index);
+};
 
 export const JobActivity = (model: CardDetailsModel) => {
   const [lessonDirty, setLessonDirty] = useState(false);
@@ -23,17 +33,22 @@ export const JobActivity = (model: CardDetailsModel) => {
     (attempt) => attempt.status === 'uncertain',
   );
   return (
-    <div className="detail-activity space-y-5">
+    <div className="detail-activity">
       {model.card.submissionAttempts?.length ? (
         <AccordionSection heading="Submission receipts" defaultOpen={uncertain}>
           <SubmissionReceipts {...model} onDirtyChange={setReceiptDirty} />
         </AccordionSection>
       ) : null}
-      <section>
-        <h3>Update job status</h3>
-        <p className="quiet">Record what happened. Status updates do not contact the employer.</p>
-        <OutcomeActions {...model} />
-      </section>
+      {/* After applying, recording an outcome is the dock's step; before (and for an offer, whose
+          only change is withdrawing), status is one quiet row with a manual change one menu away. */}
+      {dockRecordsOutcome(model.card.state) || !outcomeTargets(model.card.state).length ? null : (
+        <section className="detail-status-row" aria-label="Status">
+          <p>
+            <strong>Status</strong> <small>{statusLabel(model.card.state)}</small>
+          </p>
+          <OutcomeActions {...model} />
+        </section>
+      )}
       <ExternalSubmissionRegistration card={model.card} onDirtyChange={setSubmissionDirty} />
       <AccordionSection heading="What you learned">
         <LearningSignals card={model.card} onDirtyChange={setLessonDirty} />

@@ -1,47 +1,47 @@
 import { Button } from '@pitchcrew/design-system/button';
 import { Checkbox } from '@pitchcrew/design-system/checkbox';
-import { FormSelect } from '@/FormSelect/index.tsx';
 import { FormRequirements } from './FormRequirements.tsx';
+import { FormInspect, InspectAgain } from './FormInspect.tsx';
 import type { useApplicationBrief } from '../hooks/useApplicationBrief.ts';
 import type { Card } from '@pitchcrew/core';
 
 export const FormPreparation = ({
   model,
   card,
+  onEditJob,
 }: {
   model: ReturnType<typeof useApplicationBrief>;
   card: Card;
+  onEditJob?: () => void;
 }) => {
+  const inspected = model.draft.form?.status === 'inspected';
   return (
     <section className="grid gap-3" aria-label="Application form inspection">
-      <h4>Application form</h4>
-      <FormRequirements form={model.draft.form} />
-      {card.url ? (
-        <div className="flex flex-wrap items-end gap-2">
-          {model.formAgents.length ? (
-            <FormSelect
-              label="Form inspection agent"
-              value={model.formRoleId}
-              onValueChange={model.setFormRoleId}
-              options={model.formAgents.map((role) => ({ value: role.id, label: role.name }))}
-            />
-          ) : (
-            <p className="quiet">Enable an agent with browser and form assessment tools in Crew.</p>
-          )}
-          <Button
-            variant="outline"
-            disabled={model.disabled || model.editing || !model.formRoleId}
-            onClick={() => {
-              void model.inspectForm();
-            }}
-          >
-            Inspect application form
+      <div className="-my-1 flex min-h-8 items-center justify-between gap-2">
+        <h4>Application form</h4>
+        {inspected && card.url && !model.editing ? <InspectAgain model={model} /> : null}
+        {/* Without a link there is nothing to inspect; adding one is the job's own edit. */}
+        {!card.url && onEditJob ? (
+          <Button variant="ghost" size="sm" onClick={onEditJob}>
+            Add application link
           </Button>
-        </div>
-      ) : (
-        <p className="quiet">
-          Add an application link to inspect its fields and file requirements.
-        </p>
+        ) : null}
+      </div>
+      {/* Without a link nothing can be inspected, so only the add-a-link line applies. */}
+      {card.url || model.draft.form ? (
+        <FormRequirements
+          form={model.draft.form}
+          checkedAt={card.formAssessments?.at(-1)?.createdAt}
+          selectors={card.formAssessments?.at(-1)?.fields.map((field) => field.selector)}
+          reviewing={model.editing}
+        />
+      ) : null}
+      {card.url ? (
+        inspected ? null : (
+          <FormInspect model={model} />
+        )
+      ) : onEditJob ? null : (
+        <p className="quiet">Add an application link to inspect its fields and files.</p>
       )}
       {model.editing && !model.loaded?.form && card.url ? (
         // `.form label` stacks children; `checkbox-label` keeps the box beside its wrapping text.

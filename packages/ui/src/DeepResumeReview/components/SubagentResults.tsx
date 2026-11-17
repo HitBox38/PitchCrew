@@ -16,13 +16,11 @@ export const SubagentResults = ({
 }) => {
   if (!detail.subagents.length && !offset) return null;
   return (
-    <section className="grid gap-3" aria-label="Targeted second opinions">
-      <h3>Targeted second opinions</h3>
+    <section className="deep-review-opinions" aria-label="Targeted second opinions">
+      <h4>Targeted second opinions</h4>
       {detail.subagents.map((child) => (
         <AccordionSection
           key={child.id}
-          className="rounded-xl border border-border p-3"
-          triggerClassName="cursor-pointer"
           heading={
             <>
               {reviewPerspectives[child.perspective]} · {deepReviewStages[child.stage]} ·{' '}
@@ -32,7 +30,7 @@ export const SubagentResults = ({
         >
           <div className="mt-3 grid gap-3">
             <p>{child.focus}</p>
-            <p className="optional">
+            <p className="quiet">
               {runtimeLabels[child.runtime]} · {child.model || 'CLI default'}
             </p>
             <p>{child.reason}</p>
@@ -51,19 +49,29 @@ export const SubagentResults = ({
           </div>
         </AccordionSection>
       ))}
-      <nav className="flex gap-2" aria-label="Second opinion pages">
-        <Button disabled={!offset} onClick={() => changePage(Math.max(0, offset - 20))}>
-          Previous opinions
-        </Button>
-        <Button
-          disabled={detail.nextOffset === null}
-          onClick={() => {
-            if (detail.nextOffset !== null) changePage(detail.nextOffset);
-          }}
-        >
-          Next opinions
-        </Button>
-      </nav>
+      {/* Paging appears only when there is another page to reach. */}
+      {offset || detail.nextOffset !== null ? (
+        <nav className="flex gap-1" aria-label="Second opinion pages">
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={!offset}
+            onClick={() => changePage(Math.max(0, offset - 20))}
+          >
+            Previous opinions
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={detail.nextOffset === null}
+            onClick={() => {
+              if (detail.nextOffset !== null) changePage(detail.nextOffset);
+            }}
+          >
+            Next opinions
+          </Button>
+        </nav>
+      ) : null}
     </section>
   );
 };

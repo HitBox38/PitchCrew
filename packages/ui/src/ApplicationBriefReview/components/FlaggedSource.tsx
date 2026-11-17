@@ -5,7 +5,7 @@ export const FlaggedSource = ({ items }: { items: ExtractedJob['flagged'] }) => 
   if (!items.length) return null;
   return (
     <section>
-      <h4>Excluded or flagged source text</h4>
+      <h4>Flagged in the posting</h4>
       <ul className="grid gap-2">
         {keyedItems(items, (item) => JSON.stringify(item)).map(({ item, key }) => (
           <li key={key}>
