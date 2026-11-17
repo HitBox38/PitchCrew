@@ -10,6 +10,7 @@ import { once } from 'node:events';
 import assert from 'node:assert/strict';
 import { createNativeBrowserHost, installNativeBrowserIpc } from '../../src/browser/host.ts';
 import { checkNativeBrowserPresentation } from './native-browser-presentation.ts';
+import { stallNativeMaskPaint } from './native-browser-capture.ts';
 
 if (process.platform === 'darwin') app.setActivationPolicy('accessory');
 app.setPath('userData', process.env.PITCHCREW_NATIVE_SMOKE_HOME!);
@@ -73,6 +74,7 @@ void app
     const initialized = new Set<number>();
     const inputSignals = new Map<number, unknown[]>();
     const streamFrames = new Map<number, number>();
+    const stalledPaints = new Map<string, () => void>();
     let last = '';
     let busy = false;
     const timer = setInterval(async () => {
@@ -140,6 +142,7 @@ void app
           nonce: string;
           expression?: string;
           image?: string;
+          selector?: string;
           contentsId?: number;
           operation?: string;
           before?: string;
@@ -154,6 +157,22 @@ void app
         commandKind = command.kind;
         commandId = command.id;
         const group = host.groups.get(command.id);
+        if (command.kind === 'mask-paint-timeout') {
+          if (!group) throw new Error('Native capture fixture group not found.');
+          if (command.operation === 'arm')
+            stalledPaints.set(
+              group.id,
+              stallNativeMaskPaint(group.pages.get(group.active)!.contents),
+            );
+          else {
+            stalledPaints.get(group.id)?.();
+            stalledPaints.delete(group.id);
+          }
+          await writeFile(
+            process.env.PITCHCREW_NATIVE_SMOKE_RESULT!,
+            JSON.stringify({ nonce: command.nonce, value: true }),
+          );
+        }
         if (command.kind === 'guest-lifecycle' && group) {
           const contents = group.pages.get(group.active)!.contents;
           const old = command.contentsId ? webContents.fromId(command.contentsId) : undefined;
@@ -180,7 +199,7 @@ void app
         if (command.kind === 'frame-pixel' && group) {
           const contents = group.pages.get(group.active)!.contents;
           const point = await contents.executeJavaScript(
-            `(()=>{const rect=document.querySelector('#capture-marker').getBoundingClientRect();return {x:rect.x+rect.width/2,y:rect.y+rect.height/2,width:innerWidth}})()`,
+            `(()=>{const rect=document.querySelector(${JSON.stringify(command.selector ?? '#capture-marker')}).getBoundingClientRect();return {x:rect.x+rect.width/2,y:rect.y+rect.height/2,width:innerWidth}})()`,
           );
           const image = nativeImage.createFromBuffer(Buffer.from(command.image!, 'base64'));
           const size = image.getSize();

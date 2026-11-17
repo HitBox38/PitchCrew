@@ -461,30 +461,42 @@ export class RuntimeMaintenance {
       );
       this.store.save();
     }
-    for (const update of this.store.state.updates) {
-      if (
-        this.isUpdating(update.id) ||
-        !update.canUpdate ||
-        this.installations.has(update.id) ||
-        update.id === 'demo'
-      )
-        continue;
-      try {
-        const installation = await this.scope(() =>
-          this.host.resolve(update.id as Exclude<RuntimeId, 'demo'>, this.controller.signal),
-        );
-        if (installation?.identity === this.store.state.identities[update.id])
-          this.installations.set(update.id, installation);
-        else {
-          update.canUpdate = false;
-          update.detail = 'The runtime installation changed. Check updates again.';
-        }
-      } catch {
-        update.canUpdate = false;
-        update.detail = 'Recheck this runtime to restore its update controls.';
-      }
-      this.store.save();
-    }
+    // Installer ownership lookups are independent and may spawn bounded metadata commands.
+    // Join every lookup, including on a persistence failure, before startup can finish or close.
+    const restored = await Promise.allSettled(
+      this.store.state.updates
+        .filter(
+          (update) =>
+            !this.isUpdating(update.id) &&
+            update.canUpdate &&
+            !this.installations.has(update.id) &&
+            update.id !== 'demo',
+        )
+        .map(async (update) => {
+          try {
+            const installation = await this.scope(() =>
+              this.host.resolve(update.id as Exclude<RuntimeId, 'demo'>, this.controller.signal),
+            );
+            if (installation?.identity === this.store.state.identities[update.id])
+              this.installations.set(update.id, installation);
+            else {
+              update.canUpdate = false;
+              update.detail = 'The runtime installation changed. Check updates again.';
+            }
+          } catch {
+            update.canUpdate = false;
+            update.detail = 'Recheck this runtime to restore its update controls.';
+          }
+          this.store.save();
+        }),
+    );
+    const failures = restored.filter((result) => result.status === 'rejected');
+    if (failures.length === 1) throw failures[0]!.reason;
+    if (failures.length > 1)
+      throw new AggregateError(
+        failures.map((failure) => failure.reason),
+        'Runtime installation recovery failed.',
+      );
     this.recovered = !waiting;
   };
   finishBeforeShutdown = async () => {

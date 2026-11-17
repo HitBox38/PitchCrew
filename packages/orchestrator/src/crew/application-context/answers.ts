@@ -16,6 +16,7 @@ export const applicationUserAnswers = (
 ) => {
   const application = context.board.get<Card>('card', cardId).applicationContext;
   const requirements = application?.requirements ?? [];
+  const assessment = ['fit', 'packet-evaluation'].includes(purpose ?? '');
   const isFormQuestion = (question: UserInputRequest) =>
     Boolean(
       application &&
@@ -39,8 +40,7 @@ export const applicationUserAnswers = (
         : (['application-draft', 'application-review'].includes(purpose ?? '') &&
             ['application-draft', 'application-review'].includes(origin.purpose ?? '') &&
             isFormQuestion(question)) ||
-            (['fit', 'packet-evaluation'].includes(purpose ?? '') &&
-              ['fit', 'packet-evaluation'].includes(origin.purpose ?? ''));
+            (assessment && ['fit', 'packet-evaluation'].includes(origin.purpose ?? ''));
     })
     .flatMap((question) => {
       const message = context.board.get<ChatMessage>('message', question.answerMessageId!);
@@ -68,7 +68,9 @@ export const applicationUserAnswers = (
           questionId: question.id,
           messageId: message.id,
           answer,
-          ...(isFormQuestion(question) ? { question: question.question } : {}),
+          ...(isFormQuestion(question) || (assessment && !question.applicationRequirementId)
+            ? { question: question.question }
+            : {}),
         },
       ];
     })

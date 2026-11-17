@@ -8,6 +8,8 @@ The primary audience is tech professionals actively looking for a job who use, o
 
 The page proves the claim with an interactive, clearly labelled fictional packet, explains the three gates and prompt-injection handling, follows the job across a stage track (fit, draft, submit, track), introduces the paused support crew, explains local storage and supported runtimes, explains setup in three steps beside the platform downloads and answers setup, pricing, safety and privacy questions. It makes no claims about hiring results or full offline AI operation, and uses no testimonials, counts or ratings.
 
+The submit stage and safety FAQ explain configurable browser supervision: users choose Supervised or Autonomous preparation as each agent’s default in Crew and can override it per conversation. Autonomous preparation needs approved task sites; buttons, keys, dialogs and final submission still require approval, and scheduled routines stay supervised.
+
 Durable product context lives in `packages/landing/PRODUCT.md`; the page's direction contract lives in `packages/landing/.impeccable/surfaces/src-app-page-tsx.md`, and the documented visual system in `packages/landing/DESIGN.md` and `.impeccable/design.json`. Transient impeccable files (mocks, review captures, build state, decision-page state) are gitignored.
 
 ## Design

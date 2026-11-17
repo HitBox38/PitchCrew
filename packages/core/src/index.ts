@@ -44,7 +44,7 @@ export type { ChatMessage, ChatResult, ChatStreamState, ChatStreamUpdate } from 
 export * from './computer.ts';
 export { currentEventVersion, decodeEvent } from './events.ts';
 export type { BoardEvent } from './events.ts';
-export { packetSchema, packetTextLimits } from './packets.ts';
+export { packetSchema, packetTextLimits, resumeReviewPacketSchema } from './packets.ts';
 export type {
   ArtifactLayout,
   Packet,

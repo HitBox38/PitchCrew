@@ -4,6 +4,7 @@ import {
   packetRuleLimits,
   packetRulesSchema,
   type Packet,
+  type PacketDocument,
   type PacketRuleIssue,
   type PacketRules,
   type PacketRulesState,
@@ -145,10 +146,25 @@ export class PacketRulesStore {
   };
 
   /** Applies current rules. An invalid rules file adds a blocking error instead of being ignored. */
-  check = async (packet: Packet, profile: ProfileFile[]): Promise<PacketCheck> => {
+  check = async (
+    packet: Packet,
+    profile: ProfileFile[],
+    documents?: readonly PacketDocument[],
+  ): Promise<PacketCheck> => {
     const state = this.current();
     const signature = rulesSignature(state);
-    const result = await boundedPacketCheck(packet, profile, state.rules);
+    const rules = documents
+      ? {
+          ...state.rules,
+          rules: state.rules.rules
+            .map((rule) => ({
+              ...rule,
+              documents: rule.documents.filter((document) => documents.includes(document)),
+            }))
+            .filter((rule) => rule.documents.length),
+        }
+      : state.rules;
+    const result = await boundedPacketCheck(packet, profile, rules);
     const current = this.current();
     const changed = signature !== rulesSignature(current);
     if (!changed && !state.error) return result;

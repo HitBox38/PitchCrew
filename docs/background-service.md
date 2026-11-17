@@ -91,6 +91,8 @@ The background service waits instead of failing. It checks every 15 seconds and 
 
 The launcher stops only a daemon it started itself. Closing the window never stops the background service. While the service runs, `bun run desktop` shows the production daemon, so Demo is not available.
 
+On daemon startup, independent installer-ownership checks for saved runtime-update controls overlap; readiness still waits for all of them and for interrupted-work recovery. This applies to desktop-owned and service-owned daemons. See [startup recovery and its offline benchmark](runtime-checks.md#startup-recovery).
+
 ## Logs
 
 The service daemon writes to `background-service/daemon.log` in the data folder. When the file reaches 5 MB it moves to `daemon.log.1`, replacing the older copy, so the logs use at most about 10 MB. `bun run service logs` prints the newest lines from both files.
@@ -130,6 +132,8 @@ Start with `bun run service status` and `bun run service logs`.
 ## Runtime CLI maintenance
 
 Runtime checks and updates appear in Settings > Runtimes. A service-owned daemon continues an explicitly requested runtime update after the desktop closes; an owned desktop daemon defers quitting until maintenance finishes. Stopping the service or a forced daemon shutdown interrupts its owned installer worker. On restart, Pitchcrew reconciles unfinished maintenance and rechecks the CLI before releasing held work; it never replays an installer automatically.
+
+A surviving installer does not prevent daemon startup or initial crew creation. Its runtime stays represented as unavailable until checked by this daemon, and remains held with Update disabled while the worker survives. See [restart recovery](runtime-checks.md#verification-and-restart-recovery).
 
 ## Contributor rules
 

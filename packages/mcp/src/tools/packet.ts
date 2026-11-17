@@ -1,10 +1,15 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { packetSchema } from '@pitchcrew/core';
+import { packetSchema, resumeReviewPacketSchema } from '@pitchcrew/core';
 import { z } from 'zod';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
 
-export const registerPacketTools = (server: McpServer, call: AgentCall, isolated = false) => {
+export const registerPacketTools = (
+  server: McpServer,
+  call: AgentCall,
+  isolated = false,
+  resumeOnly = false,
+) => {
   server.registerTool(
     'pitchcrew_get_card',
     {
@@ -51,8 +56,11 @@ export const registerPacketTools = (server: McpServer, call: AgentCall, isolated
     {
       title: 'Check packet evidence',
       description:
-        "Check exact source quotes and the user's packet rules. problems lists blocking errors; warnings are advisory. findings give each rule id, severity and document. layout reports formatted PDF page counts and warnings, including the one-page resume target. documents reports bounded text extraction, content retention and advisory geometry checks, with per-file findings and DOCX fallback when PDF is unavailable. This is a mechanical check, not a complete factual review.",
-      inputSchema: { packet: packetSchema },
+        "Check exact source quotes and the user's packet rules. problems lists blocking errors; warnings are advisory. findings give each rule id, severity and document. layout reports formatted PDF page counts and warnings, including the one-page resume target. documents reports bounded text extraction, content retention and advisory geometry checks, with per-file findings and DOCX fallback when PDF is unavailable. This is a mechanical check, not a complete factual review." +
+        (resumeOnly
+          ? ' This specialist run checks only the supplied resume and its claims. Keep hidden coverLetter, formAnswers and note empty; claims may be empty. A resume-scoped result does not validate the full packet.'
+          : ''),
+      inputSchema: { packet: resumeOnly ? resumeReviewPacketSchema : packetSchema },
       annotations: readOnly,
     },
     ({ packet }) => call('lint', { packet }),

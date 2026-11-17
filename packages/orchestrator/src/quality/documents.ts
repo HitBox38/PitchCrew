@@ -2,11 +2,16 @@ import { prepareVerifiedArtifacts, systemFonts } from '@pitchcrew/packet';
 import type { Packet } from '@pitchcrew/core';
 import { join } from 'node:path';
 
-export const inspectPacketDocuments = async (directory: string, packet: Packet) => {
+export const inspectPacketDocuments = async (
+  directory: string,
+  packet: Packet,
+  sources: ('resume' | 'coverLetter')[] = ['resume', 'coverLetter'],
+) => {
   const { reports } = await prepareVerifiedArtifacts(packet, ['pdf'], 'formatted', {
     fonts: systemFonts({ folders: [join(directory, 'fonts')] }),
+    sources,
   });
-  for (const source of ['resume', 'coverLetter'] as const) {
+  for (const source of sources) {
     const name = source === 'resume' ? 'resume.pdf' : 'cover_letter.pdf';
     if (reports.find((r) => r.name === name)?.status === 'blocked') {
       const fallback = await prepareVerifiedArtifacts(packet, ['docx'], 'formatted', {
@@ -19,8 +24,9 @@ export const inspectPacketDocuments = async (directory: string, packet: Packet) 
   const errors: string[] = [];
   const warnings: string[] = [];
   const repairable: string[] = [];
-  for (const source of ['resume', 'cover_letter']) {
-    const files = reports.filter((r) => r.name.startsWith(`${source}.`));
+  for (const source of sources) {
+    const name = source === 'resume' ? 'resume' : 'cover_letter';
+    const files = reports.filter((r) => r.name.startsWith(`${name}.`));
     const valid = files.some((r) => r.status === 'verified');
     for (const report of files)
       for (const finding of report.findings) {

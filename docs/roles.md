@@ -8,6 +8,8 @@ Every ordinary production runtime turn has a fixed 30-minute limit per workflow 
 
 Startup supplies Scout, Writer, Reviewer, Submitter, Tracker, Documenter, Pipeline Coach and Career Coach. Production defaults start paused. Before seeding missing roles, Pitchcrew checks every supported runtime installed on the daemon's machine and loads bounded native model catalogs for installed runtimes that support discovery. It selects a role-specific recommended runtime, model and supported reasoning level. Development defaults use Demo. These are ordinary editable, retireable roles using the same configuration and tools as custom agents.
 
+A runtime held by a surviving installer is represented as unavailable before its first check, so initial crew creation can finish without probing or releasing that runtime. Recommendations use the other available runtimes or the paused preferred setup when none are available. Later recovery never rewrites the seeded choices.
+
 | Agent          | Preferred runtime | Preferred model                     | Reasoning |
 | -------------- | ----------------- | ----------------------------------- | --------- |
 | Scout          | Codex             | GPT-6.1 Sol                         | Medium    |
@@ -107,6 +109,8 @@ Version 24 added persisted work queues and workspace concurrency settings. Versi
 ## Application source review
 
 Before fit assessment, extract or manually prepare the job brief. Before drafting, review and confirm its complete context and application requirements in the job overview. Confirmed changes require a fresh packet review; unchanged refreshes preserve accepted personal answers. The job's Draft application control also supports custom chat-only agents with a supported runtime. Source-discussion chat cannot create a managed application packet.
+
+Fit agents can ask necessary practical-constraint questions through `pitchcrew_ask_user` without `applicationRequirementId`. Asking ends the turn; the saved question and user-authored answer reach the same agent's isolated assessment continuation as job-specific reference data. These clarifications do not confirm an application requirement or become Profile evidence. Fit and packet-evaluation tool schemas omit the binding field; only isolated drafting/review can bind confirmed requirement answers. Packet evaluation continues to report missing personal application answers as limitations rather than blocking on them.
 
 Codex, Claude Code and OpenCode support the isolated application modes; Demo supports fictional development examples. Other runtimes continue to support ordinary conversations but must not fall back to raw descriptions for application runs. See [application source safety](application-source-safety.md).
 
