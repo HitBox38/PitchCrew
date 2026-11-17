@@ -11,6 +11,19 @@ if (command === 'codex' && args.includes('app-server')) {
   await runFixture('claude-models-cli', ['default']);
 } else if (command === 'copilot' && args.includes('--headless')) {
   await runFixture('models-cli', ['copilot']);
+} else if (command === 'opencode' && args.includes('debug') && args.includes('agents')) {
+  // Like OpenCode 2, report the effective agents from the configuration this run supplied.
+  const config = JSON.parse(process.env.OPENCODE_CONFIG_CONTENT || '{}') as {
+    agent?: Record<string, { permission?: Record<string, string> }>;
+  };
+  const agents = Object.entries(config.agent ?? {}).map(([id, agent]) => ({
+    id,
+    permissions: Object.entries(agent.permission ?? {}).map(([action, effect]) => ({
+      action,
+      effect,
+    })),
+  }));
+  console.log(JSON.stringify(agents));
 } else if (args.includes('models') || args.includes('--list-models')) {
   const catalogs: Record<string, string> = {
     opencode: 'example/fixture-model',
