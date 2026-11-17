@@ -139,7 +139,7 @@ export const startSubmission = async (
       submissionApprovalId: approval.id,
       createdAt: new Date().toISOString(),
       order: Date.now(),
-      content: `Prepare this job's application using the current reviewed and exported packet (approval ${approval.id}). Inspect the actual form and save its assessment. Ask me for missing personal answers; do not invent them. Check existing submission attempts to avoid duplicates. Use the existing browser supervision and ask me to approve the exact final submission action. After executing it, capture confirmation evidence and wait for my verification. Never retry an uncertain submission.`,
+      content: `Prepare this job's application using the current reviewed and exported packet (approval ${approval.id}). Inspect the actual form and save its assessment. Ask me for missing personal answers; do not invent them. Check existing submission attempts to avoid duplicates. Follow my browser permissions for you, but mark the exact final submission with its submission purpose and ask me to approve it. After executing it, capture confirmation evidence and wait for my verification. Never retry an uncertain submission.`,
       deliveries: [{ roleId: role.id, status: 'queued', runId: null, error: '' }],
     };
     context.addMessage(

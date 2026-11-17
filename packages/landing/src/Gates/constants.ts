@@ -25,7 +25,7 @@ export const gates: {
     role: 'you',
     actor: 'You',
     title: 'Approved',
-    text: 'You approve the exact files before they are exported. In the browser, every submit, button press and dialog waits for your decision.',
-    stops: 'Stops anything being sent without you.',
+    text: 'You approve the exact files before they are exported. In the browser, Pitchcrew asks before it submits an application or sends a message, spotting those steps as best it can; you choose how much else asks first.',
+    stops: 'Stops unapproved exports and asks before an application goes out.',
   },
 ];

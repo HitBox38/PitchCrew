@@ -6,7 +6,7 @@ The deterministic provider connects to the real scoped MCP stdio server for insp
 
 ## Journeys
 
-The fifteen cases verify observable results:
+The sixteen cases (fifteen in `browser.e2e.ts`, one in `native-tab-failure.e2e.ts`) verify observable results:
 
 - Open the browser from Chat and navigate its actual native guest through the address bar.
 - Retain a blank tab's failed DNS address and explanation across tab switching and retry, then recover by editing the address.
@@ -18,11 +18,14 @@ The fifteen cases verify observable results:
 - Navigate to Settings and back while preserving the page, its human field draft and manual-control lease.
 - Create, navigate, select and close a real second tab, use Back/Forward and retain the first tab's draft.
 - Capture the real native page, annotate it and attach its PNG to the existing composer draft without sending a message.
+- Pick a real page element through inspect mode without pressing it, then pick it again at 125% page zoom and check that the crop scales with the zoom.
 - Start an agent from Chat, inspect through real MCP, review current evidence, approve the exact action and observe its actual field value. Read-only viewing also blocks a human click without takeover.
 - Reject another agent action in the UI and verify its native click never happens.
 - Crash the actual guest renderer and recover through the UI's Retry action with a new guest generation.
 - Close through the app controls, assert that owned guests are destroyed and require normal Electron and daemon process exit.
 - Keep an inactive iPhone SE page concealed with three real tabs through repeated DNS preflight failures, a Chromium failed navigation, tab switches, window resizing, expansion and panel hide/restore. Full-window compositor bitmap checks detect escaped page pixels and verify that the restored selected page paints only inside its viewport without losing its guest or device setting.
+
+These journeys decide agent actions in Supervised. Automatic approvals in the other browser permission modes are covered by the MCP suites, such as `packages/mcp/test/browser-access-modes.test.ts`.
 
 The website's changing color marker uses a CSS animation. It proves live native composition without changing the DOM that exact-action approval fingerprints bind. A viewport change invalidates stale approval normally; the deterministic agent follows the tool's instruction to inspect and request fresh evidence. The test waits for the displayed approval to match the real viewport before deciding it.
 

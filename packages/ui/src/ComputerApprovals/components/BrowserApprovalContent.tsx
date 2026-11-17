@@ -2,7 +2,7 @@ import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import type { ComputerApproval } from '@pitchcrew/core';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { approvalSummary, browserStatusLabels } from '../helpers.ts';
+import { approvalSummary, browserStatusLabel } from '../helpers.ts';
 import { BrowserActionSummary } from './BrowserActionSummary.tsx';
 import { BrowserApprovalActions } from './BrowserApprovalActions.tsx';
 import { BrowserApprovalError } from './BrowserApprovalError.tsx';
@@ -32,7 +32,7 @@ export const BrowserApprovalContent = ({
           </p>
         </div>
         <span className={`badge ${approval.status === 'consumed' ? 'success' : ''}`}>
-          {browserStatusLabels[approval.status]}
+          {browserStatusLabel(approval)}
         </span>
       </div>
       <p className="approval-description">{approval.reason}</p>
@@ -59,13 +59,16 @@ export const BrowserApprovalContent = ({
         </AccordionSection>
       ) : null}
       <AccordionSection className="approval-preview" heading="Review the current page">
-        <img
-          className="computer-page-preview"
-          src={`data:image/jpeg;base64,${approval.page.screenshot}`}
-          alt="Browser page when this action was requested"
-          width={approval.page.viewport?.width ?? 1280}
-          height={approval.page.viewport?.height ?? 800}
-        />
+        {/* Actions a browser mode allows on its own keep the page text but no screenshot. */}
+        {approval.page.screenshot ? (
+          <img
+            className="computer-page-preview"
+            src={`data:image/jpeg;base64,${approval.page.screenshot}`}
+            alt="Browser page when this action was requested"
+            width={approval.page.viewport?.width ?? 1280}
+            height={approval.page.viewport?.height ?? 800}
+          />
+        ) : null}
         <SourceBlock
           label="Captured page text"
           value={approval.page.text}

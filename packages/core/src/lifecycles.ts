@@ -193,7 +193,10 @@ export const approvalLifecycle = defineLifecycle('Packet approval', {
   },
 });
 
-/** One exact browser action. Automatic preparation creates it already approved. */
+/**
+ * One exact browser action. The server creates it already approved when the user's browser mode
+ * or a task site grant allows the action without asking.
+ */
 export const computerApprovalLifecycle = defineLifecycle('Browser action approval', {
   initial: ['pending', 'approved'],
   graph: {

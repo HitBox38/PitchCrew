@@ -1,10 +1,10 @@
 import type { Snapshot } from '@pitchcrew/core';
 import type { ApprovalRequest } from './types.ts';
-import { browserStatusLabels } from '@/ComputerApprovals/helpers.ts';
+import { browserStatusLabel } from '@/ComputerApprovals/helpers.ts';
 import { packetStatusLabel, packetNeedsAction } from './helpers.ts';
 import { stateLabels } from '@/lib/labels.ts';
 export const requestStatus = (request: ApprovalRequest, data: Snapshot) => {
-  if (request.kind === 'browser') return browserStatusLabels[request.approval.status];
+  if (request.kind === 'browser') return browserStatusLabel(request.approval);
   const approval = request.approval;
   const card = data.cards.find((item) => item.id === approval.cardId);
   if (

@@ -52,13 +52,23 @@ export const browserActionTitles: Record<BrowserAction['kind'], string> = {
   press: 'Press a key',
   upload: 'Upload an application file',
 };
-export const browserStatusLabels: Record<ComputerApproval['status'], string> = {
+const browserStatusLabels: Record<ComputerApproval['status'], string> = {
   pending: 'Needs approval',
   approved: 'Approved',
   rejected: 'Rejected',
   consumed: 'Executed',
   failed: 'Failed',
 };
+/** The server allowed these on its own: they never say approved, and a rejected one expired unused. */
+const automaticStatusLabels: Partial<Record<ComputerApproval['status'], string>> = {
+  approved: 'Allowed automatically',
+  rejected: 'Expired',
+  consumed: 'Ran automatically',
+};
+/** A request's status in words, without claiming the user approved an automatic one. */
+export const browserStatusLabel = (approval: Pick<ComputerApproval, 'status' | 'automatic'>) =>
+  (approval.automatic ? automaticStatusLabels[approval.status] : undefined) ??
+  browserStatusLabels[approval.status];
 
 const approveVerbs: Record<BrowserAction['kind'], string> = {
   dialog: 'Approve answer',

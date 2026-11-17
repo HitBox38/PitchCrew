@@ -11,7 +11,9 @@ export const BrowserSites = ({
   const sites = [
     ...new Set([...(session?.allowedSites ?? []), ...(session?.explorationSites ?? [])]),
   ];
-  if (!session?.runId || !sites.length) return null;
+  // Site grants exist only in Autonomous preparation. Grants kept from an earlier run of the same
+  // task do nothing in another mode, and the server takes no grant changes there.
+  if (session?.mode !== 'autonomous' || !session.runId || !sites.length) return null;
   return (
     <AccordionSection
       className="browser-sites"

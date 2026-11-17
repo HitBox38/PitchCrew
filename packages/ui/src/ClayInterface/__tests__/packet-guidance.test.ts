@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Approval, Card, Snapshot } from '@pitchcrew/core';
+import type { Approval, Card, ComputerApproval, Snapshot } from '@pitchcrew/core';
 import { packetNeedsAction } from '../../lib/inbox.ts';
 import {
   cardLine,
@@ -10,7 +10,7 @@ import {
   nextUp,
 } from '../jobs.ts';
 import { cardPacketApproval, packetAction } from '../packet-guidance.ts';
-import { decisions, jobSignals, signalAsks } from '../signals.ts';
+import { decisions, jobAsks, jobSignals, signalAsks } from '../signals.ts';
 
 const packet = { resume: 'Resume', coverLetter: '', formAnswers: '', note: '', claims: [] };
 
@@ -194,6 +194,53 @@ describe('packet decision guidance', () => {
       tone: 'ochre',
       live: false,
     });
+  });
+
+  it('keeps preparation plum while the browser allows steps on its own', () => {
+    const handoff = approval({
+      status: 'consumed',
+      exportDirectory: '/fictional/exports/acme',
+      submission: { method: 'agent', roleId: 'submitter', requestId: 'req' },
+    });
+    const step = (id: string, fields: Partial<ComputerApproval>) =>
+      ({
+        id,
+        runId: 'r',
+        cardId: 'job',
+        roleId: 'submitter',
+        status: 'approved',
+        reason: 'Fill the name field',
+        createdAt: '2026-11-03T00:00:00.000Z',
+        ...fields,
+      }) as ComputerApproval;
+    const data = snapshot([handoff], {
+      chatRequests: [
+        { id: 'req', deliveries: [{ status: 'running' }] },
+      ] as Snapshot['chatRequests'],
+      runs: [
+        { id: 'r', roleId: 'submitter', cardId: 'job', status: 'running' },
+      ] as Snapshot['runs'],
+      // Created approved by a browser mode or a task site grant (no mode), and used or not yet.
+      computerApprovals: [
+        step('edits', { automatic: true, mode: 'edits' }),
+        step('full', { automatic: true, mode: 'full' }),
+        step('site', { automatic: true }),
+        step('ran', { automatic: true, mode: 'auto', status: 'consumed' }),
+      ],
+    });
+    expect(decisions(data).map((item) => item.id)).toEqual(['approval']);
+    expect(jobAsks('job', data)).toBe(false);
+    expect(signalAsks(jobSignals(data).get('job')!)).toBe(false);
+    expect(nextUp(data.cards[0]!, data)).toMatchObject({ tone: 'working' });
+    expect(columnBeads(data.cards, jobSignals(data))[0]).toMatchObject({
+      tone: 'plum',
+      live: true,
+    });
+    // A request the user approved that has not run yet still waits on them, as before.
+    data.computerApprovals.push(step('mine', {}));
+    expect(decisions(data).map((item) => item.id)).toEqual(['approval', 'mine']);
+    expect(jobAsks('job', data)).toBe(true);
+    expect(columnBeads(data.cards, jobSignals(data))[0]).toMatchObject({ tone: 'ochre' });
   });
 
   it('selects the newest current packet for direct handoff navigation', () => {

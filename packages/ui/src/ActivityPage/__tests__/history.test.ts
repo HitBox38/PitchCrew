@@ -85,4 +85,15 @@ it('links an event to its run, conversation, job or page only when it still exis
   });
   expect(activityContext(event({ kind: 'routine' }), data)).toMatchObject({ to: '/routines' });
   expect(activityContext(event({ kind: 'card', entityId: 'gone' }), data)).toBeNull();
+  // A request the user decides opens Decisions; one the server allowed on its own was never a
+  // decision, so it opens its job, or nothing when it had none.
+  const browser = (data: object) =>
+    event({ kind: 'computer_approval', entityId: 'approval-1', data: data as never });
+  expect(activityContext(browser({ cardId: 'card-1' }), data)).toMatchObject({ to: '/inbox' });
+  expect(activityContext(browser({ cardId: 'card-1', automatic: true }), data)).toEqual({
+    type: 'job',
+    cardId: 'card-1',
+    label: 'Fictional Co',
+  });
+  expect(activityContext(browser({ cardId: null, automatic: true }), data)).toBeNull();
 });

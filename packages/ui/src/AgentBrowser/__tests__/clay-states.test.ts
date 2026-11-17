@@ -42,7 +42,7 @@ describe('recently closed browser pages', () => {
   });
 });
 
-describe('automatic preparation steps', () => {
+describe('automatic steps', () => {
   const step = (id: string, patch: Partial<ComputerApproval>) =>
     ({
       id,
@@ -64,11 +64,27 @@ describe('automatic preparation steps', () => {
         step('5', {}),
         step('6', { roleId: 'scout' }),
         step('7', { status: 'failed' }),
+        // Expired unused (rejected) or not run yet (approved): never shown as a done step.
+        step('8', { status: 'rejected' }),
+        step('9', { status: 'approved' }),
       ],
       'writer',
       'run',
     );
     expect(steps.map((item) => item.id)).toEqual(['7', '5']);
+  });
+  it('lists steps a browser mode allowed like those from a task site grant', () => {
+    const steps = automaticSteps(
+      [
+        step('1', { mode: 'edits' }),
+        step('2', { mode: 'full', action: { kind: 'click', selector: '#more' } }),
+        step('3', { mode: 'auto', status: 'pending' }),
+        step('4', { mode: 'auto', automatic: false }),
+      ],
+      'writer',
+      'run',
+    );
+    expect(steps.map((item) => item.id)).toEqual(['2', '1']);
   });
   it('lists nothing without a run', () => {
     expect(automaticSteps([step('1', {})], 'writer', null)).toEqual([]);

@@ -26,6 +26,27 @@ describe('Decision outcomes', () => {
     expect(decisionOutcome(browser('failed')).tone).toBe('rose');
   });
 
+  it('never says the user approved what the server allowed automatically', () => {
+    // With a browser mode, and from a task site grant (no mode saved).
+    for (const mode of ['edits', 'auto', 'full', undefined] as const) {
+      const automatic = (status: ComputerApproval['status']): ApprovalRequest => {
+        const request = browser(status);
+        return { ...request, approval: { ...request.approval, automatic: true, mode } };
+      };
+      expect(decisionOutcome(automatic('consumed'))).toEqual({
+        label: 'Ran automatically',
+        tone: 'teal',
+      });
+      expect(decisionOutcome(automatic('failed'))).toEqual({
+        label: 'Allowed automatically, then failed',
+        tone: 'rose',
+      });
+      // Only expiry rejects an automatic approval: a run ending, a restart or a changed job.
+      expect(decisionOutcome(automatic('rejected'))).toEqual({ label: 'Expired', tone: 'quiet' });
+      expect(decisionOutcome(automatic('approved')).label).toBe('Allowed automatically');
+    }
+  });
+
   it('keeps the job stage as separate metadata', () => {
     const cards = [{ id: 'job', state: 'interviewing' } as Card];
     expect(decisionStage(packet('consumed'), { cards })).toEqual({ label: 'Interviewing' });

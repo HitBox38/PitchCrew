@@ -96,6 +96,15 @@ describe('agent card facts', () => {
       'Keeps your profile current',
     );
   });
+  it('says how much a browser agent does before it asks, for every saved mode', () => {
+    const browser = (browserMode: string) =>
+      capabilityLine(role('submitter', { capabilities: { computerUse: true }, browserMode }));
+    expect(browser('supervised')).toEqual({ icon: 'browser', label: 'Browser, asks first' });
+    expect(browser('autonomous').label).toBe('Browser, prepares forms');
+    expect(browser('edits').label).toBe('Browser, fills forms');
+    expect(browser('auto').label).toBe('Browser, asks before risky steps');
+    expect(browser('full').label).toBe('Browser, full access');
+  });
   it('uses the installed catalog label for the model', () => {
     expect(runtimeLine(role('writer'), base)).toBe('Codex · GPT Fictional');
     expect(runtimeLine(role('writer', { model: '' }), base)).toBe('Codex · CLI default');

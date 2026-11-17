@@ -127,7 +127,7 @@ Vitest builds the production UI once when UI test files are selected. Full-app b
 
 These must stay true. A change that breaks one is a bug even if tests pass.
 
-1. **No outward action without approval.** Anything that sends, submits, posts or emails must go through a gated MCP tool checking an unused approval bound to the exact payload. The check belongs in MCP, not in prompts or UI. A direct user chat request plus `editProfile` authorizes source-bound GitHub profile commits through the dedicated profile tool without a second approval; the gateway verifies the owning user delivery, the editing grant and connected account, imported folder scope and optimistic file baselines. Scheduled and crew-triggered changes still require reviewed proposals. See [docs/profile-maintenance.md](docs/profile-maintenance.md). Browser interactions use an exact-action gate bound to run, role, card, page fingerprint and upload contents. User-approved task site browsing grants can authorize bounded HTTPS read navigation, hover and scroll, while separate preparation grants authorize only the bounded preparation rules in [docs/computer-use.md](docs/computer-use.md); submission, buttons, keys, dialogs and unfamiliar controls always require an exact user decision. Website-controlled scripts remain outside payload verification. Local export also uses its gate. Configured anonymous app analytics follows the device opt-out preference in [docs/analytics.md](docs/analytics.md); it never carries application content or grants agents an outward-action bypass.
+1. **No outward action without approval.** Anything that sends, submits, posts or emails must go through a gated MCP tool checking an unused approval bound to the exact payload. The check belongs in MCP, not in prompts or UI. A direct user chat request plus `editProfile` authorizes source-bound GitHub profile commits through the dedicated profile tool without a second approval; the gateway verifies the owning user delivery, the editing grant and connected account, imported folder scope and optimistic file baselines. Scheduled and crew-triggered changes still require reviewed proposals. See [docs/profile-maintenance.md](docs/profile-maintenance.md). Every browser action gets its own exact-action approval record, bound to run, role, card, page fingerprint and upload contents and consumed before the action runs. The user's browser mode decides which records the server may approve on its own: task site grants for bounded reads and recognized-form preparation in Autonomous preparation, and the server's classification of the live target in Accept edits, Auto and Full access, as described in [docs/computer-use.md](docs/computer-use.md). In every mode an action marked `purpose: submission`, a dialog continuing an uncertain submission (`submissionAttemptId`), anything the server classifies as sending or posting and any activated element it cannot read require an exact user decision; in Supervised every interaction does. Agents must mark the final submission; recognizing unmarked sending in Auto and Full access is best effort (see [docs/computer-use.md](docs/computer-use.md)). Scheduled routines and runs started by external MCP messages, with everything that follows from them, stay Supervised, and agents cannot change their browser mode. Website-controlled scripts remain outside payload verification. Local export also uses its gate. Configured anonymous app analytics follows the device opt-out preference in [docs/analytics.md](docs/analytics.md); it never carries application content or grants agents an outward-action bypass.
 2. **Provider code stays in packages/adapters/.** The orchestrator, board and UI see only the runtime interface and normalized results/progress.
 3. **Agents coordinate through the board only.** Internal messages and invocations are persisted board entities with scoped MCP tools; no adapter-to-adapter messaging and no shared runtime sessions across roles.
 4. **Events are append-only and stay decodable.** Never rewrite or delete stored events. Schema changes add a new version and retain a decoder for every old version.
@@ -157,7 +157,7 @@ lead -> shortlisted -> drafting -> in_review -> agreed -> awaiting_approval
 
 Scout evaluates an existing lead; the user shortlists it. Writer drafts, Reviewer agrees or requests changes. Packet approval authorizes local export; choosing a submission method exports the files. The user submits independently or explicitly starts agent preparation, approves the exact browser submission, then verifies confirmation and records the outcome. Keep active-run ownership, revised-packet approvals, cancellation and interrupted-run recovery covered when modifying this flow.
 
-An uncertain submission can continue through a separately approved browser dialog only when `submissionAttemptId` binds the same run, card, current exported packet and observed dialog. The consumed continuation approval is saved on the attempt. No click, keypress or navigation retry is allowed.
+An uncertain submission can continue through a separately approved browser dialog only when `submissionAttemptId` binds the same run, card, current exported packet and observed dialog. That dialog asks the user in every browser mode. The consumed continuation approval is saved on the attempt. No click, keypress or navigation retry is allowed.
 
 ## Topic docs
 
@@ -197,14 +197,14 @@ Read the matching file before changing the area; it holds the contributor rules 
 
 ### Browser and computer use
 
-| Before changing…                                           | Read                                                                               |
-| ---------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Browser tools, native guests, approvals and manual control | [docs/computer-use.md](docs/computer-use.md)                                       |
-| Browser journeys end to end                                | [docs/browser-e2e.md](docs/browser-e2e.md)                                         |
-| Browser panel responsiveness                               | [docs/browser-interaction-performance.md](docs/browser-interaction-performance.md) |
-| Browser benchmark                                          | [docs/browser-benchmark.md](docs/browser-benchmark.md)                             |
-| Browser review notes                                       | [docs/browser-t3code-review.md](docs/browser-t3code-review.md)                     |
-| Native desktop browser decision                            | [docs/adr/0003-native-desktop-browser.md](docs/adr/0003-native-desktop-browser.md) |
+| Before changing…                                                             | Read                                                                               |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Browser tools, native guests, permission modes, approvals and manual control | [docs/computer-use.md](docs/computer-use.md)                                       |
+| Browser journeys end to end                                                  | [docs/browser-e2e.md](docs/browser-e2e.md)                                         |
+| Browser panel responsiveness                                                 | [docs/browser-interaction-performance.md](docs/browser-interaction-performance.md) |
+| Browser benchmark                                                            | [docs/browser-benchmark.md](docs/browser-benchmark.md)                             |
+| Browser review notes                                                         | [docs/browser-t3code-review.md](docs/browser-t3code-review.md)                     |
+| Native desktop browser decision                                              | [docs/adr/0003-native-desktop-browser.md](docs/adr/0003-native-desktop-browser.md) |
 
 ### Runtimes and models
 

@@ -153,6 +153,12 @@ export const defaultInstructionHistory: Record<string, RecordedRevision[]> = {
       summary:
         'Inspects forms before drafting without requiring exported files, then rechecks requirements during submission preparation.',
     },
+    {
+      revision: 'f7a42f77c4a06a88',
+      date: '2026-11-17',
+      summary:
+        'Follows the browser mode you chose, from Supervised to Full access, and marks the final submission so it always asks you; recognizing other sending is best effort.',
+    },
   ],
   tracker: [
     {
@@ -180,6 +186,12 @@ export const defaultInstructionHistory: Record<string, RecordedRevision[]> = {
       date: '2026-10-17',
       summary:
         'First default: interview coaching, career planning and grounded offer evaluation in chat.',
+    },
+    {
+      revision: '5dfa46d9fc1c99f7',
+      date: '2026-11-17',
+      summary:
+        'Researches within the browser mode you chose and keeps private details out of searches it may run without asking.',
     },
   ],
   'pipeline-coach': [

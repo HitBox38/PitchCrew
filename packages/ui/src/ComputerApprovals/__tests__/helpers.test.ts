@@ -1,6 +1,11 @@
 import { expect, it } from 'vitest';
 import type { BrowserSnapshot } from '@pitchcrew/core';
-import { actionFields, approvalSummary, describePageElement } from '../helpers.ts';
+import {
+  actionFields,
+  approvalSummary,
+  browserStatusLabel,
+  describePageElement,
+} from '../helpers.ts';
 
 const page = {
   url: 'https://jobs.example/apply',
@@ -76,4 +81,20 @@ it('writes the tray title itself, with the exact value and a named or located ta
   expect(approvalSummary({ kind: 'navigate', url: 'https://www.iana.org/help' })).toBe(
     'Open www.iana.org/help',
   );
+});
+
+it('words an automatic request’s status as the server’s, never as the user’s approval', () => {
+  const statuses = ['pending', 'approved', 'rejected', 'consumed', 'failed'] as const;
+  expect(statuses.map((status) => browserStatusLabel({ status }))).toEqual([
+    'Needs approval',
+    'Approved',
+    'Rejected',
+    'Executed',
+    'Failed',
+  ]);
+  expect(
+    statuses
+      .filter((status) => status !== 'pending')
+      .map((status) => browserStatusLabel({ status, automatic: true })),
+  ).toEqual(['Allowed automatically', 'Expired', 'Ran automatically', 'Failed']);
 });

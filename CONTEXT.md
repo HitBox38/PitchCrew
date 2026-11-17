@@ -288,6 +288,18 @@ _Avoid_: Manual takeover, read-only browsing
 Browser permission mode allowing bounded application preparation on sites the user grants for the current task. Final submission still requires an exact user decision.
 _Avoid_: Autonomous submission, unrestricted browsing
 
+**Accept edits**:
+Browser permission mode in which the server approves read-only browsing and form edits, such as filling fields, choosing options and attaching approved packet files, on any public site without site grants. Buttons, links, keys, dialogs, boxes that agree to terms or give consent, and sending still require the user's exact-action approval.
+_Avoid_: Autonomous preparation (when no site grant is involved), a runtime CLI's own permission mode
+
+**Auto**:
+Browser permission mode that extends Accept edits to routine clicks and keys the server judges safe from the live page. Risky interactions, such as deleting, buying or changing an account, and what the server recognizes as sending still require the user's exact-action approval; that recognition is best effort.
+_Avoid_: Autonomous preparation, autopilot, automatic approval (when referring to the mode itself)
+
+**Full access**:
+Browser permission mode in which the server approves every browser action, including moving multi-step forms to their next step, except a final submission the agent marks, what the server recognizes as sending or posting an application, message, post or invitation, and any element it cannot read; those still require the user's exact-action approval. The server's recognition of sending is best effort.
+_Avoid_: Unrestricted browsing, autonomous submission, blanket browser permission, a runtime CLI's own permission mode
+
 **Browser action approval**:
-Authorization for one exact agent interaction in its reviewed application and page context. It is distinct from permission to prepare on a task site.
+Authorization for one exact agent interaction in its reviewed application and page context: the user's decision, or an automatic approval the gateway records under the run's browser mode or task site grant. A browser mode never replaces this per-action record. It is distinct from permission to prepare on a task site.
 _Avoid_: Site grant, blanket browser permission

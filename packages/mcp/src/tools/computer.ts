@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import {
   browserActionSchema,
+  browserModeLabels,
   browserWaitSchema,
   browserTabsSchema,
   formAssessmentInput,
@@ -70,8 +71,7 @@ export const registerComputerTools = async (server: McpServer, call: AgentCall) 
     server.registerTool(
       'pitchcrew_computer_request',
       {
-        description:
-          'Request user approval for one exact browser action on the current page. Supervised mode asks for every interaction. User-granted task browsing permits HTTPS read navigation, scrolling and hover on granted origins. Separate preparation grants permit recognized application fields and approved files. Clicks, keys, dialogs and submissions still ask. This request returns an approved automatic preparation or a pending human decision. Never bypass the tool gate. Final submission click/Enter uses purpose submission and exportApprovalId. If it opens a dialog, request an exact dialog decision with the existing submissionAttemptId; this is the only allowed continuation until user verification. Use scroll for long pages/containers, hover for menus, and drag with a targetSelector for page elements; these require exact approval. Use ref: IDs from the latest inspection or unique CSS selectors. References expire on navigation, handoff and a new inspection. Uploads accept only exported packet files for the attached card. This tool only proposes; it never interacts with the page.',
+        description: `Request one exact browser action on the current page. The user's browser mode decides whether the server approves it on its own or asks the user: ${browserModeLabels.supervised} asks for everything; ${browserModeLabels.autonomous} acts on sites the user allowed for the task (browsing grants permit HTTPS reads, scrolling and hover; preparation grants permit recognized application fields and approved files); ${browserModeLabels.edits} browses and fills forms; ${browserModeLabels.auto} also handles routine clicks and keys; ${browserModeLabels.full} does everything except what it recognizes as sending. In every mode the server asks the user before an action marked purpose submission, a dialog continuing an uncertain submission, anything it recognizes as sending or posting (an application, message, post or invitation) and any element it cannot read. Recognizing unmarked sending is best effort (${browserModeLabels.full} moves multi-step forms to their next step on its own), so never send, post or submit anything the user has not asked for, and always mark the final submission click/Enter with purpose submission and exportApprovalId: in ${browserModeLabels.auto} and ${browserModeLabels.full} that marker is what makes sure the user is asked and the attempt recorded. Returns status approved when the server allowed the action, or pending while the user decides; never infer approval from the mode. Never bypass the tool gate. If the final submission opens a dialog, request an exact dialog decision with the existing submissionAttemptId; this is the only allowed continuation until user verification. Use scroll for long pages/containers, hover for menus, and drag with a targetSelector for page elements. Use ref: IDs from the latest inspection or unique CSS selectors. References expire on navigation, handoff and a new inspection. Uploads accept only exported packet files for the attached card. This tool only proposes; it never interacts with the page.`,
         inputSchema: {
           input: browserActionSchema,
           reason: z
@@ -91,7 +91,7 @@ export const registerComputerTools = async (server: McpServer, call: AgentCall) 
       'pitchcrew_computer_execute',
       {
         description:
-          'Wait up to 30 seconds for a user decision and execute the exact approved browser action once. If pending, call again and keep this run alive. Changed pages and approvals from other runs are rejected. Failure consumes approval; inspect before retrying with a new approval.',
+          "Execute the exact approved browser action once. An action the server approved on its own runs at once; otherwise wait up to 30 seconds for the user's decision. If pending, call again and keep this run alive. Changed pages, changed permissions and approvals from other runs are rejected. Failure consumes approval; inspect before retrying with a new approval.",
         inputSchema: { approvalId: z.uuid() },
         annotations: {
           ...readOnly,
