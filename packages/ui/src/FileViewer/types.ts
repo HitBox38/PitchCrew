@@ -11,7 +11,8 @@ export interface ViewerFile {
 }
 export interface ViewerSettings {
   zoom: number;
-  fit: 'width' | 'page' | 'actual';
+  /** Automatic fits the width without enlarging a portrait page past 125%; landscape fits the page. */
+  fit: 'auto' | 'width' | 'page' | 'actual';
   rotation: number;
   mode: 'rendered' | 'source';
   wrap: boolean;
@@ -19,16 +20,14 @@ export interface ViewerSettings {
   /** Counts page jumps: the page alone cannot tell a repeated jump from a manual scroll back. */
   pageRequest: number;
   thumbnails: boolean;
-  expanded: boolean;
 }
 export const defaultViewerSettings: ViewerSettings = {
   zoom: 100,
-  fit: 'width',
+  fit: 'auto',
   rotation: 0,
   mode: 'rendered',
   wrap: true,
   page: 1,
   pageRequest: 0,
   thumbnails: false,
-  expanded: false,
 };

@@ -197,6 +197,12 @@ test('agent replies render mentions and file citations during streaming and open
   await sent.getByRole('button', { name: 'File: saved resume', exact: true }).click();
   await page.getByRole('heading', { name: 'Saved resume' }).waitFor();
   expect(await page.getByText('Frozen experience.', { exact: true }).count()).toBe(1);
+  // A cited file opens alone, so the viewer shows no attachment pager.
+  expect(await page.getByRole('button', { name: 'Next attachment' }).count()).toBe(0);
+  // A citation is not a request: the viewer describes itself neutrally.
+  const viewer = page.getByRole('dialog');
+  const described = await viewer.getAttribute('aria-describedby');
+  expect(await page.locator(`[id="${described}"]`).textContent()).toBe('Read-only file viewer.');
   expect(
     await page
       .getByText('Download becomes available after approving the packet', { exact: false })

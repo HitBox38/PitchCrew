@@ -1,46 +1,35 @@
-import { FormSelect } from '@/FormSelect/index.tsx';
 import { Minus, Plus } from 'lucide-react';
 import { Button } from '@pitchcrew/design-system/button';
 import type { FileViewerModel } from '../hooks/useFileViewer.ts';
-/** The preset menu shows the current percentage, so it is the only percentage on screen. */
-export const ZoomControls = ({
-  settings,
-  change,
-}: Pick<FileViewerModel, 'settings' | 'change'>) => (
+import { maxZoom, minZoom } from '../zoom.ts';
+import { ZoomMenu } from './ZoomMenu.tsx';
+import { modKey } from '@/shortcuts.ts';
+
+/** − / + around the zoom menu, which is the single percentage on screen. */
+export const ZoomControls = ({ model }: { model: FileViewerModel }) => (
   <fieldset className="file-zoom-controls" aria-label="Document zoom">
     <Button
-      size="icon"
+      size="icon-sm"
       variant="ghost"
+      className="file-zoom-step"
       aria-label="Zoom out"
-      disabled={settings.zoom <= 25}
-      onClick={() => change({ zoom: Math.max(25, settings.zoom - 25) })}
+      title={`Zoom out (${modKey}−)`}
+      disabled={model.zoom.shown <= minZoom}
+      onClick={() => model.zoom.zoomBy(-1)}
     >
       <Minus size={16} />
     </Button>
-    <FormSelect
-      label="Zoom preset"
-      value={String(settings.zoom)}
-      onValueChange={(value) => change({ zoom: Number(value) })}
-      options={[...new Set([25, 50, 75, 100, 125, 150, 200, 300, 400, settings.zoom])]
-        .sort((a, b) => a - b)
-        .map((value) => ({ value: String(value), label: `${value}%` }))}
-    />
+    <ZoomMenu model={model} />
     <Button
-      size="icon"
+      size="icon-sm"
       variant="ghost"
+      className="file-zoom-step"
       aria-label="Zoom in"
-      disabled={settings.zoom >= 400}
-      onClick={() => change({ zoom: Math.min(400, settings.zoom + 25) })}
+      title={`Zoom in (${modKey}+)`}
+      disabled={model.zoom.shown >= maxZoom}
+      onClick={() => model.zoom.zoomBy(1)}
     >
       <Plus size={16} />
-    </Button>
-    <Button
-      size="sm"
-      variant="ghost"
-      disabled={settings.zoom === 100 && settings.fit === 'actual'}
-      onClick={() => change({ zoom: 100, fit: 'actual' })}
-    >
-      Reset zoom
     </Button>
   </fieldset>
 );

@@ -147,7 +147,7 @@ test('offers Markdown Rendered/Source and searchable script-free DOCX previews',
       .getByRole('button', { name: 'Source', exact: true })
       .getAttribute('aria-pressed'),
   ).toBe('true');
-  await page.getByRole('button', { name: 'Close attachment', exact: true }).click();
+  await page.getByRole('button', { name: 'Close viewer', exact: true }).click();
   await page.getByRole('button', { name: /^resume.docx DOCX/ }).click();
   const docx = page.getByRole('dialog', { name: 'resume.docx', exact: true });
   await docx
@@ -158,7 +158,7 @@ test('offers Markdown Rendered/Source and searchable script-free DOCX previews',
   await docx.getByRole('button', { name: 'Find', exact: true }).click();
   await docx.getByRole('textbox', { name: 'Find in document' }).fill('React');
   await expect.poll(() => docx.locator('.file-findbar output').textContent()).toBe('1 of 2');
-  await page.getByRole('button', { name: 'Close attachment', exact: true }).click();
+  await page.getByRole('button', { name: 'Close viewer', exact: true }).click();
 });
 test('keeps manual follow-up after export, enables exact downloads and confirms withdrawal', async () => {
   await page.getByRole('button', { name: 'Approve packet', exact: true }).click();
@@ -186,7 +186,7 @@ test('keeps manual follow-up after export, enables exact downloads and confirms 
   const downloading = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download resume.md', exact: true }).click();
   expect((await downloading).suggestedFilename()).toBe('resume.md');
-  await page.getByRole('button', { name: 'Close attachment', exact: true }).click();
+  await page.getByRole('button', { name: 'Close viewer', exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   // After a manual export every footer action stays whole and reachable on a phone, with
@@ -214,7 +214,7 @@ test('keeps manual follow-up after export, enables exact downloads and confirms 
   expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(391);
   expect(bounds!.y).toBeGreaterThanOrEqual(40);
   expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(845);
-  await page.getByRole('button', { name: 'Close attachment', exact: true }).click();
+  await page.getByRole('button', { name: 'Close viewer', exact: true }).click();
   await page.evaluate(() => document.documentElement.removeAttribute('data-desktop'));
   await page.getByRole('button', { name: 'More packet actions', exact: true }).click();
   await page.getByRole('menuitem', { name: 'Not applying', exact: true }).click();

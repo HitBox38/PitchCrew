@@ -12,6 +12,14 @@ _Avoid_: Email (when implying a message sent through an email service), notifica
 A document or frozen browser evidence item included with an Inbox request for the user to inspect as part of that decision. Viewing an attachment does not approve the request or export the document.
 _Avoid_: Chat attachment (when referring to a document included with an Inbox request)
 
+**Layout note**:
+A warning or error from checking one rendered packet file's actual bytes (its readability, expected content, layout or rendering, such as a large gap, a stranded heading or a page-target overrun), shown on that file's tile, in the packet's file check and in its viewer. It describes the file as rendered, not the quality or truth of its writing; the Word layout notice that applies to every Word file is not a layout note.
+_Avoid_: Review finding (when the note comes from file verification), document error (when the note is a warning)
+
+**Word layout notice**:
+The single statement that a Word file's preview and page count may differ from Word, shown once wherever Word files are viewed or checked instead of as a layout note on each file.
+_Avoid_: Word caveat, browser-versus-Word notice (when referring to the shown notice)
+
 **Unread Inbox request**:
 An Inbox request the user has not opened or has marked unread. Read status is separate from whether the request still needs action.
 _Avoid_: Pending approval (when referring only to whether a request has been read)

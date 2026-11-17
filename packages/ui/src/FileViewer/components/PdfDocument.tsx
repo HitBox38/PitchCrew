@@ -1,58 +1,69 @@
+import { useCallback, useEffect, useState } from 'react';
 import { usePdfDocument, type PdfDocumentProps } from '../hooks/usePdfDocument.ts';
 import { PdfPage } from './PdfPage.tsx';
 import { PdfSidebar } from './PdfSidebar.tsx';
+import { fitScale } from '../zoom.ts';
 import 'pdfjs-dist/web/pdf_viewer.css';
+import { useMediaQuery } from '@/hooks/useMediaQuery.ts';
+/** The thumbnail column's width, including its divider. */
+const thumbnailColumn = 133;
 const PdfDocument = (props: PdfDocumentProps) => {
-  const { settings } = props;
-  const { document, error, width, height, naturalSize, searchable, container, visible } =
+  const { settings, onScale } = props;
+  const { document, error, width, height, gutter, naturalSize, container, visible } =
     usePdfDocument(props);
-  const available = Math.max(100, width - (settings.thumbnails ? 150 : 0) - 40);
-  const base = settings.rotation % 180 ? naturalSize.height : naturalSize.width;
-  const fit =
-    settings.fit === 'width'
-      ? Math.max(0.2, available / base)
-      : settings.fit === 'page'
-        ? Math.max(
-            0.1,
-            Math.min(
-              available / base,
-              (height - 48) / (settings.rotation % 180 ? naturalSize.width : naturalSize.height),
-            ),
-          )
-        : 1;
+  // Phones have no room beside the page, so thumbnails stay off there.
+  const phone = useMediaQuery('(width < 48rem)');
+  const thumbnails = settings.thumbnails && !phone;
+  const sideways = settings.rotation % 180 !== 0;
+  const page = sideways ? { width: naturalSize.height, height: naturalSize.width } : naturalSize;
+  const room = {
+    width: Math.max(100, width - gutter.x * 2 - (thumbnails ? thumbnailColumn : 0)),
+    height: Math.max(100, height - gutter.top - gutter.bottom),
+  };
+  const fit = fitScale(settings.fit, page, room);
+  // Pages fit by their own size; the zoom menu shows the scale of the page most on screen.
+  const [bases, setBases] = useState<Record<number, number>>({});
+  const onBase = useCallback(
+    (number: number, base: number) =>
+      setBases((current) => (current[number] === base ? current : { ...current, [number]: base })),
+    [],
+  );
+  const shownBase = bases[props.current] ?? fit;
+  useEffect(() => onScale(shownBase), [shownBase, onScale]);
   return (
     <div ref={container} className="file-pdf-document">
       {error ? (
-        <p role="alert">PDF preview: {error}</p>
+        <p className="file-view-loading">PDF preview unavailable.</p>
       ) : !document ? (
-        <output>Loading PDF…</output>
+        <output className="file-view-loading">Loading PDF…</output>
       ) : (
         <>
-          {settings.thumbnails ? (
+          {thumbnails ? (
             <PdfSidebar
               document={document}
-              jump={(page) =>
+              height={height}
+              current={props.current}
+              jump={(number) =>
                 container.current
-                  ?.querySelector(`[data-page="${page}"]`)
+                  ?.querySelector(`[data-page="${number}"]`)
                   ?.scrollIntoView({ block: 'start' })
               }
             />
           ) : null}
           <div className="file-pdf-pages">
-            {searchable === false ? (
-              <output className="file-view-note">
-                This PDF has no extractable text. Search and text selection are unavailable; no OCR
-                has been performed.
-              </output>
-            ) : null}
             {Array.from({ length: document.numPages }, (_, index) => (
               <PdfPage
                 key={index + 1}
                 document={document}
                 number={index + 1}
-                scale={(fit * settings.zoom) / 100}
+                fit={settings.fit}
+                room={room}
+                zoom={settings.zoom}
+                fallback={(fit * settings.zoom) / 100}
                 rotation={settings.rotation}
                 onVisible={visible}
+                onBase={onBase}
+                onError={props.onError}
               />
             ))}
           </div>

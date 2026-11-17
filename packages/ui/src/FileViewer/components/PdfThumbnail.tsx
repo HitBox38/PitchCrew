@@ -4,10 +4,12 @@ import { Button } from '@pitchcrew/design-system/button';
 export const PdfThumbnail = ({
   document,
   pageNumber,
+  current,
   select,
 }: {
   document: PDFDocumentProxy;
   pageNumber: number;
+  current: boolean;
   select: () => void;
 }) => {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -44,13 +46,15 @@ export const PdfThumbnail = ({
   return (
     <Button
       className="pdf-thumbnail"
-      variant="outline"
+      variant="ghost"
+      aria-current={current ? 'true' : undefined}
       onClick={select}
       aria-label={`Go to page ${pageNumber}`}
     >
       <canvas ref={canvas} aria-hidden="true" />
       <span>
-        {error ? 'Preview unavailable · ' : ''}Page {pageNumber}
+        {error ? 'Preview unavailable · ' : ''}
+        {pageNumber}
       </span>
     </Button>
   );
