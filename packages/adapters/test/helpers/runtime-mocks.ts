@@ -9,7 +9,8 @@ export const processMock = async () => {
     detectCli: vi.fn(async (id, command) => ({
       id,
       available: true,
-      version: '2026.09.26-fixture',
+      // OpenCode takes its 1.x flags only from a readable 1.x version; other CLIs accept this one.
+      version: id === 'opencode' ? 'opencode 1.14.0 (fixture)' : '2026.09.26-fixture',
       detail: command,
     })),
     runCliText: vi.fn((...args: Parameters<typeof actual.runCliText>) => {

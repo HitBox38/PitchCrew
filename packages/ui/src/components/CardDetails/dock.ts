@@ -144,8 +144,12 @@ export const jobDock = (model: CardDetailsModel, next: JobNextAction): JobDock =
   if (kind === 'outcome')
     return {
       ...base,
+      // An offer has nothing to record here: the decision is the user's, with the employer.
+      ...(next.choices ? {} : { material: 'rest' as const }),
       line: outcomeLines[card.state] ?? 'Record what happened',
-      detail: 'This only updates your board. The employer isn’t contacted.',
+      detail: next.choices
+        ? 'This only updates your board. The employer isn’t contacted.'
+        : next.hint,
     };
   if (kind === 'revise' && card.feedback.length)
     return {

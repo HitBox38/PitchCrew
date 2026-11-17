@@ -3,7 +3,7 @@ import { cardPacketStage } from '@/ClayInterface/packet-guidance.ts';
 import { stateLabels } from '@/lib/labels.ts';
 import type { CardState } from '@pitchcrew/core';
 import { transitions } from '@pitchcrew/core/states';
-import { launchBlocker } from './helpers.ts';
+import { dockRecordsOutcome, launchBlocker } from './helpers.ts';
 import { exportFormatLabels } from './export-format.ts';
 import type { CardDetailsModel } from './types.ts';
 
@@ -37,6 +37,8 @@ export type JobNextAction = {
   secondary?: boolean;
   /** Shown as a quiet text button: navigation or a less common route. */
   quiet?: boolean;
+  /** Starts work or moves the card, so it waits while a request is in flight even when quiet. */
+  acts?: boolean;
   /** Other valid moves at this step, shown before the primary action. */
   alternates?: JobNextAction[];
   /** Equal choices with no default (recorded outcomes); they replace the primary button. */
@@ -77,6 +79,7 @@ export const jobNextAction = (model: CardDetailsModel): JobNextAction => {
     disabled: !!launchBlocker(data, roleId),
     blocked: !!launchBlocker(data, roleId),
     roleId,
+    acts: true,
   });
   if (model.work?.pending)
     return {
@@ -173,9 +176,10 @@ export const jobNextAction = (model: CardDetailsModel): JobNextAction => {
       perform: () => {},
     };
   if (postSubmissionStates.has(card.state)) {
-    const choices = outcomeChoices(model);
+    // An offer's lone withdrawal stays in Activity's Change… menu rather than leading the dock.
+    const choices = dockRecordsOutcome(card.state) ? outcomeChoices(model) : [];
     return {
-      kind: choices.length ? 'outcome' : 'closed',
+      kind: transitions[card.state].length ? 'outcome' : 'closed',
       label: choices.length ? 'Record outcome' : 'Add a lesson',
       hint: outcomeHints[card.state] ?? 'Keep your application history up to date.',
       perform: () => setTab('activity'),
@@ -212,6 +216,7 @@ export const jobNextAction = (model: CardDetailsModel): JobNextAction => {
     );
   const shortlist: JobNextAction = {
     label: 'Shortlist',
+    acts: true,
     perform: () => act(`/cards/${card.id}/move`, { state: 'shortlisted' }, 'Shortlisted'),
   };
   // The loaded context also compares the source revision, which the snapshot cannot.
@@ -240,7 +245,14 @@ export const jobNextAction = (model: CardDetailsModel): JobNextAction => {
           kind: 'shortlist',
           hint: 'Shortlist it to start an application. The brief comes next.',
           alternates: [
-            { label: 'Extract brief', intent: 'extract-brief', quiet: true, perform: extract },
+            {
+              label: 'Extract brief',
+              intent: 'extract-brief',
+              quiet: true,
+              acts: true,
+              disabled: brief.disabled,
+              perform: extract,
+            },
           ],
         };
       // With an application agent, the dock extracts the brief itself; otherwise it opens the editor.
@@ -414,6 +426,7 @@ export const jobNextAction = (model: CardDetailsModel): JobNextAction => {
           {
             label: 'Record manual submission',
             quiet: true,
+            acts: true,
             perform: () =>
               act(
                 `/cards/${card.id}/move`,

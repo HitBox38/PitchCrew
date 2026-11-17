@@ -7,13 +7,14 @@ import { detectCli, runCliText, withChat } from '../process.ts';
 /**
  * OpenCode 2 dropped `--pure`, `--verbose` and `--variant` (a model takes `#variant`) and sends
  * `run` through a shared background service unless `--standalone`. Only a private server applies
- * this run's isolated configuration, so 2.x always runs standalone; older CLIs keep `--pure`.
- * Calendar-style versions (test fixtures) are not OpenCode releases and keep the 1.x flags.
+ * this run's isolated configuration. Fail closed: only a readable 0.x or 1.x version keeps the
+ * `--pure` flags; a 2.x CLI, or one whose version can't be read (a failed or slow `--version`),
+ * runs standalone and must pass the scoped-agent check before it starts.
  */
-const openCodeTwo = async () => {
-  const { version } = await detectCli('opencode', 'opencode');
-  const major = Number(version.match(/(\d+)\.\d+\.\d+/)?.[1] ?? 0);
-  return major >= 2 && major < 1000;
+const legacyOpenCode = async () => {
+  const { available, version } = await detectCli('opencode', 'opencode');
+  const major = available ? version.match(/(?:^|[^\d.])(\d+)\.\d+\.\d+/)?.[1] : undefined;
+  return major !== undefined && Number(major) <= 1;
 };
 
 type AgentRule = { action?: unknown; effect?: unknown };
@@ -56,7 +57,7 @@ export const opencode = withChat({
     parseOpenCodeModels(
       await modelListCommand(
         'opencode',
-        (await openCodeTwo()) ? ['models'] : ['models', '--pure', '--verbose'],
+        (await legacyOpenCode()) ? ['models', '--pure', '--verbose'] : ['models'],
         signal,
       ),
     ),
@@ -81,7 +82,7 @@ export const opencode = withChat({
         },
       },
     };
-    const two = await openCodeTwo();
+    const two = !(await legacyOpenCode());
     const args = [
       'run',
       two ? '--standalone' : '--pure',
@@ -111,15 +112,20 @@ export const opencode = withChat({
     };
     // Fail closed: before a 2.x run, read the private server's effective agents with this exact
     // environment and refuse to start unless the scoped agent ends in deny-all.
-    if (two)
-      assertScopedAgent(
-        await modelListCommand(
-          'opencode',
-          ['--standalone', 'debug', 'agents'],
-          context.signal,
-          environment,
-        ),
-      );
+    if (two) {
+      // A CLI that can't answer the check (an older one taken here because its version was
+      // unreadable) is refused like one that answers without the scoped agent.
+      const agents = await modelListCommand(
+        'opencode',
+        ['--standalone', 'debug', 'agents'],
+        context.signal,
+        environment,
+      ).catch(() => {
+        if (context.signal.aborted) throw new Error('Run cancelled.');
+        return '';
+      });
+      assertScopedAgent(agents);
+    }
     return runCliText(
       'opencode',
       args,

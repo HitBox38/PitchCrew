@@ -220,7 +220,10 @@ it('keeps packet review, export approval and manual submission as distinct decis
   // Exported files continue in Decisions; recording stays a secondary move after applying.
   const exported = jobNextAction({ ...base, card: awaiting, exported: true });
   expect(exported.label).toBe('Open in Decisions');
-  expect(exported.alternates?.map((item) => item.label)).toEqual(['Record manual submission']);
+  // Recording moves the job, so it waits for any request in flight even though it is quiet.
+  expect(exported.alternates?.map((item) => [item.label, item.acts])).toEqual([
+    ['Record manual submission', true],
+  ]);
   const outcome = jobNextAction({ ...base, card: { ...awaiting, state: 'submitted' } });
   expect(outcome).toMatchObject({ label: 'Record outcome', kind: 'outcome' });
   expect(outcome.choices?.map((item) => item.label)).toEqual([
@@ -352,6 +355,50 @@ it('names the recorded outcome in the post-submission hint', () => {
   const closed = jobNextAction({ ...base, card: { ...base.card, state: 'rejected' } });
   expect(closed).toMatchObject({ kind: 'closed', label: 'Add a lesson', quiet: true });
   expect(closed.choices).toBeUndefined();
+  // An offer's lone withdrawal is not pushed as the dock's decision; Activity's menu keeps it.
+  const offer = jobNextAction({ ...base, card: { ...base.card, state: 'offer' } });
+  expect(offer).toMatchObject({ kind: 'outcome', label: 'Add a lesson', quiet: true });
+  expect(offer.choices).toBeUndefined();
+});
+
+it('marks quiet alternates that start work or move the job, so they wait for a request', () => {
+  const base = model({ runRole: 'scout' });
+  const data = {
+    ...base.data,
+    roles: [...base.data.roles, { id: 'scout', enabled: true, runtime: 'codex' }],
+  } as CardDetailsModel['data'];
+  const lead = { ...base.card, state: 'lead' as const };
+  const acting = (next: ReturnType<typeof jobNextAction>) =>
+    next.alternates?.map((item) => [item.label, item.quiet, Boolean(item.acts)]);
+  expect(acting(jobNextAction({ ...base, data, card: lead }))).toEqual([['Shortlist', true, true]]);
+  expect(acting(jobNextAction({ ...base, data, card: { ...lead, fit: 60 } }))).toEqual([
+    ['Evaluate again', true, true],
+  ]);
+  // A scored lead without a brief: its quiet Extract brief follows the brief column's busy state.
+  const scored = jobNextAction({
+    ...base,
+    data,
+    card: { ...lead, fit: 60 },
+    brief: {
+      ...base.brief,
+      loaded: { ...base.brief.loaded!, context: null },
+      available: [{ id: 'writer', name: 'Writer' }],
+      disabled: true,
+      extract: vi.fn(),
+    } as unknown as CardDetailsModel['brief'],
+  });
+  expect(scored.alternates?.[0]).toMatchObject({
+    label: 'Extract brief',
+    quiet: true,
+    acts: true,
+    disabled: true,
+  });
+  // Navigation stays usable while a request runs.
+  const revise = jobNextAction({
+    ...base,
+    card: { ...base.card, state: 'changes_requested', packet: {}, feedback: ['Shorter'] },
+  } as unknown as CardDetailsModel);
+  expect(acting(revise)).toEqual([['Read requests', true, false]]);
 });
 it('drafts the first packet, not a revision, when requested changes have no saved packet', () => {
   const base = model();

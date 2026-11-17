@@ -21,7 +21,9 @@ export const JobActions = (model: JobActionsProps) => {
           key={alternate.label}
           variant={alternate.quiet ? 'ghost' : 'outline'}
           disabled={
-            alternate.quiet ? alternate.disabled : model.busy || model.working || alternate.disabled
+            alternate.quiet && !alternate.acts
+              ? alternate.disabled
+              : model.busy || model.working || alternate.disabled
           }
           onClick={alternate.perform}
         >

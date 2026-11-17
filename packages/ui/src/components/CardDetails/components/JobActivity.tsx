@@ -8,10 +8,9 @@ import { LearningSignals } from '@/LearningSignals/index.tsx';
 import { ApplicationTracking } from '@/ApplicationTracking/index.tsx';
 import { ExternalSubmissionRegistration } from '@/ExternalSubmissionRegistration/index.tsx';
 import { AccordionSection } from '@pitchcrew/design-system/accordion';
-import { postSubmissionStates } from '@/lib/job-step.ts';
 import { stateLabels } from '@/lib/labels.ts';
 import { stepLabel, trackIndex } from '@/ClayInterface/helpers.ts';
-import { outcomeTargets } from '../helpers.ts';
+import { dockRecordsOutcome, outcomeTargets } from '../helpers.ts';
 import type { CardState } from '@pitchcrew/core';
 
 // The same word the header's track uses for this stage ("Lead", not "New lead").
@@ -40,10 +39,9 @@ export const JobActivity = (model: CardDetailsModel) => {
           <SubmissionReceipts {...model} onDirtyChange={setReceiptDirty} />
         </AccordionSection>
       ) : null}
-      {/* After applying, recording an outcome is the dock's step; before, status is one quiet row
-          that matches the ledger, with a manual change one menu away. */}
-      {postSubmissionStates.has(model.card.state) ||
-      !outcomeTargets(model.card.state).length ? null : (
+      {/* After applying, recording an outcome is the dock's step; before (and for an offer, whose
+          only change is withdrawing), status is one quiet row with a manual change one menu away. */}
+      {dockRecordsOutcome(model.card.state) || !outcomeTargets(model.card.state).length ? null : (
         <section className="detail-status-row" aria-label="Status">
           <p>
             <strong>Status</strong> <small>{statusLabel(model.card.state)}</small>

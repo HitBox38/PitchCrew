@@ -12,7 +12,7 @@ vi.mock('../src/process.ts', async () => {
     detectCli: vi.fn(async (id: RuntimeId) => ({
       id,
       available: true,
-      version: 'fixture',
+      version: id === 'opencode' ? 'opencode 1.14.0 (fixture)' : 'fixture',
       detail: '',
     })),
     runCli: vi.fn(async () => ({ role: 'scout', fit: 87, reasons: ['Fixture'] })),

@@ -113,6 +113,13 @@ it('asks how it went after applying and says recording never contacts the employ
     material: 'rest',
     line: 'Closed as rejected',
   });
+  // An offer's only change is withdrawing: the dock rests and points to Activity instead.
+  const offer = { ...card, state: 'offer' } as CardDetailsModel['card'];
+  expect(dock(model({ card: offer }))).toMatchObject({
+    material: 'rest',
+    line: 'You have an offer',
+    detail: 'If you turn it down, mark it withdrawn in Activity. The employer isn’t contacted.',
+  });
 });
 
 it('promises a continuation only for a question and never calls stalled or blocked work ready', () => {

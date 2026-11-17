@@ -2,7 +2,7 @@ import { runLifecycle } from '@pitchcrew/core/lifecycles';
 import type { Card, CardState, Run, Snapshot } from '@pitchcrew/core';
 import { transitions, workflowSeat } from '@pitchcrew/core/states';
 import type { ApplicationSection, JobAgent } from './types.ts';
-import { packetNeedsReview } from '@/lib/job-step.ts';
+import { packetNeedsReview, postSubmissionStates } from '@/lib/job-step.ts';
 import { questionAnswered } from '@/lib/question-wait.ts';
 import { isolatesApplications } from '@/lib/runtimes.ts';
 
@@ -250,6 +250,12 @@ const manualOutcomes: CardState[] = [
 /** The statuses a user can record from Activity's Change… menu in this state. */
 export const outcomeTargets = (state: CardState) =>
   transitions[state].filter((target) => manualOutcomes.includes(target));
+/**
+ * After applying, the dock records outcomes. A lone withdrawal (an offer) is not a decision to
+ * push there, so it stays in Activity's Change… menu.
+ */
+export const dockRecordsOutcome = (state: CardState) =>
+  postSubmissionStates.has(state) && outcomeTargets(state).some((target) => target !== 'withdrawn');
 
 // Scout is asked to say a score isn't an offer probability; that caveat shouldn't lead its notes.
 const scoreCaveat = /\b(probability|chance) of (an? )?(offer|hire|hiring|interview)|hiring chance/i;

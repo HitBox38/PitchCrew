@@ -489,6 +489,28 @@ it('refuses an OpenCode 2 run whose private server did not apply the scoped agen
   ).toThrow('isolated configuration');
 });
 
+it('fails closed when the OpenCode version cannot be read', async () => {
+  // A failed or slow --version could hide a 2.x CLI, so the run takes the standalone path and
+  // its scoped-agent check; a CLI that can't answer that check is refused before any run starts.
+  vi.mocked(detectCli).mockResolvedValueOnce({
+    id: 'opencode',
+    available: false,
+    version: '',
+    detail: '',
+  });
+  vi.mocked(modelListCommand).mockRejectedValueOnce(new Error('Unknown option --standalone'));
+  vi.mocked(runCliText).mockClear();
+  await expect(adapters.opencode.run(await contextFor('opencode'))).rejects.toThrow(
+    'did not apply Pitchcrew’s isolated configuration',
+  );
+  expect(vi.mocked(modelListCommand).mock.lastCall?.[1]).toEqual([
+    '--standalone',
+    'debug',
+    'agents',
+  ]);
+  expect(runCliText).not.toHaveBeenCalled();
+});
+
 vi.mock('../src/model-discovery.ts', async () => {
   const actual = await vi.importActual<typeof import('../src/model-discovery.ts')>(
     '../src/model-discovery.ts',
