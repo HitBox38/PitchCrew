@@ -1,3 +1,4 @@
+import { browserModeActsAlone } from '@pitchcrew/core/browser-modes';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import { ClayAutomaticSteps } from './ClayAutomaticSteps.tsx';
 import { BrowserControls } from './BrowserControls.tsx';
@@ -23,7 +24,8 @@ export const ClayApprovalIdle = ({
   const session = browserPanel.session;
   const picking = useBrowserPresenceField('picking');
   if (picking) return <ClayPickingLine />;
-  if (!control.leaseId && !session?.manual && session?.mode === 'autonomous' && session.runId)
+  // Every mode that acts on its own lists its steps, in the tray its captured mode reserves.
+  if (!control.leaseId && !session?.manual && browserModeActsAlone(session?.mode) && session?.runId)
     return <ClayAutomaticSteps {...props} name={name} control={control} nudged={nudged} />;
   const line = browserTrayLine({
     name,

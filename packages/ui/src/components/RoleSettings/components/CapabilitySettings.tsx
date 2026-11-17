@@ -16,8 +16,8 @@ export const CapabilitySettings = ({
     >
       <h3 id={`${role.id}-capabilities-heading`}>Tools</h3>
       <p className="agent-panel-fact">
-        Chat, your local Profile and assigned skills need no extra access. Exports, browser actions
-        and submissions still ask you first.
+        Chat, your local Profile and assigned skills need no extra access. Exports and final
+        submissions still ask you first; browser actions follow this agent’s browser permissions.
       </p>
       <ToolGroups capabilities={capabilities} data={data} onChange={setCapabilities} />
     </section>

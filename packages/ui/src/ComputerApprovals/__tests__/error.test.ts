@@ -43,6 +43,23 @@ it('does not claim personal approval for automatic or rejected requests', () => 
   ).toBe('Browser session ended.');
 });
 
+it('names the browser mode that allowed an automatic request', () => {
+  const failed = { ...approval, error: 'The page changed. Inspect it and request a new approval.' };
+  expect(browserApprovalError({ ...failed, automatic: true, mode: 'edits' })?.summary).toBe(
+    'Accept edits allowed this request automatically, but the browser action failed.',
+  );
+  expect(browserApprovalError({ ...approval, automatic: true, mode: 'auto' })?.summary).toBe(
+    'Auto allowed this request automatically, but opening the page timed out after 20 seconds.',
+  );
+  expect(browserApprovalError({ ...failed, automatic: true, mode: 'full' })?.summary).toBe(
+    'Full access allowed this request automatically, but the browser action failed.',
+  );
+  // A task site grant (Autonomous preparation) saves no mode.
+  expect(browserApprovalError({ ...failed, automatic: true })?.summary).toBe(
+    'This request was allowed automatically, but the browser action failed.',
+  );
+});
+
 it('omits empty and formatting-only errors', () => {
   expect(browserApprovalError({ ...approval, error: '' })).toBeNull();
   expect(browserApprovalError({ ...approval, error: '\u001b[2m\u001b[22m' })).toBeNull();

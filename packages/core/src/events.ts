@@ -62,7 +62,8 @@ export const decodeEvent = (raw: string): BoardEvent => {
     event.version !== 36 &&
     event.version !== 37 &&
     event.version !== 38 &&
-    event.version !== 39
+    event.version !== 39 &&
+    event.version !== 40
   )
     throw new Error(`Unsupported event version: ${event.version}`);
   return event;
@@ -109,7 +110,8 @@ export interface BoardEvent {
     | 36
     | 37
     | 38
-    | 39;
+    | 39
+    | 40;
   kind:
     | 'writing_guide'
     | 'writing_correction'
@@ -180,7 +182,8 @@ export interface BoardEvent {
   createdAt: string;
 }
 /**
- * Version 39 adds optional tool kind, public detail and failure reason to run activity entries;
- * versions 1-38 remain readable.
+ * Version 40 adds optional tool kind, public detail and failure reason to run activity entries.
+ * Version 39 adds the Accept edits, Auto and Full access browser modes and the mode that approved an
+ * automatic browser action. Versions 1-39 remain readable.
  */
-export const currentEventVersion = 39 as const;
+export const currentEventVersion = 40 as const;

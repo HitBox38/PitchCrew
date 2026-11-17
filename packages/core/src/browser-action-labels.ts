@@ -1,4 +1,5 @@
-import type { BrowserAction, BrowserSnapshot } from './computer.ts';
+import { browserModeLabels } from './browser-modes.ts';
+import type { BrowserAccessMode, BrowserAction, BrowserSnapshot } from './computer.ts';
 
 /**
  * A browser action in Pitchcrew's own words, in parts so a narrow tray can shorten the value and
@@ -189,6 +190,21 @@ export const browserActionDone = (action: BrowserAction, page?: BrowserSnapshot)
 export const browserActionAsked = (action: BrowserAction, page?: BrowserSnapshot) => {
   const text = browserActionPublic(action, page);
   return `Asked to ${text.charAt(0).toLowerCase()}${text.slice(1)}`;
+};
+
+/**
+ * A request the server allowed without asking, for chat activity: "Allowed by Auto to click
+ * “Learn more”" under the user's browser mode, or "Allowed for a site you granted to …" under an
+ * Autonomous preparation task site grant (records without a mode).
+ */
+export const browserActionAllowed = (
+  action: BrowserAction,
+  page?: BrowserSnapshot,
+  mode?: BrowserAccessMode,
+) => {
+  const text = browserActionPublic(action, page);
+  const by = mode ? `by ${browserModeLabels[mode]}` : 'for a site you granted';
+  return `Allowed ${by} to ${text.charAt(0).toLowerCase()}${text.slice(1)}`;
 };
 
 /** What a request will do, safe outside the approval review: no values, paths or raw labels. */

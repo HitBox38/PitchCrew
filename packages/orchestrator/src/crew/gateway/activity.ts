@@ -6,6 +6,7 @@ import {
   type Run,
 } from '@pitchcrew/core';
 import {
+  browserActionAllowed,
   browserActionAsked,
   browserActionDone,
   browserActionPublic,
@@ -68,7 +69,11 @@ const browserStep = (
       start: browserStepLabels.request,
       done: (result) => {
         const approval = (result as { approval?: ComputerApproval } | undefined)?.approval;
-        return approval ? browserActionAsked(approval.action, approval.page) : undefined;
+        if (!approval) return undefined;
+        // The server approved it without asking: under the user's browser mode or a site grant.
+        return approval.automatic
+          ? browserActionAllowed(approval.action, approval.page, approval.mode)
+          : browserActionAsked(approval.action, approval.page);
       },
       settled: (result, row) => {
         const approval = (result as { approval?: ComputerApproval } | undefined)?.approval;

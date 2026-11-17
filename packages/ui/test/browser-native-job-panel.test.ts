@@ -1,11 +1,13 @@
 import { chromium, type Browser, type Locator, type Page } from 'playwright';
 import {
   defaultCapabilities,
+  type BrowserMode,
   type Card,
   type ComputerApproval,
   type Role,
   type BrowserInput,
 } from '@pitchcrew/core';
+import { browserModeLabels } from '@pitchcrew/core/browser-modes';
 import type {
   DesktopBrowserView,
   NativeBrowserCommand,
@@ -212,12 +214,15 @@ const returnControl = async () => {
   await headerControl('Return to agent').click();
   await page.locator('.browser-state-chip:is([data-tone="idle"], [data-tone="working"])').waitFor();
 };
-/** Binds a fresh agent run to this job's browser and reloads so the panel reserves the tray. */
-const bindRun = async (mode: 'supervised' | 'autonomous' = 'supervised') => {
+/**
+ * Binds a fresh agent run to this job's browser and reloads so the panel reserves the tray. A
+ * shared task id continues an earlier run's task, as a follow-up run does.
+ */
+const bindRun = async (mode: BrowserMode = 'supervised', taskId?: string) => {
   const service = host.daemon.service;
   if (scope) await service.computer.stop(scope.runId);
   scope = { runId: `clay-native-run-${++runSerial}`, roleId: 'writer', cardId: card.id };
-  service.computer.bindBrowser({ ...scope, threadId: thread, mode });
+  service.computer.bindBrowser({ ...scope, threadId: thread, mode, taskId });
   await page.reload({ waitUntil: 'domcontentloaded' });
   await body().waitFor();
   await tray().waitFor();
@@ -390,10 +395,23 @@ test('approves on Control/Command+Enter from the panel, never from a field that 
   expect(approvalStatus(first.id)).toBe('pending');
   await box.fill('');
   await page.getByRole('button', { name: 'Back to chat', exact: true }).click();
-  // From a non-field control in the panel, it approves the waiting request.
-  await review.getByRole('button', { name: /^Details: / }).focus();
+  await page.locator('.browser-expanded-side').waitFor({ state: 'hidden' });
+  // From a non-field control in the panel, it approves the waiting request. The note's send can
+  // still hold the decision buttons busy, and closing the sheet moves focus: wait for both.
+  await expect
+    .poll(() => review.getByRole('button', { name: 'Approve opening', exact: true }).isEnabled())
+    .toBe(true);
+  const details = review.getByRole('button', { name: /^Details: / });
+  // The closing sheet can keep the panel unfocusable for a moment; focus until it holds.
+  await expect
+    .poll(async () => {
+      await details.focus();
+      return details.evaluate((node) => node === document.activeElement);
+    })
+    .toBe(true);
   await page.keyboard.press(shortcut);
-  await vi.waitFor(() => expect(approvalStatus(first.id)).toBe('approved'));
+  // The decision round-trips through the daemon; allow the shared-host budget other polls get.
+  await vi.waitFor(() => expect(approvalStatus(first.id)).toBe('approved'), { timeout: 5000 });
   await consume(first.id);
 }, 30000);
 test('offers task site grants from a Site access popover without growing the tray', async () => {
@@ -423,6 +441,114 @@ test('offers task site grants from a Site access popover without growing the tra
   ).toEqual(['https://example.com']);
   await expect.poll(() => height(tray())).toBe(trayHeight);
   await consume(approval.id);
+}, 20000);
+
+test.each(['edits', 'auto', 'full'] as const)(
+  'lists %s steps in the taller tray at a fixed height and never offers site access',
+  async (mode) => {
+    await bindRun();
+    await settled();
+    const supervised = (await height(tray()))!;
+    await bindRun(mode);
+    await settled();
+    // Every mode that acts on its own lists its steps in the taller tray its captured mode
+    // reserves; a listed step or a waiting request never changes that height.
+    const steps = tray().getByRole('region', { name: 'Automatic steps', exact: true });
+    await steps.waitFor();
+    const trayHeight = await height(tray());
+    expect(trayHeight).toBeGreaterThan(supervised);
+    const pageBox = await body().boundingBox();
+    const steady = async () => {
+      await expect.poll(() => height(tray())).toBe(trayHeight);
+      expect(await body().boundingBox()).toEqual(pageBox);
+    };
+    expect(await steps.locator('.clay-tray-title strong').textContent()).toBe(
+      browserModeLabels[mode],
+    );
+    expect(await steps.locator('.clay-tray-note').textContent()).toMatch(/sending/i);
+    // Reading a public page runs on its own in every access mode and is listed as a step.
+    const read = await host.daemon.service.computer.request(
+      scope,
+      { kind: 'navigate', url: 'https://example.com/jobs' },
+      'Read the fictional job list',
+    );
+    expect(read).toMatchObject({ status: 'approved', automatic: true, mode });
+    await consume(read.id);
+    await steps.getByText('Open a web page', { exact: true }).waitFor();
+    await steady();
+    // A control the server cannot read asks in every mode, and grants belong to Autonomous
+    // preparation only: no Site access chip.
+    const asked = await host.daemon.service.computer.request(
+      scope,
+      { kind: 'click', selector: '#continue' },
+      'Continue the fictional form',
+    );
+    expect(asked.status).toBe('pending');
+    const review = tray().getByRole('region', { name: 'Pending browser action', exact: true });
+    await review.waitFor();
+    expect(await review.getByRole('button', { name: /^Site access/ }).count()).toBe(0);
+    await steady();
+    host.daemon.service.computer.decide(asked.id, false);
+    await review.waitFor({ state: 'hidden' });
+    await steps.waitFor();
+    await steady();
+    // Task details name the captured mode.
+    await page.locator('.browser-state-chip').click();
+    const details = page.locator('.browser-task-details');
+    await details.getByText(browserModeLabels[mode], { exact: true }).waitFor();
+    await page.keyboard.press('Escape');
+    await details.waitFor({ state: 'hidden' });
+    // In a narrow panel the steps stack their controls; title and controls still fit the tray.
+    await page.setViewportSize({ width: 390, height: 844 });
+    try {
+      await settled();
+      await steps.waitFor();
+      const box = (await tray().boundingBox())!;
+      for (const part of [
+        steps.locator('.clay-tray-title'),
+        ...(await steps.getByRole('button').all()),
+      ]) {
+        const inner = (await part.boundingBox())!;
+        expect(inner.y).toBeGreaterThanOrEqual(box.y - 0.5);
+        expect(inner.y + inner.height).toBeLessThanOrEqual(box.y + box.height + 0.5);
+      }
+    } finally {
+      await page.setViewportSize({ width: 1440, height: 1000 });
+    }
+  },
+  30000,
+);
+
+test('hides task site grants once the same task continues in another mode', async () => {
+  const taskId = `clay-native-task-${runSerial + 1}`;
+  await bindRun('autonomous', taskId);
+  host.daemon.service.computer.allowSite(
+    scope.runId,
+    taskId,
+    'https://example.com',
+    true,
+    undefined,
+    true,
+  );
+  const chip = page.locator('.browser-state-chip');
+  const details = page.locator('.browser-task-details');
+  const sites = details.getByText(/^Allowed sites for this task/);
+  await chip.click();
+  await details.getByText('Autonomous preparation', { exact: true }).waitFor();
+  await sites.waitFor();
+  await page.keyboard.press('Escape');
+  await details.waitFor({ state: 'hidden' });
+  // A follow-up run of that task keeps the grant, which Accept edits never uses or changes.
+  await bindRun('edits', taskId);
+  expect(
+    host.daemon.service.computer.browsers.list().find((session) => session.runId === scope.runId)
+      ?.explorationSites,
+  ).toEqual(['https://example.com']);
+  await chip.click();
+  await details.getByText('Accept edits', { exact: true }).waitFor();
+  expect(await sites.count()).toBe(0);
+  await page.keyboard.press('Escape');
+  await details.waitFor({ state: 'hidden' });
 }, 20000);
 
 test('shows private control over the page and in the reserved tray without resizing it', async () => {

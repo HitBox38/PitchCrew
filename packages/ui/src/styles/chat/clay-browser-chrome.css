@@ -295,11 +295,12 @@
 
 /* Approval tray: a 56px reservation. A waiting request reads as two short lines (what will
  * happen, then the agent's reason) on an ochre tint; the working tray is one plain line.
- * Autonomous preparation keeps its taller step list. */
+ * Every mode that acts on its own keeps a taller step list, sized by the task's captured mode
+ * alone so a waiting or blocked step never resizes the page. */
 .browser-approvals[data-reserved] {
   height: 3.5rem;
 }
-.browser-approvals[data-reserved][data-mode='autonomous'] {
+.browser-approvals[data-reserved][data-acts-alone] {
   height: min(6.75rem, calc(var(--browser-viewport-height, 100dvh) * 0.3));
 }
 .browser-pending-action {
@@ -440,6 +441,11 @@
 @container browser-panel (max-width: 34rem) {
   .browser-approvals[data-reserved] {
     height: 6rem;
+  }
+  /* The step list stacks its controls under the steps here, so it needs more room; the height
+   * still follows only the captured mode and the panel width, never a step or a request. */
+  .browser-approvals[data-reserved][data-acts-alone] {
+    height: min(9.5rem, calc(var(--browser-viewport-height, 100dvh) * 0.3));
   }
   .browser-pending-action {
     flex-wrap: wrap;

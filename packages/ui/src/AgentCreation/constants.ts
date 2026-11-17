@@ -68,7 +68,7 @@ export const toolHelp = {
   editProfile:
     'Direct requests can create, edit or remove any local profile note and sync attached GitHub profile sources when the source account is connected. Scheduled and crew requests still need proposal review.',
   computerUse:
-    'Open this agent’s local browser in chat. Supervised mode asks for each interaction; bounded autonomous preparation is optional.',
+    'Open this agent’s local browser in chat. You choose how often it asks; Supervised, the default, asks before every action.',
   assessForms: 'Requires browser access. Inspect fields and report what an application form needs.',
   recordSubmissions:
     'Requires browser access. Submission actions and exported documents still need approval; confirmation must be verified.',

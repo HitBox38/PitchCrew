@@ -22,6 +22,9 @@ it('makes every support default usable through the generic creation and chat flo
     const role = initial.roles.find((role) => role.id === id)!;
     const instructions = await readFile(join(directory, 'roles', id, 'AGENTS.md'), 'utf8');
     expect(instructions).toContain(role.instructions);
+    expect(instructions).toContain(
+      "the exact-action approval gate, which asks the user or approves automatically as the user's browser mode allows",
+    );
     const input = roleCreate.parse({ ...role, id: `fixture-${id}` });
     const created = await request<Role>('/roles', 'POST', input);
     expect(created.response.status).toBe(201);

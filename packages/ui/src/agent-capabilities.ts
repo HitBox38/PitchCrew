@@ -18,7 +18,7 @@ export const capabilityLabels = {
   sheets: 'Read Google Sheets ranges',
   assessForms: 'Assess inspected application forms',
   recordSubmissions: 'Record approved submission attempts and evidence',
-  computerUse: 'Use a local browser in chat with supervised or autonomous preparation',
+  computerUse: 'Use a local browser in chat; you choose how often it asks',
 };
 
 export const capabilityDefaults = {
