@@ -18,13 +18,24 @@ const browserOutcomes: Record<string, DecisionOutcome> = {
   rejected: { label: 'Rejected', tone: 'quiet' },
   failed: { label: 'Approved, then failed', tone: 'rose' },
 };
+/** The server allowed these on its own: nobody approved them, and a rejected one expired unused. */
+const automaticOutcomes: Record<string, DecisionOutcome> = {
+  approved: { label: 'Allowed automatically', tone: 'teal' },
+  consumed: { label: 'Ran automatically', tone: 'teal' },
+  rejected: { label: 'Expired', tone: 'quiet' },
+  failed: { label: 'Allowed automatically, then failed', tone: 'rose' },
+};
+
+const outcomes = (request: ApprovalRequest) =>
+  request.kind === 'packet'
+    ? packetOutcomes
+    : request.approval.automatic
+      ? automaticOutcomes
+      : browserOutcomes;
 
 /** The saved result of the decision itself, independent of how the job moved on afterwards. */
 export const decisionOutcome = (request: ApprovalRequest): DecisionOutcome =>
-  (request.kind === 'packet' ? packetOutcomes : browserOutcomes)[request.approval.status] ?? {
-    label: 'Decided',
-    tone: 'quiet',
-  };
+  outcomes(request)[request.approval.status] ?? { label: 'Decided', tone: 'quiet' };
 
 /** Where the job stands now, as quiet metadata beside the outcome. */
 export const decisionStage = (

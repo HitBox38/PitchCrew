@@ -1,39 +1,54 @@
 import { ConversationSelect } from '@/ChatView/components/ConversationSelect.tsx';
 import type { Conversation, Role } from '@pitchcrew/core';
+import {
+  browserModeActsAlone,
+  browserModeLabels,
+  browserModeSummaries,
+} from '@pitchcrew/core/browser-modes';
+import {
+  browserModeOptions,
+  conversationBrowserMode,
+  savedBrowserMode,
+} from '@/lib/browser-modes.ts';
 import { BrowserModeHelp } from './BrowserModeHelp.tsx';
 import { Globe } from 'lucide-react';
 
+/**
+ * The agent's browser permissions for its next turns in this conversation: its saved default or
+ * one of the modes. The wrapper carries the mode, so its chip is styled without `:has()`.
+ */
 export const BrowserModePicker = ({
   role,
   conversation,
   disabled,
   save,
 }: {
+  /** The saved role, so Agent default names its saved mode rather than an override. */
   role: Role;
   conversation?: Conversation;
   disabled: boolean;
   save: (configuration: unknown) => void;
 }) => {
   const override = conversation?.configurations[role.id];
-  const autonomous = (override?.browserMode ?? role.browserMode) === 'autonomous';
-  const mode = autonomous ? 'Autonomous preparation' : 'Supervised';
+  const mode = conversationBrowserMode(role, conversation);
+  const label = browserModeLabels[mode];
   return (
-    <div className="flex min-w-0 items-center gap-1">
+    <div
+      className="chat-browser-mode-picker flex min-w-0 items-center gap-1"
+      data-mode={mode}
+      data-acts-alone={browserModeActsAlone(mode) || undefined}
+    >
       <ConversationSelect
         label={`${role.name} browser permissions`}
-        description={`${role.name}: ${mode}${override?.browserMode ? '' : ', following agent defaults'}. Applies to the next turn.`}
-        displayValue={mode}
-        className={`chat-browser-mode${autonomous ? ' chat-browser-mode-autonomous' : ''}`}
+        description={`${role.name}: ${label}${override?.browserMode ? '' : ', following agent defaults'}. ${browserModeSummaries[mode]} Applies to the next turn.`}
+        displayValue={label}
+        className="chat-browser-mode"
         icon={<Globe size={13} aria-hidden="true" />}
         disabled={disabled || !conversation}
         value={override?.browserMode ?? 'agent'}
         items={[
-          {
-            value: 'agent',
-            label: `Agent default (${role.browserMode === 'autonomous' ? 'Autonomous preparation' : 'Supervised'})`,
-          },
-          { value: 'supervised', label: 'Supervised' },
-          { value: 'autonomous', label: 'Autonomous preparation' },
+          { value: 'agent', label: `Agent default (${browserModeLabels[savedBrowserMode(role)]})` },
+          ...browserModeOptions,
         ]}
         onChange={(value) => {
           const { browserMode: _mode, ...other } = override ?? {};

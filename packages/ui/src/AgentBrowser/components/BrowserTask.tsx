@@ -1,4 +1,5 @@
 import { Button } from '@pitchcrew/design-system/button';
+import { browserModeLabels } from '@pitchcrew/core/browser-modes';
 import { ArrowUpRight } from 'lucide-react';
 import type { AgentBrowserProps } from '../types.ts';
 export const BrowserTask = ({
@@ -45,7 +46,7 @@ export const BrowserTask = ({
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs">
           <span className="text-muted-foreground">Task permissions</span>
           <span title="Captured for this task. Composer changes apply to future turns.">
-            {session.mode === 'autonomous' ? 'Autonomous preparation' : 'Supervised'}
+            {browserModeLabels[session.mode]}
           </span>
         </div>
       ) : null}

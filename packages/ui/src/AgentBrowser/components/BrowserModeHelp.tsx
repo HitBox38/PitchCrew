@@ -6,6 +6,14 @@ import {
   PopoverContent,
   PopoverTitle,
 } from '@pitchcrew/design-system/popover';
+import {
+  browserModeLabels,
+  browserModeLimits,
+  browserModeOrder,
+  browserModeSummaries,
+} from '@pitchcrew/core/browser-modes';
+
+/** Every browser mode in the shared words, most supervised first, then what holds in all of them. */
 export const BrowserModeHelp = ({ name }: { name: string }) => {
   return (
     <Popover>
@@ -25,17 +33,14 @@ export const BrowserModeHelp = ({ name }: { name: string }) => {
         <PopoverTitle className="m-0 font-sans text-sm leading-5 font-semibold">
           {name}’s next turn in this conversation
         </PopoverTitle>
-        <p className="mt-2">
-          <strong>Supervised:</strong> every browser action asks for your approval.
-        </p>
-        <p className="mt-2">
-          <strong>Autonomous preparation:</strong> allow a site for the task, then the agent can
-          browse agreed sites, scroll and hover, or separately prepare supported forms. Other
-          actions, including submission, still ask.
-        </p>
+        {browserModeOrder.map((mode) => (
+          <p key={mode} className="mt-2">
+            <strong>{browserModeLabels[mode]}:</strong> {browserModeSummaries[mode]}
+          </p>
+        ))}
+        <p className="mt-2 text-muted-foreground">{browserModeLimits}</p>
         <p className="mt-2 text-muted-foreground">
           Changes apply to future turns. The browser panel shows the active task’s permissions.
-          Scheduled routines stay supervised.
         </p>
       </PopoverContent>
     </Popover>

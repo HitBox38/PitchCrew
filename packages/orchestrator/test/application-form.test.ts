@@ -76,6 +76,9 @@ it('inspects before drafting and carries confirmed fields through isolated extra
       return { reply: JSON.stringify(brief) };
     }
     expect(context.messages.at(-1)?.content).toContain('BEFORE packet drafting');
+    expect(context.messages.at(-1)?.content).toContain(
+      'it returns at once when your browser mode approves the action',
+    );
     await daemon.service.agentCall(token, 'computer_inspect', {});
     const { approval } = (await daemon.service.agentCall(token, 'computer_request', {
       input: { kind: 'navigate', url: card.url },

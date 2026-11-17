@@ -150,6 +150,10 @@ it.each([
     label: 'name-only-included-skills',
     version: { chatPromptVersion: 1, skillDeliveryVersion: 1 },
   },
+  {
+    label: 'two-browser-mode',
+    version: { chatPromptVersion: 1, skillDeliveryVersion: 2 },
+  },
 ])(
   'starts a new session for $label native transcripts even when their skills are unchanged',
   ({ version }) => {

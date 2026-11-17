@@ -1,4 +1,5 @@
-import type { Role, Run, Snapshot } from '@pitchcrew/core';
+import type { BrowserMode, Role, Run, Snapshot } from '@pitchcrew/core';
+import { savedBrowserMode } from '../lib/browser-modes.ts';
 import { runtimeLabels } from '../lib/labels.ts';
 import { timeAgo } from '../lib/time.ts';
 import { runActivityLabel } from '../lib/work-queue.ts';
@@ -35,15 +36,20 @@ export const crewSummary = (data: Snapshot): string => {
   return `${roster.length} ${roster.length === 1 ? 'agent' : 'agents'}, ${working} working`;
 };
 
+/** The browser line per saved mode: how much the agent does in its browser before it asks. */
+const browserLines: Record<BrowserMode, string> = {
+  supervised: 'Browser, asks first',
+  autonomous: 'Browser, prepares forms',
+  edits: 'Browser, fills forms',
+  auto: 'Browser, asks before risky steps',
+  full: 'Browser, full access',
+};
+
 /** One line naming what this agent is equipped to do, strongest permission first. */
 export const capabilityLine = (role: Role): CapabilityLine => {
   const caps: Partial<NonNullable<Role['capabilities']>> = role.capabilities ?? {};
   const seat = role.workflow ?? (['scout', 'writer', 'reviewer'].includes(role.id) ? role.id : '');
-  if (caps.computerUse)
-    return {
-      icon: 'browser',
-      label: role.browserMode === 'autonomous' ? 'Browser, prepares forms' : 'Browser, asks first',
-    };
+  if (caps.computerUse) return { icon: 'browser', label: browserLines[savedBrowserMode(role)] };
   if (seat === 'writer') return { icon: 'draft', label: 'Drafts packets' };
   if (seat === 'reviewer') return { icon: 'review', label: 'Checks claims' };
   if (seat === 'scout') return { icon: 'fit', label: 'Scores job fit' };

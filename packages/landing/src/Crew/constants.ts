@@ -4,7 +4,7 @@ export const supportCrew: { role: Role; name: string; text: string; state: strin
   {
     role: 'submitter',
     name: 'Submitter',
-    text: 'Prepares application forms in the built-in browser. Every submit waits for you.',
+    text: 'Prepares application forms in the built-in browser and asks before it submits, spotting that step as best it can.',
     state: 'Starts paused',
   },
   {

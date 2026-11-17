@@ -1,8 +1,12 @@
 import { FormSelect } from '@/FormSelect/index.tsx';
-import type { BrowserMode } from '@pitchcrew/core';
+import { browserModeSummaries } from '@pitchcrew/core/browser-modes';
+import { browserModeOptions } from '@/lib/browser-modes.ts';
 import type { RoleSettingsModel } from '../types.ts';
 
-/** Default browser permission; conversations can override it and routines stay supervised. */
+/**
+ * Default browser permission, with what the chosen mode does on its own; conversations can
+ * override it and routines stay supervised.
+ */
 export const BrowserSettings = ({
   capabilities,
   browserMode,
@@ -19,16 +23,15 @@ export const BrowserSettings = ({
       <FormSelect
         label="Default browser permissions"
         value={browserMode}
-        options={[
-          { value: 'supervised', label: 'Supervised' },
-          { value: 'autonomous', label: 'Autonomous preparation' },
-        ]}
-        onValueChange={(value) => setBrowserMode(value as BrowserMode)}
+        options={browserModeOptions}
+        onValueChange={setBrowserMode}
+        describedBy="agent-browser-summary"
       />
+      <p className="optional" id="agent-browser-summary" aria-live="polite">
+        {browserModeSummaries[browserMode]}
+      </p>
       <p className="optional">
-        Each conversation can override this. Autonomous preparation needs task site access and a
-        recognized application form. Buttons, keys, dialogs and final submission always ask.
-        Scheduled routines stay supervised.
+        Each conversation can override this. Scheduled routines stay supervised.
       </p>
     </section>
   );

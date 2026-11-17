@@ -1,7 +1,7 @@
-/* One right panel for a job chat: a Packet | Browser switch, the task's mode chip, then Take
- * control, expand and more. Expanded, the page fills the window beside a column with the agent's
- * live activity and the approval tray. Shapes encode state: the mode chip is plain while
- * supervised, moss for granted autonomous preparation and primary while you hold control. */
+/* One right panel for a job chat: a Packet | Browser switch, the state chip (its task details name
+ * the captured permission mode), then Take control, expand and more. Expanded, the page fills the
+ * window beside a column with the agent's live activity and the approval tray. Shapes encode
+ * state, never the permission mode: the chip's bead follows the bead law. */
 
 /* The page region is one stable element; classic layout ignores it (display: contents). */
 .browser-page-region {

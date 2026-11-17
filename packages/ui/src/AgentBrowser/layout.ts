@@ -1,4 +1,9 @@
-import type { BrowserSessionInfo, Run, RunActivity } from '@pitchcrew/core';
+import type { BrowserMode, BrowserSessionInfo, Run, RunActivity } from '@pitchcrew/core';
+import {
+  browserModeLabels,
+  browserModeSummaries,
+  isBrowserAccessMode,
+} from '@pitchcrew/core/browser-modes';
 
 /** The chat's right panel shows the job's packet or the agent's browser. */
 export type BrowserPanelView = 'browser' | 'packet';
@@ -46,7 +51,7 @@ export const browserStateBead: Record<BrowserStateTone, 'primary' | 'plum' | 'oc
 
 /**
  * The panel's one answer to "who has this page right now": the header chip's label, bead and
- * tooltip. Permission mode (Supervised or Autonomous preparation) is detail, not state.
+ * tooltip. The task's captured permission mode is detail in the shared words, not state.
  */
 export const browserState = ({
   session,
@@ -65,10 +70,9 @@ export const browserState = ({
   name: string;
   elsewhere: boolean;
 }): { tone: BrowserStateTone; label: string; detail: string } => {
-  const mode =
-    session?.mode === 'autonomous'
-      ? ' Autonomous preparation: granted sites only; submitting still asks you.'
-      : ' Supervised: every browser action asks for your approval.';
+  const mode = session
+    ? ` ${browserModeLabels[session.mode]}: ${browserModeSummaries[session.mode]}`
+    : '';
   const where = elsewhere ? ' This browser belongs to another conversation.' : '';
   const state = ((): { tone: BrowserStateTone; label: string; detail: string } => {
     if (session?.status !== 'open')
@@ -158,6 +162,40 @@ export const browserTrayLine = ({
       text: step ? `${name}: ${step}` : `${name}’s clicks, typing and submissions appear here.`,
     };
   return { tone: null, text: `Browse freely. ${name} gets the page back when it starts working.` };
+};
+
+/** What runs without asking (shown until a step is listed) and what still asks, per mode. */
+const automaticTrays: Record<Exclude<BrowserMode, 'supervised'>, { runs: string; asks: string }> = {
+  autonomous: {
+    runs: 'On sites you grant, form answers and approved files fill in.',
+    asks: 'Buttons, keys, dialogs and submitting still ask here.',
+  },
+  edits: {
+    runs: 'Browsing and filling in forms run on their own.',
+    asks: 'Buttons, links, keys, dialogs and sending ask here.',
+  },
+  auto: {
+    runs: 'Browsing, filling in forms and routine clicks run on their own.',
+    asks: 'Risky steps and sending ask here.',
+  },
+  full: {
+    runs: 'Browsing, forms, clicks and keys run on their own.',
+    asks: 'Sending or posting asks here.',
+  },
+};
+
+/**
+ * The automatic-steps tray of a task whose captured mode acts on its own. Autonomous preparation
+ * keeps its granted-site wording; the other modes act on any public site, are titled by their
+ * shared label and always ask before sending.
+ */
+export const automaticTray = (mode: BrowserMode | undefined) => {
+  const access = isBrowserAccessMode(mode) ? mode : undefined;
+  return {
+    region: access ? 'Automatic steps' : 'Automatic preparation',
+    title: access ? browserModeLabels[access] : 'Automatic preparation',
+    ...automaticTrays[access ?? 'autonomous'],
+  };
 };
 
 /**

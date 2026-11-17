@@ -21,6 +21,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { packet } from '../../board/test/fixtures/packet.ts';
 import { exportApprovedPacket } from '../src/index.ts';
 import { ComputerManager, resolveSubmission } from '../src/computer.ts';
+import type { ActionTarget } from '../src/computer/access-modes.ts';
 const fixture = async (formats: ('pdf' | 'docx')[] = []) => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-submitter-'));
   const board = new Board(join(directory, 'board.db'));
@@ -336,6 +337,83 @@ it('consumes submission approval with a durable uncertain attempt before side ef
       'Duplicate confirmed',
     ),
   ).rejects.toThrow('awaiting-approval');
+});
+
+it('still asks before the marked final submission in Full access while packet uploads run on their own', async () => {
+  const { board, exported, manager, driver, scope, signal } = await fixture();
+  manager.browsers.bind({ ...scope, taskId: 'full-access-task', mode: 'full' });
+  const upload = await manager.request(
+    scope,
+    { kind: 'upload', selector: '#resume', exportApprovalId: exported.id, file: 'resume.md' },
+    'Attach the reviewed resume',
+  );
+  expect(upload).toMatchObject({ status: 'approved', automatic: true, mode: 'full' });
+  await manager.execute(scope.runId, upload.id, signal, () => {}, 0);
+  // Exact reviewed bytes, and no preparation write guard (the third argument).
+  expect(driver.perform).toHaveBeenLastCalledWith(
+    upload.action,
+    expect.objectContaining({ name: 'resume.md', buffer: Buffer.from(packet.resume) }),
+  );
+  // A click on an element the server cannot read might be the one that sends, so it asks.
+  const unmarked = await manager.request(scope, { kind: 'click', selector: '#submit' }, 'Continue');
+  expect(unmarked).toMatchObject({ status: 'pending' });
+  manager.decide(unmarked.id, false);
+  const submission = await manager.request(
+    scope,
+    { kind: 'click', selector: '#submit', purpose: 'submission', exportApprovalId: exported.id },
+    'Submit exact exported fictional packet',
+  );
+  expect(submission.status).toBe('pending');
+  expect(submission.automatic).toBeUndefined();
+  expect(await manager.execute(scope.runId, submission.id, signal, () => {}, 0)).toMatchObject({
+    status: 'pending',
+  });
+  expect(board.list<SubmissionAttempt>('submission_attempt')).toHaveLength(0);
+  manager.decide(submission.id, true);
+  await manager.execute(scope.runId, submission.id, signal, () => {}, 0);
+  expect(board.list<SubmissionAttempt>('submission_attempt')).toHaveLength(1);
+  // The uncertain attempt stops every further action, including ones the mode would allow.
+  await expect(
+    manager.request(scope, { kind: 'scroll', selector: 'body', deltaY: 200 }, 'Look around'),
+  ).rejects.toThrow('uncertain');
+});
+
+it('lets a browser mode tick a choice on an application only when it is a reviewed answer', async () => {
+  const { manager, driver, scope } = await fixture();
+  manager.browsers.bind({ ...scope, taskId: 'choice-task', mode: 'edits' });
+  let choice: ActionTarget = {
+    control: 'choice',
+    name: 'No',
+    names: ['No'],
+    value: 'no',
+    href: '',
+    form: 'post',
+    small: false,
+    credential: false,
+    nested: [],
+  };
+  Object.assign(driver, { actionTarget: vi.fn(async () => choice) });
+  // Ticking a box is an answer: one the user never reviewed waits for them, even in this mode.
+  const unreviewed = await manager.request(
+    scope,
+    { kind: 'click', selector: '#visa-no' },
+    'Answer the visa question',
+  );
+  expect(unreviewed).toMatchObject({ status: 'pending' });
+  manager.decide(unreviewed.id, false);
+  // A choice whose label is a reviewed line of the packet runs on its own.
+  choice = {
+    ...choice,
+    name: 'Built React interfaces.',
+    names: ['Built React interfaces.'],
+    value: 'on',
+  };
+  const reviewed = await manager.request(
+    scope,
+    { kind: 'click', selector: '#name-choice' },
+    'Pick the reviewed answer',
+  );
+  expect(reviewed).toMatchObject({ status: 'approved', automatic: true, mode: 'edits' });
 });
 
 it('uploads exact binary bytes with binary hash/MIME and rejects changed bytes and stale packets', async () => {

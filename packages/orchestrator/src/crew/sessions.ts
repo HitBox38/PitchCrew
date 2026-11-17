@@ -13,7 +13,7 @@ import type {
 import type { CrewContext } from './types.ts';
 
 /** Bump when built-in chat instructions must replace prior native transcript instructions. */
-const chatPromptVersion = 1;
+const chatPromptVersion = 2;
 
 export const prepareSession = (
   context: Pick<CrewContext, 'board' | 'directory'>,

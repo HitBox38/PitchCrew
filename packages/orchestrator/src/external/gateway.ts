@@ -198,12 +198,14 @@ export const externalCall = async (
     case 'send_message': {
       const { conversationId, content, clientRequestId } =
         externalTools.send_message.schema.parse(data);
+      // Marked external: its runs and their follow-ups browse in Supervised.
       return {
-        request: await sendConversation(context, conversationId, {
-          content: `[External MCP agent]\n${content}`,
-          intent: 'queue',
-          clientRequestId,
-        }),
+        request: await sendConversation(
+          context,
+          conversationId,
+          { content: `[External MCP agent]\n${content}`, intent: 'queue', clientRequestId },
+          { external: true },
+        ),
       };
     }
     default:

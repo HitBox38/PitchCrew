@@ -147,6 +147,7 @@ export { chatFileCitations } from './chat-citations.ts';
 
 export * from './browser-tabs.ts';
 export { publicText } from './browser-action-labels.ts';
+export * from './browser-modes.ts';
 export {
   browserErrorText,
   isUserControlError,
