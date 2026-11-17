@@ -55,6 +55,12 @@ describe('gateway tool failure classifier', () => {
     ],
     [new Error('Connect Gmail before scanning applications.'), 'setup_required'],
     [new Error('The profile source account is disconnected.'), 'setup_required'],
+    [new Error('This runtime is not installed. Check Crew settings.'), 'setup_required'],
+    [new Error('Invalid or expired authorization grant. Connect again.'), 'setup_required'],
+    // Mentioning installing or connecting is not an instruction to set something up.
+    [new Error('Cannot install skills while an import is in progress.'), 'limit_reached'],
+    [new Error('Skills can only install from approved proposals.'), 'not_allowed'],
+    [new Error('Could not connect to the posting site.'), 'unavailable'],
     [new Error('Could not reach the job board: fetch failed'), 'unavailable'],
     // Bun's fetch wording names "connect", which is not a setup step here.
     [

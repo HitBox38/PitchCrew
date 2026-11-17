@@ -394,7 +394,7 @@ describe('native tool tracker', () => {
     const text = JSON.stringify(rows);
     expect(text).not.toMatch(/fixture-run-token|fixture-provider|abc123def456|private-value/);
     expect(rows.at(-1)).toMatchObject({
-      detail: 'curl -H "Authorization: [redacted] [redacted]" -d [redacted]',
+      detail: 'curl -H "Authorization: [redacted] -d [redacted]',
       error: 'Exit code 1: rejected [redacted] token=[redacted]',
     });
   });

@@ -86,14 +86,15 @@ const statusReason = (status: unknown): ToolFailureReason | undefined => {
  * Pitchcrew's own refusals are plain errors that their wording tells apart ("… is disabled for
  * your role.", "Three proposals maximum per run."). The first match wins, so more specific
  * wording comes first: a connection that did not happen is a fault before any setup words ("The
- * native browser tab did not connect.", Bun's "Unable to connect."), and "GitHub CLI account changed. Reconnect …" needs
- * setting up.
+ * native browser tab did not connect.", Bun's "Unable to connect."). Setup is a sentence that
+ * tells the user to install, connect or sign in ("GitHub CLI account changed. Reconnect …"), or
+ * says something is not set up; a sentence that only mentions installing is another refusal.
  */
 const wordedReasons: readonly (readonly [ToolFailureReason, RegExp])[] = [
-  ['unavailable', /\b(?:did not connect|unable to connect)\b/i],
+  ['unavailable', /\b(?:did not|unable to|could not|couldn't|cannot|can't|failed to) connect\b/i],
   [
     'setup_required',
-    /\b(?:install|connect|reconnect|sign in)\b|expired or revoked|account is disconnected/i,
+    /(?:^|[!.?]\s+)(?:install|connect|reconnect|sign in)\b|\b(?:is|are) not (?:installed|connected|signed in)\b|expired or revoked|was revoked|account is disconnected/i,
   ],
   [
     'unavailable',

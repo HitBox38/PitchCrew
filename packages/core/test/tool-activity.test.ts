@@ -77,6 +77,13 @@ describe('credential redaction', () => {
   it.each([
     ['curl -H "Authorization: Bearer abc123def456ghi789"', 'abc123def456ghi789'],
     ['Authorization: Basic dXNlcjpwYXNz', 'dXNlcjpwYXNz'],
+    // A header names its credential, so even a token with no digits or capitals goes.
+    ['curl -H "Authorization: Bearer fixturetokenvalue" https://x.test', 'fixturetokenvalue'],
+    ["wget --header='Authorization: token fixturetokenvalue' x.test", 'fixturetokenvalue'],
+    ['curl -H "Cookie: sid=fixturesession; theme=dark" x.test', 'fixturesession'],
+    ['curl -b "sid=fixturesession" https://x.test', 'fixturesession'],
+    ['curl -u fixture:hunter22hunter22 https://x.test', 'hunter22'],
+    ['curl --oauth2-bearer fixturetokenvalue https://x.test', 'fixturetokenvalue'],
     [`key ${fake('sk-', 24)} rejected`, fake('sk-', 24)],
     [`push with ${fake('ghp_', 36)}`, fake('ghp_', 36)],
     [`grok ${fake('xai-', 40)}`, fake('xai-', 40)],
@@ -104,6 +111,8 @@ describe('credential redaction', () => {
       'Token validation failed for this request',
       'Invalid bearer token provided',
       'max_tokens: 1000',
+      'git push -u origin main',
+      'git checkout -b fixture-topic',
     ])
       expect(redactCredentials(text)).toBe(text);
   });

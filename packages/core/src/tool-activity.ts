@@ -523,19 +523,26 @@ const credentialPatterns: readonly [RegExp, string][] = [
     '$1[redacted]',
   ],
   [
-    /(--?(?:api-?key|access-?token|token|password|passwd|secret|auth-?token)(?:=|\s+))(?:"[^"]*"|'[^']*'|\S+)/gi,
+    /(--?(?:api-?key|access-?token|token|password|passwd|secret|auth-?token|oauth2-bearer)(?:=|\s+))(?:"[^"]*"|'[^']*'|\S+)/gi,
     '$1[redacted]',
   ],
+  // curl's account and cookie options, only in their credential shapes: `-u name:password` and
+  // `-b name=value`, so `git push -u origin` and `git checkout -b topic` stay readable.
+  [/((?:^|\s)(?:-u|--user|--proxy-user)(?:=|\s+)["']?)[^\s"':]+:[^\s"']+/g, '$1[redacted]'],
+  [/((?:^|\s)(?:-b|--cookie)(?:=|\s+)["']?)[^\s"'=]+=[^\s"']+/g, '$1[redacted]'],
   [
     /\b([\dA-Z_]*(?:API_?KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIALS?)\s*=\s*)(?:"[^"]*"|'[^']*'|\S+)/g,
     '$1[redacted]',
   ],
   // Also quoted JSON keys and prefixed names such as "client_secret" or refresh_token: the match
-  // starts at the key word, so a prefix stays as written.
+  // starts at the key word, so a prefix stays as written. A header's scheme word goes with its
+  // value ("Authorization: Bearer …"), whatever the token after it looks like.
   [
-    /((?:api[_-]?key|access[_-]?token|auth[_-]?token|token|secret|password|passwd|pwd|authorization)["']?\s*[:=]\s*)(?:"[^"]*"|'[^']*'|\S+)/gi,
+    /((?:api[_-]?key|access[_-]?token|auth[_-]?token|token|secret|password|passwd|pwd|authorization)["']?\s*[:=]\s*)(?:(?:bearer|basic|digest|token)\s+)?(?:"[^"]*"|'[^']*'|\S+)/gi,
     '$1[redacted]',
   ],
+  // A cookie header or JSON value: its pairs run to the closing quote, or to the end of the line.
+  [/(\bcookie["']?\s*:\s*)(?:"[^"]*"|'[^']*'|[^"']+)/gi, '$1[redacted]'],
 ];
 
 /**
