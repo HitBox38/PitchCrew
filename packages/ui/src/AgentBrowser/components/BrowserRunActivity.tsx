@@ -9,8 +9,9 @@ import { blockedSteps } from '@/ChatTurn/activity-summary.ts';
 
 /**
  * Clay expanded browser: the browsing agent's public activity for the run using the browser, or
- * its latest run here once that ends, with the existing run cancellation. Private reasoning and
- * tool inputs stay excluded as in chat.
+ * its latest run here once that ends, with the existing run cancellation. As in chat, a step
+ * shows at most its bounded public target and failure reason; private reasoning, raw tool
+ * arguments and results, and browser input values stay excluded.
  */
 export const BrowserRunActivity = ({
   browserPanel,

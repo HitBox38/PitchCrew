@@ -1,20 +1,27 @@
+import { activityLimits, activityToolKinds } from '@pitchcrew/core';
 import { z } from 'zod';
 import type { CrewContext } from './types.ts';
+
+/** An optional step field that drops itself, never the whole checkpoint, when it is invalid. */
+const optional = <T extends z.ZodType>(schema: T) => schema.optional().catch(undefined);
 
 const checkpointSchema = z.object({
   entries: z
     .array(
       z.object({
-        id: z.string().max(160),
+        id: z.string().max(activityLimits.id),
         kind: z.enum(['commentary', 'tool', 'reasoning']),
-        label: z.string().max(160),
-        text: z.string().max(4000).optional(),
+        label: z.string().max(activityLimits.label),
+        text: z.string().max(activityLimits.text).optional(),
+        tool: optional(z.enum(activityToolKinds)),
+        detail: optional(z.string().max(activityLimits.detail)),
+        error: optional(z.string().max(activityLimits.error)),
         status: z.enum(['running', 'completed', 'failed', 'interrupted']),
         startedAt: z.string().datetime(),
         finishedAt: z.string().datetime().nullable(),
       }),
     )
-    .max(80),
+    .max(activityLimits.entries),
   truncated: z.boolean(),
 });
 const interval = 10_000;

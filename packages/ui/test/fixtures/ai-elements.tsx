@@ -6,6 +6,7 @@ import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import type { ChatMessage, Snapshot, RunActivity, ChatRequest } from '@pitchcrew/core';
+import { runtimeStepId } from '@pitchcrew/core/tool-activity';
 import { AppMotion } from '@/AppMotion/index.tsx';
 import { ConversationHistory } from '@/ChatView/components/ConversationHistory.tsx';
 import { ConversationQueue } from '@/ChatView/components/ConversationQueue.tsx';
@@ -14,6 +15,7 @@ import { Button } from '@pitchcrew/design-system/button';
 import { NotificationBell, NotificationCenter } from '@/Notifications/index.tsx';
 import { LinkConfirmation } from '@/components/MarkdownContent/components/LinkConfirmation.tsx';
 import '@/styles.css';
+import '@/styles/chat.css';
 
 const Fixture = () => {
   const [messages, setMessages] = useState(initial);
@@ -153,6 +155,39 @@ const entries: RunActivity[] = [
     startedAt: initial[0].createdAt,
     finishedAt: initial[1].createdAt,
     text: 'PRIVATE_REASONING_MUST_NEVER_RENDER',
+  },
+  {
+    id: runtimeStepId('call_command'),
+    kind: 'tool',
+    tool: 'command',
+    label: 'Ran command',
+    detail:
+      'bun x --no-install vitest run packages/ui/src/ChatTurn packages/ui/src/Analytics packages/ui/src/AgentBrowser/__tests__/layout.test.ts --project unit-and-api',
+    status: 'completed',
+    startedAt: initial[0].createdAt,
+    finishedAt: initial[1].createdAt,
+  },
+  {
+    // A crew step reusing a code kind for words, in a right-to-left language.
+    id: 'tool-recall',
+    kind: 'tool',
+    tool: 'search',
+    label: 'Recalled saved context',
+    detail: 'ציפיות שכר ותנאי עבודה היברידית',
+    status: 'completed',
+    startedAt: initial[0].createdAt,
+    finishedAt: initial[1].createdAt,
+  },
+  {
+    id: runtimeStepId('call_failed_command'),
+    kind: 'tool',
+    tool: 'command',
+    label: 'Command failed',
+    detail: 'bun run lint',
+    error: 'Exit code 1: ActivityStep.tsx has 104 lines; components may have at most 100.',
+    status: 'failed',
+    startedAt: initial[0].createdAt,
+    finishedAt: initial[1].createdAt,
   },
 ];
 

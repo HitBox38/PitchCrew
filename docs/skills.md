@@ -18,7 +18,7 @@ Eligible isolated application runs and review children can read their own assign
 
 Runtime prompts and generated `AGENTS.md` share one delivery plan. Exact `skills/<id>/SKILL.md` files remain run artifacts; runtime behavior does not depend on native file reads or native skill discovery. Native session identity includes a delivery-format revision; revision 2 refreshes transcripts that omitted included skill IDs even when saved configurations are unchanged. Later resumed sessions may retain instructions read on earlier turns.
 
-Tool activity reports **Reading skill instructions** and its execution outcome. Successful delivery does not establish that the model applied the instructions. The runtime's actual model context remains finite, and unusually large included instructions, Profile files or history may still fail; Pitchcrew does not silently remove explicit or standing instructions to make them fit.
+Tool activity reports **Reading skill instructions** while the read runs, then **Read skill instructions** or, with the reason, **Couldn't read skill instructions**; the step names the skill when the run's configuration snapshot includes it. Successful delivery does not establish that the model applied the instructions. The runtime's actual model context remains finite, and unusually large included instructions, Profile files or history may still fail; Pitchcrew does not silently remove explicit or standing instructions to make them fit.
 
 ## Persistence and verification
 

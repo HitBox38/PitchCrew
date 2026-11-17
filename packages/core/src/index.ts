@@ -62,7 +62,17 @@ export {
 } from './roles.ts';
 export type { AgentCapabilities, Role, RoleProposal } from './roles.ts';
 export { compactRun, runResultSchema } from './runs.ts';
-export type { AgentTask, Run, RunResult, RunActivity, RuntimeActivity } from './runs.ts';
+export type {
+  AgentTask,
+  Run,
+  RunResult,
+  RunActivity,
+  RuntimeActivity,
+  RuntimeToolFailure,
+} from './runs.ts';
+export * from './tool-activity.ts';
+export * from './tool-failures.ts';
+export * from './telemetry-tool-failures.ts';
 export { routineInput } from './routines.ts';
 export type { Routine, RoutineInput } from './routines.ts';
 export type {
@@ -126,7 +136,12 @@ export type {
 export * from './user-input.ts';
 
 export { sanitizeOperationalLog, type OperationalLog } from './operational-logs.ts';
-export { mcpGatewayTools, mcpConnectorTools, sanitizeMcpToolCall } from './telemetry-mcp.ts';
+export {
+  isReviewedMcpTool,
+  mcpGatewayTools,
+  mcpConnectorTools,
+  sanitizeMcpToolCall,
+} from './telemetry-mcp.ts';
 
 export type { ProfileOrganization } from './profile-organization.ts';
 export type { TranscriptItem, ConversationHistoryPage, WorkspaceMessages } from './chat-history.ts';

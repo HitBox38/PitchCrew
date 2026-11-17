@@ -38,6 +38,7 @@ const serve = async () => {
   const port = Number(argument('--port'));
   assert(Number.isInteger(port) && port >= 1024 && port <= 65535);
   const { createDaemon } = await import('../packages/orchestrator/src/server.ts');
+  const { isActivityToolKind } = await import('../packages/core/src/tool-activity.ts');
   const daemon = await createDaemon({
     directory,
     port,
@@ -75,7 +76,20 @@ const serve = async () => {
         entries: Record<string, unknown>[];
         truncated: boolean;
       };
-      const keys = new Set(['id', 'kind', 'label', 'text', 'status', 'startedAt', 'finishedAt']);
+      const keys = new Set([
+        'id',
+        'kind',
+        'label',
+        'text',
+        'tool',
+        'detail',
+        'error',
+        'status',
+        'startedAt',
+        'finishedAt',
+      ]);
+      const line = (value: unknown, max: number) =>
+        value === undefined || (typeof value === 'string' && value.length <= max);
       const privacyValid =
         checkpoint.entries.length <= 80 &&
         checkpoint.entries.every(
@@ -88,7 +102,11 @@ const serve = async () => {
             (entry.text === undefined ||
               (entry.kind === 'commentary' &&
                 typeof entry.text === 'string' &&
-                entry.text.length <= 4000)),
+                entry.text.length <= 4000)) &&
+            (entry.tool === undefined || isActivityToolKind(entry.tool)) &&
+            line(entry.detail, 200) &&
+            line(entry.error, 300) &&
+            (entry.error === undefined || entry.status === 'failed'),
         );
       emit({
         phase: 'checkpoint',

@@ -1,4 +1,4 @@
-import { runResultSchema } from '@pitchcrew/core';
+import { runResultSchema, type RuntimeActivity } from '@pitchcrew/core';
 import { readFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -346,6 +346,26 @@ describe.each([
     }
     expect(request.prompt).toContain(`Attached card: ${JSON.stringify(chat.card)}`);
     expect(request.environment.PITCHCREW_RUN_TOKEN).toBe('fictional-token');
+  });
+  it("shows the runtime's own failed command without the run token it echoed", async () => {
+    const context = await contextFor(runtime, 'tool-calls');
+    const onActivity = vi.fn<(entry: RuntimeActivity) => void>();
+    expect(
+      await adapters[runtime].chat({ ...context, card: null, messages: [], onActivity }),
+    ).toEqual({ reply: 'Fixture conversational café response.' });
+    // Kiro's fixture also fails Pitchcrew calls; kiro-runtime.test.ts covers its other steps.
+    const failed = onActivity.mock.calls.flatMap(([entry]) =>
+      entry.kind === 'tool' && entry.tool === 'command' && entry.status === 'failed' ? [entry] : [],
+    );
+    expect(failed).toEqual([
+      expect.objectContaining({
+        id: expect.stringMatching(/^native-/),
+        detail: 'echo [redacted]',
+        error: expect.stringContaining('[redacted]'),
+        failure: expect.objectContaining({ reason: expect.any(String) }),
+      }),
+    ]);
+    expect(JSON.stringify(onActivity.mock.calls)).not.toContain('fictional-token');
   });
   it('rejects workflow-shaped or malformed chat responses', async () => {
     for (const mode of ['wrong-role', 'invalid']) {

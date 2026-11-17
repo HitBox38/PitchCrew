@@ -3,6 +3,7 @@ import type { ChatContext, RunContext, RunResult } from '@pitchcrew/core';
 import { chatResultSchema } from '@pitchcrew/core';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { chatEventStream } from '../streaming.ts';
+import { environmentSecrets, runtimeDirectory } from '../activity/native-tools.ts';
 import { runtimeEnvironment, runtimeTimeLimit } from './environment.ts';
 import { chatPromptFor } from './prompts.ts';
 import { cleanResult, parseWorkflowResult } from './results.ts';
@@ -58,16 +59,14 @@ export const runCliText = async (
   failure?: (event: Record<string, unknown>) => string | null,
 ): Promise<string> => {
   if (context.signal.aborted) throw new Error('Run cancelled.');
-  const stream = chatEventStream(context);
+  const environment = runtimeEnvironment(context, env);
+  // Tool steps drop the exact secrets this runtime receives, including the run token.
+  const stream = chatEventStream(context, environmentSecrets(environment));
   return new Promise((resolve, reject) => {
     const invocation = runtimeCommand(command, args);
-    const environment = runtimeEnvironment(context, env);
     const redactStderr = terminalRedactor(environment);
     const child = spawn(invocation.file, invocation.args, {
-      cwd:
-        !context.purpose && 'session' in context && context.session
-          ? context.session.directory
-          : context.directory,
+      cwd: runtimeDirectory(context),
       windowsHide: true,
       stdio: ['pipe', 'pipe', 'pipe'],
       env: environment,

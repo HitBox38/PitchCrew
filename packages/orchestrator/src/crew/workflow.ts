@@ -1,6 +1,11 @@
 import { sourceArguments } from '../process.ts';
 import { failureDetails } from '@pitchcrew/core/operational-logs';
-import { recordChatActivity, finishChatActivity } from './chat-activity.ts';
+import {
+  recordChatActivity,
+  recordRuntimeActivity,
+  reportRuntimeFailure,
+  finishChatActivity,
+} from './chat-activity.ts';
 import { QueueBusyError, reserveLaunch } from './queue/admission.ts';
 import { ensureQueue, patchQueue, runLane } from './queue/state.ts';
 import { recordOperationalLog } from '../telemetry/logs.ts';
@@ -35,6 +40,8 @@ import {
   type Run,
   type RunResult,
   type RuntimeActivity,
+  type RuntimeToolFailure,
+  type ActivityToolKind,
 } from '@pitchcrew/core';
 import { readProfile, warningFeedback, writePacket } from '@pitchcrew/packet';
 import { randomUUID, createHash } from 'node:crypto';
@@ -229,7 +236,11 @@ const startRunPrepared = async (
       env: { PITCHCREW_RUN_TOKEN: token, PITCHCREW_DAEMON_URL: crewContext.daemonUrl },
     },
     signal: controller.signal,
-    onActivity: (activity: RuntimeActivity) => recordChatActivity(crewContext, run.id, activity),
+    onActivity: (activity: RuntimeActivity) =>
+      recordRuntimeActivity(crewContext, run.id, token, activity),
+    // Workflow runs show no steps; a failed tool call is only reported, in closed words.
+    onToolFailure: (failure: RuntimeToolFailure & { kind: ActivityToolKind }) =>
+      reportRuntimeFailure(crewContext, run.id, token, failure),
     onMessage: (message: string) => {
       const current = crewContext.board.get<Run>('run', run.id);
       if (current.status === 'running') {

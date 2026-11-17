@@ -5,7 +5,7 @@ import { ensureQueue } from './queue/state.ts';
 import { agentChatReferences } from '@pitchcrew/core/chat-references';
 import { selectedChatSkills } from './chat-references.ts';
 import { skillDelivery } from '@pitchcrew/core/skill-delivery';
-import { activityRuns, recordChatActivity, finishChatActivity } from './chat-activity.ts';
+import { activityRuns, recordRuntimeActivity, finishChatActivity } from './chat-activity.ts';
 import { recordOperationalLog } from '../telemetry/logs.ts';
 import { endQuestionTurn, finishUserContinuation, waitingOnUser } from './user-input/lifecycle.ts';
 import { conversationMessages } from './conversation-context.ts';
@@ -349,7 +349,7 @@ const startChatRunPrepared = async (
           },
           signal: controller.signal,
           onActivity: (update) => {
-            if (acceptingReply) recordChatActivity(context, run.id, update);
+            if (acceptingReply) recordRuntimeActivity(context, run.id, token, update);
           },
           onReply: (text) => {
             if (!acceptingReply || controller.signal.aborted || context.closing) return;

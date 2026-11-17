@@ -43,7 +43,7 @@ const record = (context: CrewContext, update: Partial<RuntimeActivity> & { id: s
   recordChatActivity(context, run.id, {
     kind: 'tool',
     status: 'completed',
-    label: 'Reading profile',
+    label: 'Read profile',
     ...update,
   });
 const checkpoint = (context: CrewContext) =>
@@ -103,6 +103,117 @@ it('bounds even all-active activity and retains terminal updates for retained en
     finishedAt: new Date().toISOString(),
   });
   expect(state.entries.at(-1)?.text).toBeUndefined();
+});
+
+it('keeps a tool step’s kind and detail across updates, its reason only while failed', () => {
+  const context = create();
+  context.board.record('run', run, 'scout', 'Started');
+  record(context, {
+    id: 'call',
+    status: 'running',
+    tool: 'command',
+    detail: 'npm test',
+    label: 'Running command',
+  });
+  record(context, {
+    id: 'call',
+    status: 'failed',
+    label: 'Command failed',
+    error: '\u001b[31mExit code 1\u001b[0m:\n  Bearer fixture7Token4Value9 rejected',
+    failure: { reason: 'tool_error' },
+  });
+  const state = context.runActivities.get(run.id)!;
+  expect(state.entries[0]).toEqual({
+    id: 'call',
+    kind: 'tool',
+    tool: 'command',
+    detail: 'npm test',
+    label: 'Command failed',
+    error: 'Exit code 1: Bearer [redacted] rejected',
+    status: 'failed',
+    startedAt: expect.any(String),
+    finishedAt: expect.any(String),
+  });
+  // The transient failure is reported, never kept.
+  expect(state.entries[0]).not.toHaveProperty('failure');
+  record(context, { id: 'call', status: 'interrupted', label: 'Running command' });
+  expect(state.entries[0]).toMatchObject({ tool: 'command', detail: 'npm test' });
+  expect(state.entries[0]).not.toHaveProperty('error');
+  record(context, {
+    id: 'bounded',
+    status: 'failed',
+    tool: 'shell' as never,
+    detail: 'x'.repeat(500),
+    error: 'y'.repeat(500),
+  });
+  expect(state.entries.at(-1)).not.toHaveProperty('tool');
+  expect(state.entries.at(-1)!.detail).toHaveLength(200);
+  expect(state.entries.at(-1)!.error).toHaveLength(300);
+  // Only tool steps name a kind, a target or a reason.
+  record(context, {
+    id: 'note',
+    kind: 'commentary',
+    status: 'failed',
+    text: 'Public progress.',
+    tool: 'read',
+    detail: 'notes.md',
+    error: 'Failed',
+  });
+  for (const key of ['tool', 'detail', 'error'])
+    expect(state.entries.at(-1)).not.toHaveProperty(key);
+});
+
+it('checkpoints tool details and drops only an invalid field when restoring', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'pitchcrew-activity-'));
+  directories.push(directory);
+  const filename = join(directory, 'board.db');
+  const original = create(filename);
+  original.board.record('run', run, 'scout', 'Started');
+  record(original, {
+    id: 'call',
+    status: 'failed',
+    tool: 'command',
+    detail: 'npm test',
+    label: 'Command failed',
+    error: 'Exit code 1: tests failed',
+  });
+  const [live] = original.runActivities.get(run.id)!.entries;
+  const saved = JSON.parse(checkpoint(original)!.json);
+  expect(saved.entries).toEqual([JSON.parse(JSON.stringify(live))]);
+  // An older or damaged checkpoint keeps its step, only without the field that is invalid.
+  saved.entries.push({
+    ...saved.entries[0],
+    id: 'damaged',
+    tool: 'shell',
+    detail: 'x'.repeat(201),
+    error: 7,
+  });
+  original.board.db
+    .prepare('UPDATE run_activity_checkpoints SET json=? WHERE run_id=?')
+    .run(JSON.stringify(saved), run.id);
+  original.board.close();
+  boards.splice(boards.indexOf(original.board), 1);
+  const recovered = create(filename);
+  restoreActivityCheckpoints(recovered);
+  const [restored, damaged] = recovered.runActivities.get(run.id)!.entries;
+  expect(restored).toEqual(live);
+  expect(damaged).toMatchObject({ id: 'damaged', label: 'Command failed', status: 'failed' });
+  expect([damaged!.tool, damaged!.detail, damaged!.error]).toEqual([
+    undefined,
+    undefined,
+    undefined,
+  ]);
+  recovered.board.record(
+    'run',
+    { ...run, status: 'failed', finishedAt: new Date().toISOString() },
+    'system',
+    'Recovered interrupted run',
+  );
+  finishChatActivity(recovered, run.id);
+  const activity = recovered.board.get<Run>('run', run.id).activity;
+  expect(activity?.[0]).toEqual(live);
+  recovered.board.rebuild();
+  expect(recovered.board.get<Run>('run', run.id).activity).toEqual(activity);
 });
 
 it('checkpoints first activity then coalesces updates to one bounded write each ten seconds', () => {

@@ -1,4 +1,6 @@
-import { activityStream } from './activity/index.ts';
+import { activityStream, showsActivity } from './activity/index.ts';
+import { nativeToolParsers } from './activity/parsers.ts';
+import { runtimeDirectory } from './activity/native-tools.ts';
 import type { ChatContext, RunContext } from '@pitchcrew/core';
 
 // Decode only the reply string in the structured chat answer. Never display JSON,
@@ -56,9 +58,19 @@ const textParts = (content: unknown): string => {
 
 // Native protocol handling belongs to adapters. Final result extraction remains
 // separate so a preview can never turn an incomplete/failed run into success.
-export const chatEventStream = (context: RunContext | ChatContext) => {
+export const chatEventStream = (
+  context: RunContext | ChatContext,
+  /** Exact secret values from the runtime's environment, removed from tool steps. */
+  secrets: readonly string[] = [],
+) => {
   const preview = replyPreview(context);
-  const activity = activityStream(context);
+  const activity = activityStream(context, secrets);
+  // Chat turns and deep-review stages show the runtime's own tool calls as steps; other runs read
+  // them only when they report failed calls for diagnostics.
+  const tools =
+    showsActivity(context) || context.onToolFailure
+      ? nativeToolParsers[context.role.runtime]?.({ cwd: runtimeDirectory(context) })
+      : undefined;
   let raw = '';
   let itemId: unknown;
   const replace = (text: string) => {
@@ -71,10 +83,28 @@ export const chatEventStream = (context: RunContext | ChatContext) => {
     replace,
     finish: () => activity.boundary(),
     event: (event: Record<string, unknown>) => {
-      if (!('messages' in context)) return;
+      // Parsers keep state, so every path hands them each event exactly once. In a chat turn
+      // that is after the event's own thinking marker: a message carrying its reasoning with a
+      // call (Goose) shows the reasoning first, and the call's start then ends it.
+      const forwardTools = () => {
+        if (tools)
+          try {
+            for (const call of tools(event)) activity.tool(call);
+          } catch {
+            /* A tool parser must never change the reply or the run's result. */
+          }
+      };
+      if (!('messages' in context)) return forwardTools();
       const data = event.data as Record<string, unknown> | undefined;
       const message = event.message as { role?: string; content?: unknown } | undefined;
-      if (event.parent_tool_use_id || data?.parentToolCallId) return;
+      // Sub-agent work stays out of the turn: Claude's parent id, Copilot's deprecated parent id
+      // and its current envelope agent id. Parsers skip those calls themselves.
+      if (
+        event.parent_tool_use_id ||
+        data?.parentToolCallId ||
+        (context.role.runtime === 'copilot-cli' && event.agentId)
+      )
+        return forwardTools();
       const item = event.item as { type?: string } | undefined;
       const nested = event.event as
         | { delta?: { type?: string }; content_block?: { type?: string }; type?: string }
@@ -89,6 +119,7 @@ export const chatEventStream = (context: RunContext | ChatContext) => {
           message.content.some((part) => part?.type === 'thinking'))
       )
         activity.thinking();
+      forwardTools();
       if (
         ['tool_use', 'tool_call', 'tool.execution_start', 'tool_execution_start'].includes(
           String(event.type),

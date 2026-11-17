@@ -1,7 +1,9 @@
 import {
+  crewToolLabelsFor,
   defaultCapabilities,
   roleChanges,
   skillInput,
+  toolLabel,
   type AgentTask,
   type Card,
   type ChatMessage,
@@ -18,7 +20,17 @@ import { saveRequest } from './conversation-queue.ts';
 import { createConversation } from './conversations.ts';
 import type { CrewContext } from './types.ts';
 
-type Step = Pick<RunActivity, 'kind' | 'label' | 'status'> & { text?: string };
+type Step = Pick<RunActivity, 'kind' | 'label' | 'status' | 'text' | 'tool' | 'detail' | 'error'>;
+
+/** A crew tool step in the gateway's own words and kind, as a finished turn saves it. */
+const crewStep = (
+  action: string,
+  extra: Pick<Step, 'detail' | 'error'> & { status?: 'completed' | 'failed' } = {},
+): Step => {
+  const labels = crewToolLabelsFor(action);
+  const status = extra.status ?? 'completed';
+  return { ...extra, kind: 'tool', tool: labels.tool, label: toolLabel(labels, status), status };
+};
 
 /**
  * A fictional job conversation that shows every chat state at once: finished turns with a failed
@@ -96,10 +108,15 @@ export const loadChatExamples = (context: CrewContext, card: Card): void => {
       status: 'completed',
       text: 'I’ll compare the cover letter with your profile before I change anything.',
     },
-    { kind: 'tool', label: 'Reading the packet', status: 'completed' },
-    { kind: 'tool', label: 'Checking profile evidence', status: 'completed' },
-    { kind: 'tool', label: 'Running packet rules', status: 'failed' },
-    { kind: 'tool', label: 'Running packet rules again', status: 'completed' },
+    crewStep('card'),
+    crewStep('profile'),
+    // The failed check shows why, as the gateway words a rejected packet.
+    crewStep('lint', {
+      status: 'failed',
+      error: 'Invalid input: expected string, received undefined at coverLetter',
+    }),
+    crewStep('lint'),
+    crewStep('message', { detail: reviewer.name }),
   ]);
   message(
     0,
@@ -116,8 +133,9 @@ export const loadChatExamples = (context: CrewContext, card: Card): void => {
     first.id,
   );
   const second = run(reviewer, 6, 2, 'completed', [
-    { kind: 'tool', label: 'Checking claims against your profile', status: 'completed' },
-    { kind: 'tool', label: 'Comparing with the job brief', status: 'completed' },
+    crewStep('conversation_messages'),
+    crewStep('profile'),
+    crewStep('lint'),
   ]);
   message(5, 'user', 'reviewer', 'Reviewer, does the new opening still hold up?', second.id);
   message(
@@ -129,7 +147,7 @@ export const loadChatExamples = (context: CrewContext, card: Card): void => {
   );
 
   const asking = run(writer, 11, 1, 'waiting', [
-    { kind: 'tool', label: 'Reading the salary note', status: 'completed' },
+    crewStep('recall_memory', { detail: 'salary expectations' }),
   ]);
   message(10, 'user', 'writer', 'Should we say anything about salary?', asking.id);
   const question: UserInputRequest = {

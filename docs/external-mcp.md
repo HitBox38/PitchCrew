@@ -73,7 +73,7 @@ The crew's `pitchcrew_read_submission_attempts` is an internal run-scoped tool, 
 | `create_conversation`  | Write: named conversation with existing crew participants and optional job   |
 | `send_message`         | Write: queue a message to a crew conversation                                |
 
-List tools return `items`, `total` and `nextOffset`; pass `nextOffset` as `offset` until it is null. Lists default to 20 and allow up to 50 results. Conversation history returns `older` and `newer` anchors. Read the selected job or conversation for its complete context.
+List tools return `items`, `total` and `nextOffset`; pass `nextOffset` as `offset` until it is null. Lists default to 20 and allow up to 50 results. Conversation history returns `older` and `newer` anchors. Read the selected job or conversation for its complete context. Run activity in `read_run` and in `read_conversation` turns is rebuilt from a field allowlist (`id`, `kind`, `label`, `text`, `tool`, `detail`, `error`, `status`, `startedAt`, `finishedAt`): the same view as chat, including each tool step's kind, bounded public target and failure reason, and nothing else a step may carry.
 
 When adding a job from a posting link, call `create_job` with `url` first; company and title are optional for this call. The daemon uses the same bounded **Fetch from link** feature as Add job, including supported provider APIs and structured public posting pages. Fetched details take precedence over supplied fields, and provider provenance is retained. A successful creation returns `card`; `duplicate` returns existing IDs/statuses without changing them. Link saves check duplicates and insert in one board transaction.
 

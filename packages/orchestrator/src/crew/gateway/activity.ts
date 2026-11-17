@@ -1,6 +1,6 @@
 import {
-  isUserControlError,
-  isUserDeclinedError,
+  crewToolLabelsFor,
+  toolLabel,
   userControlPauseLabel,
   type ComputerApproval,
   type Run,
@@ -17,6 +17,8 @@ import { findEntity } from '../queue/queries.ts';
 import { randomUUID } from 'node:crypto';
 import { recordChatActivity } from '../chat-activity.ts';
 import type { CrewContext } from '../types.ts';
+import type { ToolFailure } from './failures.ts';
+import { crewToolDetail } from './tool-details.ts';
 
 /**
  * Browser steps in the words of the tray instead of "Performing browser action": "Asked to click
@@ -34,6 +36,14 @@ const rowsFor = (context: CrewContext) => {
   let rows = actionRows.get(context);
   if (!rows) actionRows.set(context, (rows = new Map()));
   return rows;
+};
+
+/** Browser calls that keep their start words when they finish. */
+const plainBrowserSteps: Readonly<Record<string, string>> = {
+  computer_wait: browserStepLabels.wait,
+  computer_tabs: browserStepLabels.tabs,
+  assess_form: browserStepLabels.assess,
+  capture_submission: browserStepLabels.capture,
 };
 
 const browserStep = (
@@ -74,9 +84,14 @@ const browserStep = (
         for (const key of [...rows.keys()].slice(0, -50)) rows.delete(key);
       },
     };
-  if (action !== 'computer_execute' || typeof data?.approvalId !== 'string') return undefined;
-  const approval = findEntity<ComputerApproval>(context, 'computer_approval', data.approvalId);
-  if (!approval) return undefined;
+  if (Object.hasOwn(plainBrowserSteps, action))
+    return { start: plainBrowserSteps[action]!, done: () => undefined };
+  if (action !== 'computer_execute') return undefined;
+  const approval =
+    typeof data?.approvalId === 'string'
+      ? findEntity<ComputerApproval>(context, 'computer_approval', data.approvalId)
+      : undefined;
+  if (!approval) return { start: 'Performing browser action', done: () => undefined };
   const plain = browserActionPublic(approval.action, approval.page);
   const rows = rowsFor(context);
   const row = rows.get(approval.id);
@@ -97,9 +112,14 @@ const browserStep = (
 };
 
 /** Chat turns and deep-review stages show tool activity in a transcript. */
-const hasTranscript = (run: Run | undefined): boolean =>
+const hasTranscript = (run: Run | undefined): run is Run =>
   !!run && (run.mode === 'chat' || !!run.deepReviewId);
 
+/**
+ * Records a crew tool call as a step: verb first in the tense of its outcome ("Reading profile",
+ * "Read profile", "Couldn't read profile"), with its kind, an allowlisted detail and, once it
+ * failed, the classified reason. Returns the finisher the gateway calls with that outcome.
+ */
 export const observeChatTool = (
   context: CrewContext,
   token: string,
@@ -109,46 +129,48 @@ export const observeChatTool = (
   try {
     const capability = context.capabilities.get(token);
     // Discovery/bootstrap and non-chat capabilities have no transcript activity.
-    if (
-      !capability ||
-      action.endsWith('_access') ||
-      action === 'report_progress' ||
-      !hasTranscript(findRun(context.board, capability.runId))
-    )
-      return () => {};
+    if (!capability || action.endsWith('_access') || action === 'report_progress') return () => {};
+    const run = findRun(context.board, capability.runId);
+    if (!hasTranscript(run)) return () => {};
     const step = browserStep(context, action, data);
-    const label = step?.start ?? labels[action] ?? 'Using a crew tool';
-    const id = step?.row ?? `tool-${randomUUID()}`;
+    const labels = crewToolLabelsFor(action);
+    const detail = step ? undefined : crewToolDetail(context, capability, run, action, data);
+    const row = {
+      id: step?.row ?? `tool-${randomUUID()}`,
+      kind: 'tool' as const,
+      tool: labels.tool,
+      ...(detail ? { detail } : {}),
+    };
     recordChatActivity(
       context,
       capability.runId,
-      { id, kind: 'tool', label, status: 'running' },
+      { ...row, label: step?.start ?? labels.running, status: 'running' },
       { latest: !!step?.row },
     );
-    return (failed: boolean, error?: unknown, result?: unknown) => {
+    return (failure?: ToolFailure, result?: unknown) => {
       try {
         // A takeover stops the agent's browser call, or the gateway waited out the user's control
         // without acting ({ status: 'manual' }): it paused for the user, it neither failed nor ran.
-        const paused =
-          (failed && error instanceof Error && isUserControlError(error.message)) ||
-          (!failed && (result as { status?: string } | undefined)?.status === 'manual');
+        const paused = failure
+          ? failure.reason === 'user_control'
+          : (result as { status?: string } | undefined)?.status === 'manual';
         // The user's own decision, not a broken browser: shown as what they chose.
-        const declined =
-          failed &&
-          !!step?.declined &&
-          error instanceof Error &&
-          isUserDeclinedError(error.message);
+        const declined = failure?.reason === 'declined' && !!step?.declined;
+        const status = paused ? 'interrupted' : failure && !declined ? 'failed' : 'completed';
+        const label = paused
+          ? userControlPauseLabel
+          : declined
+            ? step!.declined!
+            : step
+              ? (!failure && step.done(result)) || step.start
+              : toolLabel(labels, status);
         recordChatActivity(context, capability.runId, {
-          id,
-          kind: 'tool',
-          label: paused
-            ? userControlPauseLabel
-            : declined
-              ? step!.declined!.slice(0, 160)
-              : ((!failed && step?.done(result)) || label).slice(0, 160),
-          status: paused ? 'interrupted' : failed && !declined ? 'failed' : 'completed',
+          ...row,
+          label,
+          status,
+          ...(status === 'failed' && failure?.message ? { error: failure.message } : {}),
         });
-        if (!failed && !paused) step?.settled?.(result, id);
+        if (!failure && !paused) step?.settled?.(result, row.id);
       } catch {
         /* Activity must never change a tool's result or error. */
       }
@@ -156,56 +178,4 @@ export const observeChatTool = (
   } catch {
     return () => {};
   }
-};
-
-const labels: Record<string, string> = {
-  quality: 'Updating writing preferences and career plans',
-  check_linkedin_draft: 'Checking LinkedIn draft lengths',
-  start_deep_review: 'Starting deep resume review',
-  start_review_subagent: 'Starting targeted second opinion',
-  review_subagents: 'Reading second opinions',
-  extend_review_deadline: 'Extending shared review deadline',
-  request_review_time: 'Requesting more review time',
-  profile: 'Reading profile',
-  profile_edit_sources: 'Reading profile edit sources',
-  update_profile: 'Updating profile and its GitHub source',
-  card: 'Reading job details',
-  history: 'Reading application history',
-  messages: 'Reading conversations',
-  conversation_messages: 'Reading conversation',
-  roles: 'Checking crew',
-  chat_attachment: 'Reading attachment',
-  recall_memory: 'Recalling saved context',
-  read_skill: 'Reading skill instructions',
-  save_memory: 'Saving a memory',
-  scan_job_sources: 'Scanning saved job boards',
-  import_job_link: 'Reading job link and saving job details',
-  job_sources: 'Reading job sources',
-  computer_inspect: 'Inspecting browser',
-  computer_wait: browserStepLabels.wait,
-  computer_tabs: browserStepLabels.tabs,
-  computer_request: browserStepLabels.request,
-  computer_execute: 'Performing browser action',
-  assess_form: browserStepLabels.assess,
-  capture_submission: browserStepLabels.capture,
-  connector: 'Reading connected sources',
-  lint: 'Checking packet',
-  packet_rules: 'Reading packet rules',
-  export: 'Exporting approved packet',
-  workflow: 'Updating application workflow',
-  update_job: 'Correcting saved job details',
-  message: 'Messaging a crew member',
-  invoke: 'Requesting crew work',
-  delegate_round: 'Delegating subtasks to the crew',
-  ask_user: 'Asking you a question',
-  notify_user: 'Posting an update',
-  report_technical_problem: 'Reporting a technical problem',
-  propose: 'Proposing agent changes',
-  propose_skill: 'Suggesting a skill',
-  read_pipeline: 'Reviewing applications',
-  save_pipeline_review: 'Saving pipeline review',
-  applications: 'Reading applications',
-  tracking_scan: 'Checking tracked applications',
-  application_insights: 'Reading application insights',
-  routines: 'Reading routines',
 };

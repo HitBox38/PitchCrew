@@ -172,6 +172,77 @@ test('trace disclosure works by keyboard without exposing private reasoning', as
   );
 });
 
+test('a failed step says why before it is expanded, and long targets stay on one line', async () => {
+  const reasonText =
+    'Exit code 1: ActivityStep.tsx has 104 lines; components may have at most 100.';
+  const failed = page.getByRole('button', { name: /Command failed/ });
+  const reason = page.locator('.chat-activity-step-reason');
+  expect(await failed.getAttribute('aria-expanded')).toBe('false');
+  expect(await reason.isVisible()).toBe(true);
+  expect(await reason.textContent()).toBe(reasonText);
+  expect(await reason.getAttribute('title')).toBe(reasonText);
+  expect(await reason.getAttribute('role')).toBeNull();
+  // The reason describes the button from outside it, so the button's name stays the step.
+  expect(await failed.getAttribute('aria-describedby')).toBe(await reason.getAttribute('id'));
+  expect(await failed.textContent()).not.toContain(reasonText);
+  const detail = page.locator('.chat-activity-step-detail').filter({ hasText: 'vitest run' });
+  expect(await detail.getAttribute('title')).toBe(
+    'bun x --no-install vitest run packages/ui/src/ChatTurn packages/ui/src/Analytics packages/ui/src/AgentBrowser/__tests__/layout.test.ts --project unit-and-api',
+  );
+  const size = await detail.evaluate((element) => ({
+    height: element.getBoundingClientRect().height,
+    scrollWidth: element.scrollWidth,
+    width: element.clientWidth,
+  }));
+  expect(size.scrollWidth).toBeGreaterThan(size.width);
+  expect(size.height).toBeLessThanOrEqual(18);
+  const clamp = () =>
+    reason.evaluate((element) => getComputedStyle(element).getPropertyValue('-webkit-line-clamp'));
+  expect(await clamp()).toBe('2');
+  await failed.focus();
+  await page.keyboard.press('Enter');
+  expect(await failed.getAttribute('aria-expanded')).toBe('true');
+  const details = page
+    .locator('.chat-activity-step')
+    .filter({ has: failed })
+    .locator('.chat-activity-step-details');
+  const copy = details.getByRole('button', { name: 'Copy reason', exact: true });
+  await copy.waitFor();
+  // The same line shows the whole reason in place while the step is open, so nothing below it
+  // jumps against the opening details, and the details never repeat it.
+  expect(await reason.isVisible()).toBe(true);
+  expect(await clamp()).toBe('none');
+  expect(await details.textContent()).not.toContain(reasonText);
+  await copy.click();
+  expect(await clipboardText()).toBe(reasonText);
+  await failed.focus();
+  await page.keyboard.press('Space');
+  expect(await failed.getAttribute('aria-expanded')).toBe('false');
+  expect(await reason.isVisible()).toBe(true);
+  expect(await clamp()).toBe('2');
+  expect(await page.locator('body').textContent()).not.toContain(
+    'PRIVATE_REASONING_MUST_NEVER_RENDER',
+  );
+});
+
+test('targets read in the app face unless they are a runtime’s literal input', async () => {
+  const font = (text: string) =>
+    page
+      .locator('.chat-activity-step-detail')
+      .filter({ hasText: text })
+      .evaluate((element) => ({
+        family: getComputedStyle(element).fontFamily,
+        direction: getComputedStyle(element).direction,
+      }));
+  // A runtime's own command line is literal input.
+  expect((await font('bun run lint')).family).toContain('monospace');
+  // A crew step reuses the search kind for words; this one also keeps its right-to-left start.
+  const words = await font('ציפיות שכר');
+  expect(words.family).toContain('Source Sans 3');
+  expect(words.family).not.toContain('monospace');
+  expect(words.direction).toBe('rtl');
+});
+
 test('queue disclosure preserves explicit delivery commands', async () => {
   const queue = page
     .getByRole('region', { name: 'Queued messages', exact: true })
