@@ -9,6 +9,14 @@ import { createTelemetryBuffer } from '../buffer.ts';
 import { sanitizeBackendObservation } from '../sanitize.ts';
 
 const resources: { context: CrewContext; directory: string }[] = [];
+// A rejected report is also a failed tool call (a separate `tool_call` exception); only agent
+// reports are counted here.
+const reports = (buffer: ReturnType<typeof createTelemetryBuffer>) =>
+  buffer
+    .read(0)
+    .observations.filter(
+      (entry) => entry.event === '$exception' && entry.properties.error_source === 'agent_report',
+    );
 const fixture = async (purpose?: Run['purpose']) => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-agent-problems-'));
   const buffer = createTelemetryBuffer(sanitizeBackendObservation, true);
@@ -70,7 +78,7 @@ describe('agent-reported technical blockers', () => {
     expect(await report(input)).toEqual({ ok: true, duplicate: false });
     expect(await report(input)).toEqual({ ok: true, duplicate: true });
     await report({ ...input, kind: 'bug', summary: 'Tag updates fail to persist' });
-    const exceptions = buffer.read(0).observations.filter((entry) => entry.event === '$exception');
+    const exceptions = reports(buffer);
     expect(exceptions).toHaveLength(2);
     expect(exceptions[0].properties).toMatchObject({
       error_kind: 'missing_capability',
@@ -84,9 +92,7 @@ describe('agent-reported technical blockers', () => {
     expect(JSON.stringify(exceptions)).not.toMatch(/person@example|private\.test|private-run/);
     for (let i = 0; i < 6; i++) await report({ ...input, summary: `Separate capability ${i}` });
     expect(await report({ ...input, summary: 'Over limit' })).toMatchObject({ limited: true });
-    expect(
-      buffer.read(0).observations.filter((entry) => entry.event === '$exception'),
-    ).toHaveLength(8);
+    expect(reports(buffer)).toHaveLength(8);
   });
 
   it('buffers a fixed exception once per area per run without task or role data', async () => {
@@ -98,7 +104,7 @@ describe('agent-reported technical blockers', () => {
       await context.agentCall('private-token', 'report_technical_problem', { area: 'browser' }),
     ).toEqual({ ok: true, duplicate: true });
     await context.agentCall('private-token', 'report_technical_problem', { area: 'mcp' });
-    const exceptions = buffer.read(0).observations.filter((entry) => entry.event === '$exception');
+    const exceptions = reports(buffer);
     expect(exceptions.map((entry) => entry.properties)).toEqual([
       { error_source: 'agent_report', error_category: 'technical_problem', error_area: 'browser' },
       { error_source: 'agent_report', error_category: 'technical_problem', error_area: 'mcp' },
@@ -118,7 +124,7 @@ describe('agent-reported technical blockers', () => {
         'Fixture restricted review',
       );
       await context.agentCall('private-token', 'report_technical_problem', { area: 'documents' });
-      expect(buffer.read(0).observations.some((entry) => entry.event === '$exception')).toBe(true);
+      expect(reports(buffer)).not.toEqual([]);
     },
   );
 
@@ -137,7 +143,7 @@ describe('agent-reported technical blockers', () => {
     await expect(report()).rejects.toThrow('active run');
     context.controllers.get(run.id)!.abort();
     await expect(report()).rejects.toThrow('invalid or expired');
-    expect(buffer.read(0).observations.filter((entry) => entry.event === '$exception')).toEqual([]);
+    expect(reports(buffer)).toEqual([]);
   });
 
   it('rejects free-form input and contains missing, disabled and broken diagnostic sinks', async () => {
@@ -158,7 +164,8 @@ describe('agent-reported technical blockers', () => {
       await expect(
         context.agentCall('private-token', 'report_technical_problem', data),
       ).rejects.toThrow();
-    expect(buffer.read(0).observations.filter((entry) => entry.event === '$exception')).toEqual([]);
+    expect(reports(buffer)).toEqual([]);
+    expect(JSON.stringify(buffer.read(0))).not.toMatch(/private|secret|Too long/);
     context.diagnostics = undefined;
     await expect(
       context.agentCall('private-token', 'report_technical_problem', { area: 'mcp' }),

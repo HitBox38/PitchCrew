@@ -1,5 +1,5 @@
 import type { RunContext, RunResult } from '@pitchcrew/core';
-import { runResultSchema, workflowSeat } from '@pitchcrew/core';
+import { chatResultSchema, runResultSchema, workflowSeat } from '@pitchcrew/core';
 
 /** Why a workflow result was rejected; never carries runtime output or values. */
 type ResultProblem = 'missing' | 'invalid_json' | 'schema' | 'wrong_role';
@@ -146,6 +146,25 @@ export const parseWorkflowResult = (text: string, context: RunContext): RunResul
   }
   if (parsed.data.role !== seat) throw runtimeResultError('wrong_role', [], seat);
   return parsed.data;
+};
+/**
+ * Parse a chat reply. A malformed or cut-off reply gets the same fixed, retryable error as a
+ * workflow result, never the JSON parser's message or the runtime's text.
+ */
+export const parseChatResult = (text: string) => {
+  const cleaned = cleanResult(text);
+  let data: unknown;
+  try {
+    data = JSON.parse(cleaned);
+  } catch {
+    throw Object.assign(
+      new Error(
+        'The reply came back incomplete or malformed, so it wasn’t saved. Retry the message.',
+      ),
+      { code: 'PITCHCREW_RUNTIME_RESULT_INVALID', resultProblem: 'invalid_json', fields: [] },
+    );
+  }
+  return chatResultSchema.parse(data);
 };
 export const cleanResult = (text: string) => {
   return text

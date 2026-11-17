@@ -142,6 +142,7 @@ void app
           nonce: string;
           expression?: string;
           image?: string;
+          selector?: string;
           contentsId?: number;
           operation?: string;
           before?: string;
@@ -198,7 +199,7 @@ void app
         if (command.kind === 'frame-pixel' && group) {
           const contents = group.pages.get(group.active)!.contents;
           const point = await contents.executeJavaScript(
-            `(()=>{const rect=document.querySelector('#capture-marker').getBoundingClientRect();return {x:rect.x+rect.width/2,y:rect.y+rect.height/2,width:innerWidth}})()`,
+            `(()=>{const rect=document.querySelector(${JSON.stringify(command.selector ?? '#capture-marker')}).getBoundingClientRect();return {x:rect.x+rect.width/2,y:rect.y+rect.height/2,width:innerWidth}})()`,
           );
           const image = nativeImage.createFromBuffer(Buffer.from(command.image!, 'base64'));
           const size = image.getSize();

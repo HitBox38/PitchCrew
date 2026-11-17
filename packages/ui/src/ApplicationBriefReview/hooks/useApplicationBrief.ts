@@ -134,13 +134,13 @@ export const useApplicationBrief = ({
     );
   const extract = () =>
     perform('application-context/extract', { roleId }, 'Source extraction started');
-  const inspectForm = async () => {
+  const inspectForm = async (roleId: string = formRoleId) => {
     setError('');
     try {
       const result = (await action(
         `/cards/${card.id}/application-form/inspect`,
         'POST',
-        { roleId: formRoleId },
+        { roleId },
         'Form inspection queued',
       )) as { threadId: string };
       onInspection?.(result.threadId);

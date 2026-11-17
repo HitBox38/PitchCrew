@@ -17,6 +17,8 @@ export interface NativeFixtureCommand {
   id: string;
   expression?: string;
   image?: string;
+  /** frame-pixel: the element whose center pixel is read; defaults to #capture-marker. */
+  selector?: string;
   contentsId?: number;
   operation?: string;
   before?: string;

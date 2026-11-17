@@ -1,3 +1,5 @@
+import { isToolFailureReason } from './tool-failures.ts';
+
 /** Shared by the local buffer and renderer; rebuild, never spread untrusted properties. */
 export const sanitizeMcpToolCall = (input: Record<string, unknown>) => {
   if (
@@ -20,6 +22,10 @@ export const sanitizeMcpToolCall = (input: Record<string, unknown>) => {
     $mcp_session_id: input.$mcp_session_id,
     $session_id: input.$mcp_session_id,
     mcp_observation_level: 'scoped_gateway',
+    // PostHog's native failure category: a closed reason, present only on failed calls.
+    ...(input.$mcp_is_error === true && isToolFailureReason(input.$mcp_error_type)
+      ? { $mcp_error_type: input.$mcp_error_type }
+      : {}),
   };
 };
 /** Reviewed tool names only. Discovery/bootstrap gateway actions are intentionally absent. */
@@ -112,4 +118,7 @@ export const mcpConnectorTools = Object.freeze([
 ]);
 
 const names = new Set<string>([...Object.values(mcpGatewayTools), ...mcpConnectorTools]);
+/** A tool name Pitchcrew publishes and has reviewed for diagnostics. */
+export const isReviewedMcpTool = (name: unknown): name is string =>
+  typeof name === 'string' && names.has(name);
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;

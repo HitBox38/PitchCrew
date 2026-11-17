@@ -120,13 +120,17 @@ it('enforces computer capability and user-only decisions and expires approvals o
     service.agentCall('computer-token', 'computer_execute', { approvalId: approval.id }),
   ).rejects.toThrow('disabled');
   // The row that asked for the approval is the row that carried it out: one row per action.
-  expect(
-    service
-      .chatState()
-      .activityRuns?.find((item) => item.id === run.id)
-      ?.activity?.map((entry) => entry.label)
-      .filter((label) => label.includes('“Submit”')),
-  ).toEqual(['Click “Submit”']);
+  const submitRows = service
+    .chatState()
+    .activityRuns?.find((item) => item.id === run.id)
+    ?.activity?.filter((entry) => entry.label.includes('“Submit”'));
+  expect(submitRows?.map((entry) => entry.label)).toEqual(['Click “Submit”']);
+  // A browser failure gives its fixed reason, never the browser's own text.
+  expect(submitRows?.[0]).toMatchObject({
+    tool: 'browser',
+    status: 'failed',
+    error: "This agent isn't allowed to do that in the browser.",
+  });
   await service.initialize(false);
   expect(
     (await service.snapshot()).computerApprovals.find((a) => a.id === approval.id),
@@ -194,11 +198,9 @@ it('keeps each browser action in one latest row through intervening calls and du
     reason: 'Submit fixture',
   })) as { approval: import('@pitchcrew/core').ComputerApproval };
   await service.agentCall('rows-token', 'computer_inspect', {});
-  const rows = () =>
-    service
-      .chatState()
-      .activityRuns?.find((item) => item.id === run.id)
-      ?.activity?.map((entry) => [entry.label, entry.status]) ?? [];
+  const steps = () =>
+    service.chatState().activityRuns?.find((item) => item.id === run.id)?.activity ?? [];
+  const rows = () => steps().map((entry) => [entry.label, entry.status]);
   // The successful execution finishes after a duplicate call for the same approval started.
   let finish!: () => void;
   vi.spyOn(service.computer, 'execute')
@@ -224,6 +226,8 @@ it('keeps each browser action in one latest row through intervening calls and du
     ['Clicked “Submit”', 'completed'],
     ['Click “Submit”', 'failed'],
   ]);
+  expect(steps().map((entry) => entry.tool)).toEqual(['browser', 'browser', 'browser']);
+  expect(steps().at(-1)?.error).toBe('The page or its approval changed before the step could run.');
   // A request the user rejects is their decision, told plainly to the agent and shown as such.
   vi.mocked(service.computer.execute).mockRestore();
   // The mocked execution never decided or consumed the first approval; settle it as carried out.
@@ -249,6 +253,7 @@ it('keeps each browser action in one latest row through intervening calls and du
     service.agentCall('rows-token', 'computer_execute', { approvalId: declined.id }),
   ).rejects.toThrow('The user declined this browser action.');
   expect(rows().at(-1)).toEqual(['You declined to click “Submit”', 'completed']);
+  expect(steps().at(-1)).not.toHaveProperty('error');
   // Invalidation (here as a job-details change records it: rejected, no reason) is not the
   // user's decision: the agent hears the neutral wording and the step is not "You declined".
   const { approval: invalidated } = (await service.agentCall('rows-token', 'computer_request', {
@@ -265,4 +270,28 @@ it('keeps each browser action in one latest row through intervening calls and du
     service.agentCall('rows-token', 'computer_execute', { approvalId: invalidated.id }),
   ).rejects.toThrow('Browser action is rejected.');
   expect(rows().at(-1)).toEqual(['Click “Submit”', 'failed']);
+  expect(steps().at(-1)?.error).toBe('The browser could not carry out this step.');
+  // A driver error can carry typed values, URLs and a call log; the agent still gets it, but the
+  // step shows only a fixed reason.
+  const { approval: typed } = (await service.agentCall('rows-token', 'computer_request', {
+    input: { kind: 'click', selector: '#submit' },
+    reason: 'Submit fixture a fourth time',
+  })) as { approval: import('@pitchcrew/core').ComputerApproval };
+  vi.spyOn(service.computer, 'execute').mockRejectedValueOnce(
+    Object.assign(
+      new Error(
+        'locator.click: Timeout 30000ms exceeded.\nCall log:\n  - fill("SECRET_VALUE")\n  - navigating to "https://example.test/private?token=x"',
+      ),
+      { name: 'TimeoutError' },
+    ),
+  );
+  await expect(
+    service.agentCall('rows-token', 'computer_execute', { approvalId: typed.id }),
+  ).rejects.toThrow('SECRET_VALUE');
+  expect(steps().at(-1)).toMatchObject({
+    label: 'Click “Submit”',
+    status: 'failed',
+    error: 'The page did not respond in time.',
+  });
+  expect(JSON.stringify(steps())).not.toMatch(/SECRET_VALUE|example\.test|Call log|Timeout 30000/);
 });

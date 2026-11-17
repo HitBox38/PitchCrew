@@ -1,4 +1,4 @@
-import { cardInput, type RunContext } from '@pitchcrew/core';
+import { browserModeLabels, browserModeOrder, cardInput, type RunContext } from '@pitchcrew/core';
 import { fileURLToPath } from 'node:url';
 import { expect, it, vi } from 'vitest';
 import {
@@ -206,6 +206,28 @@ it('includes managed skills in both workflow and chat prompts without granting c
     expect(prompt).toContain('skills.sh');
   }
   expect(promptFor(context)).not.toContain('Assigned skills');
+});
+
+it('tells every run what each browser mode approves and what asks in all of them', () => {
+  for (const prompt of [
+    promptFor(context),
+    chatPromptFor({ ...context, card: null, messages: [] }),
+  ]) {
+    for (const mode of browserModeOrder)
+      expect(prompt).toMatch(new RegExp(`\\b${browserModeLabels[mode]}\\b`));
+    expect(prompt).toContain(
+      'In every mode the server asks the user before an action marked purpose submission',
+    );
+    expect(prompt).toContain('Recognizing unmarked sending is best effort');
+    expect(prompt).toContain('Never send, post or submit anything the user has not asked for');
+    expect(prompt).toContain('purpose submission and the exact exportApprovalId');
+    expect(prompt).not.toMatch(/submissions always require|always requires exact-action/i);
+    expect(prompt).toContain('never say the user approved an action the server allowed');
+    expect(prompt).toContain(
+      'runs started by messages from external apps and their follow-ups stay Supervised',
+    );
+    expect(prompt).not.toMatch(/buttons, keys, dialogs/i);
+  }
 });
 
 it('gives Writer and Reviewer workflow runs a summary of the user packet rules', () => {

@@ -63,17 +63,21 @@ export const createDemo = ({
       text: 'I’ll check the conversation context and the attached job before replying.',
       status: 'completed',
     });
-    context.onActivity?.({
+    const contextStep = {
       id: 'demo-context',
       kind: 'tool',
-      label: 'Checking conversation context',
+      tool: 'read',
+      detail: 'demo-conversation.md',
+    } as const;
+    context.onActivity?.({
+      ...contextStep,
+      label: 'Reading conversation context',
       status: 'running',
     });
     await delay(350, context.signal);
     context.onActivity?.({
-      id: 'demo-context',
-      kind: 'tool',
-      label: 'Checking conversation context',
+      ...contextStep,
+      label: 'Read conversation context',
       status: 'completed',
     });
     const latest = context.request ?? context.messages.at(-1)?.content ?? '';

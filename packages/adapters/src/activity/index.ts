@@ -1,13 +1,29 @@
 import type { ChatContext, RunContext, RuntimeActivity } from '@pitchcrew/core';
+import { nativeToolTracker, type NativeToolEvent } from './native-tools.ts';
 
-/** Public text and phase signals only. Tool arguments/results and thinking text stay private. */
-export const activityStream = (context: RunContext | ChatContext) => {
+/** Turns with a transcript: chat, and deep-review stages. Workflow runs stay silent. */
+export const showsActivity = (context: RunContext | ChatContext) =>
+  'messages' in context || !!context.deepReview;
+
+/**
+ * Public text, phase signals and normalized tool steps. Thinking text and raw tool arguments and
+ * results stay private; tool steps carry only a redacted one-line detail and failure reason. Runs
+ * that show no steps report only failed calls, through `onToolFailure`, in closed words.
+ */
+export const activityStream = (
+  context: RunContext | ChatContext,
+  /** Exact secret values from the runtime's environment, removed from tool text. */
+  secrets: readonly string[] = [],
+) => {
   let sequence = 0;
   let commentary: RuntimeActivity | undefined;
   let thinking: RuntimeActivity | undefined;
   const emit = (entry: RuntimeActivity) => {
-    if (('messages' in context || context.deepReview) && !context.signal.aborted)
-      context.onActivity?.(entry);
+    if (context.signal.aborted) return;
+    if (showsActivity(context)) context.onActivity?.(entry);
+    // A run without steps passes on only a failed call's closed failure, for diagnostics.
+    else if (entry.status === 'failed' && entry.failure)
+      context.onToolFailure?.({ ...entry.failure, kind: entry.tool ?? 'other' });
   };
   const endThinking = () => {
     if (thinking) emit({ ...thinking, status: 'completed' });
@@ -16,6 +32,11 @@ export const activityStream = (context: RunContext | ChatContext) => {
   const endText = () => {
     if (commentary) emit({ ...commentary, status: 'completed' });
     commentary = undefined;
+  };
+  const tools = nativeToolTracker(emit, secrets);
+  const boundary = () => {
+    endText();
+    endThinking();
   };
   return {
     thinking: () => {
@@ -30,9 +51,15 @@ export const activityStream = (context: RunContext | ChatContext) => {
         emit(thinking);
       }
     },
-    boundary: () => {
-      endText();
-      endThinking();
+    boundary,
+    /**
+     * A normalized native tool call. A call that appears ends the current commentary or thinking:
+     * its start, or a finish that describes the call (runtimes that report only finished calls),
+     * so text after the call never overwrites the text before it.
+     */
+    tool: (event: NativeToolEvent) => {
+      if (event.phase === 'start' || event.kind || event.pitchcrew) boundary();
+      tools(event);
     },
     text: (raw: string) => {
       if (!raw) {

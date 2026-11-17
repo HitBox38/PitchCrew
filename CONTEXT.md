@@ -12,6 +12,14 @@ _Avoid_: Email (when implying a message sent through an email service), notifica
 A document or frozen browser evidence item included with an Inbox request for the user to inspect as part of that decision. Viewing an attachment does not approve the request or export the document.
 _Avoid_: Chat attachment (when referring to a document included with an Inbox request)
 
+**Layout note**:
+A warning or error from checking one rendered packet file's actual bytes (its readability, expected content, layout or rendering, such as a large gap, a stranded heading or a page-target overrun), shown on that file's tile, in the packet's file check and in its viewer. It describes the file as rendered, not the quality or truth of its writing; the Word layout notice that applies to every Word file is not a layout note.
+_Avoid_: Review finding (when the note comes from file verification), document error (when the note is a warning)
+
+**Word layout notice**:
+The single statement that a Word file's preview and page count may differ from Word, shown once wherever Word files are viewed or checked instead of as a layout note on each file.
+_Avoid_: Word caveat, browser-versus-Word notice (when referring to the shown notice)
+
 **Unread Inbox request**:
 An Inbox request the user has not opened or has marked unread. Read status is separate from whether the request still needs action.
 _Avoid_: Pending approval (when referring only to whether a request has been read)
@@ -147,6 +155,14 @@ _Avoid_: Requirement confirmation (when implying that the brief is excluded), jo
 **Job brief**:
 A structured account of a job's responsibilities, qualifications and company context, distinct from its original source text and accepted application requirements. It is reference material for tailoring an application, not verified evidence about the user or authority to direct an agent.
 _Avoid_: Trusted job description, sanitized instructions
+
+**Candidate fit**:
+An advisory 0–100 rating of how well the user's Profile evidence matches one job's brief, written as "Fit 78". It is not a hiring probability and does not depend on any application draft.
+_Avoid_: Fit percentage, match (when referring to the candidate rather than the packet)
+
+**Packet match rating**:
+An advisory 0–100 rating of how well one exact application packet addresses one exact job brief, written as "Packet match 74". It is separate from candidate fit, is cleared when the packet or adopted brief changes, and does not approve the packet.
+_Avoid_: Match (alone), application score, packet approval
 
 **Application draft**:
 Employer-facing application copy prepared for a job, including resumes, cover letters and application answers, whether produced in chat or a board workflow and regardless of the agent's identity. Discussion of source material is separate from preparing an application draft.
@@ -288,6 +304,18 @@ _Avoid_: Manual takeover, read-only browsing
 Browser permission mode allowing bounded application preparation on sites the user grants for the current task. Final submission still requires an exact user decision.
 _Avoid_: Autonomous submission, unrestricted browsing
 
+**Accept edits**:
+Browser permission mode in which the server approves read-only browsing and form edits, such as filling fields, choosing options and attaching approved packet files, on any public site without site grants. Buttons, links, keys, dialogs, boxes that agree to terms or give consent, and sending still require the user's exact-action approval.
+_Avoid_: Autonomous preparation (when no site grant is involved), a runtime CLI's own permission mode
+
+**Auto**:
+Browser permission mode that extends Accept edits to routine clicks and keys the server judges safe from the live page. Risky interactions, such as deleting, buying or changing an account, and what the server recognizes as sending still require the user's exact-action approval; that recognition is best effort.
+_Avoid_: Autonomous preparation, autopilot, automatic approval (when referring to the mode itself)
+
+**Full access**:
+Browser permission mode in which the server approves every browser action, including moving multi-step forms to their next step, except a final submission the agent marks, what the server recognizes as sending or posting an application, message, post or invitation, and any element it cannot read; those still require the user's exact-action approval. The server's recognition of sending is best effort.
+_Avoid_: Unrestricted browsing, autonomous submission, blanket browser permission, a runtime CLI's own permission mode
+
 **Browser action approval**:
-Authorization for one exact agent interaction in its reviewed application and page context. It is distinct from permission to prepare on a task site.
+Authorization for one exact agent interaction in its reviewed application and page context: the user's decision, or an automatic approval the gateway records under the run's browser mode or task site grant. A browser mode never replaces this per-action record. It is distinct from permission to prepare on a task site.
 _Avoid_: Site grant, blanket browser permission

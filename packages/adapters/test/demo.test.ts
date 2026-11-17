@@ -57,6 +57,11 @@ it('keeps presentation timing and ordered activity when the delay is injected', 
     ['tool', 'running'],
     ['tool', 'completed'],
   ]);
+  expect(onActivity.mock.calls.at(-1)![0]).toMatchObject({
+    tool: 'read',
+    detail: 'demo-conversation.md',
+    label: 'Read conversation context',
+  });
   expect(onReply.mock.calls.at(-1)).toEqual([result.reply]);
   expect(onReply.mock.calls[0]![0]).toBe(result.reply.slice(0, 32));
   delays.mockClear();

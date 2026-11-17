@@ -60,6 +60,153 @@ await writeFile(
   JSON.stringify({ runtime, args, prompt, environment, mcpConfig }),
 );
 const mode = process.env.PITCHCREW_FIXTURE_MODE;
+// One failing native shell call in the runtime's own event shapes, whose command and output repeat
+// the run token that every step must redact. It precedes the answer: Gemini, Grok and Goose
+// restart their answer text at a tool call.
+const failingCommand = (): Record<string, unknown>[] => {
+  const token = process.env.PITCHCREW_RUN_TOKEN;
+  const command = `echo ${token}`;
+  const output = `rejected ${token}`;
+  switch (runtime) {
+    case 'gemini':
+      return [
+        {
+          type: 'tool_use',
+          tool_id: 'shell-1',
+          tool_name: 'run_shell_command',
+          parameters: { command },
+        },
+        {
+          type: 'tool_result',
+          tool_id: 'shell-1',
+          status: 'error',
+          output,
+          error: { type: 'shell_execute_error', message: output },
+        },
+      ];
+    case 'copilot':
+      return [
+        {
+          type: 'tool.execution_start',
+          data: { toolCallId: 'toolu_1', toolName: 'bash', arguments: { command } },
+        },
+        {
+          type: 'tool.execution_complete',
+          data: {
+            toolCallId: 'toolu_1',
+            success: false,
+            error: { message: output, code: 'failure' },
+            shellExecution: { exitCode: 1 },
+          },
+        },
+      ];
+    case 'cursor-agent': {
+      const started = { args: { command } };
+      const failure = { exitCode: 1, signal: '', stdout: '', stderr: output };
+      return [
+        {
+          type: 'tool_call',
+          subtype: 'started',
+          call_id: 'tool_1',
+          tool_call: { shellToolCall: started },
+        },
+        {
+          type: 'tool_call',
+          subtype: 'completed',
+          call_id: 'tool_1',
+          tool_call: { shellToolCall: { ...started, result: { failure } } },
+        },
+      ];
+    }
+    case 'goose':
+      return [
+        {
+          type: 'message',
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                type: 'toolRequest',
+                id: 'call_1',
+                toolCall: { status: 'success', value: { name: 'shell', arguments: { command } } },
+              },
+            ],
+          },
+        },
+        {
+          type: 'message',
+          message: {
+            role: 'user',
+            content: [
+              {
+                type: 'toolResponse',
+                id: 'call_1',
+                toolResult: {
+                  status: 'success',
+                  value: { content: [{ type: 'text', text: output }], isError: true },
+                },
+              },
+            ],
+          },
+        },
+      ];
+    case 'grok':
+      return [
+        {
+          type: 'tool_call',
+          toolCallId: 'call_1',
+          title: 'Run command',
+          kind: 'execute',
+          status: 'in_progress',
+          rawInput: { command },
+        },
+        {
+          type: 'tool_call_update',
+          toolCallId: 'call_1',
+          status: 'failed',
+          content: [{ type: 'content', content: { type: 'text', text: output } }],
+        },
+      ];
+    case 'pi':
+    case 'omp':
+      return [
+        { type: 'tool_execution_start', toolCallId: 'call_1', toolName: 'bash', args: { command } },
+        {
+          type: 'tool_execution_end',
+          toolCallId: 'call_1',
+          toolName: 'bash',
+          result: {
+            content: [{ type: 'text', text: `${output}\n\nCommand exited with code 2` }],
+            details: {},
+          },
+          isError: true,
+        },
+      ];
+    case 'hermes':
+      return [
+        { type: 'tool_use', name: 'terminal', input: { command } },
+        {
+          type: 'tool_result',
+          name: 'terminal',
+          output: JSON.stringify({ output, exit_code: 1, error: null }),
+          is_error: true,
+        },
+      ];
+    default:
+      // OpenCode reports a call once, when it has finished.
+      return [
+        {
+          type: 'tool_use',
+          part: {
+            type: 'tool',
+            callID: 'call_1',
+            tool: 'bash',
+            state: { status: 'completed', input: { command }, output, metadata: { exit: 1 } },
+          },
+        },
+      ];
+  }
+};
 if (mode === 'wait') {
   setInterval(() => {}, 1000);
 } else if (mode === 'fail') {
@@ -70,6 +217,7 @@ if (mode === 'wait') {
   const emit = (event: Record<string, unknown>) =>
     process.stdout.write(JSON.stringify(event) + '\n');
   process.stdout.write('CLI startup message\n');
+  if (mode === 'tool-calls') for (const event of failingCommand()) emit(event);
   if (runtime === 'pi' || runtime === 'omp') {
     emit({
       type: 'message_update',

@@ -1,60 +1,33 @@
 import { Search } from 'lucide-react';
 import { Button } from '@pitchcrew/design-system/button';
 import { ZoomControls } from './ZoomControls.tsx';
-import { FormSelect } from '@/FormSelect/index.tsx';
+import { ModeSegment } from './ModeSegment.tsx';
 import { ViewerMoreControls } from './ViewerMoreControls.tsx';
 import type { FileViewerModel } from '../hooks/useFileViewer.ts';
-export const ViewControls = (model: FileViewerModel) => {
-  const { file, settings, change } = model;
+import { modKey } from '@/shortcuts.ts';
+
+/** Find, zoom, the Rendered/Source segment and More: the view controls for the current file. */
+export const ViewControls = ({ model }: { model: FileViewerModel }) => {
+  const { file, findOpen, searchable, attachFindTrigger, openFind, closeFind } = model;
   return (
-    <div className="file-view-controls">
+    <fieldset className="file-toolbar-tools" aria-label="View">
       {file.kind !== 'image' ? (
         <Button
-          size="sm"
-          variant="outline"
-          onClick={model.openFind}
-          disabled={model.searchable === false}
+          ref={attachFindTrigger}
+          size="icon-sm"
+          variant="ghost"
+          aria-label="Find"
+          aria-pressed={findOpen}
+          title={searchable === false ? 'This PDF has no searchable text' : `Find (${modKey}F)`}
+          onClick={findOpen ? closeFind : openFind}
+          disabled={searchable === false}
         >
-          <Search size={15} />
-          Find
+          <Search size={16} />
         </Button>
       ) : null}
-      <ZoomControls settings={settings} change={change} />
-      {['pdf', 'docx', 'image'].includes(file.kind) && settings.mode !== 'source' ? (
-        <>
-          <FormSelect
-            label="Page fit"
-            value={settings.fit}
-            onValueChange={(fit) => change({ fit, zoom: 100 })}
-            options={[
-              { value: 'width', label: file.kind === 'image' ? 'Fit image' : 'Fit width' },
-              ...(file.kind === 'pdf' ? [{ value: 'page' as const, label: 'Fit page' }] : []),
-              { value: 'actual', label: 'Actual size' },
-            ]}
-          />
-        </>
-      ) : null}
-      {file.kind === 'markdown' || file.kind === 'docx' ? (
-        <fieldset aria-label="Document view" className="ui-segment file-mode-toggle">
-          <Button
-            size="sm"
-            variant="ghost"
-            aria-pressed={settings.mode === 'rendered'}
-            onClick={() => change({ mode: 'rendered' })}
-          >
-            {file.kind === 'markdown' ? 'Rendered' : 'Preview'}
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            aria-pressed={settings.mode === 'source'}
-            onClick={() => change({ mode: 'source' })}
-          >
-            Source
-          </Button>
-        </fieldset>
-      ) : null}
+      <ZoomControls model={model} />
+      <ModeSegment model={model} />
       <ViewerMoreControls model={model} />
-    </div>
+    </fieldset>
   );
 };

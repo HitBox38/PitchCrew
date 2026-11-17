@@ -2,12 +2,12 @@ import { cardLifecycle } from '@pitchcrew/core/lifecycles';
 import { useJobWork } from '@/components/JobWorkStatus/hooks/useJobWork.ts';
 import { useNavigate } from '@tanstack/react-router';
 import type { ApplicationSection, CardDetailsProps, JobSection } from '../types.ts';
-import { jobAgents, jobRole, latestJobFailure } from '../helpers.ts';
+import { applicationRows, jobAgents, jobRole, latestJobFailure } from '../helpers.ts';
 import type { Packet } from '@pitchcrew/core';
 import { workflowSeat } from '@pitchcrew/core/states';
 import { useState } from 'react';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
-import { packetExported } from '@/lib/job-step.ts';
+import { packetExported, postSubmissionStates } from '@/lib/job-step.ts';
 import { useApplicationBrief } from '@/ApplicationBriefReview/hooks/useApplicationBrief.ts';
 import { useExportChoices } from './useExportChoices.ts';
 
@@ -18,10 +18,13 @@ export const useCardDetails = (props: CardDetailsProps) => {
   const [briefDirty, setBriefDirty] = useState(false);
   const [activityDirty, setActivityDirty] = useState(false);
   const [editing, setEditing] = useState(false);
+  // Comparing the brief with the original posting widens the sheet while Application is open.
+  const [comparing, setComparing] = useState(false);
   const guard = useUnsavedChanges(briefDirty || activityDirty);
   const [document, setDocument] = useState<keyof Omit<Packet, 'claims'>>('resume');
-  const [sections, setSections] = useState<ApplicationSection[]>(
-    props.initialSection === 'application' ? ['brief'] : [],
+  // Untouched (null), Application opens on the current step and follows it as the job moves.
+  const [sections, setSections] = useState<ApplicationSection[] | null>(
+    props.initialSection === 'application' ? ['brief'] : null,
   );
   const work = useJobWork(card);
   const exportChoices = useExportChoices(card, action);
@@ -56,12 +59,22 @@ export const useCardDetails = (props: CardDetailsProps) => {
       ).catch(() => {});
     } else void action(path, 'POST', body, success).catch(() => {});
   };
+  const exported = packetExported(card, data.approvals);
+  const current = postSubmissionStates.has(card.state)
+    ? undefined
+    : applicationRows(card, brief.confirmed, exported).find((row) => !row.done)?.id;
+  // While revising, Reviews (what Reviewer asked for) opens beside the documents to change.
+  const revising = card.state === 'changes_requested' && Boolean(card.packet);
+  const openSections =
+    sections ?? (current ? (revising ? [current, 'reviews' as const] : [current]) : []);
   const openApplication = (section: ApplicationSection) => {
     setTab('application');
-    setSections((current) => (current.includes(section) ? current : [...current, section]));
+    setSections((list) => {
+      const open = list ?? openSections;
+      return open.includes(section) ? open : [...open, section];
+    });
     requestAnimationFrame(() => documentElement(section)?.focus());
   };
-  const exported = packetExported(card, data.approvals);
   const seat =
     card.state === 'lead'
       ? 'scout'
@@ -78,7 +91,7 @@ export const useCardDetails = (props: CardDetailsProps) => {
     setDocument,
     brief,
     exportChoices,
-    sections,
+    sections: openSections,
     setSections,
     openApplication,
     setActivityDirty,
@@ -88,6 +101,8 @@ export const useCardDetails = (props: CardDetailsProps) => {
     busy,
     editing,
     setEditing,
+    comparing: comparing && tab === 'application',
+    setComparing,
     editBlocker: busy
       ? 'Finish active job work before editing.'
       : card.submissionAttempts?.some((attempt) => attempt.status === 'uncertain')

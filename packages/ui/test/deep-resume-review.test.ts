@@ -26,7 +26,8 @@ test('job action runs the managed flow, saves explicit runtime alternatives and 
   if (await defer.isVisible()) await defer.click();
   await page.locator(`#board-job-${host.card.id} .clay-job-card`).click();
   await page.getByRole('tab', { name: 'Application', exact: true }).click();
-  await page.getByRole('button', { name: 'Reviews Review needed', exact: true }).click();
+  // Without a packet the documents are the current step; open Reviews to reach Deep review.
+  await page.getByRole('button', { name: 'Reviews Not reviewed', exact: true }).click();
   await page.getByRole('button', { name: 'Deep review resume', exact: true }).click();
   await page.getByText('Optional subagent runtime alternatives', { exact: true }).click();
   await page.getByRole('button', { name: 'Add runtime alternative', exact: true }).click();
@@ -47,10 +48,12 @@ test('job action runs the managed flow, saves explicit runtime alternatives and 
   expect(report.options.alternatives).toEqual([{ runtime: 'demo', model: '', reasoning: null }]);
   expect(
     await page
-      .locator('section[aria-label="Initial seven perspectives"] [data-slot="accordion-trigger"]')
+      .locator('section[aria-label="Seven perspectives"] [data-slot="accordion-trigger"]')
       .count(),
   ).toBe(7);
-  const perspectives = page.locator('section[aria-label="Initial seven perspectives"]');
+  // One list of the seven perspectives, each with its verdict before and after corrections.
+  const perspectives = page.locator('section[aria-label="Seven perspectives"]');
+  expect(await perspectives.getByRole('button').first().innerText()).toContain('PASS → PASS');
   const firstPerspective = perspectives.getByRole('button').first();
   expect(await firstPerspective.getAttribute('aria-expanded')).toBe('false');
   await firstPerspective.focus();

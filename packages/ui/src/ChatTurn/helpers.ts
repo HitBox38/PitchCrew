@@ -1,6 +1,7 @@
-import { turnPresentation } from './constants.ts';
+import { codeTargetKinds, stepIcons, turnPresentation } from './constants.ts';
 import { runtimeLabels } from '../lib/labels.ts';
 import { reasoningLabels } from '../lib/reasoning.ts';
+import { isRuntimeStep } from '@pitchcrew/core/tool-activity';
 import { transcriptOrder } from '@pitchcrew/core/transcript-order';
 import { visibleTranscriptMessages } from './transcript-messages.ts';
 import type { AgentTask, ChatRequest } from '@pitchcrew/core';
@@ -87,6 +88,33 @@ export const activityGroups = (entries: RunActivity[]) => {
   }
   return groups;
 };
+
+/**
+ * Which glyph a step shows: thinking, or its tool kind. Steps saved before kinds were recorded,
+ * and kinds this renderer does not know, get the generic tool glyph: they were tool calls, so it
+ * claims nothing more, and every title in a turn stays on one alignment line.
+ */
+export const stepGlyph = (entry: RunActivity): keyof typeof stepIcons => {
+  if (entry.kind === 'reasoning') return 'thinking';
+  return entry.tool && Object.hasOwn(stepIcons, entry.tool) ? entry.tool : 'other';
+};
+
+/**
+ * Whether a step's target is literal input, set in the code face: only a runtime's own command,
+ * file, search or fetch call carries one. Crew steps reuse those kinds for plain words (a state, a
+ * saved query, a company and title), and every other target is words too, so they keep the
+ * reading face.
+ */
+export const codeTarget = (entry: RunActivity) =>
+  isRuntimeStep(entry) && !!entry.tool && codeTargetKinds.has(entry.tool);
+
+/**
+ * Why a step failed, for its reason line and details. Only failed steps have one: a request the
+ * user declined finished, a pause for their control was interrupted, and a step waiting on them
+ * has not failed.
+ */
+export const stepReason = (entry: RunActivity, waiting: boolean) =>
+  entry.status === 'failed' && !waiting && entry.error ? entry.error : undefined;
 
 export const elapsedLabel = (milliseconds: number) => {
   const elapsed = Math.max(0, Math.floor(milliseconds / 1000));

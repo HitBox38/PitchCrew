@@ -44,15 +44,23 @@ it('streams bounded activity, preserves outcomes on replay and keeps private pay
     daemon.service.agentCall(token, 'report_progress', { content: 'One too many' }),
   ).rejects.toThrow('Eight');
   const live = daemon.service.chatState().activityRuns!.find((item) => item.id === run.id)!;
+  // Finished steps read in the tense of their outcome; an unknown action never echoes its name.
   expect(live.activity).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
         kind: 'tool',
-        label: 'Reading profile',
+        tool: 'read',
+        label: 'Read profile',
         status: 'completed',
         finishedAt: expect.any(String),
       }),
-      expect.objectContaining({ kind: 'tool', label: 'Using a crew tool', status: 'failed' }),
+      expect.objectContaining({
+        kind: 'tool',
+        tool: 'other',
+        label: "Couldn't use a crew tool",
+        status: 'failed',
+        error: 'This tool is not allowed.',
+      }),
     ]),
   );
   expect(JSON.stringify(live.activity)).not.toContain('private');

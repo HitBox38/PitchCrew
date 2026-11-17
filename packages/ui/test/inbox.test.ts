@@ -147,7 +147,7 @@ test('offers Markdown Rendered/Source and searchable script-free DOCX previews',
       .getByRole('button', { name: 'Source', exact: true })
       .getAttribute('aria-pressed'),
   ).toBe('true');
-  await page.getByRole('button', { name: 'Close attachment', exact: true }).click();
+  await page.getByRole('button', { name: 'Close viewer', exact: true }).click();
   await page.getByRole('button', { name: /^resume.docx DOCX/ }).click();
   const docx = page.getByRole('dialog', { name: 'resume.docx', exact: true });
   await docx
@@ -158,7 +158,7 @@ test('offers Markdown Rendered/Source and searchable script-free DOCX previews',
   await docx.getByRole('button', { name: 'Find', exact: true }).click();
   await docx.getByRole('textbox', { name: 'Find in document' }).fill('React');
   await expect.poll(() => docx.locator('.file-findbar output').textContent()).toBe('1 of 2');
-  await page.getByRole('button', { name: 'Close attachment', exact: true }).click();
+  await page.getByRole('button', { name: 'Close viewer', exact: true }).click();
 });
 test('keeps manual follow-up after export, enables exact downloads and confirms withdrawal', async () => {
   await page.getByRole('button', { name: 'Approve packet', exact: true }).click();
@@ -186,7 +186,7 @@ test('keeps manual follow-up after export, enables exact downloads and confirms 
   const downloading = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download resume.md', exact: true }).click();
   expect((await downloading).suggestedFilename()).toBe('resume.md');
-  await page.getByRole('button', { name: 'Close attachment', exact: true }).click();
+  await page.getByRole('button', { name: 'Close viewer', exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   // After a manual export every footer action stays whole and reachable on a phone, with
@@ -214,7 +214,7 @@ test('keeps manual follow-up after export, enables exact downloads and confirms 
   expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(391);
   expect(bounds!.y).toBeGreaterThanOrEqual(40);
   expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(845);
-  await page.getByRole('button', { name: 'Close attachment', exact: true }).click();
+  await page.getByRole('button', { name: 'Close viewer', exact: true }).click();
   await page.evaluate(() => document.documentElement.removeAttribute('data-desktop'));
   await page.getByRole('button', { name: 'More packet actions', exact: true }).click();
   await page.getByRole('menuitem', { name: 'Not applying', exact: true }).click();
@@ -406,3 +406,70 @@ test.each([
     );
   },
 );
+
+test('keeps automatic browser approvals out of Decisions, its count and history', async () => {
+  const at = new Date().toISOString();
+  const step = (fields: Partial<ComputerApproval>): ComputerApproval => ({
+    id: randomUUID(),
+    runId: 'historical-run',
+    roleId: 'submitter',
+    cardId: card.id,
+    action: { kind: 'fill', selector: '#name', value: 'Example Candidate' },
+    reason: 'Fill the fictional name field',
+    // Steps a browser mode allows on its own keep the page text but no screenshot.
+    page: {
+      url: card.url,
+      title: 'Fictional application',
+      text: 'Fictional form',
+      screenshot: '',
+      digest: 'automatic-page',
+    },
+    digest: 'automatic-action',
+    status: 'approved',
+    automatic: true,
+    mode: 'edits',
+    error: '',
+    createdAt: at,
+    decidedAt: at,
+    ...fields,
+  });
+  // Allowed by the user's Accept edits mode: one about to run and one that ran.
+  const allowed = step({});
+  const ran = step({ status: 'consumed' });
+  // A request the agent asked about: seeing it proves the snapshot arrived before checking absences.
+  const asked = step({
+    action: { kind: 'click', selector: '#next' },
+    reason: 'Open the next fictional step',
+    automatic: undefined,
+    mode: undefined,
+    status: 'pending',
+    decidedAt: null,
+  });
+  for (const item of [allowed, ran, asked])
+    host.daemon.service.board.record(
+      'computer_approval',
+      item,
+      item.automatic ? 'system' : 'submitter',
+      'Automatic browser approval fixture',
+    );
+  await page.goto(`${host.daemon.url}/inbox?decision=${asked.id}`);
+  await page
+    .getByRole('heading', { name: 'Submitter asks to use the browser', exact: true })
+    .waitFor();
+  // Only the asked request waits: the pager, the sheet and the sidebar badge all leave the rest out.
+  expect(await page.locator('.decide-position').textContent()).toBe('1 of 1');
+  expect(await page.locator('[data-decision-id]').getAttribute('data-decision-id')).toBe(asked.id);
+  await page.getByRole('link', { name: 'Decisions, 1 waiting on you', exact: true }).waitFor();
+  await page.goto(`${host.daemon.url}/inbox?view=history&entry=browser:${ran.id}`);
+  await page.locator('.decision-history-row').first().waitFor();
+  expect(await page.locator(`[data-request-key="browser:${ran.id}"]`).count()).toBe(0);
+  expect(await page.getByRole('article', { name: 'Selected decision' }).count()).toBe(0);
+  for (const item of [allowed, asked])
+    host.daemon.service.board.record(
+      'computer_approval',
+      { ...item, status: 'rejected', error: 'Fixture finished.' },
+      'system',
+      'Expired browser action',
+    );
+  expect(errors).toEqual([]);
+});

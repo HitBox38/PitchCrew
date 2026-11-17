@@ -2,11 +2,16 @@ import { useEffect, useState } from 'react';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { Button } from '@pitchcrew/design-system/button';
 import { PdfThumbnail } from './PdfThumbnail.tsx';
+/** Thumbnails beside the pages: sticky and as tall as the reading area, scrolling on its own. */
 export const PdfSidebar = ({
   document,
+  height,
+  current,
   jump,
 }: {
   document: PDFDocumentProxy;
+  height: number;
+  current: number;
   jump: (page: number) => void;
 }) => {
   const [outline, setOutline] = useState<{ title: string; dest: unknown }[]>([]);
@@ -30,7 +35,12 @@ export const PdfSidebar = ({
     jump(index + 1);
   };
   return (
-    <nav className="file-page-sidebar" aria-label="PDF pages">
+    <nav
+      className="file-page-sidebar"
+      aria-label="Page thumbnails"
+      style={{ height }}
+      data-find-ignore
+    >
       {outline.length ? (
         <div className="pdf-outline">
           <h3>Document outline</h3>
@@ -51,6 +61,7 @@ export const PdfSidebar = ({
           key={index + 1}
           document={document}
           pageNumber={index + 1}
+          current={index + 1 === current}
           select={() => jump(index + 1)}
         />
       ))}

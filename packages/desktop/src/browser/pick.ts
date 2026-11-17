@@ -102,13 +102,14 @@ export const pickedBox = (quad: number[], viewport: { width: number; height: num
 };
 
 /**
- * The screenshot clip for a box in CSS pixels. The box model reads CSS pixels, but a screenshot
- * clip is in device-independent pixels, which page zoom scales: at 125% a CSS pixel is 1.25 DIPs,
- * and an unscaled clip would crop whatever sits above and left of the element.
+ * The screenshot clip for a box in viewport CSS pixels. As in CDP and Playwright, its origin is in
+ * document CSS pixels: the box plus the visual viewport's scroll position, which native capture
+ * moves back into the view and scales by page zoom. Its size is in device-independent pixels,
+ * which page zoom scales: at 125% a CSS pixel is 1.25 DIPs, and an unscaled size would crop it.
  */
-export const pickedClip = (box: Box, zoom: number) => ({
-  x: box.x * zoom,
-  y: box.y * zoom,
+export const pickedClip = (box: Box, zoom: number, scroll: { x: number; y: number }) => ({
+  x: box.x + scroll.x,
+  y: box.y + scroll.y,
   width: box.width * zoom,
   height: box.height * zoom,
   scale: 1,
@@ -206,6 +207,7 @@ export const installBrowserPickIpc = (
         });
         const metrics = await send<{
           cssLayoutViewport: { clientWidth: number; clientHeight: number };
+          cssVisualViewport: { pageX: number; pageY: number };
         }>('Page.getLayoutMetrics');
         const viewport = {
           width: metrics.cssLayoutViewport.clientWidth,
@@ -215,7 +217,10 @@ export const installBrowserPickIpc = (
         if (!box) throw new Error('That element isn’t visible on the page.');
         const shot = await send<{ data: string }>('Page.captureScreenshot', {
           format: 'png',
-          clip: pickedClip(box, contents.getZoomFactor()),
+          clip: pickedClip(box, contents.getZoomFactor(), {
+            x: metrics.cssVisualViewport.pageX,
+            y: metrics.cssVisualViewport.pageY,
+          }),
         });
         if (group.manualUntil <= Date.now() || group.pages.get(group.active) !== page)
           throw new Error('The browser page changed while picking.');

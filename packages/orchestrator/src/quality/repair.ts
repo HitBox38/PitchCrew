@@ -21,6 +21,7 @@ import { beginAiRun } from '../telemetry/ai.ts';
 import { endQuestionTurn } from '../crew/user-input/lifecycle.ts';
 import { relatedConversation } from '../crew/conversations.ts';
 import { applicationUserAnswers } from '../crew/application-context/answers.ts';
+import { reportRuntimeFailure } from '../crew/chat-activity.ts';
 
 const stagePrepared = async (
   context: CrewContext,
@@ -96,6 +97,7 @@ const stagePrepared = async (
         env: { PITCHCREW_RUN_TOKEN: token, PITCHCREW_DAEMON_URL: context.daemonUrl },
       },
       onMessage: () => {},
+      onToolFailure: (failure) => reportRuntimeFailure(context, run.id, token, failure),
     };
     const result = await ai.observe(() => adapters[role.runtime].run(launch), signal);
     if (endQuestionTurn(context, run)) {

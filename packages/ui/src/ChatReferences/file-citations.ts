@@ -1,6 +1,7 @@
 import { packetSourceNames, parseFileCitation } from '@pitchcrew/core/chat-citations';
 import type { ReferenceCatalog } from './types.ts';
 import type { ViewerFile } from '@/FileViewer/types.ts';
+import { fileNotes } from '@/lib/document-findings.ts';
 
 export const citationFile = (url: string, catalog: ReferenceCatalog): ViewerFile | undefined => {
   const target = parseFileCitation(url);
@@ -32,10 +33,12 @@ export const citationFile = (url: string, catalog: ReferenceCatalog): ViewerFile
       bytes: artifact.bytes,
       text: approval.packet[artifact.source],
       downloadAllowed,
-      findings: (
-        approval.documentVerification?.find((report) => report.name === artifact.name) ??
-        artifact.verification
-      )?.findings,
+      findings: fileNotes(
+        (
+          approval.documentVerification?.find((report) => report.name === artifact.name) ??
+          artifact.verification
+        )?.findings,
+      ),
     };
   const source = Object.entries(packetSourceNames).find(([, file]) => file === name)?.[0] as
     | keyof typeof packetSourceNames

@@ -1,4 +1,4 @@
-import type { WebContents } from 'electron';
+import type { Rectangle, WebContents } from 'electron';
 import { z } from 'zod';
 
 const captureSchema = z.object({
@@ -14,6 +14,32 @@ const captureSchema = z.object({
     })
     .optional(),
 });
+
+// After the same frames that paint Playwright's credential masks, report where the visual
+// viewport sits in the document, so the copy uses the scroll position that was painted.
+const paintedViewport =
+  'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(() => resolve({ x: visualViewport.pageLeft, y: visualViewport.pageTop }), 0))))';
+const positionSchema = z.object({ x: z.number().finite(), y: z.number().finite() });
+
+/**
+ * A CDP clip places its origin in document CSS pixels (Playwright sends the scroll position for
+ * a viewport screenshot), but Electron copies a rect of the visible view in DIPs. Move the
+ * origin by the painted scroll position and page zoom. Sizes stay as sent: Playwright sizes a
+ * viewport clip from the view itself, so scaling them would overflow it.
+ */
+export const nativeCaptureOrigin = (
+  clip: { x: number; y: number },
+  position: { x: number; y: number },
+  zoom: number,
+) => {
+  const origin = (value: number, scroll: number) => {
+    const offset = (value - scroll) * zoom;
+    // CDP metrics and the page can round a fractional scroll position differently.
+    if (offset < -1) throw new Error('The page scrolled during capture. Try again.');
+    return Math.max(0, Math.floor(offset));
+  };
+  return { x: origin(clip.x, position.x), y: origin(clip.y, position.y) };
+};
 
 // A timed-out Electron copy can still be running in Chromium. Keep the actual copy,
 // rather than its caller's timeout, as the predecessor of the next capture.
@@ -72,15 +98,8 @@ export const captureNativePage = async (
   current = () => true,
 ) => {
   const { format, quality, clip } = captureSchema.parse(params);
-  const rect = clip
-    ? {
-        x: Math.floor(clip.x),
-        y: Math.floor(clip.y),
-        width: Math.ceil(clip.width),
-        height: Math.ceil(clip.height),
-      }
-    : undefined;
-  if (rect && rect.width * rect.height * (clip?.scale ?? 1) ** 2 > 16_000_000)
+  const area = clip ? { width: Math.ceil(clip.width), height: Math.ceil(clip.height) } : undefined;
+  if (area && area.width * area.height * (clip?.scale ?? 1) ** 2 > 16_000_000)
     throw new Error('Browser capture exceeds the viewport limit.');
   const queue = captureQueue(contents);
   const generation = queue.generation;
@@ -109,20 +128,23 @@ export const captureNativePage = async (
       // A separate world keeps the page from replacing these scheduling primitives.
       // A paint wait has not started a copy: expire it so an unanswered renderer
       // promise cannot poison the queue. A late paint result cannot reach readback.
-      await Promise.race([
-        contents.executeJavaScriptInIsolatedWorld(1001, [
-          {
-            code: 'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(resolve, 0))))',
-          },
-        ]),
+      const painted: unknown = await Promise.race([
+        contents.executeJavaScriptInIsolatedWorld(1001, [{ code: paintedViewport }]),
         deadline,
       ]);
       assertCurrent();
+      let rect: Rectangle | undefined;
+      if (clip && area) {
+        const position = positionSchema.safeParse(painted);
+        if (!position.success)
+          throw new Error('The native browser could not read the page position.');
+        rect = { ...nativeCaptureOrigin(clip, position.data, contents.getZoomFactor()), ...area };
+      }
       try {
         phase = 'copying the native page';
         const image = await contents.capturePage(rect, { stayHidden: true, stayAwake: true });
         assertCurrent();
-        return image;
+        return { image, rect };
       } catch (error) {
         // Chromium can reject the first copy before its compositor surface is ready.
         // Keep retries in this same serialized copy, deadline and page generation.
@@ -142,7 +164,7 @@ export const captureNativePage = async (
     if (queue.tail === complete) queue.tail = undefined;
   });
   try {
-    const captured = await Promise.race([pending, deadline]);
+    const { image: captured, rect } = await Promise.race([pending, deadline]);
     if (captured.isEmpty()) throw new Error('The native browser returned an empty image.');
     const size = captured.getSize();
     const logicalSize = rect && size.width === rect.width && size.height === rect.height;

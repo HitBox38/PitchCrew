@@ -15,7 +15,7 @@ import {
 } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
-import { recordChatActivity, finishChatActivity } from '../chat-activity.ts';
+import { recordChatActivity, recordRuntimeActivity, finishChatActivity } from '../chat-activity.ts';
 import { requireRole } from '../roles.ts';
 import type { CrewContext } from '../types.ts';
 import { applicationSource } from './source.ts';
@@ -106,7 +106,7 @@ const extractApplicationContextPrepared = async (
               text: message,
               status: 'completed',
             }),
-          onActivity: (activity) => recordChatActivity(context, run.id, activity),
+          onActivity: (activity) => recordRuntimeActivity(context, run.id, token, activity),
           mcp: {
             command: process.execPath,
             args: sourceArguments(context.mcpEntry),

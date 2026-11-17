@@ -7,8 +7,12 @@ import {
   browserWaitSchema,
   browserTabsSchema,
   type Approval,
+  type BrowserAccessMode,
   type BrowserAction,
+  type BrowserSnapshot,
+  browserModeLabels,
   browserViewportSchema,
+  isBrowserAccessMode,
   type BrowserViewport,
   type ComputerApproval,
   type RoleId,
@@ -33,6 +37,13 @@ import { readFile, realpath } from 'node:fs/promises';
 import { isAbsolute, join, relative } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { automaticNavigation, explorationNavigation } from './form-policy.ts';
+import {
+  accessModeAllows,
+  choiceAnswers,
+  classifyAction,
+  needsTarget,
+  type ActionTarget,
+} from './access-modes.ts';
 import { BrowserSessions } from './sessions.ts';
 import { hash } from './helpers.ts';
 import type { BrowserDriver, BrowserTarget } from './types.ts';
@@ -356,19 +367,25 @@ export class ComputerManager {
               .describeTarget?.(action.selector, 'frame' in action ? action.frame : undefined)
               .catch(() => undefined)
           : undefined;
-      const { diagnostics: _diagnostics, ...inspected } = await this.inspect(scope.runId, {
-        includeImage: true,
-        references: false,
-      });
-      const page = target?.name
-        ? {
-            ...inspected,
-            // Sanitized before the cut, so no secret survives as a kept fragment of a long name.
-            elements: [
-              { ref: 'target', tag: target.tag, name: publicText(target.name).slice(0, 80) },
-            ],
-          }
-        : inspected;
+      const inspectPage = async (includeImage: boolean) => {
+        const { diagnostics: _diagnostics, ...inspected } = await this.inspect(scope.runId, {
+          includeImage,
+          references: false,
+        });
+        return target?.name
+          ? {
+              ...inspected,
+              // Sanitized before the cut, so no secret survives as a kept fragment of a long name.
+              elements: [
+                { ref: 'target', tag: target.tag, name: publicText(target.name).slice(0, 80) },
+              ],
+            }
+          : inspected;
+      };
+      // A mode that approves by class decides on a text-only inspection and captures an image
+      // only when it must ask, so the many actions it allows never store screenshots.
+      const byClass = isBrowserAccessMode(this.browsers.forRun(scope.runId)?.info.mode);
+      let page = await inspectPage(!byClass);
       if (action.kind === 'dialog' && action.submissionAttemptId && !page.dialog)
         throw new Error('Submission continuation requires an inspected browser dialog.');
       if (this.stopped.has(scope.runId)) throw new Error('Browser session has ended.');
@@ -385,21 +402,11 @@ export class ComputerManager {
             ]
           : undefined;
       if (this.stopped.has(scope.runId)) throw new Error('Browser session has ended.');
-      const browser = this.browsers.forRun(scope.runId);
-      const origin =
-        action.kind === 'navigate' ? new URL(action.url).origin : new URL(page.url).origin;
-      const automatic =
-        browser?.info.mode === 'autonomous' &&
-        !isSubmission(action) &&
-        ((browser.info.allowedSites.includes(origin) &&
-          (action.kind === 'navigate'
-            ? automaticNavigation(action.url)
-            : ['fill', 'select', 'upload'].includes(action.kind) &&
-              (await driver?.automatic?.(action)) === true)) ||
-          ((browser.info.explorationSites ?? []).includes(origin) &&
-            (action.kind === 'navigate'
-              ? explorationNavigation(action.url)
-              : (await driver?.exploration?.(action)) === true)));
+      const grant = await this.automaticGrant(scope.runId, action, driver, page, scope.cardId);
+      const automatic = !!grant;
+      // The user reviews what they decide: the page as it is now, with its image.
+      if (!automatic && byClass) page = await inspectPage(true);
+      if (this.stopped.has(scope.runId)) throw new Error('Browser session has ended.');
       this.browsers.assertAgent(scope.runId);
       const approval: ComputerApproval = {
         id: randomUUID(),
@@ -421,7 +428,7 @@ export class ComputerManager {
           ...(uploadDigest ? { uploadDigest, uploadMimeType } : {}),
         }),
         status: automatic ? 'approved' : 'pending',
-        ...(automatic ? { automatic: true } : {}),
+        ...(automatic ? { automatic: true, ...(grant?.mode ? { mode: grant.mode } : {}) } : {}),
         error: '',
         createdAt: new Date().toISOString(),
         decidedAt: automatic ? new Date().toISOString() : null,
@@ -435,9 +442,11 @@ export class ComputerManager {
         'computer_approval',
         approval,
         automatic ? 'system' : scope.roleId,
-        automatic
-          ? 'Allowed browser preparation under user-granted task site permission'
-          : 'Requested browser action approval',
+        !automatic
+          ? 'Requested browser action approval'
+          : grant?.mode
+            ? `Allowed browser action under the user's ${browserModeLabels[grant.mode]} mode`
+            : 'Allowed browser preparation under user-granted task site permission',
       );
       return approval;
     } finally {
@@ -541,24 +550,19 @@ export class ComputerManager {
         throw new Error('The page changed. Inspect it and request a new approval.');
       this.browsers.assertAgent(runId);
       if (approval.automatic) {
-        const session = this.browsers.forRun(runId);
-        const origin =
-          approval.action.kind === 'navigate'
-            ? new URL(approval.action.url).origin
-            : new URL(page.url).origin;
-        const permitted =
-          session?.info.mode === 'autonomous' &&
-          ((session.info.allowedSites.includes(origin) &&
-            (approval.action.kind === 'navigate'
-              ? automaticNavigation(approval.action.url)
-              : ['fill', 'select', 'upload'].includes(approval.action.kind) &&
-                (await driver.automatic?.(approval.action)) === true)) ||
-            ((session.info.explorationSites ?? []).includes(origin) &&
-              (approval.action.kind === 'navigate'
-                ? explorationNavigation(approval.action.url)
-                : (await driver.exploration?.(approval.action)) === true)));
-        if (!permitted)
-          throw new Error('Browser preparation permission changed. Request a new approval.');
+        const grant = await this.automaticGrant(
+          runId,
+          approval.action,
+          driver,
+          page,
+          approval.cardId,
+        );
+        if (!grant || grant.mode !== approval.mode)
+          throw new Error(
+            approval.mode
+              ? 'Browser permission changed. Request a new approval.'
+              : 'Browser preparation permission changed. Request a new approval.',
+          );
       }
       await driver.validate?.(approval.action);
       const file = await this.uploadFile(approval.action, approval.cardId);
@@ -588,7 +592,9 @@ export class ComputerManager {
           'Consumed browser action approval',
         );
       })();
-      if (approval.automatic) await driver.perform(approval.action, file, true);
+      // Only task-site preparation runs under the write guard. A mode's automatic action, like a
+      // user-approved one, permits the website-controlled side effects of what it approved.
+      if (approval.automatic && !approval.mode) await driver.perform(approval.action, file, true);
       else await driver.perform(approval.action, file);
       performed = true;
       authorize();
@@ -648,6 +654,66 @@ export class ComputerManager {
     } finally {
       this.busy.delete(runId);
       this.busyRoles.delete(this.browsers.keyForRun(runId));
+    }
+  };
+  /**
+   * Whether the server may approve this exact action without asking, and on whose authority: the
+   * class the user's browser mode allows (Accept edits, Auto, Full access), or a task site grant
+   * with the recognized-form rules (Autonomous preparation). Submission never qualifies. Execution
+   * repeats this against the current page before an automatic action runs.
+   */
+  private automaticGrant = async (
+    runId: string,
+    action: BrowserAction,
+    driver: BrowserDriver,
+    page: Pick<BrowserSnapshot, 'url' | 'dialog'>,
+    cardId: string | null,
+  ): Promise<{ mode?: BrowserAccessMode } | null> => {
+    const session = this.browsers.forRun(runId);
+    const mode = session?.info.mode;
+    if (isBrowserAccessMode(mode)) {
+      const target = needsTarget(action) ? await driver.actionTarget?.(action) : undefined;
+      if (!accessModeAllows(mode, classifyAction(action, target, page.dialog))) return null;
+      const choices = choiceAnswers(action, target);
+      return !cardId || !choices.length || (await this.reviewedChoices(cardId, choices))
+        ? { mode }
+        : null;
+    }
+    if (!session || mode !== 'autonomous' || isSubmission(action)) return null;
+    const origin =
+      action.kind === 'navigate' ? new URL(action.url).origin : new URL(page.url).origin;
+    if (
+      session.info.allowedSites.includes(origin) &&
+      (action.kind === 'navigate'
+        ? automaticNavigation(action.url)
+        : ['fill', 'select', 'upload'].includes(action.kind) &&
+          (await driver.automatic?.(action)) === true)
+    )
+      return {};
+    if (
+      (session.info.explorationSites ?? []).includes(origin) &&
+      (action.kind === 'navigate'
+        ? explorationNavigation(action.url)
+        : (await driver.exploration?.(action)) === true)
+    )
+      return {};
+    return null;
+  };
+  /**
+   * On a job's application a ticked box or picked option is an answer: the server gives one on its
+   * own only when its label or value is a reviewed answer, as for a chosen select option. Anything
+   * else, including an unconfirmed brief, asks the user.
+   */
+  private reviewedChoices = async (cardId: string, choices: readonly ActionTarget[]) => {
+    try {
+      const values = await applicationValues(this.board, this.directory, cardId);
+      return choices.every((choice) =>
+        [choice.name, ...choice.names, choice.value].some(
+          (value) => !!normalizedValue(value) && values.includes(normalizedValue(value)),
+        ),
+      );
+    } catch {
+      return false;
     }
   };
   private checkApplicationValues = async (
@@ -718,7 +784,9 @@ export class ComputerManager {
     input: unknown,
     authorize: () => void = () => {},
   ) => {
-    const page = await this.inspect(scope.runId);
+    // Saved evidence never keeps an image (pageEvidence drops it), so reading the form does not
+    // wait on, or fail with, a screenshot.
+    const page = await this.inspect(scope.runId, { includeImage: false, references: true });
     if (this.stopped.has(scope.runId)) throw new Error('Browser session has ended.');
     authorize();
     return saveAssessment(this.board, scope, page, input);
@@ -736,7 +804,7 @@ export class ComputerManager {
       attempt.status !== 'uncertain'
     )
       throw new Error('This run cannot capture this submission.');
-    const page = await this.inspect(scope.runId);
+    const page = await this.inspect(scope.runId, { includeImage: false, references: true });
     if (this.stopped.has(scope.runId)) throw new Error('Browser session has ended.');
     if (!evidence.trim() || !page.text.includes(evidence) || page.digest === attempt.before.digest)
       throw new Error('Use an exact quotation from changed browser confirmation evidence.');

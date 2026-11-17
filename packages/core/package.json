@@ -1,6 +1,6 @@
 {
   "name": "@pitchcrew/core",
-  "version": "0.23.0",
+  "version": "0.24.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -25,10 +25,14 @@
     "./telemetry-ai": "./src/telemetry-ai.ts",
     "./telemetry-mcp": "./src/telemetry-mcp.ts",
     "./telemetry-errors": "./src/telemetry-errors.ts",
+    "./telemetry-tool-failures": "./src/telemetry-tool-failures.ts",
+    "./tool-activity": "./src/tool-activity.ts",
+    "./tool-failures": "./src/tool-failures.ts",
     "./message-notifications": "./src/message-notifications.ts",
     "./chat-citations": "./src/chat-citations.ts",
     "./browser-errors": "./src/browser-errors.ts",
     "./browser-action-labels": "./src/browser-action-labels.ts",
+    "./browser-modes": "./src/browser-modes.ts",
     "./runtime-model-preferences": "./src/runtime-model-preferences-helpers.ts",
     "./reasoning": "./src/reasoning.ts"
   },

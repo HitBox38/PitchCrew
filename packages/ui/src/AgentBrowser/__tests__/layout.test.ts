@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { BrowserSessionInfo, Run, RunActivity } from '@pitchcrew/core';
 import {
+  browserModeLabels,
+  browserModeOrder,
+  browserModeSummaries,
+} from '@pitchcrew/core/browser-modes';
+import {
+  automaticTray,
   browserState,
   browserTrayLine,
   runActivitySummary,
@@ -63,8 +69,16 @@ describe('browser state chip', () => {
     expect(state({ session: session({ manual: true }) })).toMatchObject({ tone: 'paused' });
   });
   it('keeps the permission mode as detail and marks another conversation', () => {
-    expect(state({ session: session({ mode: 'autonomous' }) }).detail).toContain(
-      'Autonomous preparation',
+    // Every mode is detail in the shared words, never another tone or label.
+    for (const mode of browserModeOrder) {
+      for (const waiting of [false, true]) {
+        const shown = state({ session: session({ mode }), waiting });
+        expect(shown.detail).toContain(`${browserModeLabels[mode]}: ${browserModeSummaries[mode]}`);
+        expect(shown.tone).toBe(waiting ? 'waiting' : 'working');
+      }
+    }
+    expect(state({ session: session({ mode: 'full' }) }).detail).toBe(
+      `Scout is using this browser. Full access: ${browserModeSummaries.full}`,
     );
     expect(state({ elsewhere: true }).label).toBe('In another chat');
     expect(state({ session: undefined, opening: true })).toMatchObject({ tone: 'opening' });
@@ -119,6 +133,29 @@ describe('tray line', () => {
       'Scout: Clicked “Learn more”',
     );
     expect(line({ manual: true })).toMatchObject({ tone: 'ochre' });
+  });
+});
+
+describe('automatic steps tray', () => {
+  it('keeps the granted-site wording for Autonomous preparation', () => {
+    expect(automaticTray('autonomous')).toEqual({
+      region: 'Automatic preparation',
+      title: 'Automatic preparation',
+      runs: 'On sites you grant, form answers and approved files fill in.',
+      asks: 'Buttons, keys, dialogs and submitting still ask here.',
+    });
+  });
+  it('names each access mode by its shared label and says sending still asks', () => {
+    for (const mode of ['edits', 'auto', 'full'] as const) {
+      const tray = automaticTray(mode);
+      expect(tray).toMatchObject({ region: 'Automatic steps', title: browserModeLabels[mode] });
+      expect(tray.asks).toMatch(/sending/i);
+      // No site grants outside Autonomous preparation, so no grant wording either.
+      expect(`${tray.runs} ${tray.asks}`).not.toMatch(/grant/i);
+    }
+    expect(automaticTray('edits').asks).toBe('Buttons, links, keys, dialogs and sending ask here.');
+    expect(automaticTray('auto').asks).toBe('Risky steps and sending ask here.');
+    expect(automaticTray('full').asks).toBe('Sending or posting asks here.');
   });
 });
 

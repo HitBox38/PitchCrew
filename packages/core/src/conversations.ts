@@ -32,6 +32,11 @@ export interface ChatRequest {
   boardAction?: import('./work-queue.ts').BoardAction;
   deepReviewOptions?: import('./deep-reviews.ts').DeepReviewOptions;
   routine?: { routineId: string; scheduledFor: string };
+  /**
+   * Queued by an external MCP app (`send_message`), never by the user's own sends. Its runs and
+   * everything that follows from them (crew follow-ups, answer continuations) browse in Supervised.
+   */
+  external?: true;
   deepReviewPreferences?: {
     secondOpinions: boolean;
     requestedPerspectives: import('./deep-review-labels.ts').ReviewPerspective[];

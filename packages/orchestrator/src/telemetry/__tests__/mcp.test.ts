@@ -73,22 +73,25 @@ describe('MCP gateway observations', () => {
     expect(record.mock.calls[0][1]).toMatchObject({
       $mcp_tool_name: 'github_read_file',
       $mcp_is_error: true,
+      $mcp_error_type: 'not_allowed',
     });
     expect(JSON.stringify(record.mock.calls)).not.toMatch(/private|capability is disabled|secret/);
   });
 
   it('preserves validation rejection and cannot grant export approval', async () => {
     const { context, record, capability } = await fixture();
+    const calls = () =>
+      record.mock.calls.filter(([event]) => event === '$mcp_tool_call').map(([, data]) => data);
     capability.cardId = 'private-card-id';
     await expect(context.agentCall('private-token', 'history', { limit: 0 })).rejects.toThrow();
-    expect(record.mock.calls[0][1].$mcp_is_error).toBe(true);
+    expect(calls()[0]).toMatchObject({ $mcp_is_error: true, $mcp_error_type: 'invalid_input' });
     capability.cardId = null;
     const exportPacket = vi.spyOn(context, 'exportPacket');
     await expect(
       context.agentCall('private-token', 'export', { approvalId: 'private-id' }),
     ).rejects.toThrow('This chat has no attached application.');
     expect(exportPacket).not.toHaveBeenCalled();
-    expect(record.mock.calls[1][1].$mcp_is_error).toBe(true);
+    expect(calls()[1]).toMatchObject({ $mcp_is_error: true, $mcp_error_type: 'rejected' });
   });
 
   it('drops unauthenticated, unknown and bootstrap observations', async () => {

@@ -6,7 +6,8 @@ import type { ChatAttachment } from './chat-attachments.ts';
 import type { PacketRules } from './packet-rules.ts';
 import type { Role } from './roles.ts';
 import type { ModelReasoning } from './reasoning.ts';
-import type { RunResult, RuntimeActivity } from './runs.ts';
+import type { RunResult, RuntimeActivity, RuntimeToolFailure } from './runs.ts';
+import type { ActivityToolKind } from './tool-activity.ts';
 import type { Skill } from './skills.ts';
 import { type RoleId, type RuntimeId } from './states.ts';
 import type { ProfileFile } from './workspace.ts';
@@ -71,6 +72,11 @@ export interface RunContext {
   signal: AbortSignal;
   onMessage: (message: string) => void;
   onActivity?: (activity: RuntimeActivity) => void;
+  /**
+   * Diagnostics only, for runs that show no steps (workflow runs): a runtime tool call that
+   * failed, in closed words. Never shown or saved.
+   */
+  onToolFailure?: (failure: RuntimeToolFailure & { kind: ActivityToolKind }) => void;
   request?: string;
   /** House rules checked mechanically on drafts, reviews and exports. */
   packetRules?: PacketRules;

@@ -6,7 +6,7 @@ import {
   updateJobDetails,
   runsWithStatus,
 } from '@pitchcrew/board';
-import type { Card, Conversation, Role, Run } from '@pitchcrew/core';
+import type { Card, Conversation, Role, Run, RunActivity } from '@pitchcrew/core';
 import { externalTools } from '@pitchcrew/mcp/external/tools';
 import { readProfile } from '@pitchcrew/packet';
 import { z } from 'zod';
@@ -23,6 +23,24 @@ const page = <T>(items: T[], offset: number, limit: number) => ({
   total: items.length,
   nextOffset: offset + limit < items.length ? offset + limit : null,
 });
+/**
+ * The step fields the user sees in chat, which external agents read with the user's access: a
+ * tool step's kind, public detail and failure reason included. Rebuilt rather than passed
+ * through, so nothing else a step object may carry ever leaves.
+ */
+const visibleActivity = (entries: RunActivity[] | undefined) =>
+  entries?.map(({ id, kind, label, text, tool, detail, error, status, startedAt, finishedAt }) => ({
+    id,
+    kind,
+    label,
+    text,
+    tool,
+    detail,
+    error,
+    status,
+    startedAt,
+    finishedAt,
+  }));
 const visibleRun = (context: CrewContext, run: Run) => ({
   id: run.id,
   cardId: run.cardId,
@@ -33,7 +51,7 @@ const visibleRun = (context: CrewContext, run: Run) => ({
   message: run.message,
   startedAt: run.startedAt,
   finishedAt: run.finishedAt,
-  activity: context.runActivities.get(run.id)?.entries ?? run.activity,
+  activity: visibleActivity(context.runActivities.get(run.id)?.entries ?? run.activity),
   activityTruncated: context.runActivities.get(run.id)?.truncated ?? run.activityTruncated,
 });
 const idleCard = (context: CrewContext, id: string) => {
@@ -198,12 +216,14 @@ export const externalCall = async (
     case 'send_message': {
       const { conversationId, content, clientRequestId } =
         externalTools.send_message.schema.parse(data);
+      // Marked external: its runs and their follow-ups browse in Supervised.
       return {
-        request: await sendConversation(context, conversationId, {
-          content: `[External MCP agent]\n${content}`,
-          intent: 'queue',
-          clientRequestId,
-        }),
+        request: await sendConversation(
+          context,
+          conversationId,
+          { content: `[External MCP agent]\n${content}`, intent: 'queue', clientRequestId },
+          { external: true },
+        ),
       };
     }
     default:

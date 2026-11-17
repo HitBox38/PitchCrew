@@ -1,11 +1,26 @@
 import { ReviewExtensions } from './ReviewExtensions.tsx';
 import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import type { ReviewDetail } from '../types.ts';
-import { PerspectiveAssessment } from './PerspectiveAssessment.tsx';
+import { PerspectiveComparison } from './PerspectiveComparison.tsx';
 import { ReviewFindings } from './ReviewFindings.tsx';
+import { ReviewStages } from './ReviewStages.tsx';
 import { SubagentResults } from './SubagentResults.tsx';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
-import { deepReviewStages } from '@pitchcrew/core/deep-review-labels';
+import { timeAgo } from '@/lib/time.ts';
+
+const statusLabels: Record<ReviewDetail['report']['status'], string> = {
+  running: 'In progress',
+  waiting: 'Waiting for you',
+  completed: 'Completed',
+  needs_changes: 'Needs changes',
+  failed: 'Failed',
+  cancelled: 'Cancelled',
+};
+
+/**
+ * A deep review report reads in the order the user acts on it: what is still open, how the seven
+ * perspectives moved, then the resume versions and second opinions as evidence.
+ */
 export const ReviewReport = ({
   detail,
   childPage,
@@ -18,68 +33,58 @@ export const ReviewReport = ({
   changeChildPage: (offset: number) => void;
 }) => {
   const { report } = detail;
-  const screen = (stage: 'before' | 'after') =>
-    report[stage]?.perspectives.find((p) => p.perspective === 'screen')?.verdict ?? 'Incomplete';
+  const running = report.status === 'running';
+  const historical = report.status === 'completed' && currentReviewRunId !== report.runId;
   return (
-    <article className="grid gap-6" aria-label="Deep review report">
-      {report.status === 'completed' && currentReviewRunId !== report.runId ? (
-        <p className="optional">
-          Historical report. Current packet readiness is shown in this job’s actions.
+    <article className="deep-review-report" aria-label="Deep review report">
+      <header className="grid gap-2">
+        <h4>{report.summary}</h4>
+        <p className="quiet">
+          {running ? 'In progress' : statusLabels[report.status]} ·{' '}
+          <time dateTime={report.createdAt} title={new Date(report.createdAt).toLocaleString()}>
+            {timeAgo(report.createdAt)}
+          </time>
+          {running ? ` · Shared deadline ${new Date(report.deadlineAt).toLocaleTimeString()}` : ''}
         </p>
-      ) : null}
-      <header className="space-y-2">
-        <h3>{report.summary}</h3>
-        <p className="optional">
-          {report.status === 'running'
-            ? deepReviewStages[report.stage]
-            : report.status.replaceAll('_', ' ')}{' '}
-          · Started {new Date(report.createdAt).toLocaleString()}
-        </p>
-        {report.status === 'running' ? (
-          <p>Shared deadline: {new Date(report.deadlineAt).toLocaleTimeString()}</p>
+        {running ? <ReviewStages stage={report.stage} /> : null}
+        {report.error ? (
+          <p role="alert" className="form-error">
+            {report.error}
+          </p>
         ) : null}
-        {report.error ? <p role="alert">{report.error}</p> : null}
-        <p>
-          Heuristic screen: {screen('before')} → {screen('after')}. This is not an ATS test or a
-          hiring decision.
-        </p>
+        {historical ? (
+          <p className="quiet">Historical report. The dock shows what the current packet needs.</p>
+        ) : null}
       </header>
       {report.before ? (
-        <PerspectiveAssessment assessment={report.before} title="Initial seven perspectives" />
+        <ReviewFindings
+          findings={(report.after ?? report.before).findings}
+          title={report.after ? 'Still open after corrections' : 'What Reviewer found'}
+        />
       ) : null}
-      {report.before ? <ReviewFindings findings={report.before.findings} /> : null}
-      {report.after ? (
-        <AccordionSection
-          defaultOpen
-          triggerClassName="cursor-pointer font-semibold"
-          heading="Final recheck"
-        >
-          <div className="mt-3 grid gap-4">
-            <PerspectiveAssessment assessment={report.after} title="Rechecked perspectives" />
-            <ReviewFindings findings={report.after.findings} />
-          </div>
+      {report.before ? <PerspectiveComparison before={report.before} after={report.after} /> : null}
+      {report.after && report.before?.findings.length ? (
+        <AccordionSection heading="Findings before corrections">
+          <ReviewFindings findings={report.before.findings} title="Before corrections" />
         </AccordionSection>
       ) : null}
-      <AccordionSection
-        triggerClassName="cursor-pointer font-semibold"
-        heading="Before and after resume"
-      >
+      <AccordionSection heading="Before and after resume">
         {report.originalResume ? (
           <SourceBlock label="Original resume" value={report.originalResume} />
         ) : (
-          <p>The first draft has not completed yet.</p>
+          <p className="quiet">The first draft has not completed yet.</p>
         )}
         {report.finalResume ? (
           <SourceBlock label="Improved resume" value={report.finalResume} />
         ) : (
-          <p>The final recheck has not completed yet.</p>
+          <p className="quiet">The final recheck has not completed yet.</p>
         )}
       </AccordionSection>
       <SubagentResults detail={detail} offset={childPage} changePage={changeChildPage} />
       <ReviewExtensions extensions={report.extensions} />
-      <p className="optional">
-        This report applies to the saved resume and job context it assessed. Current packet export
-        and submission require their existing approvals.
+      <p className="quiet">
+        Simulated hiring perspectives on the resume and brief this review assessed, not an ATS test
+        or a hiring decision. Export and submission keep their own approvals.
       </p>
     </article>
   );

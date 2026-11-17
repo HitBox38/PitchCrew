@@ -66,9 +66,10 @@ export const RequirementFields = ({
         </fieldset>
       ))}
       <Button
-        className="justify-self-start"
+        className="-ml-3 justify-self-start"
         disabled={value.length >= 40}
-        variant="outline"
+        variant="ghost"
+        size="sm"
         onClick={() =>
           change([
             ...value,

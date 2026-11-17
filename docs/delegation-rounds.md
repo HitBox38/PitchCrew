@@ -44,7 +44,7 @@ Before delegation rounds, agents in one standalone group could already run at th
 ## Visibility
 
 - Each subtask and reply lives in the existing lead↔delegate DM or named group. No new conversation kind.
-- The originating conversation's Crew work shows one **round card**: lead, one bead per delegate (plum running, primary completed, rose failed, empty socket queued or cancelled), each linking to its DM and exact run, and the collection state. The lead's turn trace shows a "Started a delegation round" step naming the delegates; the collection turn is labelled as collecting results.
+- The originating conversation's Crew work shows one **round card**: lead, one bead per delegate (plum running, primary completed, rose failed, empty socket queued or cancelled), each named and linking to its DM and exact run, and the collection state, with the collection turn labelled as collecting results. In the lead's turn trace, the call is one step: "Delegating subtasks to the crew" while it runs, then "Delegated subtasks to the crew", or "Couldn't delegate subtasks to the crew" with its reason. Its target is the subtask count (for example "2 subtasks"), never the delegates' names.
 - The Queue page and slot tray show delegates as executing agents under the lane's single running card, with readable states and the existing per-request recovery controls.
 - Activity records the round start, each delegate result and the collection as attributed events with one product sentence each.
 

@@ -214,8 +214,14 @@
   color: var(--plum);
   font-weight: 600;
 }
+/* Text below a step starts under its title: 6px padding, bead and kind glyph (16px each, 8px
+ * apart) and a gap. The details' hairline hangs from the bead's centre. */
+.clay-steps .chat-activity-step-reason {
+  margin: 0 6px 6px 54px;
+}
 .clay-steps .chat-activity-step-details {
-  padding: 0 6px 8px 30px;
+  margin-left: 13px;
+  padding: 0 6px 8px 40px;
 }
 .clay-steps-more {
   justify-self: start;

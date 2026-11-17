@@ -1,5 +1,6 @@
 import type { ApprovalRequest } from '@/components/InboxView/types.ts';
 import { readableWordCount } from '@/lib/packet-labels.ts';
+import { fileNotes } from '@/lib/document-findings.ts';
 import type { ViewerFile } from './types.ts';
 const sourceNames = {
   resume: 'resume.md',
@@ -72,10 +73,12 @@ export const attachmentFiles = (
       text: packet.packet[artifact.source],
       downloadAllowed,
       pages: pages?.[artifact.digest],
-      findings: (
-        packet.documentVerification?.find((report) => report.name === artifact.name) ??
-        artifact.verification
-      )?.findings,
+      findings: fileNotes(
+        (
+          packet.documentVerification?.find((report) => report.name === artifact.name) ??
+          artifact.verification
+        )?.findings,
+      ),
     })),
     ...Object.entries(sourceNames).map(([source, name]): ViewerFile => ({
       id: name,

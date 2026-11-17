@@ -1,19 +1,16 @@
+import { useId } from 'react';
 import type { RunActivity } from '@pitchcrew/core';
-import { activityPresentation, outcomes } from '../constants.ts';
-import {
-  TraceCollapsible,
-  TraceCollapsibleContent,
-  TraceCollapsibleTrigger,
-  TraceDescription,
-  TraceIcon,
-  TraceLine,
-  TraceTitle,
-} from '@pitchcrew/design-system/trace';
-import { TurnDuration } from './TurnDuration.tsx';
-import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
+import { TraceCollapsible, TraceCollapsibleTrigger } from '@pitchcrew/design-system/trace';
+import { stepReason } from '../helpers.ts';
+import { ActivityStepDetails } from './ActivityStepDetails.tsx';
+import { ActivityStepLine } from './ActivityStepLine.tsx';
+
 /**
  * One step. A step blocked on the user (a browser request awaiting their OK, a page they hold)
- * reads as waiting: an ochre bead and no running timer, never a plum "working" spinner.
+ * reads as waiting: an ochre bead and no running timer, never a plum "working" spinner. A failed
+ * step says why below its line, outside the button so its name stays short and so the reason
+ * also shows in the collapsed turn: quiet history in plain text, never an alert. Two lines until
+ * the step opens, when the same line shows it all in place.
  */
 export const ActivityStep = ({
   entry,
@@ -22,41 +19,22 @@ export const ActivityStep = ({
   entry: RunActivity;
   waiting?: boolean;
 }) => {
-  const { status } = activityPresentation[entry.status];
+  const reasonId = useId();
+  const reason = stepReason(entry, waiting);
   return (
     <TraceCollapsible className="chat-activity-step" data-status={entry.status}>
-      <TraceCollapsibleTrigger className="chat-activity-step-trigger">
-        <TraceLine className="flex-1" status={status}>
-          <TraceIcon>
-            <StatusBead status={waiting ? 'waiting' : entry.status} />
-          </TraceIcon>
-          <TraceTitle className="flex-1 whitespace-normal">{entry.label}</TraceTitle>
-          <span className="sr-only">{waiting ? 'Waiting for you' : outcomes[entry.status]}</span>
-          <TraceDescription>
-            {waiting ? null : (
-              <TurnDuration
-                startedAt={entry.startedAt}
-                finishedAt={entry.finishedAt}
-                active={entry.status === 'running'}
-              />
-            )}
-          </TraceDescription>
-        </TraceLine>
+      <TraceCollapsibleTrigger
+        className="chat-activity-step-trigger"
+        aria-describedby={reason ? reasonId : undefined}
+      >
+        <ActivityStepLine entry={entry} waiting={waiting} />
       </TraceCollapsibleTrigger>
-      <TraceCollapsibleContent className="chat-activity-step-details">
-        <p>{outcomes[entry.status]}</p>
-        <p>
-          Started{' '}
-          <time dateTime={entry.startedAt}>
-            {new Date(entry.startedAt).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
-            })}
-          </time>
+      {reason ? (
+        <p id={reasonId} className="chat-activity-step-reason" dir="auto" title={reason}>
+          {reason}
         </p>
-        {entry.kind === 'reasoning' ? <p>Thinking text is kept private.</p> : null}
-      </TraceCollapsibleContent>
+      ) : null}
+      <ActivityStepDetails entry={entry} reason={reason} />
     </TraceCollapsible>
   );
 };

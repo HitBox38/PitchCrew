@@ -49,8 +49,10 @@ export const recentPageRows = (
     });
 
 /**
- * Steps the server let this run take on its own (granted sites, recognised forms), newest first.
- * Only saved exact-action records are listed; no progress totals are inferred.
+ * Steps the server let this run take on its own, newest first: under the user's browser mode
+ * (Accept edits, Auto, Full access) or a task site grant (Autonomous preparation). Only steps
+ * that ran (done or failed) are listed, never one still waiting to run or one that expired
+ * unused; no progress totals are inferred.
  */
 export const automaticSteps = (
   approvals: readonly ComputerApproval[],
@@ -65,7 +67,7 @@ export const automaticSteps = (
         !!runId &&
         approval.roleId === roleId &&
         approval.runId === runId &&
-        approval.status !== 'pending',
+        (approval.status === 'consumed' || approval.status === 'failed'),
     )
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, limit);

@@ -1,86 +1,46 @@
-import { ArrowDown, ArrowUp, X } from 'lucide-react';
-import { Input } from '@pitchcrew/design-system/input';
-import { Button } from '@pitchcrew/design-system/button';
+import { Search } from 'lucide-react';
 import type { DocumentFind } from '../hooks/useDocumentFind.ts';
+import { FindButtons } from './FindButtons.tsx';
+
+/**
+ * Find as a pill floating over the reading area's top-right corner, so it never pushes the
+ * document down. Markdown and DOCX show which view it searches.
+ */
 export const FindBar = ({
-  find: {
-    attachInput,
-    query,
-    setQuery,
-    next,
-    count,
-    index,
-    matchCase,
-    setMatchCase,
-    wholeWord,
-    setWholeWord,
-  },
+  find,
   close,
   scope,
+  scopeLabel,
 }: {
   find: DocumentFind;
   close: () => void;
+  /** Accessible scope, e.g. "source" or "resume.pdf". */
   scope: string;
-}) => (
-  <search className="file-findbar" aria-label={`Find in ${scope}`}>
-    <span className="quiet">{scope}</span>
-    <Input
-      ref={attachInput}
-      aria-label="Find in document"
-      placeholder="Find in document…"
-      value={query}
-      onChange={(event) => setQuery(event.target.value)}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter') {
-          event.preventDefault();
-          next(event.shiftKey ? -1 : 1);
-        }
-        if (event.key === 'Escape') {
-          event.preventDefault();
-          event.stopPropagation();
-          close();
-        }
-      }}
-    />
-    <output aria-live="polite">
-      {query ? (count ? `${index} of ${count}` : 'No matches') : 'Enter text'}
-    </output>
-    <Button
-      size="icon"
-      variant="ghost"
-      aria-label="Previous match"
-      disabled={!count}
-      onClick={() => next(-1)}
-    >
-      <ArrowUp size={16} />
-    </Button>
-    <Button
-      size="icon"
-      variant="ghost"
-      aria-label="Next match"
-      disabled={!count}
-      onClick={() => next(1)}
-    >
-      <ArrowDown size={16} />
-    </Button>
-    <Button
-      size="sm"
-      variant="ghost"
-      aria-pressed={matchCase}
-      onClick={() => setMatchCase(!matchCase)}
-    >
-      Match case
-    </Button>
-    <Button
-      size="sm"
-      variant="ghost"
-      aria-pressed={wholeWord}
-      onClick={() => setWholeWord(!wholeWord)}
-    >
-      Whole word
-    </Button>
-    <Button size="icon" variant="ghost" aria-label="Close find" onClick={close}>
-      <X size={16} />
-    </Button>
-  </search>
-);
+  /** Visible scope chip for files with two views. */
+  scopeLabel?: string;
+}) => {
+  const { attachInput, query, setQuery, next, count, index } = find;
+  return (
+    <search className="file-findbar" aria-label={`Find in ${scope}`}>
+      <Search size={15} aria-hidden="true" className="file-findbar-icon" />
+      {scopeLabel ? <span className="file-findbar-scope">{scopeLabel}</span> : null}
+      <input
+        ref={attachInput}
+        aria-label="Find in document"
+        placeholder="Find in document"
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            next(event.shiftKey ? -1 : 1);
+          }
+        }}
+      />
+      <output aria-live="polite" data-empty={query && !count ? '' : undefined}>
+        {query ? (count ? `${index} of ${count}` : 'No matches') : ''}
+      </output>
+      <FindButtons find={find} close={close} />
+    </search>
+  );
+};

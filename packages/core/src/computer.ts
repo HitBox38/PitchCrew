@@ -3,8 +3,16 @@ import type { FormControl } from './submissions.ts';
 import { z } from 'zod';
 import type { RoleId } from './states.ts';
 
-export const browserModeSchema = z.enum(['supervised', 'autonomous']);
+/**
+ * How often an agent's browser asks the user. `autonomous` (Autonomous preparation) needs task site
+ * grants and recognized forms; `edits` (Accept edits), `auto` (Auto) and `full` (Full access) let
+ * the server approve actions by class on any public site. A marked final submission, and whatever the
+ * server recognizes as sending (best effort), always asks.
+ */
+export const browserModeSchema = z.enum(['supervised', 'autonomous', 'edits', 'auto', 'full']);
 export type BrowserMode = z.infer<typeof browserModeSchema>;
+/** Modes whose automatic approvals come from the server's action classes rather than site grants. */
+export type BrowserAccessMode = Extract<BrowserMode, 'edits' | 'auto' | 'full'>;
 export interface BrowserSitePermission {
   id: string;
   roleId: RoleId;
@@ -273,8 +281,16 @@ export interface ComputerApproval {
   cardId: string | null;
   action: BrowserAction;
   reason: string;
-  /** User granted this task site access; the server's form policy allowed this exact action. */
+  /**
+   * The server allowed this exact action without asking: under the user's browser `mode` when it
+   * is set, otherwise under a task site grant and the recognized-form rules.
+   */
   automatic?: boolean;
+  /**
+   * The user's browser mode that let the server allow this exact action without asking. Absent on
+   * automatic records from task site grants (Autonomous preparation) and on user decisions.
+   */
+  mode?: BrowserAccessMode;
   uploadContent?: string;
   uploadDigest?: string;
   uploadMimeType?: string;
