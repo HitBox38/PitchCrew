@@ -201,6 +201,7 @@ describe('default instruction detection', () => {
       '9dd6837b3291ebae',
       '0edf890781c8ba2d',
       '02a53bb26e867e30',
+      'f7a42f77c4a06a88',
     ]);
   });
 

@@ -8,8 +8,9 @@ export const ToolsStep = ({ draft, changeRole, data }: StepProps) => {
   return (
     <div className="agent-wizard-step">
       <p className="optional">
-        It can already chat, read your local Profile and use its skills. Exports, browser actions
-        and submissions always ask you first.
+        It can already chat, read your local Profile and use its skills. Exports and final
+        submissions always ask you first; browser actions follow its browser permissions, Supervised
+        by default.
       </p>
       <ToolGroups
         capabilities={capabilities}

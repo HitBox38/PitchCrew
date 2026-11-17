@@ -16,16 +16,16 @@ export const JobLoading = ({ card, onClose, error, onRetry }: JobLoadingProps) =
       <JobSummary card={card} onClose={onClose} />
       <div className="min-h-0 flex-1 overflow-y-auto" aria-busy={!error}>
         {error ? (
-          <div role="alert" className="space-y-2 px-5 py-5 max-mobile:px-4">
+          <div role="alert" className="detail-tab-content space-y-2">
             <h3 className="font-semibold">Could not load job details</h3>
             <p className="text-sm break-words text-muted-foreground">{error}</p>
           </div>
         ) : (
           <div aria-hidden="true">
-            <div className="detail-navigation px-5 max-mobile:px-4">
-              <Skeleton className="h-[38px] w-full motion-reduce:animate-none" />
+            <div className="detail-navigation">
+              <Skeleton className="h-9 w-64 motion-reduce:animate-none" />
             </div>
-            <div className="detail-tab-content px-5 py-5 max-mobile:px-4">
+            <div className="detail-tab-content">
               <div className="detail-job space-y-6">
                 <section className="space-y-3">
                   <Skeleton className="mb-5 h-5 w-32 motion-reduce:animate-none" />
@@ -43,12 +43,19 @@ export const JobLoading = ({ card, onClose, error, onRetry }: JobLoadingProps) =
       </div>
     </div>
     <JobActionFooter
-      hint={
-        error ? (
-          <p className="action-hint">Try again to open this job.</p>
-        ) : (
-          <output className="action-hint">Loading job details…</output>
-        )
+      dock={
+        error
+          ? {
+              material: 'raised',
+              tone: 'rose',
+              line: 'Couldn’t open this job',
+              detail: 'Try again to load its details.',
+            }
+          : {
+              material: 'rest',
+              line: 'Loading job details…',
+              detail: 'You can close this while it loads.',
+            }
       }
     >
       {error ? <Button onClick={onRetry}>Retry</Button> : null}

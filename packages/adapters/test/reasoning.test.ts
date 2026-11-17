@@ -8,6 +8,13 @@ vi.mock('../src/process.ts', async () => {
   const actual = await vi.importActual<typeof import('../src/process.ts')>('../src/process.ts');
   return {
     ...actual,
+    // A fixed version keeps flag selection (OpenCode 1 vs 2) independent of installed CLIs.
+    detectCli: vi.fn(async (id: RuntimeId) => ({
+      id,
+      available: true,
+      version: id === 'opencode' ? 'opencode 1.14.0 (fixture)' : 'fixture',
+      detail: '',
+    })),
     runCli: vi.fn(async () => ({ role: 'scout', fit: 87, reasons: ['Fixture'] })),
     chatCli: vi.fn(async () => ({ reply: 'Fixture' })),
     runCliText: vi.fn(async (_command, _args, context: RunContext | ChatContext) =>

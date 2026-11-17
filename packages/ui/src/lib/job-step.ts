@@ -162,5 +162,5 @@ export const outcomeHints: Partial<Record<Card['state'], string>> = {
   submitted: 'Record their reply when it arrives.',
   screening: 'Prepare for screening, then record how it went.',
   interviewing: 'Prepare for your interviews, then record the outcome.',
-  offer: 'Review the offer, then record your decision.',
+  offer: 'If you turn it down, mark it withdrawn in Activity. The employer isn’t contacted.',
 };

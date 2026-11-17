@@ -1,4 +1,4 @@
-import { packetNeedsAction } from '../../lib/inbox.ts';
+import { browserNeedsAction, packetNeedsAction } from '../../lib/inbox.ts';
 export { packetNeedsAction } from '../../lib/inbox.ts';
 import type { ApprovalRequest, InboxTab } from './types.ts';
 import type { Approval, PacketArtifact, Snapshot } from '@pitchcrew/core';
@@ -19,8 +19,9 @@ export const approvalRequests = (
 ): ApprovalRequest[] => {
   const waiting = tab === 'pending';
   return [
+    // Automatic approvals were the server's, not the user's: neither waiting nor past decisions.
     ...data.computerApprovals
-      .filter((approval) => waitingStatuses.has(approval.status) === waiting)
+      .filter((approval) => !approval.automatic && browserNeedsAction(approval) === waiting)
       .map((approval) => ({ kind: 'browser' as const, key: `browser:${approval.id}`, approval })),
     ...data.approvals
       .filter((approval) => packetNeedsAction(approval, data.cards) === waiting)
@@ -38,8 +39,6 @@ export const packetStatusLabel = (status: Approval['status']) => {
 };
 
 export type ArtifactPages = Record<string, number> | undefined;
-
-const waitingStatuses = new Set(['pending', 'approved']);
 
 export const requestIdentity = (
   request: ApprovalRequest,

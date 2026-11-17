@@ -35,7 +35,11 @@ export const BriefSummary = ({ value }: { value: ExtractedJob }) => {
           ))}
         </ol>
       ) : (
-        <p className="quiet">No additional application requirements recorded.</p>
+        <p className="quiet">
+          {value.form?.status === 'inspected'
+            ? 'None in the posting. The application form’s own fields are below.'
+            : 'No other questions or formats found in the posting.'}
+        </p>
       )}
     </div>
   );

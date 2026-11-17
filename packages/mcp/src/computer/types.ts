@@ -1,4 +1,5 @@
 import type { Page } from 'playwright';
+import type { ActionTarget } from './access-modes.ts';
 import type {
   NativeBrowserIdentity,
   NativeBrowserState,
@@ -46,6 +47,8 @@ export interface BrowserDriver {
   resolveAction?(action: BrowserAction): Promise<BrowserAction>;
   /** The visible name of an inspected element reference, before the action resolves it. */
   describeTarget?(selector: string, frame?: string): Promise<BrowserTarget | undefined>;
+  /** What activating a resolved action's element would do, for the user's browser mode only. */
+  actionTarget?(action: BrowserAction): Promise<ActionTarget | undefined>;
   matches?(condition: BrowserWait): Promise<boolean>;
   snapshot(options?: { includeImage?: boolean; references?: boolean }): Promise<BrowserSnapshot>;
   getViewport?(): BrowserViewport;

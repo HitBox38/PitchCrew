@@ -1,5 +1,7 @@
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { Button } from '@pitchcrew/design-system/button';
+import { browserModeLabels, browserModeSummaries } from '@pitchcrew/core/browser-modes';
+import { savedBrowserMode } from '@/lib/browser-modes.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { submissionAgentProblem } from '../submission.ts';
 import type { PacketApprovalActionsProps } from '../types.ts';
@@ -10,6 +12,8 @@ type Props = {
 };
 export const SubmissionChooser = ({ model, data }: Props) => {
   const role = data.roles.find((item) => item.id === model.roleId);
+  // The chosen agent's saved default, in the words its settings use.
+  const mode = savedBrowserMode(role);
   const problem = submissionAgentProblem(role, data);
   const agents = data.roles.filter(
     (item) => item.id === 'submitter' || !submissionAgentProblem(item, data),
@@ -29,9 +33,8 @@ export const SubmissionChooser = ({ model, data }: Props) => {
         ]}
       />
       <p className="quiet">
-        Browser:{' '}
-        {role?.browserMode === 'autonomous' ? 'Bounded autonomous preparation' : 'Supervised'}.
-        Final submission always needs your approval.
+        Browser: {browserModeLabels[mode]}. {browserModeSummaries[mode]} The agent marks the final
+        submission so it waits for your approval.
       </p>
       {problem ? (
         <p className="text-ochre">{problem}</p>

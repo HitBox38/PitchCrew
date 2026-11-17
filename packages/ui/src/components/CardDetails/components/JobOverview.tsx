@@ -1,38 +1,35 @@
-import { keyedItems } from '@/lib/list-keys.ts';
-import { PacketFit } from './PacketFit.tsx';
+import { CrewAssessment } from './CrewAssessment.tsx';
+import { PostingText } from './PostingText.tsx';
 import { JobMetadata } from './JobMetadata.tsx';
 import type { JobOverviewProps } from '../types.ts';
 import { AccordionSection } from '@pitchcrew/design-system/accordion';
 
+/** The scored read leads, so a lead's decision sits beside its evidence; then the posting itself. */
 export const JobOverview = (model: JobOverviewProps) => {
   const { card } = model;
   return (
-    <div className="detail-job space-y-6">
-      {card.tags.length ? (
-        <div className="tags flex flex-wrap gap-1">
-          {card.tags.map((tag) => (
-            <span key={tag}>{tag}</span>
-          ))}
-        </div>
+    <div className="detail-job">
+      {/* Before drafting, feedback is Scout's read; afterwards Writer and Reviewer notes replace it
+          and are shown with the documents and reviews they are about. */}
+      {card.feedback.length && (card.state === 'lead' || card.state === 'shortlisted') ? (
+        <CrewAssessment notes={card.feedback} />
       ) : null}
       <section>
         <h3>About the role</h3>
-        <p className="prewrap break-words">
-          {card.description || 'No description was added. Open the original posting for details.'}
-        </p>
-      </section>
-      {card.feedback.length ? (
-        <section>
-          <h3>Crew assessment</h3>
-          <ul className="feedback">
-            {keyedItems(card.feedback, (value) => value).map(({ item: note, key }) => (
-              <li key={key}>{note}</li>
+        {/* The saved posting text exactly as stored, set as readable prose. */}
+        <PostingText
+          text={
+            card.description || 'No description was added. Open the original posting for details.'
+          }
+        />
+        {card.tags.length ? (
+          <div className="tags flex flex-wrap gap-1">
+            {card.tags.map((tag) => (
+              <span key={tag}>{tag}</span>
             ))}
-          </ul>
-        </section>
-      ) : null}
-      {/* Packet match rates a drafted packet; before one exists it is not yet useful. */}
-      {card.packet || card.packetFit ? <PacketFit model={model} /> : null}
+          </div>
+        ) : null}
+      </section>
       <AccordionSection className="detail-source" heading="Posting and source details">
         <JobMetadata card={card} />
         <p className="quiet">Added {new Date(card.createdAt).toLocaleString()}</p>

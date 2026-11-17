@@ -99,7 +99,10 @@ export const applicationHosts = {
   workable: ['apply.workable.com'],
 } as const;
 
-/** Task browsing only permits HTTPS reads; application/submission endpoints remain supervised. */
+/**
+ * HTTPS reads only: task browsing grants permit these, and the browser modes reuse it for read-only
+ * navigation. Application/submission and destructive-looking addresses fail it.
+ */
 export const explorationNavigation = (value: string) => {
   const url = new URL(value);
   return (

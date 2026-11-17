@@ -1,4 +1,5 @@
 import type { BoardEvent, RuntimeId } from '@pitchcrew/core';
+import { browserModeLabels } from '@pitchcrew/core/browser-modes';
 import { runtimeLabels, stateLabels } from '../lib/labels.ts';
 
 /** Resolves a stored actor or role ID (or a conversation ID) to the name the user knows. */
@@ -37,6 +38,9 @@ const party = (id: string, nameOf: NameOf) =>
 
 const importedApplication = /^Imported a past application \(import key (\w+)\)[;,]?\s*(.*)$/;
 const importedStatus = /^Imported past status (.+) effective (\S+)$/;
+/** An automatic approval names the user's browser mode that allowed it, by its label. */
+const allowedByMode = /^Allowed browser action under the user's (.+) mode$/;
+const modeLabels = new Set(Object.values(browserModeLabels));
 
 /** Conversation messages and example records named by who acted and where. */
 const recordSentence = (event: ActivityEvent, nameOf: NameOf, titleOf: NameOf) => {
@@ -83,6 +87,9 @@ export const activitySentence = (
   }
   if (/^Example (conversation message|chat turn|question|crew follow-up)$/.test(message))
     return recordSentence(event, nameOf, titleOf) ?? message;
+  const allowed = allowedByMode.exec(message);
+  if (allowed && event.kind === 'computer_approval' && modeLabels.has(allowed[1]))
+    return `Allowed a browser action under your ${allowed[1]} mode`;
   const started = /^Started (.+) on (\S+)$/.exec(message);
   if (started && event.kind === 'run' && started[2] in runtimeLabels)
     return `Started ${started[1]} with ${runtimeLabels[started[2] as RuntimeId]}`;

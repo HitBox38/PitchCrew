@@ -1,6 +1,9 @@
 import type { Page, Request } from 'playwright';
 
-/** Preparation never authorizes a write or script-driven navigation. User-approved actions do. */
+/**
+ * Autonomous preparation never authorizes a write or script-driven navigation. User-approved
+ * actions do, and so do actions a browser mode approved (Accept edits, Auto, Full access).
+ */
 export const preparationGuard = () => {
   let enabled = false;
   let sites: readonly string[] = [];

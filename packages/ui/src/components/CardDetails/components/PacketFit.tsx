@@ -18,59 +18,60 @@ export const PacketFit = ({ model }: { model: CardDetailsModel }) => {
     : !brief.loaded?.context || brief.loaded.context.sourceRevision !== brief.loaded.sourceRevision
       ? 'Prepare the current job brief before reevaluating.'
       : launchBlocker(data, role?.id);
+  const rated = card.packetFit;
   return (
-    <section className="space-y-3" aria-label="Packet match to job">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3>Packet match to job</h3>
-        {card.packetFit ? <strong>{card.packetFit.score}/100</strong> : <span>Not rated</span>}
-      </div>
-      <p className="quiet">
-        How well the complete packet addresses this job. This rating is separate from candidate fit
-        and does not approve the packet.
-      </p>
-      {card.packetFit ? (
+    <section className="detail-packet-fit" aria-label="Packet match to job">
+      {/* The rating's meaning travels with its name, as the header's Fit does. */}
+      <h3 title="How well this exact packet answers the brief. Separate from your fit; it doesn’t approve the packet.">
+        Packet match{' '}
+        {rated ? <strong>{rated.score}</strong> : <span className="detail-aside">Not rated</span>}{' '}
+        {rated ? (
+          <span className="detail-aside">
+            Rated {new Date(rated.evaluatedAt).toLocaleDateString()}
+          </span>
+        ) : null}
+      </h3>
+      {rated ? (
         <>
           <ul className="feedback">
-            {keyedItems(card.packetFit.reasons, (reason) => reason).map(({ item, key }) => (
+            {keyedItems(rated.reasons, (reason) => reason).map(({ item, key }) => (
               <li key={key}>{item}</li>
             ))}
           </ul>
-          {card.packetFit.fitReasons.length ? (
+          {rated.fitReasons.length ? (
             <AccordionSection heading="Candidate fit reassessment">
               <ul className="feedback">
-                {keyedItems(card.packetFit.fitReasons, (reason) => reason).map(({ item, key }) => (
+                {keyedItems(rated.fitReasons, (reason) => reason).map(({ item, key }) => (
                   <li key={key}>{item}</li>
                 ))}
               </ul>
             </AccordionSection>
           ) : null}
-          <p className="quiet">Evaluated {new Date(card.packetFit.evaluatedAt).toLocaleString()}</p>
         </>
       ) : null}
-      <Button
-        variant="outline"
-        disabled={busy || brief.editing || queued || !!blocker}
-        onClick={() =>
-          model.act(
-            '/queue/actions',
-            {
-              cardId: card.id,
-              roleId: role?.id,
-              action: 'reevaluate',
-            },
-            'Packet reevaluation queued',
-          )
-        }
-      >
-        <RefreshCw size={15} />
-        {queued ? 'Reevaluation queued' : 'Reevaluate with packet'}
-      </Button>
-      <p className="quiet">
+      <div className="detail-inline-actions">
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={busy || brief.editing || queued || !!blocker}
+          onClick={() =>
+            model.act(
+              '/queue/actions',
+              { cardId: card.id, roleId: role?.id, action: 'reevaluate' },
+              'Packet reevaluation queued',
+            )
+          }
+        >
+          <RefreshCw size={14} />
+          {queued ? 'Reevaluation queued' : 'Reevaluate with packet'}
+        </Button>
+      </div>
+      <p className="detail-run-meta">
         {blocker ||
           (brief.editing
             ? 'Save your brief changes before reevaluating.'
             : role
-              ? `${role.name} · ${runtimeLabels[role.runtime]}${role.runtime === 'demo' ? ' · No AI calls' : ' · Uses your CLI account'}`
+              ? `${role.name} · ${runtimeLabels[role.runtime]}${role.runtime === 'demo' ? ' · No AI calls' : ' · Your account'}`
               : '')}
       </p>
     </section>

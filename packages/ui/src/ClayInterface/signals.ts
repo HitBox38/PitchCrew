@@ -1,7 +1,6 @@
-import { computerApprovalLifecycle } from '@pitchcrew/core/lifecycles';
 import type { Card, Run, Snapshot } from '@pitchcrew/core';
 import { closedStateSet } from '../board-stages.ts';
-import { packetNeedsAction } from '../lib/inbox.ts';
+import { browserNeedsAction, packetNeedsAction } from '../lib/inbox.ts';
 import { executingRuns } from '../lib/work-queue.ts';
 import {
   packetDetails,
@@ -60,7 +59,7 @@ export const decisions = (data: Snapshot): Decision[] =>
         };
       }),
     ...data.computerApprovals
-      .filter((approval) => computerApprovalLifecycle.is('open', approval.status))
+      .filter((approval) => browserNeedsAction(approval))
       .map((approval) => ({
         id: approval.id,
         kind: 'browser' as const,
@@ -99,6 +98,14 @@ const decisionWaits = (decision: Decision, data: Snapshot) => {
   const card = data.cards.find((item) => item.id === decision.cardId);
   return !approval || packetWaitsOnUser(approval, card, data);
 };
+
+/** The kinds of decision on this job that wait on the user, for the steps that own them. */
+export const jobWaitingKinds = (cardId: string, data: Snapshot) =>
+  new Set(
+    decisions(data)
+      .filter((decision) => decision.cardId === cardId && decisionWaits(decision, data))
+      .map((decision) => decision.kind),
+  );
 
 /** Whether anything on this job waits on the user, for its stage track's current bead. */
 export const jobAsks = (cardId: string, data: Snapshot) =>

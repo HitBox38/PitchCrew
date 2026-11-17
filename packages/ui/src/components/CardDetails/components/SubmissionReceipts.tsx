@@ -3,7 +3,7 @@ import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { ExternalConfirmation } from './ExternalConfirmation.tsx';
 import type { JobOverviewProps } from '../types.ts';
-import { Button } from '@pitchcrew/design-system/button';
+import { ReceiptResolution } from './ReceiptResolution.tsx';
 
 export const SubmissionReceipts = ({
   card,
@@ -14,6 +14,10 @@ export const SubmissionReceipts = ({
   onDirtyChange?: (dirty: boolean) => void;
 }) => {
   const changeDirty = useReceiptDrafts(onDirtyChange);
+  // The dock verifies the latest uncertain attempt with captured evidence; its receipt keeps the
+  // evidence and the outside-verification form without repeating the two verification buttons.
+  const latest = card.submissionAttempts?.findLast((attempt) => attempt.status === 'uncertain');
+  const docked = latest?.confirmation ? latest.id : undefined;
   return card.submissionAttempts?.length ? (
     <section className="my-4 space-y-3">
       <h3>Browser submissions</h3>
@@ -50,45 +54,18 @@ export const SubmissionReceipts = ({
           ) : null}
           {attempt.status === 'uncertain' ? (
             <div className="mt-2 flex flex-wrap gap-2">
-              <Button
-                className="h-auto min-h-9.5 py-2 whitespace-normal"
-                disabled={working || !attempt.confirmation}
-                onClick={() =>
-                  act(
-                    `/submissions/${attempt.id}/resolve`,
-                    {
-                      confirmed: true,
-                      reason: 'User verified captured website submission confirmation',
-                    },
-                    'Submission verified',
-                  )
-                }
-              >
-                I verified submission
-              </Button>
+              {docked === attempt.id || !attempt.confirmation ? null : (
+                <ReceiptResolution id={attempt.id} confirmed act={act} working={working} />
+              )}
               <ExternalConfirmation
                 id={attempt.id}
                 act={act}
                 working={working}
                 onDirtyChange={changeDirty}
               />
-              <Button
-                className="h-auto min-h-9.5 py-2 whitespace-normal"
-                variant="outline"
-                disabled={working}
-                onClick={() =>
-                  act(
-                    `/submissions/${attempt.id}/resolve`,
-                    {
-                      confirmed: false,
-                      reason: 'User verified no submission occurred; browser actions may resume',
-                    },
-                    'Outcome resolved; submission may be attempted again',
-                  )
-                }
-              >
-                I verified it was not submitted
-              </Button>
+              {docked === attempt.id ? null : (
+                <ReceiptResolution id={attempt.id} confirmed={false} act={act} working={working} />
+              )}
             </div>
           ) : null}
         </div>

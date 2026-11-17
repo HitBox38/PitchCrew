@@ -15,7 +15,12 @@ export const ReviewLaunch = (props: ReviewLaunchProps) => {
   if (!eligible) return null;
   return (
     <>
-      <Button disabled={props.disabled || props.working} onClick={() => setOpen(true)}>
+      <Button
+        variant="ghost"
+        size="sm"
+        disabled={props.disabled || props.working}
+        onClick={() => setOpen(true)}
+      >
         <ScanSearch size={15} />
         Deep review resume
       </Button>

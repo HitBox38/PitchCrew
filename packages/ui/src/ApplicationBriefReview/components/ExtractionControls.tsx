@@ -12,21 +12,29 @@ export const ExtractionControls = ({
 }: {
   model: ReturnType<typeof useApplicationBrief>;
   card: Card;
-  label: string;
+  /** Without a label only the agent choice shows; the dock holds the Extract brief button. */
+  label?: string;
 }) => {
   const { pending } = useJobWork(card);
   const extracting = pending?.path.endsWith('/application-context/extract');
+  const select = (
+    <FormSelect
+      label="Application agent"
+      value={model.roleId}
+      onValueChange={model.setRoleId}
+      options={model.available.map((role) => ({ value: role.id, label: role.name }))}
+      className={label ? undefined : 'brief-agent-row'}
+    />
+  );
+  // Without a label the dock holds Extract brief; the column keeps only the agent choice.
+  if (!label) return select;
   return (
     <div className="flex flex-wrap items-end gap-2">
-      <FormSelect
-        label="Application agent"
-        value={model.roleId}
-        onValueChange={model.setRoleId}
-        options={model.available.map((role) => ({ value: role.id, label: role.name }))}
-      />
+      {select}
       <Button
         aria-busy={!!extracting}
-        variant="outline"
+        variant="ghost"
+        size="sm"
         disabled={model.disabled || !model.roleId || model.editing}
         onClick={() => {
           void model.extract();

@@ -1,13 +1,24 @@
 import type { JobStateProps } from '@/components/CardDetails/types.ts';
-import { JobWorkStatus } from '@/components/JobWorkStatus/index.tsx';
 
-/** `quietState` drops the status pill when a stage track beside it already names the stage. */
-export const JobState = ({ card, quietState }: JobStateProps & { quietState?: boolean }) => {
+/**
+ * Both ratings share one 0–100 form: "Fit 82 · Packet match 74". The progress row names a closed
+ * job's status, and work in progress is said once, in the dock.
+ */
+export const JobState = ({ card }: JobStateProps) => {
+  const scored = typeof card.fit === 'number';
+  if (!scored && !card.packetFit) return null;
   return (
     <div className="detail-state">
-      <JobWorkStatus card={card} quietState={quietState} />
-      {card.fit !== null ? <strong>{card.fit}% fit</strong> : null}
-      {card.packetFit ? <strong>{card.packetFit.score}/100 packet match</strong> : null}
+      {scored ? (
+        <span title="Candidate fit, 0–100. Not a hiring chance.">
+          Fit <strong>{card.fit}</strong>
+        </span>
+      ) : null}
+      {card.packetFit ? (
+        <span title="Packet match rating, 0–100: how well this exact packet answers the brief.">
+          Packet match <strong>{card.packetFit.score}</strong>
+        </span>
+      ) : null}
     </div>
   );
 };

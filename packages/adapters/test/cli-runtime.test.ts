@@ -6,6 +6,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { runAcpText } from '../src/acp.ts';
 import { adapters } from '../src/index.ts';
 import { detectCli, runCliText } from '../src/process.ts';
+import { modelListCommand } from '../src/model-discovery.ts';
+import { assertScopedAgent } from '../src/opencode/index.ts';
 import { cleanup, contextFor, requestFor } from './helpers/runtime.ts';
 
 afterEach(cleanup);
@@ -422,6 +424,99 @@ describe.each(['pi', 'oh-my-pi'] as const)('%s native agent completion', (runtim
   });
 });
 
+it('runs OpenCode 2 standalone, without the removed --pure and --variant flags', async () => {
+  // Without --standalone, OpenCode 2 attaches to its shared background service, which would not
+  // apply this run's isolated configuration.
+  vi.mocked(detectCli).mockResolvedValueOnce({
+    id: 'opencode',
+    available: true,
+    version: 'opencode v2.3.0',
+    detail: '',
+  });
+  const scoped = [
+    { action: '*', effect: 'allow' },
+    { action: '*', effect: 'deny' },
+    { action: 'pitchcrew_*', effect: 'allow' },
+  ];
+  vi.mocked(modelListCommand).mockResolvedValueOnce(
+    JSON.stringify([{ id: 'pitchcrew', permissions: scoped }]),
+  );
+  const context = await contextFor('opencode');
+  context.role.model = 'example/fixture-model';
+  context.role.reasoning = 'high';
+  await adapters.opencode.run(context);
+  // The private server's effective agents are read with the run's own isolated environment.
+  const [, checkArgs, , checkEnvironment] = vi.mocked(modelListCommand).mock.lastCall!;
+  expect(checkArgs).toEqual(['--standalone', 'debug', 'agents']);
+  expect(JSON.parse(checkEnvironment!.OPENCODE_CONFIG_CONTENT!).agent.pitchcrew).toBeDefined();
+  const request = await requestFor(context);
+  expect(request.args).toEqual([
+    'run',
+    '--standalone',
+    '--format',
+    'json',
+    '--agent',
+    'pitchcrew',
+    '--model',
+    'example/fixture-model#high',
+  ]);
+});
+
+it('refuses an OpenCode 2 run whose private server did not apply the scoped agent', async () => {
+  vi.mocked(detectCli).mockResolvedValueOnce({
+    id: 'opencode',
+    available: true,
+    version: 'opencode v2.3.0',
+    detail: '',
+  });
+  vi.mocked(modelListCommand).mockResolvedValueOnce(JSON.stringify([{ id: 'build' }]));
+  await expect(adapters.opencode.run(await contextFor('opencode'))).rejects.toThrow(
+    'did not apply Pitchcrew’s isolated configuration',
+  );
+  // Allowing anything but Pitchcrew tools after the last deny-all is not scoped either.
+  expect(() =>
+    assertScopedAgent(
+      JSON.stringify([
+        {
+          id: 'pitchcrew',
+          permissions: [
+            { action: '*', effect: 'deny' },
+            { action: 'bash', effect: 'allow' },
+          ],
+        },
+      ]),
+    ),
+  ).toThrow('isolated configuration');
+});
+
+it('fails closed when the OpenCode version cannot be read', async () => {
+  // A failed or slow --version could hide a 2.x CLI, so the run takes the standalone path and
+  // its scoped-agent check; a CLI that can't answer that check is refused before any run starts.
+  vi.mocked(detectCli).mockResolvedValueOnce({
+    id: 'opencode',
+    available: false,
+    version: '',
+    detail: '',
+  });
+  vi.mocked(modelListCommand).mockRejectedValueOnce(new Error('Unknown option --standalone'));
+  vi.mocked(runCliText).mockClear();
+  await expect(adapters.opencode.run(await contextFor('opencode'))).rejects.toThrow(
+    'did not apply Pitchcrew’s isolated configuration',
+  );
+  expect(vi.mocked(modelListCommand).mock.lastCall?.[1]).toEqual([
+    '--standalone',
+    'debug',
+    'agents',
+  ]);
+  expect(runCliText).not.toHaveBeenCalled();
+});
+
+vi.mock('../src/model-discovery.ts', async () => {
+  const actual = await vi.importActual<typeof import('../src/model-discovery.ts')>(
+    '../src/model-discovery.ts',
+  );
+  return { ...actual, modelListCommand: vi.fn(actual.modelListCommand) };
+});
 vi.mock('../src/process.ts', () =>
   import('./helpers/runtime-mocks.ts').then((m) => m.processMock()),
 );

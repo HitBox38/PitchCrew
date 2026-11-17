@@ -49,8 +49,8 @@ crew role or tool permissions.
 Users can explicitly ask Scout or Career Coach to research a company or produce
 a full company brief whenever they consider it useful. Agents may also research
 relevant public information as part of the current requested task, such as
-evaluating an opportunity or preparing for an interview, within existing browser
-permissions and supervision. Do not automatically produce a full brief for
+evaluating an opportunity or preparing for an interview, within the agent's
+existing browser permissions and browser mode (Supervised by default). Do not automatically produce a full brief for
 every discovered job; produce the full brief when requested.
 
 ## Company brief coverage

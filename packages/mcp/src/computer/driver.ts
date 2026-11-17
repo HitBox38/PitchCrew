@@ -8,6 +8,7 @@ import { hash } from './helpers.ts';
 import { assertPublicUrl } from './network.ts';
 import type { BrowserDriver } from './types.ts';
 import { automaticFormAction } from './form-policy.ts';
+import { readActionTarget } from './action-target.ts';
 import { preparationGuard } from './preparation.ts';
 import { mkdir } from 'node:fs/promises';
 import { credentialSelector } from './credentials.ts';
@@ -298,6 +299,7 @@ const contextDriver = async (
       );
     },
     describeTarget: async (selector, frame) => references.describe(page, selector, frame),
+    actionTarget: (action) => readActionTarget(page, action),
     resolveAction: async (action) => {
       if (action.tabId) await targetTab(action.tabId);
       return { ...(await references.resolve(page, action)), tabId: tabIds.get(page)! };

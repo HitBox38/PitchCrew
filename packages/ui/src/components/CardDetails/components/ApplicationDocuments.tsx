@@ -3,21 +3,14 @@ import { Button } from '@pitchcrew/design-system/button';
 import { JobPacket } from './JobPacket.tsx';
 
 export const ApplicationDocuments = ({ model }: { model: CardDetailsModel }) => {
-  const { card, brief } = model;
+  const { card } = model;
   return (
     <div className="space-y-3">
-      <Button variant="link" onClick={model.openWriting}>
+      <Button variant="ghost" size="sm" className="-ml-3 flex w-fit" onClick={model.openWriting}>
         Writing guide
       </Button>
-      {card.packet ? (
-        <JobPacket {...model} />
-      ) : (
-        <p className="quiet">
-          {brief.confirmed
-            ? 'Use Draft application below to prepare your documents.'
-            : 'Review and confirm the brief, then draft your application.'}
-        </p>
-      )}
+      {/* Without a packet the row's status says Not drafted and the dock offers the draft. */}
+      {card.packet ? <JobPacket {...model} /> : null}
     </div>
   );
 };

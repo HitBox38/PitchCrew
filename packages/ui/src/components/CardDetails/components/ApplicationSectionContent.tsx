@@ -1,15 +1,18 @@
 import type { ApplicationSection, CardDetailsModel } from '../types.ts';
 import { ApplicationBriefReview } from '@/ApplicationBriefReview/index.tsx';
-import { ReviewLaunch } from '@/DeepResumeReview/components/ReviewLaunch.tsx';
-import { DeepResumeReview } from '@/DeepResumeReview/index.tsx';
+import { jobNextAction } from '../next-action.ts';
 import { ApplicationDocuments } from './ApplicationDocuments.tsx';
+import { ReviewsSection } from './ReviewsSection.tsx';
 import { ExportRequest } from './ExportRequest.tsx';
 import { Button } from '@pitchcrew/design-system/button';
 import { packetNeedsReview } from '../helpers.ts';
-import { HandoffSummary } from '@/components/InboxView/components/PacketHandoff.tsx';
-import { cardHandoff } from '@/components/InboxView/handoff.ts';
-import { DetectorChecks } from '@/DetectorChecks/index.tsx';
-import { jobNextAction } from '../next-action.ts';
+
+// What the dock already offers for the brief, so the brief column needn't repeat it.
+const dockOffers = (model: CardDetailsModel) => {
+  const next = jobNextAction(model);
+  const intents = [next, ...(next.alternates ?? [])].map((action) => action.intent);
+  return { extract: intents.includes('extract-brief'), write: intents.includes('write-brief') };
+};
 
 export const ApplicationSectionContent = ({
   model,
@@ -21,28 +24,19 @@ export const ApplicationSectionContent = ({
   reviewOpened: boolean;
 }) => {
   const { card, brief, busy } = model;
-  if (section === 'brief') return <ApplicationBriefReview card={card} model={brief} />;
-  if (section === 'documents') return <ApplicationDocuments model={model} />;
-  if (section === 'reviews')
+  if (section === 'brief')
     return (
-      <div className="space-y-5">
-        {packetNeedsReview(card) ? null : (
-          <HandoffSummary handoff={cardHandoff(card, model.data)} />
-        )}
-        <DetectorChecks card={card} />
-        <Button variant="link" onClick={model.openWriting}>
-          Writing guide
-        </Button>
-        <ReviewLaunch
-          card={card}
-          data={model.data}
-          working={busy}
-          disabled={!brief.confirmed}
-          act={model.act}
-        />
-        {reviewOpened ? <DeepResumeReview card={card} data={model.data} /> : null}
-      </div>
+      <ApplicationBriefReview
+        card={card}
+        model={brief}
+        comparing={model.comparing}
+        onCompare={model.setComparing}
+        onEditJob={model.editBlocker ? undefined : () => model.setEditing(true)}
+        dockOffers={dockOffers(model)}
+      />
     );
+  if (section === 'documents') return <ApplicationDocuments model={model} />;
+  if (section === 'reviews') return <ReviewsSection model={model} reviewOpened={reviewOpened} />;
   if (card.state === 'agreed' && !packetNeedsReview(card))
     return (
       <ExportRequest
@@ -55,10 +49,10 @@ export const ApplicationSectionContent = ({
     <>
       <p className="quiet">
         {model.exported
-          ? 'The current packet was exported. Continue in Decisions to apply, then record submission only after you have applied.'
+          ? 'Exported. Apply from Decisions, then record your submission after you apply.'
           : card.state === 'awaiting_approval'
-            ? 'Your exact documents are waiting for review in Decisions.'
-            : 'Complete packet review before requesting export approval.'}
+            ? 'Your exact documents are waiting for your approval in Decisions.'
+            : 'Available once the packet is reviewed.'}
       </p>
       {card.state === 'awaiting_approval' && !model.exported ? (
         <Button variant="outline" onClick={model.openInbox}>

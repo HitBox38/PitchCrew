@@ -99,10 +99,15 @@ const requestOrder = (context: CrewContext, intent: 'queue' | 'interrupt') => {
  */
 const sendIdentity = (item: Conversation): string =>
   JSON.stringify([item.kind, item.participants, item.leadId, item.cardId, item.configurations]);
+/**
+ * Queues a message. `origin.external` marks a message from an external MCP app; it is a caller
+ * argument, never read from the sent data, so the user's own sends cannot set or clear it.
+ */
 export const sendConversation = async (
   context: CrewContext,
   id: string,
   data: unknown,
+  origin: { external?: boolean } = {},
 ): Promise<ChatRequest> => {
   const input = chatInput.parse(data);
   const { intent } = z
@@ -115,7 +120,7 @@ export const sendConversation = async (
     attachments: input.attachments,
   };
   return submitChatOnce(context, id, clientRequestId, { ...payload, intent }, (submission) =>
-    sendConversationPrepared(context, id, input, intent, submission),
+    sendConversationPrepared(context, id, input, intent, submission, origin.external === true),
   );
 };
 const sendConversationPrepared = async (
@@ -124,6 +129,7 @@ const sendConversationPrepared = async (
   input: z.infer<typeof chatInput>,
   intent: 'queue' | 'interrupt',
   submission?: ChatRequest['submission'],
+  external = false,
 ): Promise<ChatRequest> => {
   const item = conversation(context, id);
   if (item.kind === 'history' || item.kind === 'agent_dm')
@@ -153,7 +159,8 @@ const sendConversationPrepared = async (
   try {
     if (sendIdentity(conversation(context, id)) !== sendIdentity(item))
       throw new Error('The conversation changed. Try sending again.');
-    if (isDeepReviewRequest(input.content)) {
+    // External messages always take the ordinary queue below, which marks their request.
+    if (!external && isDeepReviewRequest(input.content)) {
       const effects: (() => void)[] = [];
       const request = context.board.db.transaction(() => {
         if (intent === 'interrupt') prepareInterrupt(context, id, effects);
@@ -174,6 +181,7 @@ const sendConversationPrepared = async (
     }
     const request: ChatRequest = {
       ...(submission ? { submission } : {}),
+      ...(external ? { external: true } : {}),
       id: randomUUID(),
       threadId: id,
       messageId: randomUUID(),

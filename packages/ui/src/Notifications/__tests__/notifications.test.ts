@@ -84,6 +84,35 @@ it('uses attention for pending requests and removes decided requests', () => {
     collectNotifications({ ...data, computerApprovals: [], skillProposals: [], approvals: [] }),
   ).toHaveLength(1);
 });
+it('never notifies about browser actions the server allowed on its own', () => {
+  // Created approved under a browser mode or a task site grant (no mode), then used, failed or expired.
+  const automatic = ['approved', 'consumed', 'failed', 'rejected'].flatMap((status) =>
+    ['edits', 'auto', 'full', undefined].map((mode) => ({
+      id: `automatic-${status}-${mode}`,
+      roleId: 'scout',
+      status,
+      automatic: true,
+      mode,
+      reason: 'Scroll the fictional listing.',
+      createdAt: message.createdAt,
+    })),
+  );
+  const data = { ...snapshot, messages: [], computerApprovals: automatic } as unknown as Snapshot;
+  expect(collectNotifications(data)).toEqual([]);
+  const asked = {
+    ...automatic[0],
+    id: 'asked',
+    status: 'pending',
+    automatic: undefined,
+    mode: undefined,
+  };
+  expect(
+    collectNotifications({
+      ...data,
+      computerApprovals: [...automatic, asked],
+    } as unknown as Snapshot).map((item) => item.id),
+  ).toEqual(['computer:asked']);
+});
 it('baselines history silently and never repeats alerts on polls, reconnects or removed requests', () => {
   const tracker = new NotificationTracker();
   const initial = collectNotifications(snapshot);
