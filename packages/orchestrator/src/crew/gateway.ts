@@ -7,6 +7,7 @@ import { reviewAgentAction } from './deep-reviews/subagents.ts';
 import { randomUUID } from 'node:crypto';
 import { recordChatActivity } from './chat-activity.ts';
 import { observeChatTool } from './gateway/activity.ts';
+import { classifyToolFailure, type ToolFailure } from './gateway/failures.ts';
 import { askUser } from './user-input/questions.ts';
 import { questionForRun } from './user-input/lifecycle.ts';
 import { conversationAction, memoryAction } from './gateway/conversations.ts';
@@ -20,9 +21,11 @@ import {
   workflowSeat,
   draftingCard,
   reviewPerspectiveSchema,
+  toolFailureDescriptions,
   type Approval,
   type Card,
   type Role,
+  type ToolFailureReason,
 } from '@pitchcrew/core';
 import { readProfile } from '@pitchcrew/packet';
 import { z } from 'zod';
@@ -42,6 +45,7 @@ import { insightsAction } from './gateway/insights.ts';
 import { jobSourceAction } from './gateway/job-sources.ts';
 import type { CrewContext } from './types.ts';
 import { beginMcpToolCall } from '../telemetry/mcp.ts';
+import { recordGatewayFailure } from '../telemetry/tool-failures.ts';
 import { reportTechnicalProblem } from './gateway/diagnostics.ts';
 import { canReadRunSkills, readRunSkill } from './gateway/skills.ts';
 
@@ -51,27 +55,44 @@ export const agentCall = async (
   action: string,
   data: Record<string, unknown>,
 ): Promise<Record<string, unknown>> => {
-  let finish: (isError: boolean) => void = () => {};
+  let finish: (isError: boolean, reason?: ToolFailureReason) => void = () => {};
   try {
     finish = beginMcpToolCall(context, token, action, data);
   } catch {
     // Telemetry initialization must never prevent a scoped tool invocation.
   }
   const finishActivity = observeChatTool(context, token, action, data);
-  let isError = true;
-  let failure: unknown;
+  let failure: ToolFailure | undefined;
   let outcome: unknown;
   try {
     const result = await dispatchAgentCall(context, token, action, data);
-    isError = false;
     outcome = result;
     return result;
   } catch (error) {
-    failure = error;
+    // Classified once for the step, the call event and the exception; the error itself is
+    // rethrown untouched.
+    failure = callFailure(context, token, action, error);
     throw error;
   } finally {
-    finishActivity(isError, failure, outcome);
-    finish(isError);
+    finishActivity(failure, outcome);
+    finish(!!failure, failure?.reason);
+    if (failure) recordGatewayFailure(context, token, action, data, failure.reason);
+  }
+};
+
+/** Never throws: a classification fault must not replace the tool's own error. */
+const callFailure = (
+  context: CrewContext,
+  token: string,
+  action: string,
+  error: unknown,
+): ToolFailure => {
+  try {
+    const capability = context.capabilities.get(token);
+    const aborted = !!capability && !!context.controllers.get(capability.runId)?.signal.aborted;
+    return classifyToolFailure(action, error, aborted, [token]);
+  } catch {
+    return { reason: 'unclassified', message: toolFailureDescriptions.unclassified };
   }
 };
 

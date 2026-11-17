@@ -23,7 +23,7 @@ import { endQuestionTurn } from '../user-input/lifecycle.ts';
 import { applicationUserAnswers } from '../application-context/answers.ts';
 import { assertApplicationRuntime } from '../application-context/extraction.ts';
 import { beginAiRun } from '../../telemetry/ai.ts';
-import { recordChatActivity, finishChatActivity } from '../chat-activity.ts';
+import { recordRuntimeActivity, finishChatActivity } from '../chat-activity.ts';
 import type { CrewContext } from '../types.ts';
 import { assertReviewCurrent, assertReviewEvidence, review } from './state.ts';
 import { ReviewWaiting, type LiveDeepReview } from './types.ts';
@@ -170,7 +170,7 @@ const executeReviewStagePrepared = async (
               context.board.record('run', { ...current, message }, role.id, message);
             context.publishChat();
           },
-          onActivity: (activity) => recordChatActivity(context, run.id, activity),
+          onActivity: (activity) => recordRuntimeActivity(context, run.id, token, activity),
         }),
       controller.signal,
     );

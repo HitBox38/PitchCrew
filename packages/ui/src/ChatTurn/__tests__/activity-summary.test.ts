@@ -50,7 +50,72 @@ it('keeps the latest failed or interrupted step visible after settlement', () =>
   ];
   for (const status of ['completed', 'failed', 'waiting', 'cancelled'] as const)
     expect(activityPreview(run(status, entries)).map((item) => item.id)).toEqual(['failure']);
+  expect(activityPreview(run('completed', entries.slice(1))).map((item) => item.id)).toEqual([
+    'stopped',
+  ]);
   expect(activitySummary(entries)).toBe('3 steps · 1 failed · 1 interrupted');
+});
+
+it('keeps up to the three latest failures of a turn that did not complete, in order', () => {
+  const entries = [
+    entry('first', 'tool', 'failed'),
+    entry('update', 'commentary'),
+    entry('second', 'tool', 'failed'),
+    entry('read', 'tool'),
+    entry('third', 'tool', 'failed'),
+    entry('fourth', 'tool', 'failed'),
+    entry('stopped', 'tool', 'interrupted'),
+  ];
+  for (const status of ['failed', 'cancelled', 'waiting'] as const)
+    expect(activityPreview(run(status, entries)).map((item) => item.id)).toEqual([
+      'second',
+      'third',
+      'fourth',
+    ]);
+  // The agent recovered from the earlier failures of a completed turn, so its history keeps only
+  // the latest one rather than reading as a failure.
+  expect(activityPreview(run('completed', entries)).map((item) => item.id)).toEqual(['fourth']);
+});
+
+it('keeps a live failure in view until three newer tool steps have started', () => {
+  const steps = ['next', 'after', 'later'].map((id) => entry(id, 'tool'));
+  const failure = entry('failure', 'tool', 'failed');
+  const update = entry('update', 'commentary');
+  const ids = (activity: RunActivity[]) =>
+    activityPreview(run('running', activity)).map((item) => item.id);
+  // Original order, alongside the latest update and the current step.
+  expect(ids([failure, update, { ...steps[0], status: 'running' }])).toEqual([
+    'failure',
+    'update',
+    'next',
+  ]);
+  expect(ids([update, failure, steps[0], { ...steps[1], status: 'running' }])).toEqual([
+    'update',
+    'failure',
+    'after',
+  ]);
+  // A failure that is itself the latest step is shown once.
+  expect(ids([update, steps[0], failure])).toEqual(['update', 'failure']);
+  // Commentary never counts as a step that pushes the failure out.
+  expect(ids([failure, steps[0], update, steps[1]])).toEqual(['failure', 'update', 'after']);
+  expect(ids([failure, ...steps])).toEqual(['later']);
+  // Thinking markers come between most calls of a reasoning runtime and never push it out, even
+  // when the current step is one.
+  const [t1, t2, t3] = ['t1', 't2', 't3'].map((id) => entry(id, 'reasoning'));
+  const [next, after, later] = steps;
+  expect(ids([failure, t1, next, { ...t2, status: 'running' }])).toEqual(['failure', 't2']);
+  expect(ids([failure, t1, next, t2, { ...after, status: 'running' }])).toEqual([
+    'failure',
+    'after',
+  ]);
+  expect(ids([failure, t1, next, t2, after, t3, { ...later, status: 'running' }])).toEqual([
+    'later',
+  ]);
+  // While the user holds the page the failure keeps its place beside the last finished step.
+  const blocked = { ...steps[1], status: 'running' as const };
+  expect(
+    activityPreview(run('running', [failure, steps[0], blocked]), true).map((item) => item.id),
+  ).toEqual(['failure', 'next']);
 });
 
 it('treats a pause for a user takeover as neither a failure nor a settled issue', () => {
@@ -144,4 +209,25 @@ it('finds the call blocked on the user by its exact label, leaving parallel call
   expect([...blockedSteps([read, connector], ['Reading the page', 'Click “Learn more”'])]).toEqual([
     'read',
   ]);
+});
+
+it('matches only browser steps, and older steps saved without a kind, as waiting on the user', () => {
+  const labels = ['Reading the page', 'Asked to click “Learn more”'];
+  const step = (
+    id: string,
+    label: string,
+    tool: RunActivity['tool'],
+    status: RunActivity['status'] = 'running',
+  ): RunActivity => ({ ...entry(id, 'tool', status), label, tool });
+  // A runtime's own tool, or a crew tool, whose words happen to equal a browser label.
+  const native = step('native', labels[0], 'read');
+  const asked = step('asked', labels[1], 'command', 'completed');
+  expect([
+    ...blockedSteps(
+      [native, step('browser', labels[0], 'browser'), step('legacy', labels[0], undefined)],
+      labels,
+    ),
+  ]).toEqual(['browser', 'legacy']);
+  expect(blockedSteps([native, asked], labels).size).toBe(0);
+  expect([...blockedSteps([{ ...asked, tool: 'browser' }], labels)]).toEqual(['asked']);
 });

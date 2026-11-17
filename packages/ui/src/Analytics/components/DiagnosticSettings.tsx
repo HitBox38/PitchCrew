@@ -10,7 +10,8 @@ export const DiagnosticSettings = () => {
       <span>
         <strong>Share diagnostics</strong>
         <span className="quiet block">
-          Send reliability measurements and agent-written bug or missing-capability reports to
+          Send reliability measurements, failed tool names with a fixed failure type (never the
+          error message or tool content), and agent-written bug or missing-capability reports to
           PostHog, including expected and actual behavior. Reports should omit private content;
           common identifiers are redacted. Requires usage analytics.
         </span>

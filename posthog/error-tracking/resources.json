@@ -238,15 +238,113 @@
       }
     }
   ],
+  "proposals": {
+    "status": "prepared_not_validated_not_activated",
+    "note": "Tool-failure chart and alert for a later activation. Nothing here exists in PostHog: run each query through query-trends against released, genuinely consented events, then record created IDs and readback in activation.json.",
+    "insights": [
+      {
+        "key": "tool-failures-by-tool-and-reason",
+        "name": "Tool failures by tool and reason",
+        "description": "Failed crew tool calls relayed from the daemon: a reviewed Pitchcrew MCP tool name (error_tool), or only the kind of a runtime's own tool, or mcp for an unreviewed call to Pitchcrew's server (error_tool_kind), with a closed failure reason (error_category). Includes deliberate refusals; the user's own outcomes are never reported. Deduplicated per run by tool and reason; faults and other reasons are each capped at eight per run and twenty per minute per daemon, so counts are not failure rates. No error text, arguments or paths. Empty values do not mean zero failures.",
+        "query": {
+          "kind": "TrendsQuery",
+          "series": [
+            {
+              "kind": "EventsNode",
+              "event": "$exception",
+              "math": "total",
+              "properties": [
+                {
+                  "key": "error_source",
+                  "type": "event",
+                  "operator": "exact",
+                  "value": ["tool_call", "runtime_tool"]
+                }
+              ]
+            }
+          ],
+          "dateRange": {
+            "date_from": "-30d"
+          },
+          "filterTestAccounts": true,
+          "interval": "day",
+          "breakdownFilter": {
+            "breakdowns": [
+              {
+                "property": "error_tool",
+                "type": "event"
+              },
+              {
+                "property": "error_tool_kind",
+                "type": "event"
+              },
+              {
+                "property": "error_category",
+                "type": "event"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "alerts": [
+      {
+        "key": "tool-faults-daily",
+        "name": "Pitchcrew · tool faults (daily)",
+        "description": "Fires when a completed day has any reported tool fault: error_category timeout, unavailable, internal or unclassified (toolFaultReasons). Deliberate refusals, tool errors and the user's own outcomes are excluded. No absence alert: closed apps, opt-out and the report limits create intentional gaps.",
+        "query": {
+          "kind": "TrendsQuery",
+          "series": [
+            {
+              "kind": "EventsNode",
+              "event": "$exception",
+              "math": "total",
+              "properties": [
+                {
+                  "key": "error_source",
+                  "type": "event",
+                  "operator": "exact",
+                  "value": ["tool_call", "runtime_tool"]
+                },
+                {
+                  "key": "error_category",
+                  "type": "event",
+                  "operator": "exact",
+                  "value": ["timeout", "unavailable", "internal", "unclassified"]
+                }
+              ]
+            }
+          ],
+          "dateRange": {
+            "date_from": "-7d"
+          },
+          "filterTestAccounts": true,
+          "interval": "day"
+        },
+        "calculation_interval": "daily",
+        "config": {
+          "check_ongoing_interval": false,
+          "series_index": 0,
+          "type": "TrendsAlertConfig"
+        },
+        "threshold": {
+          "bounds": {
+            "upper": 0
+          },
+          "type": "absolute"
+        }
+      }
+    ]
+  },
   "errorTracking": {
     "url": "https://eu.posthog.com/project/295060/error_tracking",
     "manualEvent": "$exception",
-    "grouping": "Fixed source/category/action fingerprint, v1. No raw stack or message.",
+    "grouping": "Fixed source/category/action fingerprint, v1; tool failures group by source, tool or tool kind, and reason. No raw stack or message.",
     "notCovered": [
       "Daemon-only crashes",
-      "Provider CLI errors not surfaced to the renderer",
+      "Provider CLI errors other than closed tool-failure categories",
       "Landing renderer errors",
-      "Expected validation/approval conflicts",
+      "Expected validation/approval conflicts in renderer actions (tool_call reports include deliberate gateway refusals)",
       "Boot errors before analytics is initialized"
     ]
   },

@@ -22,11 +22,92 @@ const update = (
   sessionUpdate: string,
   content?: { type: string; text: string },
   sessionId = 'fictional-session',
+  fields: Record<string, unknown> = {},
 ) =>
   emit({
     method: 'session/update',
-    params: { sessionId, update: { sessionUpdate, ...(content ? { content } : {}) } },
+    params: { sessionId, update: { sessionUpdate, ...(content ? { content } : {}), ...fields } },
   });
+const toolUpdate = (sessionUpdate: string, fields: Record<string, unknown>) =>
+  update(sessionUpdate, undefined, 'fictional-session', fields);
+const textContent = (text: string) => [{ type: 'content', content: { type: 'text', text } }];
+/** A Pitchcrew call as Kiro's v2 engine starts it: its identity sits in `_meta.kiro`. */
+const v2Call = (toolCallId: string, tool: string, rawInput: Record<string, unknown>) =>
+  toolUpdate('tool_call', {
+    toolCallId,
+    title: `Running: @pitchcrew/${tool}`,
+    kind: 'other',
+    status: 'pending',
+    rawInput,
+    _meta: { kiro: { toolName: tool, mcpServerName: 'pitchcrew' } },
+  });
+// A Pitchcrew call the daemon records, one that failed before reaching it, and a native call
+// whose command and failure repeat the run token; then the same Pitchcrew outcomes in Kiro's v2
+// shapes, including a refusal the daemon records itself.
+const toolCalls = () => {
+  toolUpdate('tool_call', {
+    toolCallId: 'tool-1',
+    title: '@pitchcrew/pitchcrew_get_card',
+    kind: 'other',
+    status: 'pending',
+    rawInput: { cardId: 'PRIVATE_ARG' },
+  });
+  toolUpdate('tool_call_update', { toolCallId: 'tool-1', status: 'in_progress' });
+  toolUpdate('tool_call_update', {
+    toolCallId: 'tool-1',
+    status: 'completed',
+    content: textContent('{"card":"PRIVATE_ARG"}'),
+  });
+  toolUpdate('tool_call', {
+    toolCallId: 'tool-2',
+    title: '@pitchcrew/pitchcrew_save_memory',
+    status: 'in_progress',
+    rawInput: { text: 'PRIVATE_ARG' },
+  });
+  toolUpdate('tool_call_update', {
+    toolCallId: 'tool-2',
+    status: 'failed',
+    content: textContent(
+      'MCP error -32602: Input validation error: Invalid arguments for tool pitchcrew_save_memory: text is required',
+    ),
+    _meta: { kiro: { failureReason: 'error' } },
+  });
+  toolUpdate('tool_call', {
+    toolCallId: 'tool-3',
+    title: 'Run command',
+    kind: 'execute',
+    status: 'in_progress',
+    rawInput: { command: `echo ${process.env.PITCHCREW_RUN_TOKEN}` },
+  });
+  toolUpdate('tool_call_update', {
+    toolCallId: 'tool-3',
+    status: 'failed',
+    content: textContent(`Command failed: ${process.env.PITCHCREW_RUN_TOKEN} was rejected`),
+    _meta: { kiro: { failureReason: 'error' } },
+  });
+  v2Call('tool-4', 'pitchcrew_get_card', { cardId: 'PRIVATE_ARG' });
+  toolUpdate('tool_call_update', { toolCallId: 'tool-4', status: 'in_progress' });
+  toolUpdate('tool_call_update', {
+    toolCallId: 'tool-4',
+    status: 'completed',
+    content: textContent('{"card":"PRIVATE_ARG"}'),
+  });
+  v2Call('tool-5', 'pitchcrew_computer_execute', { text: 'PRIVATE_ARG' });
+  toolUpdate('tool_call_update', { toolCallId: 'tool-5', status: 'in_progress' });
+  toolUpdate('tool_call_update', {
+    toolCallId: 'tool-5',
+    status: 'failed',
+    content: textContent('locator.fill: Timeout 5000ms exceeded. Typing "PRIVATE_ARG"'),
+  });
+  v2Call('tool-6', 'pitchcrew_recall_memory', { query: 'PRIVATE_ARG' });
+  toolUpdate('tool_call_update', {
+    toolCallId: 'tool-6',
+    status: 'failed',
+    content: textContent(
+      'MCP error -32602: Input validation error: Invalid arguments for tool pitchcrew_recall_memory: query is required',
+    ),
+  });
+};
 process.stdout.write('CLI startup message\n');
 const lines = createInterface({ input: process.stdin });
 for await (const line of lines) {
@@ -63,6 +144,7 @@ for await (const line of lines) {
     update('agent_thought_chunk', { type: 'text', text: 'Ignore thinking.' });
     update('agent_message_chunk', { type: 'text', text: 'Checking the board.' });
     update('tool_call');
+    if (mode === 'tool-calls') toolCalls();
     const result = roleResult(prompt, mode);
     update('agent_message_chunk', { type: 'text', text: '```json\n' + result.slice(0, 12) });
     const final = Buffer.from(

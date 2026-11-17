@@ -140,6 +140,7 @@ export const settingEntries: SettingEntry[] = [
       'telemetry',
       'errors',
       'performance',
+      'tool failures',
       'bug reports',
       'missing capabilities',
       'anonymous diagnostics',

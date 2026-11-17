@@ -191,7 +191,7 @@ const run = async () => {
       const run = runs[0]!;
       assert(
         run.activity?.some(
-          (entry) => entry.label === 'Reading profile' && entry.status === 'completed',
+          (entry) => entry.label === 'Read profile' && entry.status === 'completed',
         ),
         `${submission.runtime}: scoped profile MCP call was not observed.`,
       );

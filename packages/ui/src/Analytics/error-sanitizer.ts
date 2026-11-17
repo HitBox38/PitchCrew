@@ -1,9 +1,42 @@
 import { agentProblemFingerprint, sanitizeAgentProblem } from '@pitchcrew/core/telemetry-errors';
+import {
+  sanitizeToolFailure,
+  toolFailureFingerprint,
+  toolFailureIssue,
+} from '@pitchcrew/core/telemetry-tool-failures';
+
+/**
+ * A failed tool call the daemon observed: a reviewed tool name (or a runtime tool's kind) and a
+ * closed reason, with repository-owned words only. When the daemon sent the run's MCP session it
+ * is also the `$session_id`, which the uploading tab's SDK session never replaces (sanitizeEvent).
+ */
+const toolFailureException = (input: Record<string, unknown>) => {
+  const failure = sanitizeToolFailure(input);
+  if (!failure) return null;
+  const issue = toolFailureIssue(failure);
+  return {
+    ...failure,
+    $exception_list: [
+      {
+        type: failure.error_category,
+        value: `${issue.name}. ${issue.description}`,
+        mechanism: { type: failure.error_source, handled: true, synthetic: true },
+      },
+    ],
+    $exception_fingerprint: toolFailureFingerprint(failure),
+    $exception_level: 'error',
+    $issue_name: issue.name,
+  };
+};
 
 /** Rebuild even already-encoded SDK payloads; never trust exception text or nested objects. */
 export const sanitizeException = (
   input: Record<string, unknown>,
 ): Record<string, unknown> | null => {
+  // Relayed from the daemon only: these sources stay out of errorSources, so the renderer's own
+  // reporter can never raise them.
+  if (input.error_source === 'tool_call' || input.error_source === 'runtime_tool')
+    return toolFailureException(input);
   if (input.error_source === 'agent_report') {
     const problem = sanitizeAgentProblem(input);
     if (!problem) return null;

@@ -4,19 +4,45 @@ import { packetChangeNotesSchema, packetReviewSummarySchema, packetSchema } from
 import type { Role } from './roles.ts';
 import type { Skill } from './skills.ts';
 import type { ReasoningLevel } from './reasoning.ts';
+import type { ActivityToolKind } from './tool-activity.ts';
+import type { ToolFailureReason } from './tool-failures.ts';
 import { type RoleId, type RuntimeId } from './states.ts';
 
-/** User-visible turn activity. Never contains private reasoning or raw tool payloads. */
+/**
+ * User-visible turn activity. A tool step may carry its kind, one line of public detail (a
+ * command, path, query, host or named target) and, once failed, a readable reason; all are
+ * bounded and stripped of credentials before they are recorded. Never contains private
+ * reasoning, browser input values or raw tool arguments and results.
+ */
 export interface RunActivity {
   id: string;
   kind: 'commentary' | 'tool' | 'reasoning';
   label: string;
+  /** Commentary only. */
   text?: string;
+  /** Tool steps: what kind of work, for the step's icon. Absent on older saved steps. */
+  tool?: ActivityToolKind;
+  /** Tool steps: the public target in one line. Never a browser input value. */
+  detail?: string;
+  /** Failed steps: why, in one bounded line. */
+  error?: string;
   status: 'running' | 'completed' | 'failed' | 'interrupted';
   startedAt: string;
   finishedAt: string | null;
 }
-export type RuntimeActivity = Pick<RunActivity, 'id' | 'kind' | 'label' | 'status' | 'text'>;
+/** A runtime's own tool call that failed, described only by closed words for diagnostics. */
+export interface RuntimeToolFailure {
+  reason: ToolFailureReason;
+  /** A reviewed Pitchcrew MCP tool name, when a Pitchcrew call failed before the daemon saw it. */
+  tool?: string;
+}
+export type RuntimeActivity = Pick<
+  RunActivity,
+  'id' | 'kind' | 'label' | 'status' | 'text' | 'tool' | 'detail' | 'error'
+> & {
+  /** Transient: never recorded in activity or shown; only reported as a closed diagnostic. */
+  failure?: RuntimeToolFailure;
+};
 export interface Run {
   writingGuide?: Pick<import('./application-quality.ts').WritingGuide, 'revision' | 'preferences'>;
   writingCorrectionId?: string;

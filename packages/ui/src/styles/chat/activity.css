@@ -46,7 +46,8 @@
 .chat-error-details-trigger[data-panel-open] > svg {
   transform: rotate(90deg);
 }
-.chat-diagnostics-copy {
+.chat-diagnostics-copy,
+.chat-activity-step-copy {
   color: var(--muted);
   font-size: var(--text-detail);
 }
@@ -106,6 +107,48 @@
   font-size: var(--text-detail);
   color: var(--muted);
   line-height: 1.6;
+}
+/* The trace line sets its own type and colour, so each new part states its own: the kind glyph
+ * and target stay muted whatever the outcome; the bead, label and reason carry it. */
+.chat-activity-step-kind {
+  color: var(--muted);
+}
+/* One line beside the label, or below it when fewer than six characters would fit there (always
+ * below it on touch and narrow screens; see the coarse-pointer rules); it is whole in its tooltip
+ * and the step's details. Most targets are words (a role, a service, a query), so they read in the
+ * app face; only a runtime's literal input carries data-code. */
+.chat-activity-step-detail {
+  flex: 1 1 6ch;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font: 400 var(--text-detail) / 18px var(--font-sans);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Why a step failed: plain text under the label, two lines until the step opens and the same line
+ * shows it all in place, so the rows below only ever move with the opening details. */
+.chat-activity-step-reason {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--rose);
+  font-size: var(--text-detail);
+  line-height: 18px;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.chat-activity-step[data-open] > .chat-activity-step-reason {
+  -webkit-line-clamp: unset;
+}
+.chat-activity-step-target {
+  overflow-wrap: anywhere;
+}
+/* A command line, path, pattern or URL a runtime's own tool used. */
+.chat-activity-step-detail[data-code],
+.chat-activity-step-target[data-code] {
+  font-family: var(--font-mono);
+  font-variant-ligatures: none;
 }
 .chat-turn-heading {
   margin-bottom: 9px;
@@ -225,8 +268,14 @@
 @media (max-width: 767px), (pointer: coarse) {
   .chat-turn-disclosure,
   .clay-steps .chat-activity-step-trigger,
-  .clay-steps .clay-steps-more {
+  .clay-steps .clay-steps-more,
+  .chat-activity-step-copy {
     min-height: 44px;
+  }
+  /* The target takes its own line under the label: a 20px title and an 18px target fill the 44px
+   * row that a touch target needs anyway, instead of cutting the target to a stub beside it. */
+  .clay-steps .chat-activity-step-detail {
+    flex-basis: 100%;
   }
   .chat-error-details-trigger {
     min-height: 44px;

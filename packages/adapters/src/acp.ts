@@ -1,7 +1,9 @@
 import type { ChatContext, RunContext } from '@pitchcrew/core';
 import { spawn } from 'node:child_process';
 import { runtimeEnvironment, runtimeTimeLimit, terminateCli } from './process.ts';
-import { activityStream } from './activity/index.ts';
+import { activityStream, showsActivity } from './activity/index.ts';
+import { acpTools } from './activity/acp-tools.ts';
+import { environmentSecrets } from './activity/native-tools.ts';
 import { replyPreview } from './streaming.ts';
 import { runtimeCommand } from './process/executable.ts';
 import { terminalRedactor } from './process/sign-in-terminal-redaction.ts';
@@ -17,10 +19,14 @@ export const runAcpText = async (
 ): Promise<string> => {
   if (context.signal.aborted) throw new Error('Run cancelled.');
   const preview = replyPreview(context);
-  const activity = activityStream(context);
+  const environment = runtimeEnvironment(context, env);
+  const activity = activityStream(context, environmentSecrets(environment));
+  const tools =
+    showsActivity(context) || context.onToolFailure
+      ? acpTools({ cwd: context.directory })
+      : undefined;
   return new Promise((resolve, reject) => {
     const invocation = runtimeCommand(command, args);
-    const environment = runtimeEnvironment(context, env);
     const redactStderr = terminalRedactor(environment);
     const child = spawn(invocation.file, invocation.args, {
       cwd: context.directory,
@@ -91,6 +97,12 @@ export const runAcpText = async (
           | undefined;
         if (!sessionId || params?.sessionId !== sessionId) return;
         const update = params.update;
+        if (tools && update)
+          try {
+            for (const call of tools(update)) activity.tool(call);
+          } catch {
+            /* A tool parser must never change the reply or the run's result. */
+          }
         if (update?.sessionUpdate === 'agent_thought_chunk') activity.thinking();
         if (update?.sessionUpdate === 'tool_call') {
           activity.boundary();
