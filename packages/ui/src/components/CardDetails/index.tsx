@@ -9,7 +9,6 @@ import type { CardDetailsProps } from './types.ts';
 import { Button } from '@pitchcrew/design-system/button';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 import { AddOpportunity } from '@/components/AddOpportunity/index.tsx';
-import { JobProgress } from '@/ClayInterface/components/JobProgress.tsx';
 
 export const CardDetails = (props: CardDetailsProps) => {
   const source = useCardSource(props.card, props.data.workspace === true);
@@ -36,12 +35,11 @@ const CardDetailsContent = (
 ) => {
   const model = useCardDetails(props);
   return (
-    <JobSheet onClose={model.onClose}>
+    <JobSheet onClose={model.onClose} comparing={model.comparing}>
       <div className="job-details-reading">
         <JobSummary {...model} />
-        <JobProgress card={model.card} data={model.data} />
         {props.sourceError ? (
-          <div role="alert" className="px-5">
+          <div role="alert" className="detail-source-error">
             <p>{props.sourceError}</p>
             <Button onClick={props.retrySource}>Retry</Button>
           </div>

@@ -1,16 +1,18 @@
 import { JobHeading } from './JobHeading.tsx';
 import { JobState } from './JobState.tsx';
-import { trackIndex } from '@/ClayInterface/helpers.ts';
 import { JobAgents } from './JobAgents.tsx';
 import type { CardDetailsModel } from '../types.ts';
+import { JobProgress } from '@/ClayInterface/components/JobProgress.tsx';
 import { Button } from '@pitchcrew/design-system/button';
 import { ExternalLink, Pencil, X } from 'lucide-react';
 
 type JobSummaryProps = Pick<CardDetailsModel, 'card' | 'onClose'> &
-  Partial<Pick<CardDetailsModel, 'agents' | 'openChat' | 'editBlocker' | 'setEditing'>>;
+  Partial<Pick<CardDetailsModel, 'data' | 'agents' | 'openChat' | 'editBlocker' | 'setEditing'>>;
 
+/** Identity on two rows, then one row for where the job stands: track, live agents, ratings. */
 export const JobSummary = ({
   card,
+  data,
   onClose,
   agents,
   openChat,
@@ -18,10 +20,10 @@ export const JobSummary = ({
   setEditing,
 }: JobSummaryProps) => {
   return (
-    <header className="job-summary shrink-0 px-5 pt-5 pb-3 max-mobile:px-4">
+    <header className="job-summary shrink-0">
       <div className="flex items-start justify-between gap-3">
         <JobHeading card={card} />
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="detail-header-actions flex shrink-0 items-center gap-0.5">
           {setEditing ? (
             <Button
               variant="ghost"
@@ -48,18 +50,14 @@ export const JobSummary = ({
             </Button>
           ) : null}
           <Button variant="ghost" size="icon-sm" onClick={onClose} aria-label="Close dialog">
-            <X size={20} />
+            <X size={18} />
           </Button>
         </div>
       </div>
-      <div className="detail-meta">
-        <span>{card.location || 'Location not given'}</span>
-        {card.salary ? <span>{card.salary}</span> : null}
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        {/* The stage track below already names a tracked stage, so its pill would repeat it. */}
-        <JobState card={card} quietState={trackIndex(card.state) !== null} />
-        {agents && openChat ? <JobAgents agents={agents} openChat={openChat} /> : null}
+      <div className="detail-progress">
+        {data ? <JobProgress card={card} data={data} /> : null}
+        {agents?.length && openChat ? <JobAgents agents={agents} openChat={openChat} /> : null}
+        <JobState card={card} />
       </div>
     </header>
   );

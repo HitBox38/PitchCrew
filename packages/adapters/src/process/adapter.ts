@@ -5,9 +5,8 @@ import type {
   RuntimeHealth,
   RuntimeId,
 } from '@pitchcrew/core';
-import { chatResultSchema } from '@pitchcrew/core';
 import { chatPromptFor, promptFor } from './prompts.ts';
-import { cleanResult, parseWorkflowResult } from './results.ts';
+import { parseChatResult, parseWorkflowResult } from './results.ts';
 
 export const withChat = (adapter: {
   applicationIsolation?: true;
@@ -29,9 +28,6 @@ export const withChat = (adapter: {
     detect: () => adapter.detect(),
     run: async (context) =>
       parseWorkflowResult(await adapter.launch(context, promptFor(context)), context),
-    chat: async (context) =>
-      chatResultSchema.parse(
-        JSON.parse(cleanResult(await adapter.launch(context, chatPromptFor(context)))),
-      ),
+    chat: async (context) => parseChatResult(await adapter.launch(context, chatPromptFor(context))),
   };
 };

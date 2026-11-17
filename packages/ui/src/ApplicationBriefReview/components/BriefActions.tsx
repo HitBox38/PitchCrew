@@ -1,18 +1,17 @@
-import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { ExtractionControls } from './ExtractionControls.tsx';
 import type { useApplicationBrief } from '../hooks/useApplicationBrief.ts';
 import type { Card } from '@pitchcrew/core';
-
-const purpose =
-  'An agent reads the saved posting and prepares a brief for your review. Review and confirm it before drafting.';
 
 /** Extraction leads while no brief exists; afterwards re-extraction is an advanced option. */
 export const BriefActions = ({
   model,
   card,
+  dockExtracts = false,
 }: {
   model: ReturnType<typeof useApplicationBrief>;
   card: Card;
+  /** The dock already offers Extract brief, so the column only chooses the agent. */
+  dockExtracts?: boolean;
 }) => {
   const first = !model.loaded?.context;
   if (!model.available.length)
@@ -25,17 +24,18 @@ export const BriefActions = ({
   if (first)
     return (
       <section className="grid gap-2" aria-label="Extract brief from posting">
-        <h4>Extract the brief from the posting</h4>
-        <p className="quiet">{purpose} Or prepare it yourself below.</p>
-        <ExtractionControls model={model} card={card} label="Extract from source" />
+        {dockExtracts ? null : (
+          <p className="quiet">
+            Choose which agent reads the posting, or write the brief yourself.
+          </p>
+        )}
+        <ExtractionControls
+          model={model}
+          card={card}
+          label={dockExtracts ? undefined : 'Extract brief'}
+        />
       </section>
     );
-  return (
-    <AccordionSection heading="Extract again from source">
-      <div className="grid gap-2 py-3">
-        <p className="quiet">Runs extraction again on the saved posting. {purpose}</p>
-        <ExtractionControls model={model} card={card} label="Extract again" />
-      </div>
-    </AccordionSection>
-  );
+  // Once a brief exists, extracting again is one of the brief's quiet tools.
+  return null;
 };

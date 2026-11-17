@@ -29,12 +29,8 @@ export const ReviewSetup = ({
   } = useReviewSetup({ card, data, working, act, close });
   return (
     <Modal title="Deep review resume" onClose={close}>
-      <div className="grid max-h-[70vh] gap-4 overflow-y-auto p-5">
+      <div className="deep-review-setup -mx-1 grid max-h-[70vh] gap-5 overflow-y-auto px-1 py-1">
         <ReviewSetupIntro card={card} reviewer={reviewer} writer={writer} />
-        <p className="optional">
-          Starts with one Reviewer. Targeted subagents may run when useful. The shared budget starts
-          at 30 minutes; Reviewer can extend it and explain why. Stop cancels the whole review.
-        </p>
         <ReviewSecondOpinions
           enabled={secondOpinions}
           changeEnabled={setSecondOpinions}
@@ -57,13 +53,19 @@ export const ReviewSetup = ({
             Crew.
           </p>
         ) : null}
-        <p className="optional">
-          Reports and both resume versions stay with this job. Downloads and submission keep their
-          existing approval steps.
-        </p>
-        <Button disabled={working || !confirmed || !available} onClick={start}>
-          Start deep review
-        </Button>
+        <div className="deep-review-setup-footer">
+          <p className="quiet">
+            Runs up to 30 minutes, which Reviewer can extend with a reason; Stop cancels all of it.
+            Reports and both resume versions stay with this job. Nothing is exported or sent.
+          </p>
+          <Button
+            className="justify-self-end"
+            disabled={working || !confirmed || !available}
+            onClick={start}
+          >
+            Start deep review
+          </Button>
+        </div>
       </div>
     </Modal>
   );

@@ -4,18 +4,14 @@ import { timeAgo } from '@/lib/time.ts';
 import { useJobHistory, type JobHistoryEvent } from '../hooks/useJobHistory.ts';
 import { historySentence, splitJobHistory } from '../history.ts';
 
-type Row = { event: JobHistoryEvent; title: string; current: boolean };
+// Every recorded event has happened, so each sits on a done bead; the newest is simply first.
+type Row = { event: JobHistoryEvent; title: string };
 
 const HistoryRows = ({ rows, nameOf }: { rows: Row[]; nameOf: (id: string) => string }) => (
   <div className="detail-history" data-beads="">
-    {rows.map(({ event, title, current }) => (
+    {rows.map(({ event, title }) => (
       <div key={event.id}>
-        <span
-          className="clay-bead"
-          data-size="sm"
-          data-tone={current ? 'current' : 'done'}
-          aria-hidden="true"
-        />
+        <span className="clay-bead" data-size="sm" data-tone="done" aria-hidden="true" />
         <div>
           <strong>{title}</strong>
           <p>
@@ -33,17 +29,21 @@ export const JobHistory = ({ data, card }: JobHistoryProps) => {
   if (!events.length)
     return <p className="quiet">{loading ? 'Loading history…' : 'No history yet.'}</p>;
   const roleName = (id: string) => data.roles.find((role) => role.id === id)?.name;
-  const nameOf = (id: string) => (id === 'user' ? 'You' : (roleName(id) ?? id));
+  const nameOf = (id: string) =>
+    id === 'user'
+      ? 'You'
+      : id === 'orchestrator' || id === 'system'
+        ? 'Pitchcrew'
+        : (roleName(id) ?? id);
   const { meaningful, technical } = splitJobHistory(events);
   return (
     <div className="space-y-3">
       {meaningful.length ? (
         <HistoryRows
           nameOf={nameOf}
-          rows={meaningful.map((event, index) => ({
+          rows={meaningful.map((event) => ({
             event,
             title: historySentence(event, roleName),
-            current: index === 0,
           }))}
         />
       ) : (
@@ -56,7 +56,7 @@ export const JobHistory = ({ data, card }: JobHistoryProps) => {
           </p>
           <HistoryRows
             nameOf={nameOf}
-            rows={technical.map((event) => ({ event, title: event.message, current: false }))}
+            rows={technical.map((event) => ({ event, title: event.message }))}
           />
         </AccordionSection>
       ) : null}

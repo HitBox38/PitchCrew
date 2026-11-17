@@ -61,10 +61,32 @@ it('requires a current confirmed brief and personal answers before the single dr
 it('directs linked applications to form inspection before the draft action', () => {
   const base = model();
   const next = jobNextAction({ ...base, card: { ...base.card, url: 'https://example.com/apply' } });
-  expect(next.label).toBe('Inspect application form');
+  // Without an agent that can assess forms, the dock opens the form section honestly.
+  expect(next.label).toBe('Check application form');
   next.perform();
   expect(base.openApplication).toHaveBeenCalledWith('brief');
   expect(base.brief.startDraft).not.toHaveBeenCalled();
+  // With one, it inspects directly; checking it yourself opens the brief editor.
+  const inspectForm = vi.fn();
+  const setEditing = vi.fn();
+  const inspect = jobNextAction({
+    ...base,
+    card: { ...base.card, url: 'https://example.com/apply' },
+    brief: {
+      ...base.brief,
+      formRoleId: 'submitter',
+      formAgents: [{ id: 'submitter' }],
+      inspectForm,
+      setEditing,
+    } as unknown as CardDetailsModel['brief'],
+  });
+  expect(inspect.label).toBe('Inspect application form');
+  inspect.perform();
+  expect(inspectForm).toHaveBeenCalledOnce();
+  const [manual] = inspect.alternates ?? [];
+  expect(manual).toMatchObject({ label: 'I’ll check it myself', quiet: true });
+  manual?.perform();
+  expect(setEditing).toHaveBeenCalledWith(true);
   expect(
     jobNextAction({
       ...base,
@@ -84,13 +106,20 @@ it('confirms from the footer through the same guarded brief action', () => {
     confirmationHint:
       'Inspect the application form, or choose to check it yourself, before confirming.',
   };
-  expect(jobNextAction({ ...base, brief: editing })).toMatchObject({
+  // Drafting confirmation covers the exact brief, so the dock confirms only while it is on screen.
+  const offscreen = jobNextAction({ ...base, brief: editing });
+  expect(offscreen).toMatchObject({ label: 'Review brief', kind: 'brief-editing' });
+  offscreen.perform();
+  expect(base.openApplication).toHaveBeenCalledWith('brief');
+  vi.mocked(base.openApplication).mockClear();
+  const visible = { ...base, tab: 'application', sections: ['brief'] } as CardDetailsModel;
+  expect(jobNextAction({ ...visible, brief: editing })).toMatchObject({
     label: 'Confirm brief',
     disabled: true,
     hint: editing.confirmationHint,
   });
   const next = jobNextAction({
-    ...base,
+    ...visible,
     brief: { ...editing, confirmDisabled: false, confirmationHint: '' },
   });
   expect(next.disabled).toBe(false);
@@ -161,7 +190,7 @@ it('prioritizes live cancellation, user questions and uncertain submission outco
         >,
       },
     }).label,
-  ).toBe('Verify submission');
+  ).toBe('Check submission evidence');
 });
 it('keeps packet review, export approval and manual submission as distinct decisions', () => {
   const base = model();
@@ -176,15 +205,39 @@ it('keeps packet review, export approval and manual submission as distinct decis
     ...card,
     packetReview: { contextRevision: 'current' } as NonNullable<typeof card.packetReview>,
   };
-  expect(jobNextAction({ ...base, card: reviewed }).label).toBe('Prepare export');
+  const exportChoices = {
+    format: 'pdf',
+    layout: 'formatted',
+    requesting: false,
+    request: vi.fn(),
+  } as unknown as CardDetailsModel['exportChoices'];
+  const exporting = jobNextAction({ ...base, exportChoices, card: reviewed });
+  expect(exporting.label).toBe('Request export approval');
+  exporting.perform();
+  expect(exportChoices.request).toHaveBeenCalledOnce();
   const awaiting = { ...reviewed, state: 'awaiting_approval' as const };
   expect(jobNextAction({ ...base, card: awaiting }).label).toBe('Open in Decisions');
   // Exported files continue in Decisions; recording stays a secondary move after applying.
   const exported = jobNextAction({ ...base, card: awaiting, exported: true });
-  expect(exported.label).toBe('Continue application');
-  expect(exported.alternates?.map((item) => item.label)).toEqual(['Record manual submission']);
-  expect(jobNextAction({ ...base, card: { ...awaiting, state: 'submitted' } }).label).toBe(
-    'Update outcome',
+  expect(exported.label).toBe('Open in Decisions');
+  // Recording moves the job, so it waits for any request in flight even though it is quiet.
+  expect(exported.alternates?.map((item) => [item.label, item.acts])).toEqual([
+    ['Record manual submission', true],
+  ]);
+  const outcome = jobNextAction({ ...base, card: { ...awaiting, state: 'submitted' } });
+  expect(outcome).toMatchObject({ label: 'Record outcome', kind: 'outcome' });
+  expect(outcome.choices?.map((item) => item.label)).toEqual([
+    'Screening',
+    'Interviewing',
+    'Rejected',
+    'Withdrawn',
+    'No response',
+  ]);
+  outcome.choices?.[0]?.perform();
+  expect(base.act).toHaveBeenCalledWith(
+    '/cards/job/move',
+    { state: 'screening' },
+    'Moved to Screening',
   );
 });
 
@@ -210,7 +263,15 @@ it('acknowledges startup and lets held work open Queue without hiding user quest
     disabled: true,
   });
   const waiting = { id: 'waiting', status: 'waiting', threadId: 'application' } as Run;
+  // Without a pending question there is nothing to answer, only a chat to read.
   expect(jobNextAction({ ...held, agents: [{ run: waiting, name: 'Writer' }] }).label).toBe(
+    'Open job chat',
+  );
+  const asking = {
+    ...held,
+    data: { ...held.data, userInputs: [{ runId: 'waiting', status: 'pending' }] },
+  } as unknown as typeof held;
+  expect(jobNextAction({ ...asking, agents: [{ run: waiting, name: 'Writer' }] }).label).toBe(
     'Answer in job chat',
   );
 });
@@ -226,7 +287,7 @@ it('offers Shortlist first for a scored lead while evaluation stays reachable', 
   expect(unscored.alternates?.map((item) => item.label)).toEqual(['Shortlist']);
   const scored = jobNextAction({ ...base, data, card: { ...base.card, state: 'lead', fit: 60 } });
   expect(scored.label).toBe('Shortlist');
-  expect(scored.hint).toContain('60/100');
+  expect(scored.hint).toContain('Shortlisting only moves it on your board');
   scored.perform();
   expect(base.act).toHaveBeenCalledWith('/cards/job/move', { state: 'shortlisted' }, 'Shortlisted');
   const again = scored.alternates?.[0];
@@ -258,18 +319,18 @@ it('asks a lead for its brief before fit without hiding Shortlist', () => {
     });
   const unscored = unconfirmed(null);
   expect(unscored.label).toBe('Evaluate fit');
-  expect(unscored.alternates?.map((item) => item.label)).toEqual(['Shortlist', 'Review brief']);
+  // One glaze per lead dock: the alternatives are quiet, and the ledger's Brief row carries the
+  // review the brief still needs.
+  expect(unscored.alternates?.map((item) => [item.label, item.quiet])).toEqual([
+    ['Shortlist', true],
+  ]);
   for (const fit of [0, 60]) {
     const scored = unconfirmed(fit);
     expect(scored.label).toBe('Shortlist');
-    expect(scored.hint).toContain(`Fit ${fit}/100`);
-    expect(scored.hint).toContain('confirm the brief before drafting');
-    expect(scored.alternates?.map((item) => item.label)).toEqual([
-      'Evaluate again',
-      'Review brief',
+    expect(scored.hint).toContain('confirm the brief before any draft');
+    expect(scored.alternates?.map((item) => [item.label, item.quiet])).toEqual([
+      ['Evaluate again', true],
     ]);
-    scored.alternates?.[1]?.perform();
-    expect(base.openApplication).toHaveBeenLastCalledWith('brief');
   }
   // Once shortlisted, confirmation is required again before drafting.
   const shortlisted = jobNextAction({ ...base, brief: { ...base.brief, confirmed: false } });
@@ -281,9 +342,63 @@ it('names the recorded outcome in the post-submission hint', () => {
   const base = model();
   const next = jobNextAction({ ...base, card: { ...base.card, state: 'interviewing' } });
   expect(next).toMatchObject({
-    label: 'Update outcome',
+    label: 'Record outcome',
     hint: 'Prepare for your interviews, then record the outcome.',
   });
+  expect(next.choices?.map((item) => item.label)).toEqual([
+    'Offer',
+    'Rejected',
+    'Withdrawn',
+    'No response',
+  ]);
+  // A closed job has nothing left to record; the dock invites a lesson instead.
+  const closed = jobNextAction({ ...base, card: { ...base.card, state: 'rejected' } });
+  expect(closed).toMatchObject({ kind: 'closed', label: 'Add a lesson', quiet: true });
+  expect(closed.choices).toBeUndefined();
+  // An offer's lone withdrawal is not pushed as the dock's decision; Activity's menu keeps it.
+  const offer = jobNextAction({ ...base, card: { ...base.card, state: 'offer' } });
+  expect(offer).toMatchObject({ kind: 'outcome', label: 'Add a lesson', quiet: true });
+  expect(offer.choices).toBeUndefined();
+});
+
+it('marks quiet alternates that start work or move the job, so they wait for a request', () => {
+  const base = model({ runRole: 'scout' });
+  const data = {
+    ...base.data,
+    roles: [...base.data.roles, { id: 'scout', enabled: true, runtime: 'codex' }],
+  } as CardDetailsModel['data'];
+  const lead = { ...base.card, state: 'lead' as const };
+  const acting = (next: ReturnType<typeof jobNextAction>) =>
+    next.alternates?.map((item) => [item.label, item.quiet, Boolean(item.acts)]);
+  expect(acting(jobNextAction({ ...base, data, card: lead }))).toEqual([['Shortlist', true, true]]);
+  expect(acting(jobNextAction({ ...base, data, card: { ...lead, fit: 60 } }))).toEqual([
+    ['Evaluate again', true, true],
+  ]);
+  // A scored lead without a brief: its quiet Extract brief follows the brief column's busy state.
+  const scored = jobNextAction({
+    ...base,
+    data,
+    card: { ...lead, fit: 60 },
+    brief: {
+      ...base.brief,
+      loaded: { ...base.brief.loaded!, context: null },
+      available: [{ id: 'writer', name: 'Writer' }],
+      disabled: true,
+      extract: vi.fn(),
+    } as unknown as CardDetailsModel['brief'],
+  });
+  expect(scored.alternates?.[0]).toMatchObject({
+    label: 'Extract brief',
+    quiet: true,
+    acts: true,
+    disabled: true,
+  });
+  // Navigation stays usable while a request runs.
+  const revise = jobNextAction({
+    ...base,
+    card: { ...base.card, state: 'changes_requested', packet: {}, feedback: ['Shorter'] },
+  } as unknown as CardDetailsModel);
+  expect(acting(revise)).toEqual([['Read requests', true, false]]);
 });
 it('drafts the first packet, not a revision, when requested changes have no saved packet', () => {
   const base = model();
@@ -301,6 +416,116 @@ it('drafts the first packet, not a revision, when requested changes have no save
     ...base,
     card: { ...base.card, state: 'changes_requested', packet: {} },
   } as CardDetailsModel);
-  expect(revision.label).toBe('Draft application');
+  expect(revision.label).toBe('Revise application');
   expect(revision.hint).toBeFalsy();
+});
+
+it('extracts the brief from the dock when an application agent is available', () => {
+  const base = model();
+  const extract = vi.fn(() => Promise.resolve());
+  const setEditing = vi.fn();
+  const next = jobNextAction({
+    ...base,
+    card: { ...base.card, state: 'lead' },
+    brief: {
+      ...base.brief,
+      loaded: { ...base.brief.loaded!, context: null },
+      available: [{ id: 'writer' }],
+      extract,
+      setEditing,
+    } as unknown as CardDetailsModel['brief'],
+  });
+  expect(next).toMatchObject({
+    label: 'Extract brief',
+    kind: 'prepare-brief',
+    intent: 'extract-brief',
+  });
+  expect(next.alternates?.[0]?.intent).toBe('write-brief');
+  expect(next.alternates?.map((item) => item.label)).toEqual(['Write it myself', 'Shortlist']);
+  next.perform();
+  expect(extract).toHaveBeenCalledOnce();
+  // Write it myself opens the brief editor itself, so the column needn't repeat the choice.
+  next.alternates?.[0]?.perform();
+  expect(base.openApplication).toHaveBeenCalledWith('brief');
+  expect(setEditing).toHaveBeenCalledWith(true);
+});
+
+it('verifies captured submission evidence from the dock and keeps other evidence reachable', () => {
+  const base = model();
+  const attempt = {
+    id: 'attempt',
+    status: 'uncertain',
+    confirmation: { url: 'https://example.com', text: 'Received.' },
+  };
+  const next = jobNextAction({
+    ...base,
+    card: { ...base.card, submissionAttempts: [attempt] } as unknown as CardDetailsModel['card'],
+  });
+  expect(next).toMatchObject({ label: 'I verified submission', kind: 'uncertain' });
+  expect(next.alternates?.map((item) => item.label)).toEqual([
+    'Other evidence',
+    'I verified it was not submitted',
+  ]);
+  next.perform();
+  expect(base.act).toHaveBeenCalledWith(
+    '/submissions/attempt/resolve',
+    { confirmed: true, reason: 'User verified captured website submission confirmation' },
+    'Submission verified',
+  );
+  next.alternates?.[1]?.perform();
+  expect(base.act).toHaveBeenLastCalledWith(
+    '/submissions/attempt/resolve',
+    {
+      confirmed: false,
+      reason: 'User verified no submission occurred; browser actions may resume',
+    },
+    'Outcome resolved; submission may be attempted again',
+  );
+  next.alternates?.[0]?.perform();
+  expect(base.setTab).toHaveBeenCalledWith('activity');
+});
+
+it('opens the brief ready to confirm and lets an older score lead a lead without a brief', () => {
+  const base = model();
+  const setEditing = vi.fn();
+  const unconfirmed = { ...base.brief, confirmed: false, setEditing };
+  const review = jobNextAction({ ...base, brief: unconfirmed });
+  expect(review.label).toBe('Review brief');
+  review.perform();
+  expect(base.openApplication).toHaveBeenLastCalledWith('brief');
+  expect(setEditing).toHaveBeenCalledWith(true);
+  const extract = vi.fn(() => Promise.resolve());
+  const lead = jobNextAction({
+    ...base,
+    card: { ...base.card, state: 'lead', fit: 82 },
+    brief: {
+      ...base.brief,
+      loaded: { context: null },
+      available: [{ id: 'writer' }],
+      extract,
+    } as unknown as CardDetailsModel['brief'],
+  });
+  expect(lead).toMatchObject({ kind: 'shortlist', label: 'Shortlist' });
+  // The brief column defers by intent, not wording: this dock extracts but offers no manual brief.
+  expect(lead.alternates?.map((item) => item.intent)).toEqual(['extract-brief']);
+  lead.alternates?.[0]?.perform();
+  expect(extract).toHaveBeenCalledOnce();
+});
+
+it('offers the full list of requested changes beside Revise application', () => {
+  const base = model();
+  const card = {
+    ...base.card,
+    state: 'changes_requested' as const,
+    packet: { resume: 'r' },
+    feedback: ['Separate the guild review from Lumen Ledger.', 'Shorten the opening.'],
+  } as unknown as CardDetailsModel['card'];
+  const next = jobNextAction({ ...base, card });
+  expect(next.label).toBe('Revise application');
+  // The dock quotes the first request; Reviews holds them all.
+  expect(next.alternates?.map((item) => [item.label, item.quiet])).toEqual([
+    ['Read requests', true],
+  ]);
+  next.alternates?.[0]?.perform();
+  expect(base.openApplication).toHaveBeenLastCalledWith('reviews');
 });

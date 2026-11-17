@@ -9,6 +9,9 @@ import {
   latestJobFailure,
   applicationRows,
   applicationBeads,
+  liveApplicationSteps,
+  runSection,
+  leadNotes,
 } from '../helpers.ts';
 const run = {
   id: 'run',
@@ -248,8 +251,15 @@ it('marks application steps done in order and gives the first open step to whoev
     ['export', 'Not exported', false],
   ]);
   expect(applicationBeads(rows)).toEqual(['done', 'done', 'current', undefined]);
+  // Ochre follows the header's rule: only a decision that waits on the user (here the brief).
   const unconfirmed = applicationRows({ state: 'shortlisted' } as Card, false, false);
-  expect(applicationBeads(unconfirmed)).toEqual(['ochre', undefined, undefined, undefined]);
+  expect(applicationBeads(unconfirmed, { waiting: new Set(['brief']) })).toEqual([
+    'ochre',
+    undefined,
+    undefined,
+    undefined,
+  ]);
+  expect(applicationBeads(unconfirmed)).toEqual(['current', undefined, undefined, undefined]);
   const awaiting = {
     ...drafted,
     state: 'awaiting_approval',
@@ -257,7 +267,20 @@ it('marks application steps done in order and gives the first open step to whoev
   } as unknown as Card;
   const waiting = applicationRows(awaiting, true, false);
   expect(waiting.at(-1)?.status).toBe('Approval requested');
-  expect(applicationBeads(waiting)).toEqual(['done', 'done', 'done', 'ochre']);
+  expect(applicationBeads(waiting, { waiting: new Set(['packet']) })).toEqual([
+    'done',
+    'done',
+    'done',
+    'ochre',
+  ]);
+  // Requested changes reopen the documents; the review is not a reviewed packet.
+  const revising = applicationRows({ ...drafted, state: 'changes_requested' }, true, false);
+  expect(revising.map((row) => [row.id, row.status, row.done])).toEqual([
+    ['brief', 'Confirmed', true],
+    ['documents', 'Revision needed', false],
+    ['reviews', 'Changes requested', false],
+    ['export', 'Not exported', false],
+  ]);
   const exported = applicationRows(awaiting, true, true);
   expect(exported.map((row) => row.status)).toEqual([
     'Confirmed',
@@ -265,4 +288,53 @@ it('marks application steps done in order and gives the first open step to whoev
     'Reviewed',
     'Exported',
   ]);
+});
+
+it('shows live work on the step it belongs to and nothing current on a closed job', () => {
+  const rows = applicationRows({ state: 'in_review', packet: {} } as Card, true, false);
+  const review = { id: 'r', purpose: 'application-review' } as Run;
+  const steps = liveApplicationSteps(rows, {
+    working: { name: 'Reviewer', section: runSection(review) },
+  });
+  expect(steps.map(({ row, bead }) => [row.id, bead, row.status])).toEqual([
+    ['brief', 'done', 'Confirmed'],
+    ['documents', 'done', 'Draft available'],
+    ['reviews', 'plum', 'Reviewer is working'],
+    ['export', undefined, 'Not exported'],
+  ]);
+  // Fit and packet rating belong to no step, so they never claim one.
+  expect(runSection({ id: 'f', purpose: 'packet-evaluation' } as Run)).toBeUndefined();
+  expect(runSection({ id: 'd', purpose: 'application-draft', deepReviewId: 'x' } as Run)).toBe(
+    'reviews',
+  );
+  const asked = liveApplicationSteps(rows, {
+    asking: { name: 'Scout', section: undefined },
+  });
+  expect(asked.some(({ bead }) => bead === 'ochre')).toBe(false);
+  const closed = applicationRows({ state: 'withdrawn', packet: null } as Card, false, false, false);
+  expect(applicationBeads(closed, { closed: true })).toEqual([
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+  ]);
+  expect(closed.map((row) => row.status)).toEqual([
+    'Not prepared',
+    'Not drafted',
+    'Not reviewed',
+    'Not exported',
+  ]);
+});
+
+it('leads Scout notes with a reason, not the score caveat, and keeps score talk that explains fit', () => {
+  const caveat = '85/100 reflects supported experience, not the probability of an offer.';
+  expect(leadNotes([caveat, 'Strong React evidence.', 'EU eligibility unclear.'])).toEqual([
+    'Strong React evidence.',
+    caveat,
+    'EU eligibility unclear.',
+  ]);
+  // A score mentioned in a substantive reason is not a caveat.
+  const reason = 'Scored 85/100 because the editor work matches closely.';
+  expect(leadNotes([reason, 'Other note.'])).toEqual([reason, 'Other note.']);
+  expect(leadNotes([caveat])).toEqual([caveat]);
 });
