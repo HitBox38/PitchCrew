@@ -163,6 +163,21 @@ export const readActionTarget = async (
             // Without an explicit GET, or with its own submit handler, the page's code sends it.
             return method === 'get' && !owner.hasAttribute('onsubmit') ? 'get' : 'script';
           };
+          // The address a GET form opens, read from attributes: a field named "action" can hide
+          // the form's own property. One that cannot be resolved is left empty, which asks.
+          const opens = () => {
+            try {
+              return new URL(
+                (control === 'submit' ? element.getAttribute('formaction') : null) ??
+                  owner?.getAttribute('action') ??
+                  '',
+                element.baseURI,
+              ).href;
+            } catch {
+              return '';
+            }
+          };
+          const kindOfForm = form();
           // Enter in a field activates its form's default button: the first submit control.
           const fallback =
             !owned && owner && (control === 'field' || control === 'choice')
@@ -178,8 +193,13 @@ export const readActionTarget = async (
             names,
             value:
               control === 'choice' ? text(input.value ?? element.getAttribute('value') ?? '') : '',
-            href: control === 'link' ? (element as HTMLAnchorElement).href : '',
-            form: form(),
+            href:
+              control === 'link'
+                ? (element as HTMLAnchorElement).href
+                : kindOfForm === 'get'
+                  ? opens()
+                  : '',
+            form: kindOfForm,
             small,
             credential: element.matches(credentials),
             ...(fallback ? { defaultButton: describe(fallback, true) } : {}),

@@ -32,7 +32,7 @@ export const browserModeSummaries: Record<BrowserMode, string> = {
   autonomous:
     'On sites you allow for the task, browses and prepares recognized application forms. Everything else asks.',
   edits:
-    'Browses pages and fills in forms on its own. Buttons, links, keys, dialogs and sending ask first.',
+    'Browses pages and fills in forms on its own. Buttons, links, keys, dialogs, agreeing to terms and sending ask first.',
   auto: 'Browses, fills in forms and handles routine clicks and keys on its own. Asks before what looks like it could send, submit, delete, buy or change an account.',
   full: 'Does everything on its own, including moving multi-step forms to their next step, except what it recognizes as sending or posting, which asks first.',
 };

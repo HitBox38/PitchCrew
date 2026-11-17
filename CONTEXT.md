@@ -289,7 +289,7 @@ Browser permission mode allowing bounded application preparation on sites the us
 _Avoid_: Autonomous submission, unrestricted browsing
 
 **Accept edits**:
-Browser permission mode in which the server approves read-only browsing and form edits, such as filling fields, choosing options and attaching approved packet files, on any public site without site grants. Buttons, links, keys, dialogs and sending still require the user's exact-action approval.
+Browser permission mode in which the server approves read-only browsing and form edits, such as filling fields, choosing options and attaching approved packet files, on any public site without site grants. Buttons, links, keys, dialogs, boxes that agree to terms or give consent, and sending still require the user's exact-action approval.
 _Avoid_: Autonomous preparation (when no site grant is involved), a runtime CLI's own permission mode
 
 **Auto**:

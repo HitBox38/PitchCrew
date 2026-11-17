@@ -30,7 +30,10 @@ export interface ActionTarget {
   names: string[];
   /** A choice's own value, compared with reviewed answers; empty for anything else. */
   value: string;
-  /** The absolute address a navigating link opens; empty for anything else. */
+  /**
+   * The absolute address a navigating link opens, or that an explicit GET form's submit control or
+   * field sends its entries to; empty for anything else.
+   */
   href: string;
   /**
    * The form it belongs to: a site `search` form, an explicit `get` form, an explicit `post` form,
@@ -112,6 +115,17 @@ const risks = [
 const risky = (name: string) => risks.some((pattern) => pattern.test(name));
 
 /**
+ * Words on a form choice that agree to terms, give consent, accept or certify something: ticking
+ * one commits the user, so it is risky rather than an edit (Accept edits and Auto ask).
+ */
+const consents = [
+  /\b(?:agree|agreement|consent|acknowledge|accept|certify|attest)\b|\bterms\s+(?:of|and)\b|\bprivacy\s+policy\b/i,
+  /\b(?:acepto|aceito|concordo|j'accepte|accepte|akzeptiere|einverstanden|zustimmen|accetto|akkoord)\b/iu,
+  /מסכי[םמ]|מאשר/u,
+];
+const consenting = (name: string) => consents.some((pattern) => pattern.test(name));
+
+/**
  * A name with a letter in a script these word lists cannot read (anything but Latin and Hebrew).
  * Auto asks before such controls; names without letters, like page numbers, are judged as they are.
  */
@@ -122,6 +136,7 @@ const allNames = (target: ActionTarget) => [target.name, ...(target.names ?? [])
 const anySends = (target: ActionTarget) => allNames(target).some(sends);
 const anyRisky = (target: ActionTarget) => allNames(target).some(risky);
 const anyForeign = (target: ActionTarget) => allNames(target).some(foreign);
+const anyConsents = (target: ActionTarget) => allNames(target).some(consenting);
 /** No letters or digits at all: unnamed, or only a symbol, as an icon-only send arrow may be. */
 const symbolsOnly = (target: ActionTarget) =>
   !allNames(target).some((name) => /[\p{L}\p{N}]/u.test(name));
@@ -133,6 +148,47 @@ export const readOnlyNavigation = (url: string) => {
   } catch {
     return false;
   }
+};
+
+/**
+ * An address that names sending: a submit, send or apply path segment (which read-only navigation
+ * already refuses), a submit or send query key, or an action or method query value with a sending
+ * word. Some sites send on a plain GET, so opening one asks like a control that says it sends; an
+ * address that cannot be read asks too.
+ */
+const sendingAddress = (value: string) => {
+  try {
+    const url = new URL(value);
+    return (
+      /(?:^|[/_.-])(?:submit|send|apply)(?:$|[/_.-])/i.test(decodeURIComponent(url.pathname)) ||
+      [...url.searchParams].some(
+        ([key, entry]) =>
+          /^(?:submit|send)$/i.test(key) ||
+          (/^_?(?:action|method|do|op|cmd)$/i.test(key) && sends(entry)),
+      )
+    );
+  } catch {
+    return true;
+  }
+};
+
+/** A recognized hosted board, posting or application page, such as a Lever posting's apply page. */
+const recognizedPage = (url: string) => {
+  try {
+    return automaticNavigation(url);
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Opening an address, by navigating or through a link or explicit GET form. One that names sending
+ * asks in every mode, even percent-encoded, unless it is a recognized application page; otherwise
+ * a read-only address reads and any other is risky.
+ */
+const address = (url: string): 'read' | 'risky' | 'submission' => {
+  if (sendingAddress(url) && !recognizedPage(url)) return 'submission';
+  return readOnlyNavigation(url) ? 'read' : 'risky';
 };
 
 /**
@@ -175,7 +231,9 @@ const submitControl = (target: ActionTarget): ActionClass => {
     return !target.name || searching.test(target.name) ? 'interaction' : 'risky';
   }
   if (target.form === 'dialog') return named(target);
-  return target.form ? 'risky' : named(target);
+  // An explicit GET form opens its address with the entries in the query.
+  if (target.form === 'get') return address(target.href) === 'submission' ? 'submission' : 'risky';
+  return named(target);
 };
 
 /** Activating one control, by a click, or by Enter or Space on a control that responds to them. */
@@ -198,13 +256,14 @@ const control = (target: ActionTarget): ActionClass => {
       )
         return 'submission';
       if (anyRisky(target)) return 'risky';
-      return readOnlyNavigation(target.href) ? 'interaction' : 'risky';
-    // Focusing a field, opening a picker or ticking a choice is part of filling in the form.
+      return address(target.href) === 'read' ? 'interaction' : address(target.href);
+    // Focusing a field, opening a picker or ticking a choice is part of filling in the form,
+    // unless the choice agrees, consents or certifies.
     case 'field':
     case 'multiline':
       return 'edit';
     case 'choice':
-      return anyRisky(target) ? 'risky' : 'edit';
+      return anyRisky(target) || anyConsents(target) ? 'risky' : 'edit';
     case 'toggle':
       return anyRisky(target) || anyForeign(target) ? 'risky' : 'interaction';
     default:
@@ -238,7 +297,9 @@ const enter = (target: ActionTarget): ActionClass => {
     target.form === 'post' || target.form === 'script'
       ? 'submission'
       : target.form === 'get'
-        ? 'risky'
+        ? address(target.href) === 'submission'
+          ? 'submission'
+          : 'risky'
         : 'interaction';
   return highest([implicit, ...(target.defaultButton ? [control(target.defaultButton)] : [])]);
 };
@@ -282,7 +343,7 @@ export const classifyAction = (
   if ('purpose' in action && action.purpose === 'submission') return 'submission';
   if (action.kind === 'dialog')
     return action.submissionAttemptId ? 'submission' : dialog(action, open);
-  if (action.kind === 'navigate') return readOnlyNavigation(action.url) ? 'read' : 'risky';
+  if (action.kind === 'navigate') return address(action.url);
   if (action.kind === 'scroll' || action.kind === 'hover') return 'read';
   if (action.kind === 'fill' || action.kind === 'select' || action.kind === 'upload')
     return target?.credential ? 'risky' : 'edit';

@@ -55,6 +55,34 @@ describe('browser action classes', () => {
       undefined,
       'risky',
     ],
+    ...(
+      [
+        'https://example.com/messages/send?to=1&body=hi',
+        'https://example.com/messages/%73end?to=1',
+        'https://example.com/jobs/1/apply',
+        'http://example.com/form/submit',
+        'https://example.com/jobs/1?action=send',
+        'https://example.com/applications?_method=post',
+        'https://example.com/contact?submit=1',
+      ] as const
+    ).map((url): [string, BrowserAction, undefined, ActionClass] => [
+      `asks in every mode before an address that names sending: ${url}`,
+      { kind: 'navigate', url },
+      undefined,
+      'submission',
+    ]),
+    ...(
+      [
+        'https://example.com/unsubscribe/abc',
+        'https://example.com/jobs?action=delete',
+        'https://example.com/confirm?token=abc',
+      ] as const
+    ).map((url): [string, BrowserAction, undefined, ActionClass] => [
+      `asks before a risky address that does not name sending: ${url}`,
+      { kind: 'navigate', url },
+      undefined,
+      'risky',
+    ]),
     ['scrolls', { kind: 'scroll', selector: 'body', deltaX: 0, deltaY: 400 }, undefined, 'read'],
     ['hovers', { kind: 'hover', selector: '#menu' }, undefined, 'read'],
     [
@@ -117,6 +145,16 @@ describe('browser action classes', () => {
         href: 'https://example.com/account/delete',
       }),
       'risky',
+    ],
+    [
+      'asks in every mode before a link to an address that names sending',
+      click,
+      target({
+        control: 'link',
+        name: 'Read more',
+        href: 'https://example.com/messages/send?to=1&body=hi',
+      }),
+      'submission',
     ],
     [
       'asks before a sign-out link',
@@ -266,6 +304,7 @@ describe('browser action classes', () => {
       target({
         control: 'field',
         form: 'get',
+        href: 'https://example.com/jobs',
         defaultButton: target({ control: 'submit', name: 'Send application', form: 'post' }),
       }),
       'submission',
@@ -296,8 +335,30 @@ describe('browser action classes', () => {
     [
       'navigates through an explicit GET form',
       click,
-      target({ control: 'submit', name: 'Update results', form: 'get' }),
+      target({
+        control: 'submit',
+        name: 'Update results',
+        form: 'get',
+        href: 'https://example.com/jobs',
+      }),
       'risky',
+    ],
+    [
+      'asks in every mode before a GET form that opens an address naming sending',
+      click,
+      target({
+        control: 'submit',
+        name: 'Go',
+        form: 'get',
+        href: 'https://example.com/messages/send',
+      }),
+      'submission',
+    ],
+    [
+      'asks before a GET form whose address cannot be read',
+      click,
+      target({ control: 'submit', name: 'Update results', form: 'get' }),
+      'submission',
     ],
     [
       'closes a dialog form',
@@ -312,7 +373,23 @@ describe('browser action classes', () => {
       'risky',
     ],
     ['resets a form', click, target({ control: 'reset', name: 'Reset', form: 'post' }), 'risky'],
-    ['ticks a box', click, target({ control: 'choice', name: 'I agree' }), 'edit'],
+    ['ticks a box', click, target({ control: 'choice', name: 'Open to relocation' }), 'edit'],
+    ...(
+      [
+        'I agree',
+        'I agree to the Terms of Service',
+        'I consent to receive marketing email',
+        'I have read the privacy policy',
+        'I certify that this information is true',
+        'Acepto los términos',
+        'אני מסכימה לתנאים',
+      ] as const
+    ).map((name): [string, BrowserAction, ActionTarget, ActionClass] => [
+      `asks Accept edits and Auto before a box that agrees or consents: ${name}`,
+      click,
+      target({ control: 'choice', name }),
+      'risky',
+    ]),
     ['picks a listbox option', click, target({ control: 'choice', name: 'Remote' }), 'edit'],
     ['opens a tab', click, target({ control: 'toggle', name: 'Benefits' }), 'interaction'],
     ['focuses a field', click, target({ control: 'field', name: 'Email', form: 'post' }), 'edit'],
@@ -381,15 +458,22 @@ describe('browser action classes', () => {
     [
       'navigates with Enter in a GET form',
       enter,
-      target({ control: 'field', form: 'get' }),
+      target({ control: 'field', form: 'get', href: 'https://example.com/jobs' }),
       'risky',
+    ],
+    [
+      'asks in every mode before Enter in a GET form that opens an address naming sending',
+      enter,
+      target({ control: 'field', form: 'get', href: 'https://example.com/messages/send' }),
+      'submission',
     ],
     ['presses Enter outside a form', enter, target({ control: 'field' }), 'risky'],
     ['sends from an editable region', enter, target({ control: 'multiline' }), 'submission'],
     ['activates a button with Enter', enter, target(), 'interaction'],
     ['asks for Enter when the element cannot be read', enter, undefined, 'submission'],
     ['types a space', space, target({ control: 'field', form: 'post' }), 'edit'],
-    ['ticks a box with Space', space, target({ control: 'choice', name: 'I agree' }), 'edit'],
+    ['ticks a box with Space', space, target({ control: 'choice', name: 'Remote' }), 'edit'],
+    ['agrees with Space', space, target({ control: 'choice', name: 'I agree' }), 'risky'],
     ['activates a risky button with Space', space, target({ name: 'Delete' }), 'risky'],
     ['moves focus', { kind: 'press', selector: '#target', key: 'Tab' }, undefined, 'interaction'],
     [
@@ -572,7 +656,16 @@ describe('browser access modes on a page', () => {
       form: 'search',
     });
     expect(await read('#q', 'Enter')).toMatchObject({ control: 'field', form: 'search' });
-    expect(await read('#filter-go')).toMatchObject({ control: 'submit', form: 'get' });
+    expect(await read('#filter-go')).toMatchObject({
+      control: 'submit',
+      form: 'get',
+      href: 'https://careers.example/jobs',
+    });
+    expect(await read('#team', 'Enter')).toMatchObject({
+      control: 'field',
+      form: 'get',
+      href: 'https://careers.example/jobs',
+    });
     expect(await read('#send')).toMatchObject({ control: 'submit', name: 'Submit', form: 'post' });
     expect(await read('#agree-label')).toMatchObject({ control: 'choice', name: 'I agree' });
     expect(await read('#footer')).toMatchObject({
@@ -645,6 +738,7 @@ describe('browser access modes on a page', () => {
     await execute(remove.id);
     expect(await page.locator('#result').textContent()).toBe('Deleted');
     for (const action of [
+      { kind: 'navigate', url: 'https://careers.example/messages/send?to=1&body=hi' },
       { kind: 'click', selector: '#send' },
       { kind: 'press', selector: '#name', key: 'Enter' },
       { kind: 'click', selector: '#spa-send' },
@@ -744,6 +838,7 @@ describe('browser access modes on a page', () => {
     for (const action of [
       { kind: 'click', selector: '#next' },
       { kind: 'press', selector: '#q', key: 'Tab' },
+      { kind: 'click', selector: '#agree-label' },
     ] as BrowserAction[]) {
       const asked = await request(action);
       expect(asked).toMatchObject({ status: 'pending' });
