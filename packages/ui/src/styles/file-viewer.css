@@ -1,5 +1,23 @@
 @reference '@pitchcrew/design-system/theme.css';
+/* File viewer: a clay dialog holding one quiet 44px toolbar, a recessed reading tray where the
+ * file lies as paper, an optional file column and a notice line only when there is something
+ * to say. The tray is the only recess; Find and PDF page navigation float over it as pills. */
 [data-slot='dialog-content'].file-viewer-dialog {
+  /* Page gutters on the tray; the fit maths reads these, so CSS is the one source. */
+  --file-gutter-top: 56px;
+  --file-gutter-x: 32px;
+  --file-gutter-bottom: 32px;
+  --file-paper-shadow:
+    0 0 0 1px rgb(20 22 30 / 0.06), 0 1px 2px rgb(20 22 30 / 0.06),
+    0 12px 32px -12px rgb(20 22 30 / 0.24);
+  --file-float-fill: var(--surface-bright);
+  --file-tray-fill: var(--sunken-fill);
+  --file-tray-shadow: var(--clay-sunken);
+  --file-sheet-fill: var(--surface-bright);
+  --file-float-shadow:
+    0 0 0 1px rgb(var(--tint) / 0.08), 0 2px 4px rgb(20 22 30 / 0.06),
+    0 10px 28px -6px rgb(20 22 30 / 0.22);
+  container: file-viewer / inline-size;
   display: flex;
   flex-direction: column;
   width: min(1120px, calc(100vw - 32px));
@@ -15,228 +33,300 @@
   background: var(--clay-fill);
   box-shadow: var(--pop), var(--clay);
 }
+:root[data-theme='dark'] [data-slot='dialog-content'].file-viewer-dialog {
+  /* A tray a step below the dialog's clay, not a black well, and a sheet a step above it. */
+  --file-tray-fill: linear-gradient(160deg, #222327 0%, #1f2024 45%, #1d1e22 100%);
+  --file-tray-shadow:
+    inset 0 1px 2px rgb(0 0 0 / 0.35), inset 0 0 0 1px rgb(0 0 0 / 0.25),
+    0 1px 0 rgb(255 255 255 / 0.04);
+  --file-sheet-fill: #2e2f34;
+  --file-paper-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.06), 0 1px 2px rgb(0 0 0 / 0.3),
+    0 10px 28px -12px rgb(0 0 0 / 0.55);
+  --file-float-fill: #2f3035;
+  --file-float-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.07), 0 2px 6px rgb(0 0 0 / 0.4), 0 14px 32px -8px rgb(0 0 0 / 0.6);
+}
 [data-slot='dialog-content'].file-viewer-dialog[data-expanded='true'] {
   width: calc(100vw - 24px);
-  height: calc(100dvh - 48px);
-  max-height: calc(100dvh - var(--desktop-titlebar-height, 0px) - 48px);
+  height: calc(100dvh - var(--desktop-titlebar-height, 0px) - 24px);
+  max-height: calc(100dvh - var(--desktop-titlebar-height, 0px) - 24px);
 }
-.file-dialog-heading {
+
+/* Toolbar: pager · filename · view tools | file actions, all flat until hovered. */
+.file-toolbar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
   flex-shrink: 0;
-  gap: 14px;
-  min-height: 56px;
-  padding: 10px 14px 6px 20px;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 4px 8px 4px 10px;
 }
-.file-dialog-heading [data-slot='dialog-title'] {
-  font: 600 1rem/1.35 var(--font-sans);
-  overflow-wrap: anywhere;
+.file-pager {
+  display: flex;
+  flex: none;
+  align-items: center;
 }
-.file-dialog-heading p {
+.file-pager-count {
+  min-width: 3.25rem;
   color: var(--muted);
   font-size: var(--text-caption);
-  margin-top: 3px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  white-space: nowrap;
 }
-.file-heading-actions {
+.file-toolbar-title {
   display: flex;
-  gap: 5px;
+  flex: 1 1 auto;
   align-items: center;
-  flex-shrink: 0;
+  gap: 9px;
+  min-width: 7rem;
+  padding-inline: 4px;
 }
-.file-view-controls {
+.file-toolbar-glyph {
+  flex: none;
+  color: var(--muted);
+}
+.file-toolbar-name {
+  min-width: 0;
+}
+.file-toolbar-name [data-slot='dialog-title'] {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  flex-shrink: 0;
-  gap: 8px;
-  min-height: 44px;
-  padding: 4px 16px 8px 20px;
+  min-width: 0;
+  color: var(--ink);
+  font: 600 var(--text-label) / 18px var(--font-sans);
 }
+.file-toolbar-facts {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* The position repeats the pager for phones, where the pager drops its count. */
+.file-toolbar-position {
+  display: none;
+}
+.file-name {
+  display: flex;
+  min-width: 0;
+  white-space: nowrap;
+}
+.file-name-stem {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.file-name-extension {
+  flex: none;
+}
+.file-pager,
+.file-toolbar-tools,
+.file-zoom-controls {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.file-toolbar-tools,
+.file-toolbar-actions,
 .file-zoom-controls {
   display: flex;
+  flex: none;
   align-items: center;
   gap: 2px;
 }
-.file-view-controls .field {
-  width: 135px;
+.file-toolbar-tools {
+  gap: 4px;
 }
-/* The preset menu is the single percentage readout, so it stays compact between − and +. */
-.file-view-controls .file-zoom-controls .field {
-  width: 96px;
+.file-toolbar-actions {
+  margin-left: 2px;
+  padding-left: 6px;
+  border-left: 1px solid var(--border);
 }
-.file-view-controls .field > label {
-  position: absolute;
-  clip-path: inset(50%);
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
+.file-toolbar [data-slot='button'][data-variant='ghost'] {
+  color: var(--ink-soft);
+}
+.file-toolbar [data-slot='button'][data-variant='ghost']:hover:not(:disabled) {
+  color: var(--ink);
+}
+.file-toolbar [data-slot='button'][aria-pressed='true'] {
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+}
+.file-toolbar [data-slot='button'][data-disabled],
+.file-toolbar [data-slot='button']:disabled {
+  opacity: 0.42;
+}
+.file-zoom-trigger {
+  min-width: 4.25rem;
+  gap: 3px;
+  padding-inline: 8px 6px;
+  font-variant-numeric: tabular-nums;
+}
+.file-zoom-trigger > svg {
+  color: var(--muted);
+}
+.file-zoom-menu {
+  min-width: 12rem;
+}
+.file-mode-toggle {
+  padding: 2px;
 }
 .file-mode-toggle > button {
-  height: 28px;
+  height: 32px;
+  padding-inline: 11px;
 }
-.file-page-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  justify-content: center;
-  padding: 0 16px 6px;
-}
-.file-page-controls label {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 13px;
-}
-.file-page-controls input {
-  width: 55px;
-  height: 30px;
-  text-align: center;
-}
-.file-findbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  align-items: center;
-  padding: 8px 16px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface-bright);
-}
-.file-findbar input {
-  flex: 1;
-  min-width: 120px;
-  max-width: 300px;
-}
-.file-findbar output {
-  color: var(--muted);
-  font-size: 12px;
-  min-width: 70px;
-  text-align: center;
-}
-.file-findbar [aria-pressed='true'] {
-  background: var(--primary-soft);
-}
-.file-view-note {
-  padding: 0 20px 8px;
-  color: var(--muted);
-  font-size: var(--text-caption);
-}
-.file-verification-notes {
-  flex-shrink: 0;
-  max-height: 25%;
-  margin: 0 16px 8px;
-  padding-inline: 14px;
-  overflow-y: auto;
-  border-radius: 12px;
-  background: var(--ochre-soft);
-  font-size: var(--text-caption);
-}
-/* Reading stage: a recessed tray with the document's paper centred on it, and a file rail on the
- * left when the request has several files. */
+
+/* Reading area: an optional file column beside the recessed tray. */
 .file-view-main {
   display: flex;
   flex: 1;
   min-height: 0;
-  gap: 12px;
-  padding: 0 12px 12px;
+  gap: 8px;
+  padding: 0 8px 8px;
 }
 .file-view-list {
   display: flex;
-  flex: 0 0 180px;
+  flex: 0 0 184px;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   min-height: 0;
+  padding: 2px 0;
   overflow-y: auto;
 }
 .file-view-list > button {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1px;
-  min-height: 44px;
-  padding: 6px 10px;
-  border-radius: 10px;
+  position: relative;
+  display: grid;
+  grid-template-columns: 15px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  min-height: 34px;
+  padding: 0 10px 0 12px;
+  border-radius: 9px;
   color: var(--ink-soft);
   font-size: var(--text-label);
   text-align: left;
+  transition: background-color 120ms ease;
 }
-.file-view-list > button > span {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.file-view-list > button > small {
+.file-view-list > button > svg {
   color: var(--muted);
-  font-size: var(--text-caption);
 }
 .file-view-list > button:hover {
+  background: rgb(var(--tint) / 0.05);
   color: var(--ink);
 }
 .file-view-list > button[aria-current='true'] {
-  background: var(--clay-fill);
-  box-shadow: var(--clay);
+  background: rgb(var(--tint) / 0.075);
   color: var(--ink);
   font-weight: 600;
 }
+.file-view-list > button[aria-current='true']::before {
+  position: absolute;
+  top: 9px;
+  bottom: 9px;
+  left: 3px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--primary);
+  content: '';
+}
+.file-view-list > button[aria-current='true'] > svg {
+  color: var(--primary);
+}
+.file-view-list > button > small {
+  display: none;
+}
 .file-view-list > button:focus-visible {
   outline: 2px solid var(--primary);
-  outline-offset: 1px;
+  outline-offset: -2px;
 }
-.file-view-body {
+.file-note-dot {
+  display: inline-block;
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  /* A warning is information, not work waiting on the user (ochre's meaning): muted ink. */
+  background: var(--muted);
+}
+.file-note-dot[data-severity='error'] {
+  background: var(--rose);
+}
+.file-view-stage {
+  position: relative;
   flex: 1;
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--file-tray-fill);
+  box-shadow: var(--file-tray-shadow);
+}
+.file-view-stage[data-paged] {
+  --file-gutter-bottom: 80px;
+}
+.file-view-body {
+  height: 100%;
   overflow: auto;
-  border-radius: 12px;
-  background: var(--sunken-fill);
-  box-shadow: var(--clay-sunken);
   overscroll-behavior: contain;
+  /* Gutters on both edges keep pages, and the pills over them, centred on the tray. */
+  scrollbar-gutter: stable both-edges;
+  /* Page jumps land below the top gutter, clear of the floating Find pill. */
+  scroll-padding-top: var(--file-gutter-top);
+  border-radius: inherit;
+  outline: none;
 }
-.file-text-document {
-  margin: 24px auto;
-  background: var(--surface-bright);
-  color: var(--ink);
-  padding: 40px;
-  max-width: 85ch;
-  min-height: calc(100% - 48px);
-  border-radius: 4px;
-  box-shadow: var(--sheet);
+.file-view-body:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--primary);
 }
-.file-text-document pre {
-  font-size: 0.875em;
-  font-family: var(--font-mono);
-  line-height: 1.7;
-  overflow-wrap: anywhere;
+.file-view-loading {
+  display: block;
+  padding: var(--file-gutter-top) 24px;
+  color: var(--muted);
+  font-size: var(--text-label);
+  text-align: center;
 }
-.file-text-document .markdown-content {
-  font-size: 0.95em;
+
+/* PDF: pages as paper on the tray, with room above for Find and below for page navigation. */
+.file-pdf-root,
+.file-pdf-document {
+  min-height: 100%;
 }
 .file-pdf-document {
   display: flex;
   min-width: 0;
-  min-height: 100%;
 }
 .file-pdf-pages {
   display: flex;
+  flex: 1;
   flex-direction: column;
   align-items: center;
-  gap: 22px;
-  padding: 24px;
-  flex: 1;
+  gap: 24px;
   min-width: min-content;
+  padding: var(--file-gutter-top) var(--file-gutter-x) var(--file-gutter-bottom);
 }
 .file-pdf-page {
   position: relative;
   flex-shrink: 0;
+  border-radius: 2px;
   background: white;
   color: black;
-  box-shadow: var(--sheet);
+  box-shadow: var(--file-paper-shadow);
 }
 .file-pdf-page canvas {
   display: block;
   width: 100%;
   height: 100%;
+  border-radius: inherit;
+}
+.file-page-error {
+  position: absolute;
+  inset: auto 0 50%;
+  color: #5b5f6b;
+  font-size: var(--text-label);
+  text-align: center;
 }
 .file-pdf-page ::selection {
   background: rgb(40 100 220 / 0.3);
@@ -244,25 +334,167 @@
 .file-page-sidebar {
   position: sticky;
   top: 0;
-  height: max-content;
-  max-height: 100%;
-  overflow-y: auto;
+  left: 0;
+  z-index: 1;
   display: grid;
+  flex: none;
   align-content: start;
-  padding: 12px;
-  gap: 10px;
+  gap: 14px;
+  width: 132px;
+  padding: var(--file-gutter-top) 14px 20px;
+  overflow-y: auto;
   border-right: 1px solid var(--border);
+  background: var(--file-tray-fill);
 }
+.pdf-thumbnail {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  height: auto;
+  padding: 4px;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--muted);
+}
+.pdf-thumbnail canvas {
+  width: 92px;
+  min-height: 118px;
+  border-radius: 2px;
+  background: white;
+  box-shadow: var(--file-paper-shadow);
+}
+.pdf-thumbnail[aria-current='true'] canvas {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.pdf-thumbnail[aria-current='true'] {
+  color: var(--ink);
+}
+.pdf-thumbnail span {
+  font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+}
+.pdf-outline {
+  display: grid;
+  gap: 2px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.pdf-outline h3 {
+  padding: 0 4px 4px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+.pdf-outline [data-slot='button'] {
+  justify-content: flex-start;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Word: the sandboxed frame paints its own pages on a transparent canvas over the tray. */
 .file-docx-document {
   height: 100%;
-  min-height: 500px;
 }
 .file-docx-document iframe {
-  width: 100%;
-  min-height: calc(100% - 34px);
-  border: 0;
   display: block;
-  background: #eee;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color-scheme: light;
+}
+
+/* Markdown and text: one reading sheet, as tall as the tray, with a measured column. Its
+ * size is the zoom, so the measure and gutters scale with the text. */
+.file-text-document {
+  box-sizing: border-box;
+  width: min(calc(100% - var(--file-gutter-x) * 2), 42em);
+  min-height: calc(100% - var(--file-gutter-top) - var(--file-gutter-bottom));
+  margin: var(--file-gutter-top) auto var(--file-gutter-bottom);
+  padding: 3em 3.5em 3.5em;
+  border-radius: 6px;
+  background: var(--file-sheet-fill);
+  box-shadow: var(--file-paper-shadow);
+  color: var(--ink);
+}
+.file-text-document .markdown-content {
+  font-size: 1em;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+.file-text-document .markdown-content > :first-child {
+  margin-top: 0 !important;
+}
+.file-text-document .markdown-content :is(h1) {
+  margin: 0 0 0.6em !important;
+  font-size: 1.625em !important;
+  font-weight: 650 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.015em;
+}
+.file-text-document .markdown-content :is(h2) {
+  margin: 1.7em 0 0.55em !important;
+  padding-bottom: 0.35em;
+  border-bottom: 1px solid var(--border);
+  font-size: 1.1875em !important;
+  font-weight: 650 !important;
+  line-height: 1.3 !important;
+}
+.file-text-document .markdown-content :is(h3, h4) {
+  margin: 1.4em 0 0.4em !important;
+  font-size: 1em !important;
+  font-weight: 650 !important;
+  line-height: 1.4 !important;
+}
+.file-text-document .markdown-content :is(p) {
+  margin: 0.7em 0 !important;
+}
+.file-text-document .markdown-content :is(ul, ol) {
+  margin: 0.6em 0 !important;
+  padding-left: 1.35em !important;
+  list-style-position: outside !important;
+}
+.file-text-document .markdown-content :is(li) {
+  margin: 0.28em 0 !important;
+  padding-left: 0.15em !important;
+}
+/* Everything inside scales with the reader's text size, including code and tables. */
+.file-text-document .markdown-content :is(code, kbd, samp) {
+  font-size: 0.875em !important;
+}
+.file-text-document .markdown-content table {
+  font-size: 0.875em !important;
+}
+.file-text-document .markdown-content :is(th, td) {
+  font-size: 1em !important;
+}
+/* Code blocks: the block follows the reading size, its code runs a step smaller. */
+.file-text-document .markdown-content [data-slot='code-block'] {
+  font-size: 1em !important;
+}
+.file-text-document .markdown-content :is(pre, [data-slot='code-block-content']) {
+  font-size: 0.8125em !important;
+}
+.file-text-document .markdown-content :is(th, td, pre) :is(code, kbd, samp),
+.file-text-document .markdown-content [data-slot='code-block-code'] {
+  font-size: 1em !important;
+}
+.file-text-document .markdown-content :is(li)::marker {
+  color: var(--muted);
+}
+.file-text-document pre {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 1em;
+  line-height: 1.75;
+  tab-size: 2;
+  overflow-wrap: anywhere;
+}
+.file-text-document[data-mode='source'] {
+  overflow-x: auto;
 }
 ::highlight(file-matches) {
   background: #f5d87b;
@@ -272,76 +504,208 @@
   background: #e99638;
   color: #18130b;
 }
-@variant max-mobile {
-  [data-slot='dialog-content'].file-viewer-dialog,
-  [data-slot='dialog-content'].file-viewer-dialog[data-expanded='true'] {
-    width: 100vw;
-    max-width: 100vw;
-    height: calc(100dvh - var(--desktop-titlebar-height, 0px));
-    max-height: calc(100dvh - var(--desktop-titlebar-height, 0px));
-    top: var(--desktop-titlebar-height, 0px);
-    left: 0;
-    transform: none;
-    translate: none;
-    /* Keep the primitive's translate reset after production CSS folds individual transforms. */
-    --tw-translate-x: 0px;
-    --tw-translate-y: 0px;
-    border-radius: 0;
-  }
-  .file-dialog-heading {
-    flex-wrap: wrap;
-    padding: 12px;
-    gap: 8px;
-  }
-  .file-dialog-heading > div:first-child {
-    flex: 1;
-    min-width: 140px;
-  }
-  .file-heading-actions {
-    margin-left: auto;
-  }
-  .file-view-controls {
-    padding: 8px;
-    gap: 4px;
-    max-height: 150px;
-    overflow-y: auto;
-  }
-  .file-text-document {
-    margin: 12px;
-    padding: 20px;
-  }
-  .file-view-main {
-    padding: 0 8px 8px;
-  }
+/* PDF text layers are invisible text over the rendered page: tint the match, never repaint it. */
+.textLayer ::highlight(file-matches) {
+  background: rgb(240 190 60 / 0.42);
+  color: transparent;
 }
-@variant max-wide {
-  .file-view-list {
-    display: none;
-  }
+.textLayer ::highlight(file-active-match) {
+  background: rgb(233 130 30 / 0.5);
+  color: transparent;
 }
-.pdf-thumbnail {
+
+/* Floating pills share one material: Find (top right) and PDF pages (bottom centre). */
+:is(.file-findbar, .file-page-pill) {
+  position: absolute;
+  z-index: 2;
   display: flex;
-  flex-direction: column;
-  gap: 5px;
-  height: auto;
-  padding: 7px;
+  align-items: center;
+  gap: 2px;
+  height: 42px;
+  border-radius: 999px;
+  background: var(--file-float-fill);
+  box-shadow: var(--file-float-shadow);
 }
-.pdf-thumbnail canvas {
-  width: 98px;
-  min-height: 126px;
-  background: white;
+:is(.file-findbar, .file-page-pill) [data-slot='button'] {
+  border-radius: 999px;
+  color: var(--ink-soft);
 }
-.pdf-thumbnail span {
-  font-size: 12px;
+:is(.file-findbar, .file-page-pill) [data-slot='button'][aria-pressed='true'] {
+  background: var(--primary-soft);
+  color: var(--primary-deep);
 }
-.pdf-outline {
+.file-findbar {
+  top: 10px;
+  right: 14px;
+  max-width: calc(100% - 28px);
+  padding: 0 4px 0 12px;
+}
+.file-findbar:focus-within {
+  box-shadow:
+    var(--file-float-shadow),
+    0 0 0 2px color-mix(in oklab, var(--primary) 45%, transparent);
+}
+.file-findbar-icon {
+  flex: none;
+  color: var(--muted);
+}
+.file-findbar-scope {
+  flex: none;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgb(var(--tint) / 0.07);
+  color: var(--ink-soft);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+.file-findbar input {
+  width: 13rem;
+  min-width: 0;
+  height: 32px;
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-label);
+  outline: none;
+}
+.file-findbar input::placeholder {
+  color: var(--muted);
+}
+.file-findbar output {
+  flex: none;
+  min-width: 4.5rem;
+  padding-right: 6px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+.file-findbar output[data-empty] {
+  color: var(--rose);
+}
+.file-findbar-buttons {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 1px;
+  padding-left: 4px;
+  border-left: 1px solid var(--border);
+}
+.file-page-pill {
+  bottom: 14px;
+  left: 50%;
+  padding: 0 4px;
+  translate: -50% 0;
+}
+/* Centred over the pages, not the thumbnail column beside them (phones show no thumbnails). */
+@media (width >= 48rem) {
+  .file-viewer-dialog[data-thumbnails] .file-page-pill {
+    left: calc(50% + 66.5px);
+  }
+}
+.file-page-pill label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-inline: 4px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.file-page-pill input {
+  width: 3.25em;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: rgb(var(--tint) / 0.07);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-label);
+  font-weight: 600;
+  text-align: center;
+  outline: none;
+}
+.file-page-pill input:focus-visible {
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+/* Notices: one quiet line per fact, under the tray, only when something needs saying. */
+.file-view-notice {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 2px 22px;
+  max-height: 25%;
+  padding: 0 16px 8px;
+  overflow-y: auto;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+}
+.file-view-notice > p {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  min-height: 28px;
+  padding-block: 5px;
+}
+.file-view-notice > p > svg {
+  flex: none;
+  margin-top: 1.5px;
+}
+.file-view-notice-error {
+  color: var(--error-ink, var(--rose));
+}
+.file-layout-notes {
+  min-width: 0;
+}
+/* Open notes take the full line under the other notices; styling itself with :has is allowed. */
+.file-layout-notes:has([data-open]) {
+  flex-basis: 100%;
+}
+.file-layout-notes [data-slot='accordion-trigger'].file-layout-notes-trigger {
+  justify-content: flex-start;
+  gap: 8px;
+  min-height: 32px;
+  padding: 2px 0;
+  color: var(--ink-soft);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+.file-layout-notes-trigger > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.file-layout-notes-content ul {
   display: grid;
-  width: 120px;
-  gap: 3px;
+  gap: 4px;
+  padding: 2px 0 6px 15px;
 }
-.pdf-outline h3 {
-  font-size: 12px;
+.file-layout-notes-content li {
+  display: flex;
+  gap: 8px;
+  color: var(--ink-soft);
+  font-size: var(--text-caption);
+  line-height: 1.5;
 }
+.file-layout-notes-content li[data-severity='error'] {
+  color: var(--error-ink, var(--rose));
+}
+.file-layout-note-page {
+  flex: none;
+  min-width: 3.5rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Images: pan when larger than the tray. */
 .file-image-viewport {
   width: 100%;
   height: 100%;
@@ -356,10 +720,230 @@
 }
 .file-image-size img {
   position: absolute;
-  left: 50%;
   top: 50%;
+  left: 50%;
   max-width: none;
+  border-radius: 2px;
+  box-shadow: var(--file-paper-shadow);
   user-select: none;
+}
+
+/* Narrower dialogs shed, in order: the facts line and the file column (the pager covers it),
+ * then the zoom steps (the zoom menu repeats them) and the Download label. */
+@container file-viewer (width < 1000px) {
+  .file-toolbar-facts {
+    display: none;
+  }
+  .file-view-list {
+    display: none;
+  }
+}
+@container file-viewer (width < 880px) {
+  .file-zoom-step,
+  .file-download-label {
+    display: none;
+  }
+}
+/* Touch tablets: 44px targets no longer fit one row in a dialog under 1000px, so the toolbar
+ * takes the phone's two rows: the file with its pager and actions, then the view tools. */
+@container file-viewer (width < 1000px) {
+  @media (pointer: coarse) {
+    .file-toolbar {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-areas:
+        'pager title actions'
+        'tools tools tools';
+      row-gap: 4px;
+    }
+    .file-pager {
+      grid-area: pager;
+    }
+    .file-toolbar-title {
+      grid-area: title;
+      min-width: 0;
+    }
+    .file-toolbar-actions {
+      grid-area: actions;
+    }
+    .file-toolbar-tools {
+      grid-area: tools;
+      justify-content: flex-start;
+      padding-top: 4px;
+      border-top: 1px solid var(--border);
+    }
+    .file-toolbar-tools > :last-child {
+      margin-left: auto;
+    }
+  }
+}
+/* Touch targets are 44px wide, so a one-row coarse toolbar sheds the same controls sooner. */
+@container file-viewer (width >= 1000px) and (width < 1080px) {
+  @media (pointer: coarse) {
+    .file-toolbar-facts,
+    .file-zoom-step,
+    .file-download-label {
+      display: none;
+    }
+  }
+}
+
+/* Touch pills are 48px tall, so the top gutter grows to keep page 1 clear of Find. */
+@media (pointer: coarse) and (width >= 48rem) {
+  [data-slot='dialog-content'].file-viewer-dialog {
+    --file-gutter-top: 64px;
+  }
+}
+/* Touch: the pills' own fields meet the 44px floor that buttons get from responsive.css. */
+@media (width < 48rem), (pointer: coarse) {
+  :is(.file-findbar, .file-page-pill) {
+    height: auto;
+    min-height: 48px;
+  }
+  .file-findbar input,
+  .file-page-pill input {
+    min-height: 44px;
+  }
+}
+
+/* Two-row touch tablets have room again for the zoom steps and the Download label (phones do not). */
+@container file-viewer (width < 1000px) {
+  @media (pointer: coarse) and (width >= 48rem) {
+    .file-zoom-step {
+      display: inline-flex;
+    }
+    .file-download-label {
+      display: inline;
+    }
+  }
+}
+/* Touch rows in the file column meet the 44px target floor. */
+@media (pointer: coarse) {
+  .file-view-list > button {
+    min-height: 44px;
+  }
+}
+
+/* Phones: full screen, two toolbar rows — the file and its actions, then the view tools. */
+@variant max-mobile {
+  [data-slot='dialog-content'].file-viewer-dialog,
+  [data-slot='dialog-content'].file-viewer-dialog[data-expanded='true'] {
+    /* Find docks above the document here, so pages need no room for a floating pill. */
+    --file-gutter-top: 16px;
+    --file-gutter-x: 12px;
+    --file-gutter-bottom: 16px;
+    width: 100vw;
+    max-width: 100vw;
+    height: calc(100dvh - var(--desktop-titlebar-height, 0px));
+    max-height: calc(100dvh - var(--desktop-titlebar-height, 0px));
+    top: var(--desktop-titlebar-height, 0px);
+    left: 0;
+    transform: none;
+    translate: none;
+    /* Keep the primitive's translate reset after production CSS folds individual transforms. */
+    --tw-translate-x: 0px;
+    --tw-translate-y: 0px;
+    border-radius: 0;
+  }
+  .file-toolbar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'pager title actions'
+      'tools tools tools';
+    row-gap: 4px;
+    padding: 4px 6px 6px;
+  }
+  .file-pager {
+    grid-area: pager;
+  }
+  .file-pager-count {
+    display: none;
+  }
+  .file-toolbar-title {
+    grid-area: title;
+    min-width: 0;
+  }
+  .file-toolbar-glyph {
+    display: none;
+  }
+  .file-toolbar-facts {
+    display: block;
+  }
+  .file-toolbar-position {
+    display: inline;
+  }
+  .file-toolbar-actions {
+    grid-area: actions;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .file-expand {
+    display: none;
+  }
+  .file-toolbar-tools {
+    grid-area: tools;
+    justify-content: flex-start;
+    padding-top: 4px;
+    border-top: 1px solid var(--border);
+  }
+  .file-zoom-trigger {
+    min-width: 0;
+  }
+  .file-toolbar-tools > :last-child {
+    margin-left: auto;
+  }
+  .file-more-label {
+    display: none;
+  }
+  /* Keeps the whole tools row, More included, inside a 320px screen. */
+  .file-mode-toggle > button {
+    padding-inline: 9px;
+  }
+  .file-view-main {
+    padding: 0;
+  }
+  .file-view-stage {
+    border-radius: 0;
+  }
+  .file-text-document {
+    padding: 1.5em 1.25em 2em;
+  }
+  .file-findbar input {
+    flex: 1;
+    width: auto;
+  }
+  .file-findbar output {
+    min-width: 0;
+  }
+  /* Find docks above the document on phones, where a floating pill would hide its top. The
+   * field takes the first row; match steps and options wrap under it. */
+  .file-view-stage {
+    display: flex;
+    flex-direction: column;
+  }
+  .file-view-body {
+    flex: 1;
+    height: auto;
+    min-height: 0;
+  }
+  .file-findbar {
+    position: static;
+    order: -1;
+    flex-wrap: wrap;
+    height: auto;
+    margin: 8px 8px 0;
+    padding: 2px 4px 4px 12px;
+    border-radius: 20px;
+  }
+  .file-findbar-buttons {
+    justify-content: flex-end;
+    width: 100%;
+    padding: 2px 0 0;
+    border-top: 1px solid var(--border);
+    border-left: 0;
+  }
 }
 /* Attachment tiles: each exact file as a small paper sheet on a raised clay tile. */
 .file-tiles {
@@ -453,7 +1037,10 @@
   flex: none;
 }
 .file-tile .file-tile-notes {
-  color: var(--ochre);
+  color: var(--ink-soft);
+}
+.file-tile .file-tile-notes[data-severity='error'] {
+  color: var(--error-ink, var(--rose));
 }
 /* Phones: one 72px row per file, a small paper page beside its name and facts. */
 @container decide (width < 640px) {

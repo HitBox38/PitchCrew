@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { FileViewer } from '../index.tsx';
 import { fileFacts, fileFormat } from '../attachments.ts';
 import type { ViewerFile } from '../types.ts';
+import { notesLabel } from '@/lib/document-findings.ts';
 
 /** Exact files as paper tiles; each opens the read-only viewer and returns focus to its tile. */
 export const AttachmentList = ({ files }: { files: ViewerFile[] }) => {
@@ -33,8 +34,15 @@ export const AttachmentList = ({ files }: { files: ViewerFile[] }) => {
               </span>
               <small className="file-tile-facts">{fileFacts(file)}</small>
               {file.findings?.length ? (
-                <small className="file-tile-notes">
-                  {file.findings.length} layout note{file.findings.length === 1 ? '' : 's'}
+                <small
+                  className="file-tile-notes"
+                  data-severity={
+                    file.findings.some((finding) => finding.severity === 'error')
+                      ? 'error'
+                      : undefined
+                  }
+                >
+                  {notesLabel(file.findings)}
                 </small>
               ) : null}
             </button>
@@ -45,6 +53,7 @@ export const AttachmentList = ({ files }: { files: ViewerFile[] }) => {
         <FileViewer
           files={files}
           initialIndex={selected}
+          description="Read-only attachment viewer. Viewing a file does not approve the request or export it."
           close={(previous) => {
             setSelected(null);
             requestAnimationFrame(() =>

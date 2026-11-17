@@ -1,31 +1,23 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { ViewerFile, ViewerSettings } from '../types.ts';
+import { useImageFit } from '../hooks/useImageFit.ts';
 export const ImageDocument = ({
   file,
   settings,
+  onScale,
+  onReady,
+  onError,
 }: {
   file: ViewerFile;
   settings: ViewerSettings;
+  onScale: (scale: number) => void;
+  /** Called once the image has its size, so its pan position can be restored. */
+  onReady: () => void;
+  onError: (message: string) => void;
 }) => {
-  const viewport = useRef<HTMLDivElement>(null);
   const pointer = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
-  const [size, setSize] = useState({ width: 1, height: 1 });
-  const [available, setAvailable] = useState({ width: 800, height: 600 });
-  useEffect(() => {
-    const observer = new ResizeObserver(([entry]) => {
-      if (entry) setAvailable({ width: entry.contentRect.width, height: entry.contentRect.height });
-    });
-    if (viewport.current) observer.observe(viewport.current);
-    return () => observer.disconnect();
-  }, []);
-  const sideways = settings.rotation % 180 !== 0;
-  const width = sideways ? size.height : size.width;
-  const height = sideways ? size.width : size.height;
-  const fit =
-    settings.fit === 'actual'
-      ? 1
-      : Math.min((available.width - 48) / width, (available.height - 48) / height);
-  const scale = (Math.max(0.01, fit) * settings.zoom) / 100;
+  const { viewport, size, setSize, width, height, inset, scale } = useImageFit(settings, onScale);
+  const [failed, setFailed] = useState(false);
   return (
     <div
       className="file-image-viewport"
@@ -55,22 +47,29 @@ export const ImageDocument = ({
       <div
         className="file-image-size"
         style={{
-          width: width * scale + 48,
-          height: height * scale + 48,
+          width: width * scale + inset.x,
+          height: height * scale + inset.y,
           minWidth: '100%',
           minHeight: '100%',
         }}
       >
+        {failed ? <p className="file-view-loading">Image preview unavailable.</p> : null}
         <img
+          hidden={failed}
           src={`data:${file.mimeType};base64,${file.bytes}`}
           alt={file.name}
           draggable={false}
-          onLoad={(event) =>
+          onLoad={(event) => {
             setSize({
               width: event.currentTarget.naturalWidth,
               height: event.currentTarget.naturalHeight,
-            })
-          }
+            });
+            onReady();
+          }}
+          onError={() => {
+            setFailed(true);
+            onError('This image couldn’t be opened. The file may be damaged.');
+          }}
           style={{
             width: size.width * scale,
             height: size.height * scale,

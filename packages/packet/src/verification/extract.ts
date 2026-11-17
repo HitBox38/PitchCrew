@@ -1,5 +1,6 @@
 import { pdfOptions } from '../pdf-options.ts';
 import type { DocumentFinding } from '@pitchcrew/core';
+import { wordLayoutCaveat } from './word-caveat.ts';
 
 export const extractDocument = async (
   bytes: Uint8Array,
@@ -15,8 +16,7 @@ export const extractDocument = async (
         {
           severity: 'warn',
           check: 'layout',
-          message:
-            'Word controls final DOCX layout. Page counts are estimates; layout is not verified.',
+          message: wordLayoutCaveat,
         },
       ] as DocumentFinding[],
     };

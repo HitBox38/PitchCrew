@@ -9,6 +9,9 @@ const DocxDocument = ({
   onRoot,
   onFind,
   onEscape,
+  onScale,
+  onZoom,
+  onError,
 }: {
   bytes: string;
   name: string;
@@ -16,8 +19,11 @@ const DocxDocument = ({
   onRoot: (root: HTMLElement | null) => void;
   onFind: () => void;
   onEscape: () => void;
+  onScale: (scale: number) => void;
+  onZoom: (direction: -1 | 0 | 1, point?: { x: number; y: number }) => void;
+  onError: (message: string) => void;
 }) => {
-  const { frame, loaded } = useDocxFrame(settings, onRoot, onFind, onEscape);
+  const { frame, loaded } = useDocxFrame(settings, onRoot, onFind, onEscape, onScale, onZoom);
   const [html, setHtml] = useState('');
   const [error, setError] = useState('');
   useEffect(() => {
@@ -27,21 +33,20 @@ const DocxDocument = ({
         if (!controller.signal.aborted) setHtml(result);
       })
       .catch((reason: unknown) => {
-        if (!controller.signal.aborted) setError(String(reason));
+        if (controller.signal.aborted) return;
+        setError(String(reason));
+        onError('This Word file couldn’t be opened. The file may be damaged.');
       });
     // The root is not cleared here: this cleanup runs after the next view's ref has attached, so
     // clearing it would leave Find and Copy selection without a document.
     return () => controller.abort();
-  }, [bytes, onRoot]);
+  }, [bytes, onRoot, onError]);
   return (
     <div className="file-docx-document">
-      <p className="file-view-note">
-        DOCX layout may differ from Word. Page estimates are not final Word pagination.
-      </p>
       {error ? (
-        <p role="alert">DOCX preview: {error}</p>
+        <p className="file-view-loading">Word preview unavailable.</p>
       ) : !html ? (
-        <output>Rendering DOCX…</output>
+        <output className="file-view-loading">Rendering DOCX…</output>
       ) : (
         <iframe
           title={`${name} DOCX preview`}

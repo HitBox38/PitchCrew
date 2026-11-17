@@ -1,95 +1,54 @@
-import { ArrowLeft, ArrowRight, Download, Maximize2, Minimize2, X } from 'lucide-react';
-import { DialogTitle } from '@pitchcrew/design-system/dialog';
+import { Download, Maximize2, Minimize2, X } from 'lucide-react';
 import { Button } from '@pitchcrew/design-system/button';
-import { Input } from '@pitchcrew/design-system/input';
 import type { FileViewerModel } from '../hooks/useFileViewer.ts';
-import { fileFormat } from '../attachments.ts';
+import { AttachmentPager } from './AttachmentPager.tsx';
+import { ViewerTitle } from './ViewerTitle.tsx';
+import { ViewControls } from './ViewControls.tsx';
+import { downloadNoticeId } from './ViewerNotice.tsx';
+
+/**
+ * The viewer's single toolbar: attachment pager, filename, view controls, then file actions.
+ * Narrow dialogs drop the facts and labels first; phones split it into two rows.
+ */
 export const ViewerToolbar = ({ model, close }: { model: FileViewerModel; close: () => void }) => (
-  <>
-    <div className="file-dialog-heading">
-      <div>
-        <DialogTitle>{model.file.name}</DialogTitle>
-        <p>
-          {model.files.length > 1 ? `${model.index + 1} of ${model.files.length} · ` : ''}
-          {fileFormat(model.file)} · Read-only
-        </p>
-      </div>
-      <div className="file-heading-actions">
-        <Button
-          size="icon"
-          variant="ghost"
-          aria-label="Previous attachment"
-          disabled={!model.index}
-          onClick={() => model.move(model.index - 1)}
-        >
-          <ArrowLeft size={17} />
-        </Button>
-        <Button
-          size="icon"
-          variant="ghost"
-          aria-label="Next attachment"
-          disabled={model.index === model.files.length - 1}
-          onClick={() => model.move(model.index + 1)}
-        >
-          <ArrowRight size={17} />
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          aria-label={`Download ${model.file.name}`}
-          disabled={!model.file.downloadAllowed}
-          onClick={model.download}
-        >
-          <Download size={16} />
-          Download
-        </Button>
-        <Button
-          size="icon"
-          variant="ghost"
-          aria-label={model.settings.expanded ? 'Restore viewer' : 'Expand viewer'}
-          onClick={() => model.change({ expanded: !model.settings.expanded })}
-        >
-          {model.settings.expanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-        </Button>
-        <Button size="icon" variant="ghost" aria-label="Close attachment" onClick={close}>
-          <X size={18} />
-        </Button>
-      </div>
+  <header className="file-toolbar">
+    <AttachmentPager model={model} />
+    <ViewerTitle model={model} />
+    <ViewControls model={model} />
+    <div className="file-toolbar-actions">
+      <Button
+        size="sm"
+        variant="ghost"
+        className="file-download"
+        aria-label={`Download ${model.file.name}`}
+        aria-describedby={model.file.downloadAllowed ? undefined : downloadNoticeId(model)}
+        title={model.file.downloadAllowed ? `Download ${model.file.name}` : undefined}
+        disabled={!model.file.downloadAllowed}
+        focusableWhenDisabled
+        onClick={model.download}
+      >
+        <Download size={16} />
+        <span className="file-download-label">Download</span>
+      </Button>
+      <Button
+        size="icon-sm"
+        variant="ghost"
+        className="file-expand"
+        aria-label={model.expanded ? 'Restore viewer' : 'Expand viewer'}
+        title={model.expanded ? 'Restore viewer' : 'Expand viewer'}
+        onClick={model.toggleExpanded}
+      >
+        {model.expanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+      </Button>
+      <Button
+        size="icon-sm"
+        variant="ghost"
+        aria-label="Close viewer"
+        title="Close (Esc)"
+        onClick={close}
+      >
+        <X size={18} />
+      </Button>
     </div>
-    {model.file.kind === 'pdf' && model.pages > 0 ? (
-      <fieldset className="file-page-controls" aria-label="PDF page navigation">
-        <Button
-          size="sm"
-          variant="ghost"
-          disabled={model.visiblePage <= 1}
-          onClick={() => model.change({ page: model.visiblePage - 1 })}
-        >
-          Previous page
-        </Button>
-        <label>
-          Page{' '}
-          <Input
-            type="number"
-            aria-label="Page number"
-            min={1}
-            max={model.pages}
-            value={model.visiblePage}
-            onChange={(event) => {
-              const value = Number(event.target.value);
-              if (value >= 1 && value <= model.pages) model.change({ page: value });
-            }}
-          />{' '}
-          of {model.pages}
-        </label>
-        <Button
-          size="sm"
-          variant="ghost"
-          disabled={model.visiblePage >= model.pages}
-          onClick={() => model.change({ page: model.visiblePage + 1 })}
-        >
-          Next page
-        </Button>
-      </fieldset>
-    ) : null}
-  </>
+  </header>
 );
