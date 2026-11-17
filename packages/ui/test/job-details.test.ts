@@ -67,9 +67,40 @@ test('puts the role first, defers reviews and preserves the compact layout on mo
     await sheet.getByRole('heading', { name: 'Deep resume reviews', exact: true }).count(),
   ).toBe(0);
   await sheet.getByRole('button', { name: 'Brief and requirements Confirmed' }).click();
-  expect(await sheet.getByRole('button', { name: 'Review or edit brief' }).isVisible()).toBe(true);
+  expect(await sheet.getByRole('button', { name: 'Edit brief', exact: true }).isVisible()).toBe(
+    true,
+  );
+  // Compare with posting puts the saved posting beside the brief and widens the sheet.
+  const narrow = (await sheet.boundingBox())!.width;
+  await sheet.getByRole('button', { name: 'Compare with posting', exact: true }).click();
+  const posting = sheet.getByRole('region', { name: 'Original posting', exact: true });
+  await posting
+    .getByText('Build accessible interfaces and reusable components.', { exact: true })
+    .waitFor();
+  await expect.poll(async () => (await sheet.boundingBox())!.width).toBeGreaterThan(narrow + 200);
+  await sheet.getByRole('button', { name: 'Hide posting', exact: true }).click();
+  await expect.poll(() => posting.count()).toBe(0);
+  await expect.poll(async () => (await sheet.boundingBox())!.width).toBe(narrow);
   await page.setViewportSize({ width: 390, height: 844 });
   await sheet.getByRole('tab', { name: 'Job', exact: true }).click();
+  // Phones fold the progress row away once the reading column scrolls, and bring it back at the top.
+  const panel = page.locator('.card-details-panel');
+  const content = sheet.getByRole('tabpanel', { name: 'Job', exact: true });
+  await content.evaluate((node) => {
+    const spacer = document.createElement('div');
+    spacer.className = 'test-spacer';
+    spacer.style.height = '1600px';
+    node.append(spacer);
+    node.scrollTop = 400;
+  });
+  await expect.poll(() => panel.getAttribute('data-condensed')).toBe('');
+  // Visibility flips once the fold transition ends, so the row is never hidden mid-animation.
+  await expect.poll(() => sheet.locator('.detail-progress').isVisible()).toBe(false);
+  await content.evaluate((node) => {
+    node.scrollTop = 0;
+  });
+  await expect.poll(() => panel.getAttribute('data-condensed')).toBeNull();
+  await content.evaluate((node) => node.querySelector('.test-spacer')?.remove());
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const footer = await sheet
     .getByRole('button', { name: 'Draft application', exact: true })
@@ -263,6 +294,22 @@ test('shows a waiting review once across sheet entry points and keeps independen
   expect(await chips.innerText()).toContain('Reviewer');
   expect(await chips.innerText()).toContain('Waiting for you');
   expect(await chips.getAttribute('href')).toBe(`/chat/${thread.id}?run=${worker.id}`);
+  // The dock quotes the question and answers it in place with the chat's own form.
+  const dock = page.locator('.detail-footer');
+  await dock.getByText('Reviewer asks: “Which evidence should I use?”', { exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Answer here', exact: true }).click();
+  await dock.getByRole('button', { name: 'Answer and continue', exact: true }).waitFor();
+  // While answering, the form carries the question and Hide only folds it away.
+  expect(await dock.getByRole('button', { name: 'Answer in job chat', exact: true }).count()).toBe(
+    0,
+  );
+  expect(
+    await dock.getByText('Reviewer continues after you answer.', { exact: true }).count(),
+  ).toBe(1);
+  await dock.getByRole('button', { name: 'Hide answer', exact: true }).click();
+  await expect
+    .poll(() => dock.getByRole('button', { name: 'Answer and continue' }).count())
+    .toBe(0);
   await chips.hover();
   await page
     .locator('[data-slot=tooltip-content]')
@@ -312,7 +359,9 @@ test('shows a waiting review once across sheet entry points and keeps independen
 
 test('opens Writing settings from the redesigned application documents and closes the job sheet', async () => {
   await page.getByRole('tab', { name: 'Application', exact: true }).click();
-  await page.getByRole('button', { name: /^Documents/ }).click();
+  // Application opens on the current step, here Documents; open it only if it is closed.
+  const documents = page.getByRole('button', { name: /^Documents/ });
+  if ((await documents.getAttribute('aria-expanded')) !== 'true') await documents.click();
   await page.getByRole('button', { name: 'Writing guide', exact: true }).click();
   await page.getByRole('heading', { name: /^Writing guide/ }).waitFor();
   expect(new URL(page.url()).searchParams.get('section')).toBe('writing');
@@ -407,7 +456,9 @@ test('shows immediate feedback on a stage button and in the sheet header until t
   });
   const sheet = page.getByRole('dialog', { name: 'Job details', exact: true });
   await sheet.getByRole('tab', { name: 'Activity', exact: true }).click();
-  await sheet.getByRole('button', { name: 'Withdrawn', exact: true }).click();
+  // A manual status change is one quiet menu beside the job's status.
+  await sheet.getByRole('button', { name: 'Change…', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Mark withdrawn', exact: true }).click();
   const moving = sheet.getByRole('button', { name: 'Moving…', exact: true });
   await moving.waitFor();
   expect(await moving.isDisabled()).toBe(true);
@@ -418,7 +469,7 @@ test('shows immediate feedback on a stage button and in the sheet header until t
   await sheet.getByRole('status').getByText('Moving to Withdrawn…', { exact: true }).waitFor();
   expect(host.daemon.service.board.get<Card>('card', card.id).state).toBe('shortlisted');
   release();
-  await sheet.locator('.detail-state .state-pill.withdrawn').waitFor();
+  await sheet.locator('.clay-job-progress .detail-closed[data-state="withdrawn"]').waitFor();
   expect(host.daemon.service.board.get<Card>('card', card.id).state).toBe('withdrawn');
 });
 
@@ -449,12 +500,15 @@ test('reevaluates a submitted job with the whole packet and shows a separate pac
   await page.locator(`#board-job-${card.id} .clay-job-card`).waitFor({ timeout: 30000 });
   await page.locator(`#board-job-${card.id} .clay-job-card`).click();
   const sheet = page.getByRole('dialog', { name: 'Job details', exact: true });
+  // Packet match rates the packet, so it lives with the application rather than the posting.
+  await sheet.getByRole('tab', { name: 'Application', exact: true }).click();
   const region = sheet.getByRole('region', { name: 'Packet match to job', exact: true });
   await region.getByRole('button', { name: 'Reevaluate with packet', exact: true }).click();
   await expect.poll(() => board.get<Card>('card', card.id).packetFit?.score).toBe(78);
-  await region.getByText('78/100', { exact: true }).waitFor();
-  expect(await sheet.getByText('89% fit', { exact: true }).isVisible()).toBe(true);
-  expect(await sheet.getByText('78/100 packet match', { exact: true }).isVisible()).toBe(true);
+  await region.getByRole('heading', { name: /^Packet match 78/ }).waitFor();
+  const ratings = sheet.locator('.detail-state');
+  expect(await ratings.getByText('Fit 89', { exact: true }).isVisible()).toBe(true);
+  expect(await ratings.getByText('Packet match 78', { exact: true }).isVisible()).toBe(true);
   expect(await region.innerText()).toContain(
     'The cover letter needs a clearer link to accessible interfaces.',
   );

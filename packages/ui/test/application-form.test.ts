@@ -31,27 +31,27 @@ test('requires form inspection or explicit manual checking, then confirms the ac
   if (await later.isVisible()) await later.click();
   await page.locator(`#board-job-${card.id} .clay-job-card`).click();
   const sheet = page.getByRole('dialog', { name: 'Job details', exact: true });
-  await sheet
-    .locator('.detail-footer')
-    .getByRole('button', { name: 'Inspect application form', exact: true })
-    .click();
+  const dock = sheet.locator('.detail-footer');
+  // With a form-capable agent the dock inspects directly; checking it yourself stays one step away.
+  await dock.getByRole('button', { name: 'Inspect application form', exact: true }).waitFor();
+  await sheet.getByRole('tab', { name: 'Application', exact: true }).click();
   const form = sheet.locator('section[aria-label="Application form inspection"]');
   await form.getByRole('button', { name: 'Inspect application form', exact: true }).waitFor();
   // Without a brief, automatic extraction leads and explains itself; manual stays available.
   const extraction = sheet.getByRole('region', { name: 'Extract brief from posting' });
-  expect(await extraction.getByRole('button', { name: 'Extract from source' }).isVisible()).toBe(
-    true,
-  );
-  expect(await sheet.getByRole('button', { name: 'Extract again from source' }).count()).toBe(0);
-  await sheet.getByRole('button', { name: 'Prepare brief manually', exact: true }).click();
-  const confirm = sheet.getByRole('button', {
-    name: 'Confirm complete brief and requirements',
-    exact: true,
-  });
-  expect(await confirm.isDisabled()).toBe(true);
-  const footerConfirm = sheet
-    .locator('.detail-footer')
-    .getByRole('button', { name: 'Confirm brief', exact: true });
+  expect(
+    await extraction.getByRole('button', { name: 'Extract brief', exact: true }).isVisible(),
+  ).toBe(true);
+  expect(await sheet.getByRole('button', { name: 'Extract again…', exact: true }).count()).toBe(0);
+  expect(
+    await sheet.getByRole('button', { name: 'Write it myself', exact: true }).isVisible(),
+  ).toBe(true);
+  await dock.getByRole('button', { name: 'I’ll check it myself', exact: true }).click();
+  // One confirmation, in the dock, beside the brief it confirms.
+  expect(
+    await sheet.getByRole('button', { name: 'Confirm complete brief and requirements' }).count(),
+  ).toBe(0);
+  const footerConfirm = dock.getByRole('button', { name: 'Confirm brief', exact: true });
   expect(await footerConfirm.isDisabled()).toBe(true);
   const hint = sheet
     .locator('section[aria-label="Application brief review"]')
@@ -70,7 +70,6 @@ test('requires form inspection or explicit manual checking, then confirms the ac
   await sheet.getByText(/Continue with an uninspected packet/).click();
   expect(await manual.isChecked()).toBe(true);
   expect(await hint.count()).toBe(0);
-  expect(await confirm.isEnabled()).toBe(true);
   expect(await footerConfirm.isEnabled()).toBe(true);
   await footerConfirm.click();
   await expect
@@ -89,26 +88,53 @@ test('requires form inspection or explicit manual checking, then confirms the ac
     'submitter',
     'Inspected fictional form',
   );
-  await form.getByText('Accepted files: .pdf,.docx', { exact: true }).waitFor();
-  expect(await form.getByText('Maximum length: 500 characters', { exact: true }).isVisible()).toBe(
-    true,
-  );
+  // Findings that change what the user prepares lead; every field waits behind one disclosure.
+  const findings = form.locator('dl.form-findings');
+  await findings.getByText('· PDF or DOCX · required', { exact: true }).waitFor();
+  // A long answer the user owes carries its length limit once, beside what the form needs.
   expect(
-    await form
-      .getByText('Uninspected: Questions after the first page', { exact: true })
+    await findings
+      .getByText('· Your motivation · up to 500 characters', { exact: true })
       .isVisible(),
   ).toBe(true);
+  expect(await findings.getByText('Length limits', { exact: true }).count()).toBe(0);
+  expect(
+    await findings.getByText('Questions after the first page', { exact: true }).isVisible(),
+  ).toBe(true);
+  expect(
+    await form.getByText('2 fields, 2 required · example.com/apply', { exact: false }).count(),
+  ).toBe(1);
+  const fields = form.getByRole('list', { name: 'Inspected fields' });
+  expect(await fields.count()).toBe(0);
+  expect(await form.getByRole('button', { name: 'Inspect again', exact: true }).isVisible()).toBe(
+    true,
+  );
+  // The brief owns the form summary; it is not repeated as a separate Application section.
+  expect(await sheet.getByRole('button', { name: 'Inspected application form' }).count()).toBe(0);
   await sheet
     .locator('.detail-footer')
-    .getByRole('button', { name: 'Review brief', exact: true })
+    .getByRole('button', { name: 'Confirm brief…', exact: true })
     .waitFor();
   // Once a brief exists, re-extraction is a collapsed advanced option.
-  expect(await sheet.getByRole('button', { name: 'Extract again from source' }).isVisible()).toBe(
+  expect(await sheet.getByRole('button', { name: 'Extract again…', exact: true }).isVisible()).toBe(
     true,
   );
   expect(await sheet.getByRole('button', { name: 'Extract again', exact: true }).count()).toBe(0);
-  await sheet.getByRole('button', { name: 'Review or edit brief', exact: true }).click();
-  await confirm.click();
+  // The dock's Review brief opens the brief ready to confirm, with Confirm in the dock.
+  await sheet
+    .locator('.detail-footer')
+    .getByRole('button', { name: 'Confirm brief…', exact: true })
+    .click();
+  // Confirming adopts every field, so the list is open while the brief is being confirmed.
+  expect(
+    await fields
+      .getByRole('listitem')
+      .filter({ hasText: 'Why this team?' })
+      .getByText('Long answer · up to 500 · Required', { exact: true })
+      .isVisible(),
+  ).toBe(true);
+  expect(await fields.getByRole('listitem').count()).toBe(2);
+  await footerConfirm.click();
   await expect
     .poll(
       () => host.daemon.service.board.get<Card>('card', card.id).applicationContext?.form?.status,

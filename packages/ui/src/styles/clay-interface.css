@@ -901,18 +901,33 @@
   text-align: center;
 }
 
-/* Job details: the stage track under the header, then step beads in Application and History.
- * Beads share a 1.125rem slot so titles line up whatever the bead size. */
+/* Job details: a compact stage track and the current step's name in the header row, then step
+ * beads in Application and History. Beads share a 1.125rem slot so titles line up. */
 .clay-job-progress {
-  display: flex;
-  flex-shrink: 0;
-  flex-direction: column;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+  cursor: default;
+}
+.clay-job-progress .clay-track {
   gap: 0.5rem;
-  padding: 0.25rem 1.25rem 0.875rem;
+  justify-content: flex-start;
 }
-.clay-job-progress .clay-stage-track {
-  max-width: 34rem;
+.clay-job-progress .clay-track::before {
+  inset-inline: 0.125rem;
+  height: 0.1875rem;
+  margin-top: -0.09375rem;
 }
+.clay-job-progress .clay-track > .clay-bead:not([data-tone='done'], [data-empty]) {
+  --bead-size: 0.75rem;
+}
+.clay-job-progress .clay-track > .clay-bead[data-empty] {
+  box-shadow:
+    var(--clay-sunken),
+    0 0 0 1px color-mix(in srgb, var(--faint) 70%, transparent);
+}
+/* The chat's "who moves next" line beside its stage track. */
 .clay-job-now {
   display: flex;
   flex-wrap: wrap;
@@ -928,6 +943,13 @@
 .clay-job-now[data-tone='working'] {
   color: var(--plum);
 }
+.clay-job-stage {
+  font-size: var(--text-caption);
+  line-height: 1.125rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
 .detail-application-sections[data-steps] [data-slot='accordion-trigger'] > .clay-bead,
 .detail-history[data-beads] > div > .clay-bead {
   margin-inline: calc((1.125rem - var(--bead-size)) / 2);
@@ -938,11 +960,6 @@
 }
 .detail-history[data-beads] > div > .clay-bead {
   margin-top: 0.375rem;
-}
-@variant max-mobile {
-  .clay-job-progress {
-    padding-inline: 1rem;
-  }
 }
 
 /* ── Sidebar: conversations nested under their jobs ──────────────────────────

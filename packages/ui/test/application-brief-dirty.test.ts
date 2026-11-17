@@ -57,7 +57,7 @@ beforeEach(async () => {
   await page.goto(`${host.daemon.url}/inbox?decision=brief-${card.id}`);
   await page.getByRole('heading', { name: 'Confirm the JOIN brief', exact: true }).waitFor();
   await page.getByRole('button', { name: 'Review and confirm', exact: true }).click();
-  await page.getByRole('button', { name: 'Review or edit brief', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit brief', exact: true }).click();
   await page.getByRole('textbox', { name: 'Company context', exact: true }).waitFor();
 }, 30000);
 
@@ -108,7 +108,7 @@ test('compares normalized list values and restores the baseline on cancel', asyn
   );
   await responsibilities.fill('Changed responsibility.');
   await sheet().getByRole('button', { name: 'Cancel editing', exact: true }).click();
-  await sheet().getByRole('button', { name: 'Review or edit brief', exact: true }).click();
+  await sheet().getByRole('button', { name: 'Edit brief', exact: true }).click();
   expect(await responsibilities.inputValue()).toBe('Build interfaces.\nTest interfaces.');
   await closeUnchanged();
 });
@@ -134,15 +134,16 @@ test('protects requirement and manual form changes, then clears dirty state afte
   const context = sheet().getByRole('textbox', { name: 'Company context', exact: true });
   await context.fill('  Saved employer context.  ');
   await sheet()
-    .getByRole('button', { name: 'Confirm complete brief and requirements', exact: true })
+    .locator('.detail-footer')
+    .getByRole('button', { name: 'Confirm brief', exact: true })
     .click();
-  await sheet().getByRole('button', { name: 'Review or edit brief', exact: true }).waitFor();
+  await sheet().getByRole('button', { name: 'Edit brief', exact: true }).waitFor();
   const saved = host.daemon.service.board.get<Card>('card', card.id).applicationContext!;
   expect(saved.confirmedAt).toBeTruthy();
   expect(saved.requirements[0]!.answer).toBe('A fictional reason.');
   expect(saved.form).toEqual({ status: 'manual' });
   expect(saved.brief.companyContext).toBe('Saved employer context.');
-  await sheet().getByRole('button', { name: 'Review or edit brief', exact: true }).click();
+  await sheet().getByRole('button', { name: 'Edit brief', exact: true }).click();
   expect(await answer.inputValue()).toBe('A fictional reason.');
   expect(await context.inputValue()).toBe('Saved employer context.');
   await context.fill('Fictional employer context.');

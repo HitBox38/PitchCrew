@@ -355,7 +355,7 @@ test('crew shortcuts open required brief review and start an isolated run only a
   await page.getByRole('menuitem', { name: 'Evaluate fit', exact: true }).click();
   await page
     .getByRole('dialog')
-    .getByRole('heading', { name: 'Application brief', exact: true })
+    .getByRole('region', { name: 'Application brief review', exact: true })
     .waitFor();
   expect(
     host.daemon.service.board.list<Run>('run').filter((run) => run.cardId === card.id),

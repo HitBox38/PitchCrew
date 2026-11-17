@@ -67,14 +67,17 @@ beforeEach(() => {
   action.mockClear();
 });
 
-it('keeps Prepare export as navigation until the export choices are open', () => {
+it('requests the files it names from the dock, with Change files until the choices are open', () => {
   const openApplication = vi.fn();
   const next = footer({ tab: 'job', sections: [], openApplication });
-  expect(next.label).toBe('Prepare export');
-  next.perform();
+  expect(next.label).toBe('Request export approval');
+  expect(next.hint).toContain('PDF, formatted, plus Markdown copies');
+  expect(next.alternates?.map((item) => item.label)).toEqual(['Change files']);
+  next.alternates?.[0]?.perform();
   expect(openApplication).toHaveBeenCalledWith('export');
-  expect(footer({ sections: ['brief'] }).label).toBe('Prepare export');
   expect(action).not.toHaveBeenCalled();
+  // Once the choices are on screen beside it, the dock offers only the request.
+  expect(footer().alternates).toBeUndefined();
 });
 
 it('requests the visible Word choice once from the footer instead of the suggested PDF', async () => {

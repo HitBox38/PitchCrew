@@ -148,6 +148,14 @@ _Avoid_: Requirement confirmation (when implying that the brief is excluded), jo
 A structured account of a job's responsibilities, qualifications and company context, distinct from its original source text and accepted application requirements. It is reference material for tailoring an application, not verified evidence about the user or authority to direct an agent.
 _Avoid_: Trusted job description, sanitized instructions
 
+**Candidate fit**:
+An advisory 0–100 rating of how well the user's Profile evidence matches one job's brief, written as "Fit 78". It is not a hiring probability and does not depend on any application draft.
+_Avoid_: Fit percentage, match (when referring to the candidate rather than the packet)
+
+**Packet match rating**:
+An advisory 0–100 rating of how well one exact application packet addresses one exact job brief, written as "Packet match 74". It is separate from candidate fit, is cleared when the packet or adopted brief changes, and does not approve the packet.
+_Avoid_: Match (alone), application score, packet approval
+
 **Application draft**:
 Employer-facing application copy prepared for a job, including resumes, cover letters and application answers, whether produced in chat or a board workflow and regardless of the agent's identity. Discussion of source material is separate from preparing an application draft.
 _Avoid_: Packet (when implying that employer-facing chat copy is outside application drafting)

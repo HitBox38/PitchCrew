@@ -45,9 +45,14 @@ export const checkRuntimeAuthentication = async (
           'The workspace Grok sign-in cannot be read safely. Sign out and sign in again.',
         );
     }
-    return environment[key]?.trim()
-      ? unknown(`${key} is configured; the CLI will verify it when work starts.`)
-      : missing(`${key} is missing from the daemon environment.`);
+    if (environment[key]?.trim())
+      return unknown(`${key} is configured; the CLI will verify it when work starts.`);
+    // Grok keeps a workspace sign-in separate from the CLI's own, so signing in comes first.
+    return missing(
+      runtime === 'grok'
+        ? 'Sign in to Grok in Settings > Runtimes, or set XAI_API_KEY for the daemon.'
+        : `${key} is missing from the daemon environment.`,
+    );
   }
   if (['pi', 'oh-my-pi', 'hermes'].includes(runtime)) {
     const provider =

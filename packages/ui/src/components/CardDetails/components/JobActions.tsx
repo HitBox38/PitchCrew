@@ -1,50 +1,56 @@
 import type { JobActionsProps } from '../types.ts';
 import { JobActionFooter } from './JobActionFooter.tsx';
+import { OutcomeChoices } from './OutcomeChoices.tsx';
 import { jobNextAction } from '../next-action.ts';
+import { jobDock, pendingQuestion } from '../dock.ts';
+import { QuestionDock } from './QuestionDock.tsx';
 import { Button } from '@pitchcrew/design-system/button';
 import { LoaderCircle } from 'lucide-react';
-import { runtimeLabels } from '@/lib/labels.ts';
 
+/** The dock's buttons come from the same decision as its sentence: one glaze at most. */
 export const JobActions = (model: JobActionsProps) => {
   const next = jobNextAction(model);
-  const role = next.roleId ? model.data.roles.find((role) => role.id === next.roleId) : null;
+  const dock = jobDock(model, next);
   const spinning = !!model.work.pending || (model.work.starting && model.work.spinning);
+  const { question } = next.kind === 'waiting' ? pendingQuestion(model) : {};
+  if (question) return <QuestionDock model={model} next={next} dock={dock} question={question} />;
   return (
-    <JobActionFooter
-      failure={model.failed && !model.run ? model.failed.message : undefined}
-      hint={
-        <>
-          {next.hint ? <p className="action-hint">{next.hint}</p> : null}
-          {role ? (
-            <p className="action-hint">
-              {role.name} · {runtimeLabels[role.runtime]}
-              {role.runtime === 'demo' ? ' · No AI calls' : ' · Uses your CLI account'}
-            </p>
-          ) : null}
-        </>
-      }
-    >
+    <JobActionFooter dock={dock} spinning={spinning}>
       {next.alternates?.map((alternate) => (
         <Button
           key={alternate.label}
-          variant="outline"
-          disabled={model.busy || model.working || alternate.disabled}
+          variant={alternate.quiet ? 'ghost' : 'outline'}
+          disabled={
+            alternate.quiet ? alternate.disabled : model.busy || model.working || alternate.disabled
+          }
           onClick={alternate.perform}
         >
           {alternate.label}
         </Button>
       ))}
-      <Button
-        variant={next.secondary ? 'outline' : 'default'}
-        aria-busy={spinning}
-        disabled={model.working || next.disabled}
-        onClick={next.perform}
-      >
-        {spinning ? (
-          <LoaderCircle size={14} className="spin motion-reduce:animate-none" aria-hidden="true" />
-        ) : null}
-        {next.label}
-      </Button>
+      {next.choices ? (
+        <OutcomeChoices
+          label={next.label}
+          choices={next.choices}
+          disabled={model.working || Boolean(model.run)}
+        />
+      ) : (
+        <Button
+          variant={next.quiet ? 'ghost' : next.secondary ? 'outline' : 'default'}
+          aria-busy={spinning}
+          disabled={model.working || next.disabled}
+          onClick={next.perform}
+        >
+          {spinning ? (
+            <LoaderCircle
+              size={14}
+              className="spin motion-reduce:animate-none"
+              aria-hidden="true"
+            />
+          ) : null}
+          {next.label}
+        </Button>
+      )}
     </JobActionFooter>
   );
 };

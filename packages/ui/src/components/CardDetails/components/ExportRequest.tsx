@@ -59,8 +59,7 @@ export const ExportRequest = ({
         )}
       </div>
       <p className="quiet">
-        {suggestion.reason} Markdown copies are always included. Pitchcrew generates and checks the
-        files, then you approve the exact files in Decisions. Nothing is sent.
+        {suggestion.reason} Markdown copies are always included.
         {footer ? ' Request export approval below when these choices are right.' : ''}
       </p>
     </div>

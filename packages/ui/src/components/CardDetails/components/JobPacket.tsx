@@ -12,9 +12,7 @@ export const JobPacket = ({ document, setDocument, card }: JobPacketProps) => {
       <PacketDocumentPicker document={document} setDocument={setDocument} />
       <PacketDocumentView label={packetDocumentLabels[document]} text={card.packet[document]} />
       <h3>Sources</h3>
-      <p className="quiet">
-        Each claim quotes your profile notes word for word. Reviewer reads the whole packet as well.
-      </p>
+      <p className="quiet">Each claim quotes your Profile notes word for word.</p>
       {keyedItems(card.packet.claims, (claim) => JSON.stringify(claim)).map(
         ({ item: claim, key }) => (
           <div className="evidence" key={key}>

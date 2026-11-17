@@ -80,3 +80,15 @@ export const outcomeLabels = {
   neutral: 'Neutral',
   pending: 'Pending',
 } as const;
+
+/** Manual status changes said as actions ("Mark withdrawn"), on the board menu and job sheet. */
+export const statusActionLabels: Partial<Record<CardState, string>> = {
+  shortlisted: 'Shortlist',
+  submitted: 'Mark submitted',
+  screening: 'Record screening',
+  interviewing: 'Record interview',
+  offer: 'Record offer',
+  rejected: 'Mark rejected',
+  ghosted: 'Mark no response',
+  withdrawn: 'Mark withdrawn',
+};

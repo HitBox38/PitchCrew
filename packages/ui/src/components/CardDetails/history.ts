@@ -11,6 +11,14 @@ const bookkeeping = new Set([
   'Consumed approval for local export',
   'Recorded memory sources',
   'Recorded run Profile version',
+  // A question's wait and its continuation repeat the sentences that announce them.
+  'Waiting for user input',
+  'Completed question continuation',
+  // Lint findings are already part of the Drafted entry they belong to.
+  'Recorded document verification findings',
+  // A brief extraction's start and finish frame the "Extracted application brief" entry.
+  'Started restricted source extraction',
+  'Finished restricted source extraction',
 ]);
 const runProgress = new Set([
   'Agent started. Preparing a reply…',
