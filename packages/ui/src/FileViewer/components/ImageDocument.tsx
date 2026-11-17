@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import type { ViewerFile, ViewerSettings } from '../types.ts';
 import { useImageFit } from '../hooks/useImageFit.ts';
 export const ImageDocument = ({
@@ -60,10 +61,9 @@ export const ImageDocument = ({
           alt={file.name}
           draggable={false}
           onLoad={(event) => {
-            setSize({
-              width: event.currentTarget.naturalWidth,
-              height: event.currentTarget.naturalHeight,
-            });
+            const { naturalWidth, naturalHeight } = event.currentTarget;
+            // The size is committed before the saved pan is restored, which needs room to scroll.
+            flushSync(() => setSize({ width: naturalWidth, height: naturalHeight }));
             onReady();
           }}
           onError={() => {
