@@ -1,6 +1,7 @@
-import type { Approval, Card, ComputerApproval } from '@pitchcrew/core';
+import type { Approval, Card, ComputerApproval, Snapshot } from '@pitchcrew/core';
 import { describe, expect, it } from 'vitest';
 import { historyGroups, historyTone } from '../helpers.ts';
+import { requestStatus } from '../status.ts';
 import type { ApprovalRequest } from '../types.ts';
 
 const packet = (id: string, createdAt: string, status: Approval['status'] = 'consumed') =>
@@ -60,5 +61,25 @@ describe('Inbox history', () => {
     expect(historyTone(browser('failed'), { cards: [] })).toBe('ochre');
     expect(historyTone(browser('rejected'), { cards: [] })).toBe('quiet');
     expect(historyTone(browser('consumed'), { cards: [] })).toBe('teal');
+  });
+
+  it('names automatic browser records’ status without claiming the user approved them', () => {
+    const data = { cards: [] } as unknown as Snapshot;
+    const automatic = (status: ComputerApproval['status']): ApprovalRequest => {
+      const request = browser(status);
+      return { ...request, approval: { ...request.approval, automatic: true, mode: 'edits' } };
+    };
+    const shown = (request: ApprovalRequest) => [
+      requestStatus(request, data),
+      historyTone(request, data),
+    ];
+    expect(shown(automatic('approved'))).toEqual(['Allowed automatically', 'teal']);
+    expect(shown(automatic('consumed'))).toEqual(['Ran automatically', 'teal']);
+    expect(shown(automatic('rejected'))).toEqual(['Expired', 'quiet']);
+    expect(shown(automatic('failed'))).toEqual(['Failed', 'ochre']);
+    // The user's own decisions keep their words.
+    expect(shown(browser('approved'))).toEqual(['Approved', 'teal']);
+    expect(shown(browser('consumed'))).toEqual(['Executed', 'teal']);
+    expect(shown(browser('rejected'))).toEqual(['Rejected', 'quiet']);
   });
 });

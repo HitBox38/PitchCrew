@@ -125,6 +125,9 @@ describe('user-only post-approval submission handoff', { timeout: 60000 }, () =>
     expect(saved[0]).toMatchObject({
       threadId: responses[0]!.result.submission?.threadId,
       deliveries: [expect.objectContaining({ roleId: 'submitter' })],
+      content: expect.stringContaining(
+        'Follow my browser permissions for you, but mark the exact final submission with its submission purpose and ask me to approve it.',
+      ),
     });
     expect(daemon.service.board.get<Card>('card', card.id).state).toBe('awaiting_approval');
     expect(daemon.service.board.list('submission_attempt')).toHaveLength(0);

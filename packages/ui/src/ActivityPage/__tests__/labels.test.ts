@@ -32,6 +32,24 @@ it('rewrites stored event wording into product language', () => {
   );
 });
 
+it('says which of the user’s browser modes allowed an automatic action', () => {
+  expect(
+    say('computer_approval', "Allowed browser action under the user's Accept edits mode"),
+  ).toBe('Allowed a browser action under your Accept edits mode');
+  expect(say('computer_approval', "Allowed browser action under the user's Auto mode")).toBe(
+    'Allowed a browser action under your Auto mode',
+  );
+  expect(say('computer_approval', "Allowed browser action under the user's Full access mode")).toBe(
+    'Allowed a browser action under your Full access mode',
+  );
+  // Task site grants keep their stored sentence; an unknown mode name is never rewritten.
+  for (const message of [
+    'Allowed browser preparation under user-granted task site permission',
+    "Allowed browser action under the user's Turbo mode",
+  ])
+    expect(say('computer_approval', message)).toBe(message);
+});
+
 it('passes unknown wording through unchanged', () => {
   expect(say('card', 'Moved to somewhere new')).toBe('Moved to somewhere new');
   expect(say('card', 'User changed status to somewhere new')).toBe(

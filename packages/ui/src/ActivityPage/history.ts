@@ -107,7 +107,12 @@ export const activityContext = (
   event: Pick<BoardEvent, 'kind' | 'entityId' | 'data'>,
   data: Pick<Snapshot, 'cards' | 'conversations'>,
 ): ActivityContext | null => {
-  const fields = event.data as { cardId?: string | null; threadId?: string; id?: string };
+  const fields = event.data as {
+    cardId?: string | null;
+    threadId?: string;
+    id?: string;
+    automatic?: boolean;
+  };
   const conversation = (id?: string) =>
     id ? (data.conversations ?? []).find((item) => item.id === id) : undefined;
   if (event.kind === 'run' && fields.threadId && conversation(fields.threadId))
@@ -115,7 +120,9 @@ export const activityContext = (
   const thread = conversation(event.kind === 'conversation' ? event.entityId : fields.threadId);
   if (thread && ['conversation', 'message', 'user_input'].includes(event.kind))
     return { type: 'chat', thread: thread.id, label: thread.title };
-  const page = pages[event.kind];
+  // A step the server allowed without asking was never a decision, so it opens its job instead.
+  const page =
+    event.kind === 'computer_approval' && fields.automatic ? undefined : pages[event.kind];
   if (page) return page;
   const cardId = event.kind === 'card' ? event.entityId : fields.cardId;
   const card = cardId ? data.cards.find((item) => item.id === cardId) : undefined;

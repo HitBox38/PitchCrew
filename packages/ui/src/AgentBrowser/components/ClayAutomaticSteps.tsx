@@ -5,11 +5,13 @@ import { browserActionTitles } from '@/ComputerApprovals/helpers.ts';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import { BrowserControls } from './BrowserControls.tsx';
 import { automaticSteps, formFillProgress, stepFieldLabel } from '../clay-states.ts';
+import { automaticTray } from '../layout.ts';
 
 /**
- * The steps this run took on its own on granted sites, from saved records only. On
- * an inspected form page the title counts filled fields; Stop is the conversation's existing Stop,
- * and Take control sits beside it as on every other tray.
+ * The steps this run took on its own under the task's captured mode (granted sites in Autonomous
+ * preparation), from saved records only, and what still asks. On an inspected form page the title
+ * counts filled fields; Stop is the conversation's existing Stop, and Take control sits beside it
+ * as on every other tray.
  */
 export const ClayAutomaticSteps = ({
   browserPanel,
@@ -39,12 +41,13 @@ export const ClayAutomaticSteps = ({
     session?.url,
   );
   const running = data.runs.some((run) => run.id === session?.runId && run.status === 'running');
+  const tray = automaticTray(session?.mode);
   return (
-    <section className="clay-tray-state" aria-label="Automatic preparation">
+    <section className="clay-tray-state" aria-label={tray.region}>
       <div className="clay-tray-copy">
         <p className="clay-tray-title">
           <StatusBead status="running" />
-          <strong>{progress ? 'Filling the form' : 'Automatic preparation'}</strong>
+          <strong>{progress ? 'Filling the form' : tray.title}</strong>
           <span>
             {progress ? `${progress.filled} of ${progress.total} fields` : `${name} · this run`}
           </span>
@@ -61,8 +64,7 @@ export const ClayAutomaticSteps = ({
         ) : null}
         <p className="clay-tray-note">
           <Hand size={13} aria-hidden="true" />
-          {steps.length ? '' : 'On sites you grant, form answers and approved files fill in. '}
-          Buttons, keys, dialogs and submitting still ask here.
+          {steps.length ? tray.asks : `${tray.runs} ${tray.asks}`}
         </p>
       </div>
       <BrowserControls

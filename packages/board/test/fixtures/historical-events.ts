@@ -238,8 +238,44 @@ export const versionTwoEvents: RawHistoricalEvent[] = [
   }),
 ];
 
-/** One version 8 routine and one version 14 message with attachment metadata. */
+/**
+ * One version 8 routine, one version 14 message with attachment metadata, and version 38 browser
+ * permissions from before the Accept edits, Auto and Full access modes: a Scout defaulting to
+ * Autonomous preparation and an automatic preparation record with no approving mode.
+ */
 export const laterEvents: RawHistoricalEvent[] = [
+  event(38, 'role', 'user', 'Updated role', 32, {
+    ...role('scout', 'Scout', 'Evaluates leads.', { computerUse: true }),
+    browserMode: 'autonomous',
+  }),
+  event(
+    38,
+    'computer_approval',
+    'system',
+    'Allowed browser preparation under user-granted task site permission',
+    33,
+    {
+      id: 'historic-browser-preparation',
+      runId: 'historic-browser-run',
+      roleId: 'scout',
+      cardId: null,
+      action: { kind: 'navigate', url: 'https://jobs.lever.co/northwind-test' },
+      reason: 'Open the fictional board.',
+      automatic: true,
+      page: {
+        url: 'https://jobs.lever.co/northwind-test',
+        title: 'Northwind Test jobs',
+        text: 'Open roles',
+        screenshot: '',
+        digest: 'c'.repeat(64),
+      },
+      digest: 'd'.repeat(64),
+      status: 'consumed',
+      error: '',
+      createdAt: at(33),
+      decidedAt: at(33),
+    },
+  ),
   event(8, 'routine', 'user', 'Saved routine', 30, {
     id: 'historic-routine',
     name: 'Weekly lead check',

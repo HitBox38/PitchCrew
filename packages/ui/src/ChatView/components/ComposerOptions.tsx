@@ -6,10 +6,16 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from '@pitchcrew/design-system/popover';
+import {
+  browserModeActsAlone,
+  browserModeLabels,
+  browserModeShortLabels,
+} from '@pitchcrew/core/browser-modes';
 import { Globe } from 'lucide-react';
 import type { ChatComposerProps } from '../types.ts';
 import { memo } from 'react';
 import { deepEqual } from '@/lib/share-equal.ts';
+import { conversationBrowserMode } from '@/lib/browser-modes.ts';
 
 type ComposerOptionsProps = Pick<ChatComposerProps, 'role' | 'conversation' | 'working'> & {
   /** The role as the browser panel knows it (its saved browser mode). */
@@ -18,13 +24,11 @@ type ComposerOptionsProps = Pick<ChatComposerProps, 'role' | 'conversation' | 'w
   patchConversation: ChatComposerProps['patchConversation'];
 };
 
-/** Keep preparation permissions reachable when the chat lane cannot fit another picker. */
+/** Keep browser permissions reachable when the chat lane cannot fit another picker. */
 export const ComposerOptions = memo((props: ComposerOptionsProps) => {
   if (!props.role.capabilities?.computerUse) return null;
   const role = props.panelRole ?? props.role;
-  const override = props.conversation?.configurations[role.id]?.browserMode;
-  const autonomous = (override ?? role.browserMode) === 'autonomous';
-  const mode = autonomous ? 'Autonomous preparation' : 'Supervised';
+  const mode = conversationBrowserMode(role, props.conversation);
   const picker = (
     <BrowserModePicker
       role={role}
@@ -44,23 +48,25 @@ export const ComposerOptions = memo((props: ComposerOptionsProps) => {
                 variant="ghost"
                 size="sm"
                 className="chat-composer-mode"
-                aria-label={`Browser preparation settings: ${mode}`}
-                title={`Browser preparation: ${mode}`}
-                data-autonomous={autonomous ? '' : undefined}
+                aria-label={`Browser permission settings: ${browserModeLabels[mode]}`}
+                title={`Browser permissions: ${browserModeLabels[mode]}`}
+                data-mode={mode}
+                data-acts-alone={browserModeActsAlone(mode) || undefined}
                 disabled={props.working}
               />
             }
           >
             <Globe size={14} aria-hidden="true" />
-            <span>{autonomous ? 'Autonomous' : 'Supervised'}</span>
+            <span>{browserModeShortLabels[mode]}</span>
           </PopoverTrigger>
           <PopoverContent className="chat-composer-options-panel w-80 max-w-[calc(100vw-24px)] space-y-3 p-3 font-sans text-sm">
             <PopoverTitle className="font-sans text-sm font-semibold">
-              Browser preparation
+              Browser permissions
             </PopoverTitle>
             {picker}
             <p className="text-detail text-muted-foreground">
-              Applies to the next turn. Submission always asks for your approval.
+              Applies to the next turn. Every mode asks before the final submission and anything
+              Pitchcrew recognizes as sending (best effort).
             </p>
           </PopoverContent>
         </Popover>

@@ -1,3 +1,4 @@
+import { browserModeActsAlone } from '@pitchcrew/core/browser-modes';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import { BrowserPendingAction } from './BrowserPendingAction.tsx';
 import { ClayApprovalIdle } from './ClayApprovalIdle.tsx';
@@ -25,6 +26,9 @@ export const BrowserApprovals = (
       data-reserved={reserveSpace || undefined}
       data-idle={approvals.length ? undefined : ''}
       data-mode={session?.mode}
+      // The taller step list follows the task's captured mode only, never a waiting or blocked
+      // step: a height change resizes the page and expires unused approvals.
+      data-acts-alone={browserModeActsAlone(session?.mode) || undefined}
       aria-label="Browser action review"
     >
       {!approvals.length ? (

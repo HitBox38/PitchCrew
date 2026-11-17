@@ -1,6 +1,7 @@
-import { type Role, type Run, type Conversation } from '@pitchcrew/core';
+import { type Role, type Run } from '@pitchcrew/core';
 import { findRun } from '@pitchcrew/board';
 import { z } from 'zod';
+import { effectiveBrowserMode } from '../browser-mode.ts';
 import type { CrewContext, RunCapability } from '../types.ts';
 
 export const computerAction = async (
@@ -27,22 +28,11 @@ export const computerAction = async (
   authorize();
   const active = context.board.get<Run>('run', capability.runId);
   const root = findRun(context.board, active.rootRunId ?? active.id);
-  const role = active.configuration?.role ?? context.board.get<Role>('role', capability.roleId);
-  const conversation = active.threadId
-    ? context.board.list<Conversation>('conversation').find((item) => item.id === active.threadId)
-    : undefined;
   context.computer.bindBrowser({
     ...capability,
     threadId: active.threadId,
     taskId: root?.id ?? active.id,
-    mode:
-      active.routineId || root?.routineId || conversation?.kind === 'routine'
-        ? 'supervised'
-        : active.configuration
-          ? (role.browserMode ?? 'supervised')
-          : (conversation?.configurations[role.id]?.browserMode ??
-            role.browserMode ??
-            'supervised'),
+    mode: effectiveBrowserMode(context, active),
   });
   const deadline = Date.now() + 30_000;
   while (context.computer.browsers.forRun(capability.runId)?.info.manual && Date.now() < deadline) {

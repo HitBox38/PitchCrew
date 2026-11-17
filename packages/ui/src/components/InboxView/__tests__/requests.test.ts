@@ -63,4 +63,29 @@ describe('approval review requests', () => {
       'packet:consumed',
     ]);
   });
+
+  it('lists only the user’s browser decisions, never the server’s automatic approvals', () => {
+    // Created approved under a browser mode or a task site grant (no mode), then used or expired.
+    const automatic = (
+      [
+        ['approved', 'edits'],
+        ['consumed', 'auto'],
+        ['failed', 'full'],
+        ['rejected', undefined],
+        ['consumed', undefined],
+      ] as const
+    ).map(([status, mode], index) => ({
+      ...browserApproval(status),
+      id: `automatic-${index}`,
+      automatic: true,
+      ...(mode ? { mode } : {}),
+    }));
+    const mixed = { ...data, computerApprovals: [...automatic, ...data.computerApprovals] };
+    for (const tab of ['pending', 'history'] as const)
+      expect(approvalRequests(mixed, tab)).toEqual(approvalRequests(data, tab));
+    // A user-approved request that has not run yet still waits, as before.
+    expect(approvalRequests(mixed, 'pending').map((request) => request.key)).toContain(
+      'browser:approved',
+    );
+  });
 });

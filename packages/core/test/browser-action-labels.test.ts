@@ -1,6 +1,7 @@
 import { expect, it } from 'vitest';
 import type { BrowserSnapshot } from '../src/computer.ts';
 import {
+  browserActionAllowed,
   browserActionAsked,
   browserActionDone,
   browserActionParts,
@@ -60,6 +61,28 @@ it('labels chat steps without the values the action typed or chose', () => {
   ).toBe('Clicked “Learn more”');
   for (const label of [browserActionDone(fill, page), browserActionAsked(fill, page)])
     expect(label).not.toContain('private');
+});
+
+it('names the browser mode or site grant that allowed a step, without its values', () => {
+  const fill = { kind: 'fill', selector: 'input', value: 'private answer' } as const;
+  const link: BrowserSnapshot = {
+    ...page,
+    elements: [{ ref: 'target', tag: 'a', name: 'Learn more' }],
+  };
+  expect(browserActionAllowed(fill, page, 'edits')).toBe(
+    'Allowed by Accept edits to type into “Customer name”',
+  );
+  expect(browserActionAllowed({ kind: 'click', selector: 'a' }, link, 'auto')).toBe(
+    'Allowed by Auto to click “Learn more”',
+  );
+  expect(browserActionAllowed({ kind: 'press', selector: 'body', key: 'Tab' }, page, 'full')).toBe(
+    'Allowed by Full access to press Tab',
+  );
+  // Autonomous preparation records carry no mode: a task site grant allowed them.
+  expect(
+    browserActionAllowed({ kind: 'navigate', url: 'https://example.com/jobs?token=abc' }, page),
+  ).toBe('Allowed for a site you granted to open example.com');
+  expect(browserActionAllowed(fill, page, 'full')).not.toContain('private');
 });
 
 it('keeps public labels to redacted element names, without URL secrets or raw control labels', () => {

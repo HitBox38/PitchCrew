@@ -299,7 +299,8 @@
   .clay-tray-state {
     flex-direction: column;
     align-items: stretch;
-    justify-content: center;
+    /* Any overflow scrolls at the bottom instead of hiding the title above the tray. */
+    justify-content: safe center;
     gap: 8px;
   }
   .clay-tray-state > [data-slot='button'] {

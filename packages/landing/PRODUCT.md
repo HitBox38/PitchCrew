@@ -12,11 +12,11 @@ Tech professionals (engineers, designers, product managers and similar roles) wh
 
 ## Product Purpose
 
-Pitchcrew is a free, local-first desktop app (macOS, Windows, Linux) that gives a job search a crew of AI role agents on a shared board. Agents find and assess roles, draft tailored resumes, cover letters and form answers, review them, and track applications. The user decides what to pursue and approves anything that leaves their computer. Success on the website is a visitor downloading the app; GitHub is the secondary action.
+Pitchcrew is a free, local-first desktop app (macOS, Windows, Linux) that gives a job search a crew of AI role agents on a shared board. Agents find and assess roles, draft tailored resumes, cover letters and form answers, review them, and track applications. The user decides what to pursue, approves every export, is asked before an application is submitted (the app spots that step as best it can) and chooses how much the browser agents do on their own. Success on the website is a visitor downloading the app; GitHub is the secondary action.
 
 ## Positioning
 
-Primary promise: a crew for the whole job search (find, draft, review, track), shown through one fictional job. Key proof: nothing is made up, and nothing is exported or submitted without you. Every claim in an application packet must quote the user's own profile notes word for word; an independent Reviewer agent checks it; exports, browser submissions, role changes and skill changes require explicit user approval enforced in the tool layer, not in prompts. Job postings are treated as untrusted input; the agents that draft and review never see raw posting text.
+Primary promise: a crew for the whole job search (find, draft, review, track), shown through one fictional job. Key proof: nothing is made up, nothing is exported without you, and the app asks before it submits an application, spotting that step as best it can. Every claim in an application packet must quote the user's own profile notes word for word; an independent Reviewer agent checks it; exports, role changes and skill changes require explicit user approval enforced in the tool layer, not in prompts, and so does a browser submission the agent marks or the app recognizes. Job postings are treated as untrusted input; the agents that draft and review never see raw posting text.
 
 Supporting proof:
 
@@ -28,7 +28,7 @@ Supporting proof:
 - Setup: download the installer (bundles Node, local server and Chromium), install and sign in to a supported AI CLI separately, add factual profile notes, add a job.
 - Supported runtimes: Codex, Claude Code, Gemini CLI, OpenCode, GitHub Copilot CLI, Cursor Agent, Goose, Kiro CLI, Grok Build, Pi, oh-my-pi and Hermes Agent.
 - Job sources: public Greenhouse, Ashby, Lever, Comeet and Workable boards, single posting links, manual entry, and import of past applications (JSON/CSV/legacy SQLite trackers).
-- Exports: Markdown, PDF and DOCX packets after approval. Optional browser assistance: starts supervised; users choose Supervised or Autonomous preparation as each agent’s default in Crew, with overrides per conversation. User-granted autonomous preparation on approved sites may navigate and fill recognized forms, but submission, buttons, keys and dialogs always need an exact user decision. Scheduled routines stay supervised. Sign-in and CAPTCHAs stay manual.
+- Exports: Markdown, PDF and DOCX packets after approval. Optional browser assistance: starts supervised; users choose Supervised, Autonomous preparation, Accept edits, Auto or Full access as each agent’s default in Crew, with overrides per conversation. Autonomous preparation fills recognized forms on sites the user approves; Accept edits browses and fills forms on its own; Auto also handles routine clicks and keys; Full access does everything else on its own, including moving multi-step forms to their next step. In every mode, the final submission and what the app recognizes as sending or posting an application, message, post or invitation need an exact user decision; recognizing that step on the page is best effort. Do not claim that buttons, keys or dialogs always wait, or that nothing can be sent or submitted without approval; say the app asks before it submits or sends, spotting those steps as best it can. Scheduled routines and requests from other apps stay supervised. Sign-in and CAPTCHAs stay manual.
 - Installers are currently unsigned on Windows and macOS, and macOS builds are not notarized.
 
 ## Capabilities and Constraints

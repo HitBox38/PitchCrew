@@ -1,7 +1,6 @@
-import { computerApprovalLifecycle } from '@pitchcrew/core/lifecycles';
 import type { Card, Run, Snapshot } from '@pitchcrew/core';
 import { closedStateSet } from '../board-stages.ts';
-import { packetNeedsAction } from '../lib/inbox.ts';
+import { browserNeedsAction, packetNeedsAction } from '../lib/inbox.ts';
 import { executingRuns } from '../lib/work-queue.ts';
 import {
   packetDetails,
@@ -60,7 +59,7 @@ export const decisions = (data: Snapshot): Decision[] =>
         };
       }),
     ...data.computerApprovals
-      .filter((approval) => computerApprovalLifecycle.is('open', approval.status))
+      .filter((approval) => browserNeedsAction(approval))
       .map((approval) => ({
         id: approval.id,
         kind: 'browser' as const,

@@ -39,7 +39,7 @@ export const steps: Step[] = [
     role: 'submitter',
     reaches: 5,
     title: 'Submitter fills, you press send.',
-    text: 'After you approve the packet, Submitter can prepare the form in a built-in browser. Choose Supervised or Autonomous preparation as each agent’s default, and override it per conversation. Autonomous preparation works on sites you allow; submitting, buttons, keys and dialogs still need your approval. Sign-in and CAPTCHAs stay yours.',
+    text: 'After you approve the packet, Submitter can prepare the form in a built-in browser. Choose how much it does on its own, from Supervised to Full access, as each agent’s default or per conversation. In every mode, Pitchcrew asks before it submits the application, spotting that step as best it can. Sign-in and CAPTCHAs stay yours.',
   },
   {
     id: 'track',
