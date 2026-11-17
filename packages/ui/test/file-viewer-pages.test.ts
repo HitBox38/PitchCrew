@@ -323,22 +323,23 @@ test('fits each page of a mixed-orientation PDF by its own size', async () => {
   await dialog().getByRole('button', { name: 'Next attachment', exact: true }).click();
   const mixed = page.getByRole('dialog', { name: 'mixed-pages.pdf' });
   await mixed.locator('[data-page="2"] canvas').waitFor();
+  // A page is sized like the first until its own size loads, so wait for each page's real shape.
   await expect
     .poll(() =>
       mixed.evaluate((element) => {
         const body = element.querySelector('.file-view-body')!;
-        const sheets = [...element.querySelectorAll('.file-pdf-page')].map((sheet) =>
-          sheet.getBoundingClientRect(),
-        );
-        return sheets.length === 2 && sheets.every((sheet) => sheet.width <= body.clientWidth);
+        return [...element.querySelectorAll<HTMLElement>('.file-pdf-page')]
+          .map((sheet) =>
+            sheet.getBoundingClientRect().width > body.clientWidth
+              ? 'too wide'
+              : sheet.clientWidth > sheet.clientHeight
+                ? 'landscape'
+                : 'portrait',
+          )
+          .join(', ');
       }),
     )
-    .toBe(true);
-  const [portrait, landscape] = await mixed
-    .locator('.file-pdf-page')
-    .evaluateAll((sheets) => sheets.map((sheet) => sheet.clientWidth / sheet.clientHeight));
-  expect(portrait).toBeLessThan(1);
-  expect(landscape).toBeGreaterThan(1);
+    .toBe('portrait, landscape');
   // The zoom menu shows the scale of the page most on screen.
   const zoom = () => mixed.getByRole('button', { name: /^Zoom, / }).textContent();
   const first = await zoom();
