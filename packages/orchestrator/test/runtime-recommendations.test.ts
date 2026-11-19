@@ -35,13 +35,13 @@ it('detects all runtimes and seeds paused production roles from native models an
       enabled,
     })),
   ).toEqual([
-    { id: 'scout', runtime: 'codex', model: 'gpt-6.1-sol', reasoning: 'medium', enabled: false },
+    { id: 'scout', runtime: 'codex', model: 'gpt-6.2-sol', reasoning: 'medium', enabled: false },
     { id: 'writer', runtime: 'claude-code', model: 'sonnet', reasoning: 'high', enabled: false },
-    { id: 'reviewer', runtime: 'codex', model: 'gpt-6-astra', reasoning: 'high', enabled: false },
+    { id: 'reviewer', runtime: 'codex', model: 'gpt-6.2-astra', reasoning: 'high', enabled: false },
     {
       id: 'submitter',
       runtime: 'codex',
-      model: 'gpt-6.1-sol',
+      model: 'gpt-6.1-terra',
       reasoning: 'medium',
       enabled: false,
     },
@@ -49,21 +49,21 @@ it('detects all runtimes and seeds paused production roles from native models an
     {
       id: 'documenter',
       runtime: 'codex',
-      model: 'gpt-6.1-sol',
+      model: 'gpt-6.2-sol',
       reasoning: 'medium',
       enabled: false,
     },
     {
       id: 'pipeline-coach',
       runtime: 'codex',
-      model: 'gpt-6-astra',
+      model: 'gpt-6.2-astra',
       reasoning: 'high',
       enabled: false,
     },
     {
       id: 'career-coach',
       runtime: 'codex',
-      model: 'gpt-6.1-sol',
+      model: 'gpt-6.2-sol',
       reasoning: 'high',
       enabled: false,
     },
@@ -149,7 +149,7 @@ it('keeps preferred setups paused when no runtime is installed and preserves det
   expect(production.daemon.service.board.list<Role>('role')).toHaveLength(defaultRoleIds.length);
   expect(production.daemon.service.board.get<Role>('role', 'scout')).toMatchObject({
     runtime: 'codex',
-    model: 'gpt-6.1-sol',
+    model: 'gpt-6.2-sol',
     reasoning: 'medium',
     enabled: false,
   });

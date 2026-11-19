@@ -63,6 +63,21 @@ export const codex: RuntimeAdapter = {
   // https://learn.chatgpt.com/docs/models
   models: [
     {
+      value: 'gpt-6.2-sol',
+      label: 'GPT-6.2 Sol',
+      reasoning: { levels: ['low', 'medium', 'high', 'xhigh', 'max', 'ultra'] },
+    },
+    {
+      value: 'gpt-6.2-astra',
+      label: 'GPT-6.2 Astra',
+      reasoning: { levels: ['low', 'medium', 'high', 'xhigh', 'max', 'ultra'] },
+    },
+    {
+      value: 'gpt-6.1-terra',
+      label: 'GPT-6.1 Terra',
+      reasoning: { levels: ['low', 'medium', 'high', 'xhigh', 'max', 'ultra'] },
+    },
+    {
       value: 'gpt-6.1-sol',
       label: 'GPT-6.1 Sol',
       reasoning: { levels: ['low', 'medium', 'high'] },

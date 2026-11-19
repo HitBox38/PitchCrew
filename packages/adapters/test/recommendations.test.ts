@@ -19,29 +19,48 @@ const runtime = (id: RuntimeId, models: RuntimeModel[] = [], available = true): 
   };
 };
 const sol: RuntimeModel = {
-  value: 'gpt-6.1-sol',
+  value: 'gpt-6.2-sol',
   label: 'Sol',
   reasoning: { levels: ['low', 'medium', 'high'] },
 };
-const astra: RuntimeModel = { ...sol, value: 'gpt-6-astra', label: 'Astra' };
+const astra: RuntimeModel = { ...sol, value: 'gpt-6.2-astra', label: 'Astra' };
+const terra: RuntimeModel = { ...sol, value: 'gpt-6.1-terra', label: 'Terra' };
 const luna: RuntimeModel = { ...sol, value: 'gpt-6-luna', label: 'Luna' };
 const sonnet: RuntimeModel = { ...sol, value: 'sonnet', label: 'Sonnet' };
 
 describe('role runtime recommendations', () => {
   it('selects role-specific models and supported reasoning without changing the catalogs', () => {
-    const runtimes = [runtime('codex', [sol, astra, luna]), runtime('claude-code', [sonnet])];
+    const runtimes = [
+      runtime('codex', [sol, astra, terra, luna]),
+      runtime('claude-code', [sonnet]),
+    ];
     const before = structuredClone(runtimes);
     expect(defaultRoleIds.map((id) => recommendRuntime(id, runtimes))).toMatchObject([
       { runtime: 'codex', model: sol.value, reasoning: 'medium' },
       { runtime: 'claude-code', model: 'sonnet', reasoning: 'high' },
       { runtime: 'codex', model: astra.value, reasoning: 'high' },
-      { runtime: 'codex', model: sol.value, reasoning: 'medium' },
+      { runtime: 'codex', model: terra.value, reasoning: 'medium' },
       { runtime: 'codex', model: luna.value, reasoning: 'high' },
       { runtime: 'codex', model: sol.value, reasoning: 'medium' },
       { runtime: 'codex', model: astra.value, reasoning: 'high' },
       { runtime: 'codex', model: sol.value, reasoning: 'high' },
     ]);
     expect(runtimes).toEqual(before);
+  });
+
+  it('retains role-specific choices from an older native catalog', () => {
+    const previousSol = { ...sol, value: 'gpt-6.1-sol' };
+    const previousAstra = { ...astra, value: 'gpt-6-astra' };
+    const runtimes = [runtime('codex', [luna, previousAstra, previousSol])];
+    expect(recommendRuntime('scout', runtimes).model).toBe(previousSol.value);
+    expect(recommendRuntime('reviewer', runtimes).model).toBe(previousAstra.value);
+  });
+
+  it('uses Sol for Submitter when the catalog omits Terra', () => {
+    expect(recommendRuntime('submitter', [runtime('codex', [astra, sol])])).toMatchObject({
+      model: sol.value,
+      reasoning: 'medium',
+    });
   });
 
   it('uses the preferred model through another installed runtime before a weaker model', () => {
@@ -78,7 +97,7 @@ describe('role runtime recommendations', () => {
       ]).reasoning,
     ).toBeNull();
     expect(
-      recommendRuntime('scout', [runtime('codex', [{ value: 'unknown', label: 'GPT-6.1 Sol' }])]),
+      recommendRuntime('scout', [runtime('codex', [{ value: 'unknown', label: 'GPT-6.2 Sol' }])]),
     ).toMatchObject({ model: '', reasoning: null });
     expect(() => recommendRuntime('constructor', [runtime('codex', [sol])])).toThrow('built-in');
   });
