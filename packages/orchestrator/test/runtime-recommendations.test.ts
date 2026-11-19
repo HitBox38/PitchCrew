@@ -82,6 +82,41 @@ it('detects all runtimes and seeds paused production roles from native models an
   expect(daemon.service.board.list<Role>('role')).toEqual(result.roles);
 });
 
+it('requires Codex CLI 0.159.0 for Terra when discovery falls back to suggestions', async () => {
+  installed(['codex']);
+  let version = 'codex-cli 0.158.9';
+  vi.mocked(adapters.codex.detect).mockImplementation(async () => ({
+    id: 'codex',
+    available: true,
+    version,
+    detail: '',
+  }));
+  vi.mocked(adapters.codex.listModels!).mockRejectedValue(new Error('Fixture discovery failure'));
+  const { daemon } = await setup(false, { dev: false });
+  expect(daemon.service.board.get<Role>('role', 'submitter')).toMatchObject({
+    model: 'gpt-6.2-sol',
+    reasoning: 'medium',
+  });
+  for (const [detectedVersion, expected] of [
+    ['codex-cli 0.159.0', 'gpt-6.1-terra'],
+    ['codex-cli 0.159.0-rc.1', 'gpt-6.2-sol'],
+    ['unknown', 'gpt-6.2-sol'],
+  ]) {
+    version = detectedVersion;
+    await daemon.service.detect();
+    const catalog = await daemon.service.runtimeModels('codex');
+    expect(catalog.models.some((model) => model.value === 'gpt-6.1-terra')).toBe(
+      expected === 'gpt-6.1-terra',
+    );
+    await expect(daemon.service.runtimeRecommendation('submitter')).resolves.toMatchObject({
+      runtime: 'codex',
+      model: expected,
+      modelSource: 'fallback',
+      reasoning: 'medium',
+    });
+  }
+});
+
 it('rechecks machine availability on every recommendation and leaves saved roles unchanged until settings are saved', async () => {
   installed(['codex', 'claude-code']);
   const { daemon, request } = await setup(false, { dev: false });
@@ -149,6 +184,11 @@ it('keeps preferred setups paused when no runtime is installed and preserves det
   expect(production.daemon.service.board.list<Role>('role')).toHaveLength(defaultRoleIds.length);
   expect(production.daemon.service.board.get<Role>('role', 'scout')).toMatchObject({
     runtime: 'codex',
+    model: 'gpt-6.2-sol',
+    reasoning: 'medium',
+    enabled: false,
+  });
+  expect(production.daemon.service.board.get<Role>('role', 'submitter')).toMatchObject({
     model: 'gpt-6.2-sol',
     reasoning: 'medium',
     enabled: false,

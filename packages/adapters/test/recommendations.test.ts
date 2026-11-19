@@ -90,6 +90,24 @@ describe('role runtime recommendations', () => {
     });
   });
 
+  it('uses the role presets in Copilot suggestions when native discovery fails', () => {
+    const fallback = { ...runtime('copilot-cli'), ...suggestedModels(adapters['copilot-cli']) };
+    for (const [role, model] of [
+      ['scout', sol.value],
+      ['writer', 'claude-sonnet-5.5'],
+      ['reviewer', astra.value],
+      ['submitter', terra.value],
+      ['tracker', luna.value],
+    ]) {
+      expect(recommendRuntime(role, [fallback])).toMatchObject({
+        runtime: 'copilot-cli',
+        model,
+        modelSource: 'fallback',
+        reasoning: null,
+      });
+    }
+  });
+
   it('never invents unsupported reasoning or selects an unknown first model', () => {
     expect(
       recommendRuntime('scout', [
