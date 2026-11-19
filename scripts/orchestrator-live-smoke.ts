@@ -114,7 +114,7 @@ const run = async () => {
       content: `# Fictional smoke profile\n\nThis is test data, not a real person.\nVerification marker: ${marker}\n`,
     });
     const targets = [
-      { id: 'smoke-codex', runtime: 'codex', model: option('--codex-model', 'gpt-6.1-sol') },
+      { id: 'smoke-codex', runtime: 'codex', model: option('--codex-model', 'gpt-6.2-sol') },
       {
         id: 'smoke-claude',
         runtime: 'claude-code',
@@ -286,7 +286,7 @@ if (!args.includes('--run')) {
     'Opt-in live smoke (uses installed provider accounts and may incur charges):\n' +
       'bun --no-env-file --no-install scripts/orchestrator-live-smoke.ts --run\n' +
       'Optional: --codex-model <id> --claude-model <id> --port <1024-65535>\n' +
-      'Defaults: gpt-6.1-sol and claude-opus-5-5. Keeps its temporary fictional workspace as evidence.',
+      'Defaults: gpt-6.2-sol and claude-opus-5-5. Keeps its temporary fictional workspace as evidence.',
   );
 } else {
   await run();

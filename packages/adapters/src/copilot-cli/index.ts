@@ -8,11 +8,18 @@ export const copilotCli = withChat({
   customReasoning: true,
   id: 'copilot-cli',
   // https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference#supported-models
+  // https://github.blog/changelog/2026-11-17-openais-gpt-6-2-astra-and-gpt-6-2-sol-now-available/
   models: [
     { value: 'auto', label: 'Auto' },
+    { value: 'claude-sonnet-5.5', label: 'Claude Sonnet 5.5' },
     { value: 'claude-sonnet-4.6', label: 'Claude Sonnet 4.6' },
     { value: 'claude-opus-5.5', label: 'Claude Opus 5.5' },
+    { value: 'claude-haiku-5.5', label: 'Claude Haiku 5.5' },
     { value: 'claude-haiku-4.5', label: 'Claude Haiku 4.5' },
+    { value: 'gpt-6.2-astra', label: 'GPT-6.2 Astra' },
+    { value: 'gpt-6.2-sol', label: 'GPT-6.2 Sol' },
+    { value: 'gpt-6.1-sol', label: 'GPT-6.1 Sol' },
+    { value: 'gpt-6.1-terra', label: 'GPT-6.1 Terra' },
     { value: 'gpt-6-astra', label: 'GPT-6 Astra' },
     { value: 'gpt-6-sol', label: 'GPT-6 Sol' },
     { value: 'gpt-6-luna', label: 'GPT-6 Luna' },

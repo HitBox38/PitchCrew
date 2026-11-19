@@ -4,7 +4,7 @@ export const agents: Agent[] = [
   {
     role: 'scout',
     name: 'Scout',
-    runtime: 'Codex · GPT-6.1 Sol · Medium',
+    runtime: 'Codex · GPT-6.2 Sol · Medium',
     capability: 'Scores the fit and reads postings as untrusted text.',
     run: { from: 0.1, to: 0.27 },
     working: 'Scoring Forma against your notes',
@@ -14,7 +14,7 @@ export const agents: Agent[] = [
   {
     role: 'writer',
     name: 'Writer',
-    runtime: 'Claude Code · Sonnet · High',
+    runtime: 'Claude Code · Sonnet 5.5 · High',
     capability: 'Drafts only from your notes, word for word.',
     run: { from: 0.3, to: 0.63 },
     working: 'Drafting the Forma packet',
@@ -24,7 +24,7 @@ export const agents: Agent[] = [
   {
     role: 'reviewer',
     name: 'Reviewer',
-    runtime: 'Codex · GPT-6 Astra · High',
+    runtime: 'Codex · GPT-6.2 Astra · High',
     capability: 'Checks every claim against your notes and rules.',
     run: { from: 0.67, to: 0.87 },
     working: 'Checking the packet line by line',

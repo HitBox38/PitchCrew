@@ -149,7 +149,7 @@ const main = async () => {
       });
       const preferred =
         runtime === 'codex'
-          ? catalog.models.find((model) => model.value === 'gpt-6.1-sol')
+          ? catalog.models.find((model) => model.value === 'gpt-6.2-sol')
           : (catalog.models.find((model) => model.value === 'sonnet') ??
             catalog.models.find((model) => /sonnet/i.test(model.value)));
       const model = preferred?.value ?? '';

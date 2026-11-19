@@ -8,7 +8,11 @@ import type { RuntimeModel } from '@pitchcrew/core';
 export const apiModels: readonly RuntimeModel[] = [
   { value: 'anthropic/claude-sonnet-5-5', label: 'Anthropic · Claude Sonnet 5.5' },
   { value: 'anthropic/claude-opus-5-5', label: 'Anthropic · Claude Opus 5.5' },
+  { value: 'anthropic/claude-haiku-5-5', label: 'Anthropic · Claude Haiku 5.5' },
   { value: 'anthropic/claude-haiku-4-5', label: 'Anthropic · Claude Haiku 4.5' },
+  { value: 'openai/gpt-6.2-sol', label: 'OpenAI · GPT-6.2 Sol' },
+  { value: 'openai/gpt-6.2-astra', label: 'OpenAI · GPT-6.2 Astra' },
+  { value: 'openai/gpt-6.1-terra', label: 'OpenAI · GPT-6.1 Terra' },
   { value: 'openai/gpt-6.1-sol', label: 'OpenAI · GPT-6.1 Sol' },
   { value: 'openai/gpt-6-sol', label: 'OpenAI · GPT-6 Sol' },
   { value: 'openai/gpt-6-luna', label: 'OpenAI · GPT-6 Luna' },
