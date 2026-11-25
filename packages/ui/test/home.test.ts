@@ -786,8 +786,9 @@ test('decides each seeded kind in place, leaving record lines and opening the ne
   expect(await railRows('.home-rest-trigger').textContent()).toMatch(/^\d+ more waiting/);
   await pastGuard();
 
-  // The brief opens job details at Application; confirming it there leaves no record, and focus
-  // comes back to the next row's trigger once the sheet closes, never to a sidebar link.
+  // The brief opens job details at Application; confirming it there leaves a record line, as a
+  // desk decision does, and focus comes back to the next row's trigger once the sheet closes,
+  // never to a sidebar link.
   await openRow(keys().brief);
   await row(keys().brief).getByRole('button', { name: 'Review and confirm', exact: true }).click();
   const sheet = page.locator('.card-details-panel');
@@ -795,7 +796,9 @@ test('decides each seeded kind in place, leaving record lines and opening the ne
   await sheet.getByRole('tab', { name: 'Application', selected: true }).waitFor();
   await confirmFixtureApplication(host.request, fixture.cards.quill);
   await row(keys().brief).waitFor({ state: 'detached' });
-  expect(await record('Quill Studio').count()).toBe(0);
+  await expect
+    .poll(() => record('Quill Studio').textContent())
+    .toContain('Brief confirmed · Writer and Reviewer see only what you confirmed');
   await page.keyboard.press('Escape');
   await sheet.waitFor({ state: 'detached' });
   await expect.poll(focused).toBe(keys().tracking);

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, type RefObject } from 'react';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { deskScope } from '../constants.ts';
+import { deskRecords } from '../records.ts';
 
 /** Surfaces that own focus while open: dialogs, sheets, menus, select lists and their backdrops. */
 const overlays =
@@ -95,6 +96,7 @@ export const useDeskFocus = (tray: RefObject<HTMLElement | null>, reduced: boole
     const stop = useWorkspaceStore.subscribe((state, previous) => {
       if (!previous.selectedId || state.selectedId || !fromDesk.current) return;
       fromDesk.current = false;
+      deskRecords.release();
       whenSheetCloses(() => focus.settle(false));
     });
     return () => {

@@ -218,6 +218,8 @@ const outcomes: Partial<Record<AttentionKind, Words>> = {
   'role-proposal': roleProposal,
   'skill-proposal': skillProposal,
   'writing-suggestion': writing,
+  // Confirmed in job details opened from the row; the record keeps the footer's promise.
+  brief: () => 'Brief confirmed · Writer and Reviewer see only what you confirmed',
 };
 
 /** A record line's words and bead for the calls a desk decision sent. */

@@ -8,7 +8,9 @@ import {
 import { DecisionBody } from '@/Decisions/components/DecisionBody.tsx';
 import { DecisionFooter } from '@/Decisions/components/DecisionFooter.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { snapshotStepFacts } from '@/lib/job-step.ts';
 import { asDecision } from '../../../helpers.ts';
+import { deskRecords } from '../../../records.ts';
 import { useDeskTools } from '../../../hooks/useDeskTools.ts';
 import type { BodyProps } from '../../../types.ts';
 import { OpenHeader } from './OpenHeader.tsx';
@@ -18,7 +20,8 @@ import { WaitingOn } from './WaitingOn.tsx';
  * A packet or a brief, decided with Decisions' own body and footer, its evidence between the ask
  * and who asked. A packet to approve shows that evidence open (with the same consented detector
  * Check as Decisions); at later stages the packet stays under Show packet. A brief shows its
- * read-only preview and opens job details to confirm, where the full checks run.
+ * read-only preview and opens job details to confirm, where the full checks run; confirmed there,
+ * it leaves a record line as a desk decision does.
  */
 export const DecisionsBody = ({ item, data }: BodyProps) => {
   const { act, openCard } = useDeskTools();
@@ -30,6 +33,14 @@ export const DecisionsBody = ({ item, data }: BodyProps) => {
     item.kind === 'packet' ? data.approvals.find((entry) => entry.id === item.entityId) : undefined;
   const parts = { decision, data, card, packet, browser: undefined };
   const evidence = <DecisionBody {...parts} />;
+  const confirmed = (fresh: typeof data) => {
+    const job = fresh.cards.find((entry) => entry.id === item.cardId);
+    return !!job && snapshotStepFacts(job, fresh.approvals).briefConfirmed;
+  };
+  const open: typeof openCard = (id, section) => {
+    if (item.kind === 'brief') deskRecords.watch({ item, data }, confirmed);
+    openCard(id, section);
+  };
   return (
     <>
       <OpenHeader item={item} data={data}>
@@ -47,12 +58,7 @@ export const DecisionsBody = ({ item, data }: BodyProps) => {
         )}
       </OpenHeader>
       <WaitingOn item={item} data={data} />
-      <DecisionFooter
-        {...parts}
-        action={act({ item, data })}
-        working={working}
-        openCard={openCard}
-      />
+      <DecisionFooter {...parts} action={act({ item, data })} working={working} openCard={open} />
     </>
   );
 };

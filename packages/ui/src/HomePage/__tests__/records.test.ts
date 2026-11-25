@@ -4,6 +4,7 @@ import type { Snapshot } from '@pitchcrew/core';
 import { attentionItems } from '@/lib/attention.ts';
 import {
   browserApproval,
+  confirmed,
   delivery,
   everyKind,
   pendingPacket,
@@ -329,5 +330,43 @@ describe('Desk records', () => {
       action: 'resume',
     });
     expect([...releasedQueues(state().records)]).toEqual(['job:corvid']);
+  });
+
+  it('records a brief confirmed in job details opened from its row, and nothing else', () => {
+    const quill = (applicationContext: ReturnType<typeof confirmed>, state = 'shortlisted') =>
+      ({
+        ...data,
+        cards: data.cards.map((entry) =>
+          entry.id === 'quill' ? { ...entry, state, applicationContext } : entry,
+        ),
+      }) as Snapshot;
+    const isConfirmed = (fresh: Snapshot) =>
+      !!fresh.cards.find((entry) => entry.id === 'quill')?.applicationContext?.confirmedAt;
+    // Confirmed there: the row leaves and its record line says so, as a desk decision would.
+    const { store, records, view, state } = desk(data, () => data);
+    records.watch(view('brief'), isConfirmed);
+    store.setState({ data: quill(confirmed()) });
+    expect(state().records['brief:quill']).toMatchObject({
+      subject: 'Quill Studio',
+      text: 'Brief confirmed · Writer and Reviewer see only what you confirmed',
+      calls: [],
+    });
+    expect(state().latest).toMatchObject({ key: 'brief:quill' });
+    expect(state().watched).toEqual({});
+    // Left for another reason (the job was withdrawn): no record.
+    const other = desk(data, () => data);
+    other.records.watch(other.view('brief'), isConfirmed);
+    other.store.setState({ data: quill(undefined as never, 'withdrawn') });
+    expect(other.state().records).toEqual({});
+    expect(other.state().watched).toEqual({});
+    // Job details closed without confirming: the watch ends after a few polls.
+    const closed = desk(data, () => data);
+    closed.records.watch(closed.view('brief'), isConfirmed);
+    closed.records.release();
+    expect(Object.keys(closed.state().watched)).toEqual(['brief:quill']);
+    clock.now += 10_001;
+    closed.store.setState({ data: { ...data } });
+    expect(closed.state().watched).toEqual({});
+    expect(closed.state().records).toEqual({});
   });
 });

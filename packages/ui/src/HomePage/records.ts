@@ -10,7 +10,8 @@ import type { DeskCall, DeskDecided, DeskFlight, DeskRecord, DeskView } from './
 
 // Record lines (decision 5): a decision made on the desk leaves one line with its consequence
 // where the row stood. In memory only, so records survive route changes in this app session and
-// are gone on reload. Items resolved anywhere else simply leave the list.
+// are gone on reload. A brief confirmed in job details opened from its row counts as decided on the
+// desk; items resolved anywhere else simply leave the list.
 
 export type DeskRecordsState = {
   /** One record per item key per session; deciding a key that came back replaces it. */
@@ -26,6 +27,11 @@ export type DeskRecordsState = {
   unsettled: Record<string, { view: DeskView; until: number }>;
   /** The newest record, for the desk to open the next row, say it and guard the spot. */
   latest: DeskDecided | null;
+  /**
+   * Rows whose decision happens in job details opened from the desk (a brief to confirm): a
+   * record once the item leaves and `done` holds; dropped `settleMs` after job details closes.
+   */
+  watched: Record<string, { view: DeskView; done: (fresh: Snapshot) => boolean; until: number }>;
 };
 
 /** Where the desk reads the workspace: its action, its snapshot and the attention list. */
@@ -48,6 +54,7 @@ const empty: DeskRecordsState = {
   calls: {},
   unsettled: {},
   latest: null,
+  watched: {},
 };
 const without = <T>(map: Record<string, T>, key: string) => {
   const { [key]: _gone, ...rest } = map;
@@ -225,8 +232,20 @@ export const createDeskRecords = (workspace: DeskWorkspace) => {
     const state = store.getState();
     const fresh = workspace.data();
     const keys = Object.keys(state.unsettled);
-    if (!keys.length || !fresh) return;
+    const watched = Object.keys(state.watched);
+    if ((!keys.length && !watched.length) || !fresh) return;
     let next = state;
+    for (const key of watched) {
+      const { view, done, until } = state.watched[key]!;
+      const left = !live(fresh, key);
+      if (!left && now() < until) continue;
+      const made = left && done(fresh) ? record(view, [], fresh, now()) : null;
+      next = {
+        ...next,
+        watched: without(next.watched, key),
+        ...(made ? { records: { ...next.records, [key]: made.made }, latest: made.latest } : {}),
+      };
+    }
     for (const key of keys) {
       const { view, until } = state.unsettled[key]!;
       const made = record(view, next.calls[key] ?? [], fresh, now());
@@ -247,7 +266,28 @@ export const createDeskRecords = (workspace: DeskWorkspace) => {
   };
   workspace.subscribe(settleUnsettled);
 
-  return { store, deskAction, settleUnsettled };
+  /** Job details opened from this row decides it; `done` says the fresh snapshot shows it decided. */
+  const watch = (view: DeskView, done: (fresh: Snapshot) => boolean) => {
+    const state = store.getState();
+    store.setState({
+      watched: { ...state.watched, [view.item.key]: { view, done, until: Infinity } },
+    });
+  };
+  /** Job details closed: watched rows get a few polls to show their result, then are dropped. */
+  const release = () => {
+    const state = store.getState();
+    const until = now() + settleMs;
+    const watched = Object.fromEntries(
+      Object.entries(state.watched).map(([key, entry]) => [
+        key,
+        { ...entry, until: Math.min(entry.until, until) },
+      ]),
+    );
+    store.setState({ watched });
+    settleUnsettled();
+  };
+
+  return { store, deskAction, settleUnsettled, watch, release };
 };
 
 /** The app's desk records, bound to the workspace store and the shared attention list. */
