@@ -1,5 +1,5 @@
-import { decisions } from '@/ClayInterface/signals.ts';
 import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
+import { useAttention } from '@/hooks/useAttention.ts';
 import { copyDataDirectory } from '@/lib/data-directory.ts';
 import { useShortcuts } from '@/shortcuts.ts';
 import { useTheme } from '@/theme.ts';
@@ -78,7 +78,7 @@ export const useApp = () => {
       }),
     [router, closePanels],
   );
-  const pending = data ? decisions(data).length : 0;
+  const attention = useAttention();
   const selected = data?.cards.find((c) => c.id === selectedId);
   const selectedRole = data?.roles.find((r) => r.id === roleId);
   const copyDirectory = () => {
@@ -120,7 +120,7 @@ export const useApp = () => {
     setPaletteOpen,
     paletteMounted,
     setPaletteMounted,
-    pending,
+    attention,
     selected,
     selectedRole,
     copyDirectory,

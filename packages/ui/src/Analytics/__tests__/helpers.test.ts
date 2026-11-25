@@ -5,6 +5,8 @@ describe('analytics content boundary', () => {
   it('uses only known page names and removes thread names and search filters', () => {
     expect(analyticsPage('/chat/private-agent')).toBe('chat');
     expect(analyticsPage('/profile')).toBe('profile');
+    expect(analyticsPage('/')).toBe('home');
+    expect(analyticsPage('/pipeline')).toBe('pipeline');
     expect(analyticsPage('/unknown/secret')).toBeUndefined();
     const event = sanitizeEvent({
       event: '$pageview',
@@ -31,6 +33,13 @@ describe('analytics content boundary', () => {
     expect(
       sanitizeEvent({ event: '$pageview', properties: { page: '__proto__' } })?.properties,
     ).not.toHaveProperty('page');
+    // The board's old page name ended when Home took `/` and the board became Pipeline.
+    expect(
+      sanitizeEvent({ event: '$pageview', properties: { page: 'board' } })?.properties,
+    ).not.toHaveProperty('page');
+    expect(
+      sanitizeEvent({ event: '$pageview', properties: { page: 'pipeline' } })?.properties,
+    ).toMatchObject({ page: 'pipeline', $pathname: '/pipeline' });
   });
 
   it('drops automatic events and unknown values rather than trusting SDK or body properties', () => {

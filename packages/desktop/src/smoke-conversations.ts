@@ -2,7 +2,7 @@ import { smokeChatPanels } from './smoke-chat-panels.ts';
 /** Verify conversation navigation lives in the shell and remains useful with an icon sidebar. */
 export const smokeConversations = `(async () => {
   document.querySelector('a[href="/"]')?.click();
-  if (!await waitFor(() => location.pathname === '/')) throw new Error('Conversation creation did not start from Board.');
+  if (!await waitFor(() => location.pathname === '/')) throw new Error('Conversation creation did not start from Home.');
   document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true }));
   const searchOpened = await waitFor(() => !!document.querySelector('.command-palette input') && document.activeElement === document.querySelector('.command-palette input'));
   document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));

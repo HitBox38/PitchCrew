@@ -1,4 +1,4 @@
-import type { CardState } from '@pitchcrew/core';
+import type { Card, CardState } from '@pitchcrew/core';
 
 export type BoardStage = {
   id: string;
@@ -42,6 +42,24 @@ export const stages: BoardStage[] = [
     empty: 'Jobs you’ve applied to land here.',
   },
 ];
+
+/**
+ * Jobs per open stage, plus the open and closed totals and the leads Scout has not scored yet
+ * (`fit` null or missing, as `jobStep` reads it), for Home's pipeline counts.
+ */
+export const stageCounts = (cards: readonly Pick<Card, 'state' | 'fit'>[]) => {
+  const closed = cards.filter((card) => closedStateSet.has(card.state)).length;
+  return {
+    open: cards.length - closed,
+    closed,
+    notScored: cards.filter((card) => card.state === 'lead' && card.fit == null).length,
+    stages: stages.map((stage) => ({
+      id: stage.id,
+      label: stage.label,
+      count: cards.filter((card) => stage.states.includes(card.state)).length,
+    })),
+  };
+};
 
 export const closedStage: BoardStage = {
   id: 'closed',

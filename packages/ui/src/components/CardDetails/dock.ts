@@ -62,7 +62,7 @@ const materials: Partial<Record<JobNowKind, DockMaterial>> = {
   choose: 'ask',
 };
 
-// The decision a dock step owns, as listed by the board's "Needs you" signals.
+// The decision a dock step owns, as Decisions' `decisions()` lists it.
 const decisionOwners: Partial<Record<JobNowKind, Decision['kind']>> = {
   'confirm-brief': 'brief',
   'brief-editing': 'brief',

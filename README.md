@@ -66,17 +66,17 @@ It uses Task Scheduler on Windows, a LaunchAgent on macOS and a systemd user uni
 
 ### Explore without an AI account
 
-Development mode includes **Demo**, a deterministic runtime that makes no AI calls. On an empty board, load the example board to try six fictional opportunities and a fictional profile. Examples refuse to overwrite an existing profile; use a separate data folder if you already have one.
+Development mode includes **Demo**, a deterministic runtime that makes no AI calls. On an empty **Pipeline**, choose **Load example data** to try six fictional opportunities and a fictional profile. Examples refuse to overwrite an existing profile; use a separate data folder if you already have one.
 
 Demo and example loading are available only when the daemon uses `--dev`, as with `bun run dev` or a daemon started by `bun run desktop`. Demo scores and drafts are scripted examples.
 
 ### Set up a real workspace
 
-Fresh workspaces show an introduction and setup checklist. You can defer setup and reopen **Getting started** from the sidebar.
+Fresh workspaces show an introduction, then a setup checklist on **Home**. You can defer setup and reopen **Getting started** from the sidebar.
 
 1. **Add your background in Profile.** Write factual Markdown notes or import a reviewed folder from GitHub or Google Drive.
 2. **Configure agents in Crew.** Choose an installed runtime, optional model and permissions. Enable an agent for each workflow seat: fit assessment, drafting and review.
-3. **Add a job on Board.** Paste a Greenhouse, Ashby, Lever, Comeet or Workable posting link and choose **Fetch from link** to fill in the details, or type them yourself. Then start the workflow below. Or add job sources in **Settings > Job sources** and choose **Scan now**.
+3. **Add a job in Pipeline.** Paste a Greenhouse, Ashby, Lever, Comeet or Workable posting link and choose **Fetch from link** to fill in the details, or type them yourself. Then start the workflow below. Or add job sources in **Settings > Job sources** and choose **Scan now**.
 
 New production workspaces start with paused agents, each preset to a recommended installed runtime and model (see [roles](docs/roles.md)). Development defaults use Demo. Existing agent settings are preserved; Demo agents cannot run in production until you select a real runtime. When a release improves a default agent's instructions, Crew offers the new text for you to review instead of changing it.
 
@@ -85,7 +85,7 @@ New production workspaces start with paused agents, each preset to a recommended
 1. **Evaluate fit**, then decide whether to **Shortlist** the job.
 2. **Draft application**, then **Review packet**. Inspect the full text and source evidence; request changes when needed.
 3. Choose Markdown, PDF and/or DOCX and a layout, then **Request export approval**.
-4. In **Inbox**, review the exact files, approve the export, then export them locally. A changed packet needs a fresh approval.
+4. On **Home**, the packet waits under **Needs you**: review the exact files, approve the export, then export them locally. **Decisions**, under More, shows the same request and keeps its history. A changed packet needs a fresh approval.
 5. Apply yourself and record the submission, or use the approved browser workflow. Track screening, interviews and outcomes on the same card.
 
 PDF and DOCX exports use the **Formatted** layout by default. It turns Markdown headings, bold and italic text, lists and links into a one-column document with clickable blue links. The resume gets tight margins and 10 point text for a one-page fit. Pandoc frontmatter and LaTeX spacing commands such as `\vspace{-8pt}` are left out. **Plain text** prints the Markdown literally, as earlier versions did. Inbox previews every document and shows its page count. It warns when a resume runs past one page. PDF names any character its font cannot show, while DOCX preserves Unicode. DOCX layout may differ in Word. See [packet exports](docs/packet-exports.md).
@@ -112,7 +112,7 @@ See [application process quality](docs/application-process-quality.md).
 
 You can also register an application you already submitted elsewhere, with its submission time and confirmation note, without generating a packet. See [application tracking](docs/tracking.md).
 
-Moving from another tracker? **Import applications** on Board accepts a legacy SQLite tracker (`.db`, `.sqlite`, `.sqlite3`) directly or a JSON/CSV export of up to 1,000 past applications with their statuses, dates, tags and notes. You review a preview of every row (new, duplicate or invalid) before anything is saved, and importing the same file again skips rows already imported. SQLite trackers are converted locally in the import dialog, with no terminal commands needed. The optional `bun --no-env-file scripts/convert-legacy-tracker.ts <tracker.db> <applications.json>` command uses the same converter. See [importing past applications](docs/tracking.md#importing-past-applications).
+Moving from another tracker? **Import applications**, under Add job on Pipeline, accepts a legacy SQLite tracker (`.db`, `.sqlite`, `.sqlite3`) directly or a JSON/CSV export of up to 1,000 past applications with their statuses, dates, tags and notes. You review a preview of every row (new, duplicate or invalid) before anything is saved, and importing the same file again skips rows already imported. SQLite trackers are converted locally in the import dialog, with no terminal commands needed. The optional `bun --no-env-file scripts/convert-legacy-tracker.ts <tracker.db> <applications.json>` command uses the same converter. See [importing past applications](docs/tracking.md#importing-past-applications).
 
 ## Your crew
 
@@ -157,7 +157,7 @@ On startup, Pitchcrew loads missing skills from the public GitHub starter catalo
 
 ## Job discovery
 
-Open **Settings > Job sources** to save a company's public job board. Pitchcrew supports Greenhouse, Ashby, Lever, Comeet and Workable. Give each source a company name and the board name from its link, then optional filters: title keywords to include or exclude, location keywords and remote only. **Test source** previews matching postings without adding anything. **Scan now** adds new matching postings to Board as leads, with the job ID and source recorded on each card. A Comeet source needs the company UID and the public careers token from the company's careers page; [job discovery](docs/job-discovery.md) explains where to find them.
+Open **Settings > Job sources** to save a company's public job board. Pitchcrew supports Greenhouse, Ashby, Lever, Comeet and Workable. Give each source a company name and the board name from its link, then optional filters: title keywords to include or exclude, location keywords and remote only. **Test source** previews matching postings without adding anything. **Scan now** adds new matching postings to Pipeline as leads, with the job ID and source recorded on each card. A Comeet source needs the company UID and the public careers token from the company's careers page; [job discovery](docs/job-discovery.md) explains where to find them.
 
 Pitchcrew reads only the providers' official public APIs, without signing in, and converts descriptions to plain text. A posting already on the board, in any state, is never added again, so withdrawing a lead dismisses it for good.
 
@@ -188,7 +188,7 @@ Install the local browser:
 bun run browser:install
 ```
 
-Enable **Computer use** for an agent and ask it to help with an application. **Chat → Browser** shows a live local browser per agent, with saved sign-ins, a compact agent menu and manual takeover for login or CAPTCHA. Choose how often each agent asks. **Supervised** asks before every interaction beside the browser or in **Decisions**. **Autonomous preparation** browses and prepares recognized hosted forms on task sites you allow; everything else asks. **Accept edits** browses pages and fills in forms on its own; buttons, links, keys, dialogs, agreeing to terms and sending ask first. **Auto** also handles routine clicks and keys, and asks before what looks like it could send, submit, delete, buy or change an account. **Full access** does everything on its own, including moving multi-step forms to their next step, except what it recognizes as sending or posting. In every mode, the final submission and anything Pitchcrew recognizes as sending or posting an application, message, post or invitation asks first; recognizing it is best effort, so agents mark the final submission themselves. Set an agent default (Supervised until you change it) or override it per conversation. Scheduled routines and requests from other apps stay supervised.
+Enable **Computer use** for an agent and ask it to help with an application. **Chat → Browser** shows a live local browser per agent, with saved sign-ins, a compact agent menu and manual takeover for login or CAPTCHA. Choose how often each agent asks. **Supervised** asks before every interaction beside the browser, on **Home** or in **Decisions**. **Autonomous preparation** browses and prepares recognized hosted forms on task sites you allow; everything else asks. **Accept edits** browses pages and fills in forms on its own; buttons, links, keys, dialogs, agreeing to terms and sending ask first. **Auto** also handles routine clicks and keys, and asks before what looks like it could send, submit, delete, buy or change an account. **Full access** does everything on its own, including moving multi-step forms to their next step, except what it recognizes as sending or posting. In every mode, the final submission and anything Pitchcrew recognizes as sending or posting an application, message, post or invitation asks first; recognizing it is best effort, so agents mark the final submission themselves. Set an agent default (Supervised until you change it) or override it per conversation. Scheduled routines and requests from other apps stay supervised.
 
 Browser approvals, whether yours or allowed automatically by the mode you chose, cover one exact interaction on the reviewed page and expire when the run ends. Optional form assessments save inspected requirements for Writer. Submission receipts capture approved attempts; uncertain outcomes pause further interactions until you verify the result. See [computer use](docs/computer-use.md).
 

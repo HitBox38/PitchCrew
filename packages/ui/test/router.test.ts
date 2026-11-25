@@ -56,7 +56,8 @@ describe('workspace routes', () => {
   });
 
   it.each([
-    ['/', 'board'],
+    ['/', 'home'],
+    ['/pipeline', 'pipeline'],
     ['/crew', 'crew'],
     ['/chat/writer', 'chat'],
     ['/chat/crew', 'chat'],
@@ -71,6 +72,26 @@ describe('workspace routes', () => {
     const { router } = await setup(path);
     expect(router.state.matches.at(-1)?.staticData.view).toBe(view);
     expect(router.state.matches.every((match) => match.status === 'success')).toBe(true);
+  });
+
+  it('opens one Needs you item on Home from its key and ignores anything else', async () => {
+    const key = 'failure:job:2b8f4c1e-6d3a-4f6e-9a51-0c7d2e9b1a44';
+    expect((await setup(`/?item=${key}`)).router.state.matches.at(-1)?.search).toEqual({
+      item: key,
+    });
+    for (const item of ['Question:1', 'question:', 'question:<script>', 'no-kind'])
+      expect(
+        (await setup(`/?item=${encodeURIComponent(item)}`)).router.state.matches.at(-1)?.search,
+      ).toMatchObject({ item: undefined });
+  });
+
+  it('restores the Pipeline mode and saved view and drops unknown values', async () => {
+    expect(
+      (await setup('/pipeline?mode=table&view=not-scored')).router.state.matches.at(-1)?.search,
+    ).toEqual({ mode: 'table', view: 'not-scored' });
+    expect(
+      (await setup('/pipeline?mode=grid&view=Not_Scored')).router.state.matches.at(-1)?.search,
+    ).toMatchObject({ mode: undefined, view: undefined });
   });
 
   it('redirects the chat entry to Scout with history replacement', async () => {

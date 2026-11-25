@@ -1,7 +1,7 @@
 import type { AgentTask, Snapshot } from '@pitchcrew/core';
 import { Button } from '@pitchcrew/design-system/button';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
-import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { useWorkspaceStore, type Action } from '@/WorkspaceStore/index.ts';
 import { taskLabels } from '@/lib/task-status.ts';
 import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
 
@@ -9,15 +9,19 @@ export const QueueFollowUps = ({
   tasks,
   queueId,
   data,
+  action,
 }: {
   tasks: AgentTask[];
   queueId: string;
   data: Snapshot;
+  /** Sends Retry and Skip (default: the workspace's), so a host can decide through its own. */
+  action?: Action;
 }) => {
-  const action = useWorkspaceStore((state) => state.action);
+  const workspaceAction = useWorkspaceStore((state) => state.action);
+  const send = action ?? workspaceAction;
   const working = useWorkspaceStore((state) => state.working);
   const recover = (taskId: string, kind: 'retry-follow-up' | 'skip-follow-up') =>
-    void action(`/queue/${encodeURIComponent(queueId)}`, 'PUT', { action: kind, taskId }).catch(
+    void send(`/queue/${encodeURIComponent(queueId)}`, 'PUT', { action: kind, taskId }).catch(
       () => {},
     );
   return tasks.length ? (

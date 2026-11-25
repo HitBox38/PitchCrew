@@ -1,0 +1,280 @@
+/* Proposal cards: Crew work's role and skill proposals (and pipeline reviews) in chat, and the
+ * same cards opened in Home's Needs you rows, which render before the chat route loads chat.css.
+ * Moved from chat/work.css and chat/clay-work.css in their original order; chat's rules became
+ * `:is(.chat-workspace, .needs-review) …`, which scores exactly as `.chat-workspace …` did. */
+
+.chat-proposal {
+  padding: 16px;
+  border: 0;
+  border-radius: 12px 13px 11px 12px;
+  background: var(--surface-bright);
+  background-image: var(--fibres);
+  box-shadow: var(--sheet);
+  font-size: 14px;
+}
+.chat-proposal + .chat-proposal {
+  margin-top: 12px;
+}
+.chat-proposal > header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.chat-proposal > header > div {
+  flex: 1;
+  min-width: 0;
+}
+.chat-proposal h4 {
+  margin: 0;
+  font:
+    600 14px 'Source Sans 3',
+    sans-serif;
+}
+.chat-proposal time {
+  color: var(--muted);
+  font-size: 11px;
+}
+.chat-proposal [data-slot='accordion'] {
+  margin-top: 15px;
+}
+.chat-proposal [data-slot='accordion-trigger'] {
+  cursor: pointer;
+  font-size: var(--text-label);
+  color: var(--primary);
+}
+.chat-instruction-comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.chat-proposal > footer {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.chat-proposal footer p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.chat-proposal footer > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 13px;
+}
+.chat-proposal footer .button {
+  height: 33px;
+  font-size: 12px;
+}
+@variant max-chat {
+  .chat-instruction-comparison {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .chat-proposal {
+    padding: 14px;
+  }
+  .chat-proposal footer > div {
+    flex-wrap: wrap;
+  }
+}
+
+/* Proposal cards: raised clay with a decision footer like the Decisions sheet. */
+:is(.chat-workspace, .needs-review) .chat-proposal {
+  padding: 16px 18px 0;
+  border-radius: 16px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  overflow: hidden;
+}
+:is(.chat-workspace, .needs-review) .chat-proposal + .chat-proposal {
+  margin-top: 14px;
+}
+:is(.chat-workspace, .needs-review) .chat-proposal > [data-streamdown] {
+  color: var(--ink-soft);
+  font-size: var(--text-label);
+  line-height: 1.6;
+}
+:is(.chat-workspace, .needs-review) .clay-proposal-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px 10px;
+  margin-bottom: 10px;
+}
+:is(.chat-workspace, .needs-review) .clay-proposal-header h4 {
+  font-size: 15px;
+}
+:is(.chat-workspace, .needs-review) .clay-proposal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin-top: 3px;
+}
+:is(.chat-workspace, .needs-review) .clay-proposal-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px 0 7px;
+  gap: 6px;
+  border-radius: 999px;
+  background: var(--plum-soft);
+  color: var(--plum);
+  font-size: var(--text-detail);
+  font-weight: 600;
+  white-space: nowrap;
+}
+:is(.chat-workspace, .needs-review) .clay-proposal-summary {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+:is(.chat-workspace, .needs-review) .clay-proposal-part {
+  margin-top: 14px;
+}
+:is(.chat-workspace, .needs-review) .clay-proposal-part h5 {
+  margin: 0 0 6px 2px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+
+/* The exact change sits in a recessed tray. */
+:is(.chat-workspace, .needs-review) .clay-proposal-tray {
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+:is(.chat-workspace, .needs-review) .clay-proposal-tray .instruction-diff {
+  max-height: 260px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+}
+:is(.chat-workspace, .needs-review) .clay-proposal-tray .instruction-diff li {
+  border-radius: 6px;
+}
+:is(.chat-workspace, .needs-review) .clay-proposal-tray [data-slot='code-block'] {
+  border-radius: 8px;
+}
+:is(.chat-workspace, .needs-review) .clay-proposal-quiet {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+:is(.chat-workspace, .needs-review) .clay-proposal-tray > .clay-proposal-quiet {
+  margin: 0;
+  padding: 6px 8px;
+}
+:is(.chat-workspace, .needs-review) .clay-capability-changes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+:is(.chat-workspace, .needs-review) .clay-capability-changes li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 14px;
+  padding: 7px 8px;
+  color: var(--ink);
+  font-size: var(--text-label);
+}
+:is(.chat-workspace, .needs-review) .clay-capability-shift {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+:is(.chat-workspace, .needs-review) .clay-capability-shift strong {
+  min-width: 1.75rem;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+:is(.chat-workspace, .needs-review) .chat-proposal > footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  margin: 16px -18px 0;
+  padding: 12px 18px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+:is(.chat-workspace, .needs-review) .chat-proposal > footer > p {
+  flex: 1 1 14rem;
+}
+:is(.chat-workspace, .needs-review) .chat-proposal > footer > div {
+  margin-top: 0;
+}
+
+@variant max-chat {
+  :is(.chat-workspace, .needs-review) .chat-proposal {
+    padding: 14px 14px 0;
+  }
+  :is(.chat-workspace, .needs-review) .chat-proposal > footer {
+    margin-inline: -14px;
+    padding: 12px 14px;
+  }
+  :is(.chat-workspace, .needs-review) .chat-proposal > footer > div {
+    flex: 1;
+    justify-content: flex-end;
+  }
+  :is(.chat-workspace, .needs-review) .clay-capability-changes li {
+    flex-wrap: wrap;
+  }
+}
+
+:is(.chat-workspace, .needs-review) .chat-proposal [data-slot='accordion'] {
+  margin-top: 10px;
+}
+
+/* Off beads read as hollow rings inside the recessed trays. Chat keeps its own copy of this rule
+ * in chat/clay-work.css, where it must still follow chat/clay.css's dark bead at equal weight. */
+.needs-review .clay-proposal-tray .clay-bead[data-empty] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--border-strong);
+}
+
+/* Inside a Home row the row is already the raised surface (two depth levels at most), so the card
+ * and its decision footer drop their own clay, band and inset. Last, so it outlasts max-chat. */
+.needs-review .chat-proposal {
+  padding: 0;
+  overflow: visible;
+  background: none;
+  box-shadow: none;
+}
+/* Its footer reads as every open row ends (`approveFirst`): the verbs at the left, the approve
+ * verb first, and the note under them as the row's consequence line. */
+.needs-review .chat-proposal > footer {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  margin-inline: 0;
+  padding-inline: 0;
+  background: none;
+}
+.needs-review .chat-proposal > footer > div {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+.needs-review .chat-proposal > footer > p {
+  max-width: 68ch;
+}
+/* The row already names what the change does (its headline), who proposed it and when (beside an
+ * avatar) and whose settings it changes (its subject), so the card's own header, with chat's
+ * compact age, would say it all twice. */
+.needs-review .chat-proposal > .clay-proposal-header {
+  display: none;
+}

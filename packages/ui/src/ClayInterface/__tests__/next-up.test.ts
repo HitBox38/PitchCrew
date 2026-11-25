@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Card, Role, Run, Snapshot } from '@pitchcrew/core';
-import { nextUp } from '../jobs.ts';
+import { nextStepText, nextUp } from '../jobs.ts';
 import { decisions, jobSignals } from '../signals.ts';
 import { stepLabel, trackIndex } from '../helpers.ts';
 
@@ -62,7 +62,7 @@ describe('next up', () => {
         approvals: [],
         computerApprovals: [],
       } as unknown as Snapshot;
-      // The board's Needs you deck and the stage line agree: no brief decision for a lead.
+      // Decisions and the stage line agree: no brief decision for a lead.
       expect(decisions(data)).toEqual([]);
       expect(jobSignals(data).get('job')).toBeUndefined();
       expect(nextUp(job, data)?.text).toBe(text);
@@ -110,6 +110,19 @@ describe('next up', () => {
     const run = { id: 'run', roleId: 'writer', cardId: 'job', status: 'running' } as Run;
     expect(next(job, { runs: [run] })).toBe('Writer is working');
     expect(next(card({ state: 'rejected' }))).toBeUndefined();
+  });
+
+  it('words the next step on its own, whoever has the move now', () => {
+    const job = card({ state: 'shortlisted', applicationContext: confirmed });
+    const run = { id: 'run', roleId: 'writer', cardId: 'job', status: 'running' } as Run;
+    const data = { cards: [job], roles, runs: [run], approvals: [], computerApprovals: [] };
+    // nextUp names the working agent; the step text reads only the gates.
+    expect(nextUp(job, data as unknown as Snapshot)?.text).toBe('Writer is working');
+    expect(nextStepText(job, data as unknown as Snapshot)).toBe('Next: Writer drafts the packet');
+    expect(nextStepText(card(), data as unknown as Snapshot)).toBe(
+      'Next: you prepare the job brief',
+    );
+    expect(nextStepText(card({ state: 'withdrawn' }), data as unknown as Snapshot)).toBeNull();
   });
 });
 

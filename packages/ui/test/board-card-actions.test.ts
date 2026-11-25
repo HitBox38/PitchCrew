@@ -43,7 +43,7 @@ beforeEach(async () => {
     url: 'https://example.com/fictional-job',
   });
   next = host.daemon.service.createCard({ company: 'Next Studio', title: 'Designer' });
-  await page.goto(host.daemon.url, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${host.daemon.url}/pipeline`, { waitUntil: 'domcontentloaded' });
   await page.locator('.job-actions-trigger').first().waitFor({ timeout: 30000 });
   const later = page.getByRole('button', { name: 'Set up later', exact: true });
   if (await later.isVisible()) await later.click();
@@ -139,9 +139,9 @@ test('copying a posting link and recording withdrawal preserve the current view 
     .poll(() => host.daemon.service.board.get<Card>('card', card.id).state)
     .toBe('withdrawn');
   await expect.poll(() => menu().count()).toBe(0);
-  expect(
-    await page.getByRole('button', { name: /^Pipeline \d/ }).getAttribute('aria-pressed'),
-  ).toBe('true');
+  expect(await page.getByRole('button', { name: /^Open \d/ }).getAttribute('aria-pressed')).toBe(
+    'true',
+  );
   await expect.poll(focusedLabel).toBe(`Actions for ${next.title} at ${next.company}`);
   expect(
     host.daemon.service.board.list<Run>('run').filter((run) => run.cardId === card.id),
@@ -382,7 +382,7 @@ test('touch menus fit a phone viewport and reach off-screen statuses through int
   });
   mobile.on('pageerror', (error) => errors.push(error.message));
   try {
-    await mobile.goto(host.daemon.url, { waitUntil: 'domcontentloaded' });
+    await mobile.goto(`${host.daemon.url}/pipeline`, { waitUntil: 'domcontentloaded' });
     await mobile.getByRole('button', { name: menuName(), exact: true }).tap();
     await mobile.getByRole('menuitem', { name: 'Move to…', exact: true }).tap();
     const popup = mobile.locator('[data-slot="dropdown-menu-sub-content"]');
@@ -398,7 +398,7 @@ test('touch menus fit a phone viewport and reach off-screen statuses through int
       .poll(() => host.daemon.service.board.get<Card>('card', card.id).state)
       .toBe('ghosted');
     expect(
-      await mobile.getByRole('button', { name: /^Pipeline \d/ }).getAttribute('aria-pressed'),
+      await mobile.getByRole('button', { name: /^Open \d/ }).getAttribute('aria-pressed'),
     ).toBe('true');
     expect(await mobile.locator('[data-dragging]').count()).toBe(0);
   } finally {
@@ -458,13 +458,13 @@ test('pipeline columns rank by fit, bound their cards, persist the Closed sort a
     .getByRole('button', { name: 'Sort Closed jobs: Fit (high to low)', exact: true })
     .click();
   await page.getByRole('menuitemradio', { name: 'Recently updated', exact: true }).click();
-  await page.getByRole('button', { name: /^Pipeline \d/ }).click();
+  await page.getByRole('button', { name: /^Open \d/ }).click();
   await page.reload();
   await page.getByRole('button', { name: /^Closed \d/ }).click();
   await page
     .getByRole('button', { name: 'Sort Closed jobs: Recently updated', exact: true })
     .waitFor();
-  await page.getByRole('button', { name: /^Pipeline \d/ }).click();
+  await page.getByRole('button', { name: /^Open \d/ }).click();
 
   const nextMenu = page.getByRole('button', {
     name: `Actions for ${next.title} at ${next.company}`,

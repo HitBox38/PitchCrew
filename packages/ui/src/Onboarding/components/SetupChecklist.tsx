@@ -58,13 +58,18 @@ export const SetupChecklist = ({
           done={progress.job}
           current={current === 'job' && !progress.job}
           label="Add a job"
-          action={() => (progress.job ? go('board') : setAdd(true))}
+          action={() => (progress.job ? go('pipeline') : setAdd(true))}
           disabled={working}
         />
       </ol>
       <footer className="onboarding-checklist-footer">
         {count === 3 ? (
-          <Button size="sm" disabled={working} onClick={() => void save('completed')}>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={working}
+            onClick={() => void save('completed')}
+          >
             {working ? 'Saving…' : 'Finish setup'}
           </Button>
         ) : (

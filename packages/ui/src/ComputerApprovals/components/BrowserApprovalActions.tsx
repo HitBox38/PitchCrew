@@ -1,43 +1,43 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from '@pitchcrew/design-system/button';
 import type { ComputerApproval } from '@pitchcrew/core';
+import { DecideHint } from '@/components/DecideHint/index.tsx';
+import { useDecideShortcut } from '@/hooks/useDecideShortcut.ts';
+import { isMac } from '@/shortcuts.ts';
 import type { ComputerApprovalsProps } from '../types.ts';
-import { approveLabel } from '../helpers.ts';
+import { approveLabel, isFinalSubmission } from '../helpers.ts';
 
 type Props = Pick<ComputerApprovalsProps, 'action' | 'working'> & {
   approval: ComputerApproval;
   /** Decided where the result is already visible (the browser tray): no success toast. */
   quiet?: boolean;
-  /** Control/Command+Enter approves while focus is in the browser panel (the tray's copy). */
-  shortcut?: boolean;
+  /**
+   * Control/Command+Enter approves while focus is inside this scope around the approve button:
+   * true for the browser panel (the tray's copy), or a selector for a surface of its own (Home's
+   * open row), where the approve button also shows the keys. A surface of its own never offers it
+   * on a final submission (`isFinalSubmission`, a dialog continuing one included): focus moves on
+   * to the next decision there, so a repeated press could reach one. The tray keeps it, beside the
+   * live page.
+   */
+  shortcut?: boolean | string;
+  /** When the surface showed this request (`performance.now()`); the shortcut waits after it. */
+  armedAt?: number;
 };
 
-const mac = () => /Mac|iPhone|iPad/.test(navigator.platform);
-
 /** The decision for one browser request: the verb-specific approval first, then Reject. */
-export const BrowserApprovalActions = ({ approval, action, working, quiet, shortcut }: Props) => {
+export const BrowserApprovalActions = ({
+  approval,
+  action,
+  working,
+  quiet,
+  shortcut,
+  armedAt,
+}: Props) => {
   const [deciding, setDeciding] = useState<boolean | null>(null);
   const approve = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (!shortcut) return;
-    const keydown = (event: KeyboardEvent) => {
-      if (event.key !== 'Enter' || event.shiftKey || event.altKey || event.repeat) return;
-      if (!(mac() ? event.metaKey : event.ctrlKey)) return;
-      // A keystroke something else already used (the message box sends on it) or one typed into
-      // a field never also approves: one action per keystroke.
-      if (event.defaultPrevented || event.isComposing) return;
-      const target = event.target instanceof Element ? event.target : null;
-      if (
-        target?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')
-      )
-        return;
-      if (!document.activeElement?.closest('#agent-browser-panel')) return;
-      event.preventDefault();
-      approve.current?.click();
-    };
-    window.addEventListener('keydown', keydown);
-    return () => window.removeEventListener('keydown', keydown);
-  }, [shortcut]);
+  const submission = isFinalSubmission(approval.action);
+  const scope = shortcut === true ? '#agent-browser-panel' : (!submission && shortcut) || undefined;
+  const keys = useDecideShortcut(approve, scope, armedAt);
   if (approval.status !== 'pending') return null;
   const decide = (approved: boolean) => {
     setDeciding(approved);
@@ -55,19 +55,22 @@ export const BrowserApprovalActions = ({ approval, action, working, quiet, short
       .finally(() => setDeciding(null));
   };
   const busy = working || deciding !== null;
+  const verb = approveLabel(approval.action);
+  // The tray keeps its own wording of the keys; a surface with its own scope shows the app's label.
+  const own = !!scope && shortcut !== true;
+  const hint = own ? keys.label : `${isMac ? '⌘' : 'Ctrl'}+Enter`;
   return (
     <div className="approval-footer">
       <Button
         ref={approve}
         disabled={busy}
         className="button primary"
-        aria-keyshortcuts={shortcut ? (mac() ? 'Meta+Enter' : 'Control+Enter') : undefined}
-        title={
-          shortcut ? `${approveLabel(approval.action)} (${mac() ? '⌘' : 'Ctrl'}+Enter)` : undefined
-        }
+        aria-keyshortcuts={scope ? keys.aria : undefined}
+        title={scope ? `${verb} (${hint})` : undefined}
         onClick={() => decide(true)}
       >
-        {deciding === true ? 'Running…' : approveLabel(approval.action)}
+        {deciding === true ? 'Running…' : verb}
+        {own && deciding === null ? <DecideHint label={keys.label} /> : null}
       </Button>
       <Button disabled={busy} className="button" onClick={() => decide(false)}>
         {deciding === false ? 'Rejecting…' : 'Reject'}

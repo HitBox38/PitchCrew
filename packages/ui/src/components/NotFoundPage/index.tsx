@@ -5,7 +5,7 @@ export const NotFoundPage = () => {
     <section className="empty-state">
       <h2>Page not found</h2>
       <p>This address doesn’t match a workspace page.</p>
-      <Link to="/">Go to Board</Link>
+      <Link to="/">Go to Home</Link>
     </section>
   );
 };

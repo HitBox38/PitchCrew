@@ -41,6 +41,11 @@ export const questionShortcutTarget = (id: string, target: EventTarget | null) =
   );
 };
 
+/** Only a target inside this question's own form: never the page body or a surrounding row. */
+export const questionFormTarget = (id: string, target: EventTarget | null) =>
+  target instanceof HTMLElement &&
+  questionOwnsFocus(document.getElementById(`answer-${id}`)?.closest('form') ?? null, target);
+
 /** A state update may commit after the first frame; never override a newer route or focus choice. */
 export const focusAfterReveal = (destination: () => HTMLElement | null | undefined) => {
   const pathname = window.location.pathname;

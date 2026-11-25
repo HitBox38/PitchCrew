@@ -65,6 +65,19 @@ test('global controls share the app bar and leave the sidebar free of pinned des
   expect(await bar.locator('.queue-tray-label').textContent()).toContain('0 / 10');
 });
 
+test('⌘/Ctrl+1–4 open Home, Pipeline, Crew and Profile', async () => {
+  for (const [key, path] of [
+    ['2', '/pipeline'],
+    ['3', '/crew'],
+    ['4', '/profile'],
+    ['1', '/'],
+  ] as const) {
+    await page.keyboard.press(`Control+${key}`);
+    await expect.poll(() => new URL(page.url()).pathname).toBe(path);
+  }
+  await page.getByRole('heading', { name: 'Needs you', level: 2 }).waitFor();
+});
+
 test('capacity never grows the indicator or its DOM, across native window layouts', async () => {
   const trigger = page.getByRole('button', { name: /^Work queue:/ });
   const initialWidth = (await trigger.boundingBox())!.width;
@@ -175,10 +188,11 @@ test('touch navigation closes the phone drawer after choosing a primary page', a
   const phone = await context.newPage();
   try {
     await phone.goto(host.daemon.url);
-    for (const name of ['Crew', 'Profile', 'Decisions', 'Board']) {
+    // Home can carry a count ("Home, 2 waiting on you"); Decisions is a More menu item.
+    for (const name of ['Pipeline', 'Crew', 'Profile', /^Home(?:,|$)/]) {
       await phone.getByRole('button', { name: 'Open navigation', exact: true }).tap();
       const drawer = phone.getByRole('dialog', { name: 'Sidebar', exact: true });
-      await drawer.getByRole('link', { name, exact: true }).tap();
+      await drawer.getByRole('link', { name, exact: typeof name === 'string' }).tap();
       await drawer.waitFor({ state: 'hidden', timeout: 5000 });
       expect(
         await phone.getByRole('button', { name: 'Open navigation', exact: true }).isVisible(),

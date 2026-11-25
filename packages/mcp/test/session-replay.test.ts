@@ -42,7 +42,7 @@ it('ships useful wireframe snapshots and pointer interactions without private DO
     }
     response.setHeader('content-type', 'text/html');
     response.end(`<!doctype html><title>${secret}</title><style>body{margin:0}nav{width:220px;height:600px}a{display:block;width:180px;height:42px}main{position:absolute;left:230px;top:0;width:600px;height:600px}</style>
-      <nav><a id="nav" data-replay-surface="board" href="/?${secret}" aria-label="${secret}" title="${secret}">Board ${secret}</a></nav>
+      <nav><a id="nav" data-replay-surface="home" href="/?${secret}" aria-label="${secret}" title="${secret}">Home ${secret}</a></nav>
       <main><section id="${secret}" data-company="${secret}">${secret}<input type="hidden" value="${secret}"><input type="file" aria-label="${secret}"><img src="/${secret}"></section></main>
       <script type="module">
       import {record, Replayer} from '/rrweb.js'; window.Replayer=Replayer; import {createReplay} from '/recorder.js'; import {sanitizeReplayProperties} from '/privacy.js';
@@ -119,11 +119,11 @@ it('ships useful wireframe snapshots and pointer interactions without private DO
     }, events);
     const replayFrame = page.frameLocator('#replay-verification iframe');
     await expect
-      .poll(async () => replayFrame.locator('[data-replay-surface="board"]').count())
+      .poll(async () => replayFrame.locator('[data-replay-surface="home"]').count())
       .toBe(1);
     expect(
       await replayFrame
-        .locator('[data-replay-surface="board"]')
+        .locator('[data-replay-surface="home"]')
         .evaluate((node) => node.getBoundingClientRect().width),
     ).toBe(180);
     expect(await replayFrame.locator('body').textContent()).not.toContain(secret);

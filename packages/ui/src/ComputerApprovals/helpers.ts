@@ -83,6 +83,16 @@ const approveVerbs: Record<BrowserAction['kind'], string> = {
   upload: 'Approve upload',
 };
 
+/**
+ * A final submission step: an action marked `purpose: 'submission'`, or a dialog decision that
+ * continues an uncertain submission (`submissionAttemptId`), which the server also classifies as
+ * a submission. A surface where focus moves on to the next decision never offers the decide
+ * shortcut on one, and the record says the user verifies the outcome after.
+ */
+export const isFinalSubmission = (action: BrowserAction) =>
+  ('purpose' in action && action.purpose === 'submission') ||
+  (action.kind === 'dialog' && !!action.submissionAttemptId);
+
 /** The decision button names what will happen; a final submission says so. */
 export const approveLabel = (action: BrowserAction) =>
   'purpose' in action && action.purpose === 'submission'

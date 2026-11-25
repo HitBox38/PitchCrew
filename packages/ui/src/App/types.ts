@@ -41,5 +41,12 @@ export type WorkspacePanelsProps = Pick<
 
 export type WorkspaceSidebarProps = Pick<
   WorkspaceModel,
-  'view' | 'pending' | 'data' | 'openCard' | 'recentCards' | 'toggleRole' | 'setRoleId' | 'working'
+  | 'view'
+  | 'attention'
+  | 'data'
+  | 'openCard'
+  | 'recentCards'
+  | 'toggleRole'
+  | 'setRoleId'
+  | 'working'
 >;

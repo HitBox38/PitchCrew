@@ -1,0 +1,1682 @@
+/* Home: the setup checklist while setup is open, the work strip where the rail cannot sit beside
+ * the desk, Needs you (one recessed tray of ranked rows), Since you were last here, and the crew
+ * rail. Home scrolls inside the work area, never the document. The body is a size container (the
+ * frame fixes its height), so the rail and the setup band can be capped to the visible height. */
+.workspace-body.home-workspace-body {
+  container: home-body / size;
+  /* Positioned, so screen-reader text (absolutely positioned) stays inside this scroller instead
+   * of stretching the document, which must never scroll. */
+  position: relative;
+  /* Room for a pinned tier caption (its band and offset) above a row brought into view. */
+  scroll-padding-top: 44px;
+}
+/* One column in reading order (setup band, work strip, Needs you, Since, rail) until the rail can
+ * sit beside a desk at least 600px wide. */
+.home {
+  display: grid;
+  grid-template-columns: minmax(0, 784px);
+  align-content: start;
+  align-items: start;
+  gap: 24px;
+}
+.home-fact-failed {
+  color: var(--rose);
+}
+
+/* The setup band scrolls on its own, so Set up later stays reachable in short windows. */
+.home > .onboarding-checklist {
+  width: min(640px, 100%);
+  max-height: calc(100cqb - 16px);
+  min-height: 0;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+/* From 880px of work width the rail sits beside the desk: the desk stops growing at 784px, the
+ * rail takes what is spare up to 420px, and once both are capped the pair is centred. The rail's
+ * extra height falls to Since's row (`1fr`), never between the desk and Since. */
+@container home-body (min-width: 880px) {
+  .home {
+    --home-gap: clamp(24px, 3cqi, 48px);
+    grid-template-columns:
+      minmax(0, 784px)
+      clamp(256px, max(28cqi, 100cqi - 784px - var(--home-gap)), 420px);
+    grid-template-rows: auto 1fr;
+    grid-template-areas: 'needs rail' 'since rail';
+    justify-content: center;
+    column-gap: var(--home-gap);
+    /* The air the rail's shaded top edge pins into (below). */
+    padding-top: 10px;
+  }
+  /* The setup band keeps to the desk's column, so Working now stays beside it during setup. */
+  .home[data-setup] {
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas: 'setup rail' 'needs rail' 'since rail';
+  }
+  .home > .onboarding-checklist {
+    grid-area: setup;
+  }
+  .home > .needs {
+    grid-area: needs;
+  }
+  .home > .home-since-area {
+    grid-area: since;
+  }
+  /* The rail beside the desk answers the strip's question in full. */
+  .home > .home-strip {
+    display: none;
+  }
+  /* The rail stays pinned beside the desk, so Working now is in view at every decision, and
+   * scrolls on its own when taller than the view. Its 12px top and bottom borders hold no content
+   * (a scroller clips to its padding box); while more lies past an edge, that edge's border casts
+   * the soft shade, so the cue never lies over a line of text. The negative top margin keeps its
+   * first heading level with Needs you; with the page's 10px of air it pins flush with the work
+   * area's edge (sticky offsets start inside the body's 2px top padding). Both rests land on whole
+   * rows (useRailEnd measures them): its height ends the first view between rows, a little short
+   * of the view's foot, and its end padding starts the last view on one. */
+  .home > .home-rail {
+    --rail-above: transparent;
+    --rail-below: transparent;
+    --rail-above-line: transparent;
+    --rail-below-line: transparent;
+    grid-area: rail;
+    position: sticky;
+    top: -2px;
+    max-height: min(var(--rail-room, calc(100cqb + 2px)), calc(100cqb + 2px));
+    margin: -12px -4px 0 -12px;
+    padding: 0 8px var(--rail-end, 0px) 12px;
+    border-block: 12px solid transparent;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scroll-snap-type: y proximity;
+    scroll-padding-block: 4px;
+    scrollbar-color: rgb(var(--tint) / 0.25) transparent;
+    scrollbar-width: thin;
+    background:
+      linear-gradient(var(--rail-above-line), var(--rail-above-line)) 12px 11px / calc(100% - 20px)
+        1px no-repeat border-box,
+      linear-gradient(var(--rail-below-line), var(--rail-below-line)) 12px calc(100% - 11px) /
+        calc(100% - 20px) 1px no-repeat border-box,
+      linear-gradient(to top, var(--rail-above), transparent) 12px 0 / calc(100% - 20px) 12px
+        no-repeat border-box,
+      linear-gradient(var(--rail-below), transparent) 12px 100% / calc(100% - 20px) 12px no-repeat
+        border-box;
+  }
+  .home > .home-rail[data-more-above] {
+    --rail-above: var(--shade-soft);
+  }
+  .home > .home-rail[data-more-below] {
+    --rail-below: var(--shade-soft);
+  }
+  /* In dark a black shade barely shows on the near-black ground, so each edge takes a hairline. */
+  :root[data-theme='dark'] .home > .home-rail[data-more-above] {
+    --rail-above-line: var(--border);
+  }
+  :root[data-theme='dark'] .home > .home-rail[data-more-below] {
+    --rail-below-line: var(--border);
+  }
+  /* Beside the desk the verbs' hover bands may reach into the rail's padding and the column gap. */
+  .home > .home-rail .home-link,
+  .home > .needs .home-since-link {
+    margin-right: -8px;
+  }
+  /* Rest positions fall between rows, so an edge never slices a line, an avatar or a bead. */
+  .home-rail
+    :is(.home-block-head, .home-run, .home-next, .home-note, .home-rest, .home-crew, .home-stage) {
+    scroll-snap-align: start;
+  }
+}
+/* Under the desk (and not on a phone, whose sections stack) the rail's blocks sit in two columns:
+ * Working now with the crew line under it, beside Up next and Pipeline. */
+@container home-body (min-width: 560px) and (max-width: 879.98px) {
+  @media (width >= 48rem) {
+    .home > .home-rail {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: auto auto 1fr;
+      grid-template-areas: 'work next' 'work pipeline' 'crew pipeline';
+      column-gap: 28px;
+    }
+    .home-working {
+      grid-area: work;
+    }
+    .home-upnext {
+      grid-area: next;
+    }
+    .home-crew-block {
+      grid-area: crew;
+    }
+    .home-pipeline {
+      grid-area: pipeline;
+    }
+  }
+}
+
+/* Needs you: the heading with its count, then the tray. Rows answer to the desk's own width. */
+.needs {
+  container: desk / inline-size;
+}
+.needs-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 8px;
+  min-height: 32px;
+  margin-bottom: 6px;
+}
+.needs-heading {
+  color: var(--ink);
+  font: 600 var(--text-section) / var(--text-section--line-height) var(--font-sans);
+}
+.needs-count {
+  min-width: 22px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--ochre-soft);
+  color: var(--ochre);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  line-height: 20px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.needs-tray {
+  padding: 6px;
+  border-radius: 18px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+
+/* Each tier is a fieldset (a named group), reset so it never sizes to its widest row. */
+.needs-tier {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+/* Tier captions label groups, not rows: darker than a row's kind, more air above than below. A
+ * long tier keeps its caption pinned while its rows pass under it, 6px below the work area's edge
+ * (sticky offsets start inside the body's 2px top padding). Once pinned, where the browser can
+ * tell, it takes a band of the tray's tone as wide as the rows, casting a soft shade. */
+.needs-tier-caption {
+  position: sticky;
+  z-index: 2;
+  top: 4px;
+  margin: 10px 0 2px;
+  padding: 0 12px;
+  color: var(--ink-soft);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  line-height: var(--text-caption--line-height);
+}
+.needs-tier-caption > span {
+  position: relative;
+  display: block;
+}
+.needs-tier:first-child > .needs-tier-caption {
+  margin-top: 6px;
+}
+@supports (container-type: scroll-state) {
+  .needs-tier-caption {
+    container-type: scroll-state;
+  }
+  .needs-tier-caption > span::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: -6px -12px;
+    opacity: 0;
+    background: var(--paper-deep);
+    box-shadow: 0 10px 12px -8px var(--shade);
+  }
+  @container scroll-state(stuck: top) {
+    .needs-tier-caption > span::before {
+      opacity: 1;
+    }
+  }
+  /* In dark a black shade barely shows on the near-black ground, so the band takes a hairline. */
+  :root[data-theme='dark'] .needs-tier-caption > span::before {
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+/* A row: a hairline above, none by its caption, beside the open row, a record or the failure's
+ * wash. The open row rises out of the tray as raised clay, the page's one place for a glaze. */
+.needs-row {
+  border: 0 solid var(--border);
+  border-top-width: 1px;
+}
+.needs-tier-caption + .needs-row,
+.needs-row[data-open],
+.needs-row[data-open] + .needs-row,
+.needs-row[data-record],
+.needs-row[data-record] + .needs-row,
+.needs-row[data-tone='rose'],
+.needs-row[data-tone='rose'] + .needs-row {
+  border-top-color: transparent;
+}
+.needs-row[data-open] {
+  margin: 2px 0 4px;
+  border-radius: 14px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+.needs-row[data-tone='rose']:not([data-open]) {
+  border-radius: 14px;
+  background: var(--rose-soft);
+}
+/* The panel clips to its own moving edge, so a row opening (or the next row opening after a
+ * decision) never draws its body over the rows below while its height grows. The clip reaches 6px
+ * past the edge, the widest focus ring or hover band, so those stay whole once it is open. */
+:is(.needs-panel, .needs-fold-panel) {
+  overflow: clip;
+  overflow-clip-margin: 6px;
+}
+
+/* A row's line. A narrow desk gives it two lines: the subject with its kind, then the ask cut to
+ * one line; the kind takes a line of its own when it does not fit whole beside the subject, so it
+ * is never cut. From 600px the subject sits over its kind and the ask takes two lines. */
+.needs-trigger {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) auto 16px;
+  grid-template-areas: 'bead names age chevron' '. ask ask ask';
+  align-items: baseline;
+  gap: 0 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 5px 12px;
+  border-radius: 14px;
+  color: var(--ink);
+  font-size: var(--text-body);
+  font-weight: 400;
+  line-height: var(--text-body--line-height);
+  text-align: left;
+  cursor: pointer;
+}
+.needs-trigger > .needs-bead {
+  grid-area: bead;
+  align-self: start;
+  margin-top: 3px;
+}
+.needs-trigger > .accordion-chevron {
+  grid-area: chevron;
+  align-self: start;
+  margin-top: 2px;
+}
+.needs-names {
+  display: flex;
+  flex-wrap: wrap;
+  grid-area: names;
+  align-items: baseline;
+  gap: 0 12px;
+  min-width: 0;
+}
+/* A subject longer than its room ends in an ellipsis at every width, never under the age. */
+.needs-subject {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.needs-kind {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.needs-row[data-tone='rose'] .needs-kind {
+  color: var(--rose);
+  font-weight: 600;
+}
+.needs-ask {
+  grid-area: ask;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-soft);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.needs-age {
+  grid-area: age;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+@container desk (min-width: 600px) {
+  .needs-trigger {
+    grid-template-columns: 14px minmax(0, 168px) minmax(0, 1fr) 44px 16px;
+    grid-template-areas: 'bead subject ask age chevron' '. kind ask . .';
+    align-items: start;
+  }
+  /* The subject and kind leave their shared line for the row grid's own column. */
+  .needs-names {
+    display: contents;
+  }
+  .needs-names > .needs-subject {
+    grid-area: subject;
+  }
+  .needs-names > .needs-kind {
+    grid-area: kind;
+  }
+  .needs-ask {
+    display: -webkit-box;
+    white-space: normal;
+    text-wrap: pretty;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  .needs-age {
+    padding-top: 1px;
+  }
+}
+@media (hover: hover) {
+  .needs-trigger:hover,
+  .needs-folded:hover {
+    background: rgb(var(--tint) / 0.045);
+  }
+  .needs-row[data-open] .needs-trigger:hover {
+    background: transparent;
+  }
+}
+.needs-trigger:focus-visible,
+.needs-folded:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+/* A decided row's record line, where the row stood: a filled bead, the subject in quieter ink and
+ * the outcome muted, quoted whole. A narrow desk gives it a closed row's shape, the outcome under
+ * the subject across the row's width; from 600px it is one line on the row grid (the record pitch:
+ * 44px, a verb's height and a gap), the outcome beside the subject's column. */
+.needs-record {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 2px 12px;
+  min-height: 44px;
+  margin: 0;
+  padding: 8px 12px;
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+}
+.needs-record > .needs-bead {
+  justify-self: center;
+  align-self: start;
+  margin-top: 6px;
+}
+.needs-record > .needs-subject {
+  color: var(--ink-soft);
+}
+.needs-outcome {
+  grid-column: 2;
+  min-width: 0;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+@container desk (min-width: 600px) {
+  .needs-record {
+    grid-template-columns: 14px minmax(0, 168px) minmax(0, 1fr);
+    row-gap: 0;
+    padding-block: 12px;
+  }
+  .needs-outcome {
+    grid-column: 3;
+  }
+}
+.needs-row[data-fresh] {
+  animation: clay-settle-in 220ms var(--ease) both;
+}
+
+/* The open row: the ask, who asked, what waits on it, the verbs and what deciding does. The body
+ * is a `decide` container, so embedded decision footers reflow as they do on Decisions. */
+.needs-open-body {
+  container: decide / inline-size;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  padding: 0 20px 16px 38px;
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+}
+@container desk (max-width: 599.98px) {
+  .needs-open-body {
+    padding: 0 12px 12px;
+  }
+}
+.needs-headline {
+  max-width: 68ch;
+  color: var(--ink);
+  font: 600 var(--text-section) / var(--text-section--line-height) var(--font-sans);
+  text-wrap: pretty;
+}
+.needs-who {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 68ch;
+  color: var(--ink-soft);
+}
+.needs-who > .role-avatar {
+  flex: none;
+  margin-top: -1px;
+}
+/* After a packet's or a brief's long evidence (shown, or opened under Show packet), who asked
+ * stands apart from its last section under a hairline, as a short row keeps it apart from what it
+ * shows, and joins what waits and the verbs below it. */
+:is(.packet-details, .needs-review-disclosure[data-open]) + .needs-who {
+  max-width: none;
+  margin-top: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.needs-blocks,
+.needs-gate {
+  max-width: 68ch;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  text-wrap: pretty;
+}
+.needs-blocks > span:first-child {
+  margin-right: 4px;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.needs-note {
+  max-width: 68ch;
+  color: var(--muted);
+}
+.needs-quote {
+  max-width: 68ch;
+  margin: 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--border-strong);
+  color: var(--ink-soft);
+  white-space: pre-wrap;
+}
+.needs-verbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.needs-link,
+.needs-review-toggle {
+  justify-self: start;
+  color: var(--ink-soft);
+}
+/* Reviews open in place under their verb; reading one decides nothing. */
+.needs-review-disclosure {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+}
+:is(.needs-review-panel, .needs-review) {
+  justify-self: stretch;
+  min-width: 0;
+}
+
+/* Embedded decision footers sit on the row's own surface: no sheet band, the consequence left
+ * under the verbs. Narrow bodies keep Decisions' stacked verbs and 44px targets. */
+.needs-open-body .decide-footer {
+  max-height: none;
+  padding: 12px 0 0;
+  overflow: visible;
+  background: none;
+  box-shadow: none;
+}
+.needs-open-body .decide-consequence {
+  max-width: 68ch;
+  margin-inline-start: 0;
+  text-align: left;
+}
+@container decide (min-width: 640px) {
+  .needs-open-body .decide-footer-bar {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}
+/* A browser request's verbs, as B set them: the approval, Reject and Details in one row with the
+ * consequence under them, and the evidence opening below the whole body. The footer and its bar
+ * give up their boxes so their verbs and line join that row; narrow bodies keep them stacked. */
+@container decide (min-width: 640px) {
+  .needs-decide {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 6px 8px;
+    padding-top: 12px;
+  }
+  .needs-decide > .decide-footer,
+  .needs-decide > .decide-footer > .decide-footer-bar {
+    display: contents;
+  }
+  .needs-decide .decide-actions {
+    grid-row: 1;
+    grid-column: 1;
+  }
+  .needs-decide > .needs-review-toggle {
+    grid-row: 1;
+    grid-column: 2;
+  }
+  .needs-decide .decide-consequence {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+}
+.needs-browser > .needs-review-panel {
+  margin-top: 6px;
+}
+/* A quiet verb on a line of its own keeps its words on the body's edge; its hover still shows. */
+.needs-open-body > .needs-link,
+.needs-review-disclosure > .needs-review-toggle {
+  margin-inline-start: -15px;
+}
+@container decide (max-width: 639.98px) {
+  .needs-decide > .needs-review-toggle {
+    margin-inline-start: -15px;
+  }
+}
+/* A narrow desk pads its bodies 12px, so the pull matches it: the words stay on the edge and the
+ * hover band and focus ring never cross the row's own edge. */
+@container desk (max-width: 599.98px) {
+  .needs-open-body > .needs-link,
+  .needs-review-disclosure > .needs-review-toggle,
+  .needs-decide > .needs-review-toggle {
+    margin-inline-start: -12px;
+    padding-inline-start: 12px;
+  }
+}
+/* The shared question form and tracking review sit on the body's column, not their own insets.
+ * The question is the row's headline and its reason the row's evidence, so the form's own title
+ * and reason give way (still naming and describing its fields), and Answer and continue leads
+ * the verbs at the left (`answerFirst`), as every open row's glazed verb does. */
+.needs-open-body .user-question-form {
+  padding: 0;
+}
+.needs-open-body :is(.user-question-title, .user-question-reason) {
+  display: none;
+}
+.needs-open-body .user-question-actions {
+  justify-content: flex-start;
+}
+.needs-open-body > .form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+/* A long application name never widens the row past a phone: the select keeps to the column and
+ * its value ends in an ellipsis (the list shows every name whole). */
+.needs-open-body > .form [data-slot='select-trigger'] {
+  max-width: 100%;
+}
+.needs-open-body > .form [data-slot='select-value'] {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* A packet's evidence is long, so its decision bar stays in reach while the row is in view, as
+ * Decisions pins it: on the row's own surface with a hairline, flush with the work area's foot
+ * (sticky offsets start inside the body's bottom padding). */
+.needs-open-body[data-kind='packet'] > .decide-footer {
+  position: sticky;
+  z-index: 1;
+  bottom: -16px;
+  margin: 0 -20px -16px -38px;
+  padding: 12px 20px 16px 38px;
+  border-radius: 0 0 14px 14px;
+  background: var(--surface);
+  box-shadow:
+    inset 0 1px 0 var(--border),
+    0 -10px 14px -12px var(--shade);
+}
+@container desk (max-width: 599.98px) {
+  .needs-open-body[data-kind='packet'] > .decide-footer {
+    bottom: -12px;
+    margin: 0 -12px -12px;
+    padding: 10px 12px 12px;
+  }
+}
+/* An embedded card keeps to the row's one raised surface (at most two depth levels). */
+.needs-open-body .settings-proposal {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+/* Home writes its ages in the long style and the row already says when the Reviewer agreed, so
+ * the packet's assessment drops the compact "41m ago" it shows in Decisions. */
+.needs-open-body .packet-verdict-title > time {
+  display: none;
+}
+
+/* A browser request's page as captured: beside the headline, who asked, what waits and the verbs
+ * from 600px of desk width, so it never pushes the verbs down; narrower, its own row under the
+ * headline (the evidence before who asked) with its caption beside it. */
+.needs-figure {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+@container desk (min-width: 600px) {
+  .needs-figure {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 24px;
+  }
+  .needs-figure > * {
+    grid-column: 1;
+  }
+  .needs-figure > .needs-capture {
+    grid-row: 1 / span 4;
+    grid-column: 2;
+    align-self: start;
+  }
+}
+.needs-capture {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  margin: 0;
+}
+@container desk (max-width: 599.98px) {
+  .needs-capture {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 12px;
+  }
+}
+/* A recessed well, as the browser panel frames a page: the captured address on its top edge,
+ * then the picture. The picture recedes behind the verbs (a white veil in light, dimmed in dark)
+ * until it is pointed at or focused. */
+.needs-capture-frame {
+  display: grid;
+  gap: 3px;
+  width: 216px;
+  padding: 3px 5px 5px;
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  text-align: left;
+  cursor: zoom-in;
+  transition: scale 120ms var(--ease);
+}
+.needs-capture-frame:active {
+  scale: 0.985;
+}
+.needs-capture-frame:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.needs-capture-address {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  height: 20px;
+  padding: 0 3px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: 16px;
+}
+.needs-capture-address > svg {
+  flex: none;
+}
+.needs-capture-host {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-soft);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.needs-capture-zoom {
+  margin-left: auto;
+}
+.needs-capture-window {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgb(31 35 40 / 0.1);
+}
+.needs-capture-shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: filter 160ms var(--ease);
+}
+.needs-capture-window::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgb(255 255 255 / 0.46);
+  pointer-events: none;
+  transition: opacity 160ms var(--ease);
+}
+.needs-capture-frame:focus-visible .needs-capture-window::after {
+  opacity: 0;
+}
+:root[data-theme='dark'] .needs-capture-shot {
+  filter: brightness(0.4) contrast(0.95);
+}
+:root[data-theme='dark'] .needs-capture-window::after {
+  display: none;
+}
+:root[data-theme='dark'] .needs-capture-frame:focus-visible .needs-capture-shot {
+  filter: brightness(0.72);
+}
+@media (hover: hover) {
+  .needs-capture-frame:hover .needs-capture-window::after {
+    opacity: 0;
+  }
+  :root[data-theme='dark'] .needs-capture-frame:hover .needs-capture-shot {
+    filter: brightness(0.72);
+  }
+}
+/* No picture came with the request: the well keeps its place and says so. */
+.needs-capture-empty {
+  display: grid;
+  place-items: center;
+  width: 216px;
+  min-height: 64px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  text-align: center;
+}
+.needs-capture-caption {
+  padding-left: 2px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  font-variant-numeric: tabular-nums;
+}
+@media (prefers-reduced-motion: reduce) {
+  .needs-capture-frame,
+  .needs-capture-shot,
+  .needs-capture-window::after {
+    transition: none;
+  }
+}
+
+/* A long tier's later rows behind one disclosure, a row of its own on the rows' grid. A fold whose
+ * rows are all decided waits on nobody: no bead, quieter words. */
+.needs-folded {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 6px 12px;
+  border-top: 1px solid var(--border);
+  border-radius: 14px;
+  color: var(--ink-soft);
+  font-weight: 600;
+  text-align: left;
+}
+.needs-folded > .needs-bead {
+  justify-self: center;
+}
+.needs-folded[data-decided] {
+  color: var(--muted);
+  font-weight: 400;
+}
+.needs-folded[data-decided] > .needs-bead {
+  visibility: hidden;
+}
+.needs-folded-chevron {
+  color: var(--muted);
+  transition: rotate 150ms var(--ease);
+}
+.needs-folded[data-panel-open] .needs-folded-chevron {
+  rotate: 180deg;
+}
+@media (prefers-reduced-motion: reduce) {
+  .needs-folded-chevron {
+    transition: none;
+  }
+}
+
+/* The close when nothing waits: a plain statement and, with no jobs yet, the first step. */
+.needs-end {
+  display: grid;
+  gap: 12px;
+  padding: 14px 12px;
+}
+.needs-end-line {
+  color: var(--ink-soft);
+}
+.needs-end-line > strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.needs-end-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* The heading's since button: what was recorded, in one line at the heading's far end. It shortens
+ * to "Since 22:20" where it must share the heading's line (a narrow desk, a phone). */
+.home-since-link {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 32px;
+  margin: 0 -4px 0 auto;
+  padding: 0 8px;
+  border-radius: 9px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  transition: background-color 120ms var(--ease);
+}
+.home-since-link-label {
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.home-since-link-short {
+  display: none;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+/* What was recorded, after the window's start; only a phone shows it beside "Since 22:20". */
+.home-since-link-counts {
+  display: none;
+  color: var(--muted);
+  font-weight: 400;
+}
+.home-since-link > svg {
+  flex: none;
+}
+@container desk (max-width: 599.98px) {
+  .home-since-link-long {
+    display: none;
+  }
+  .home-since-link-short {
+    display: inline;
+  }
+}
+
+/* The crew rail: flat paper, not a tray, so the crew stays visible without becoming the subject.
+ * A narrow rail (beside the desk in smaller windows) puts each fact under its heading. */
+.home-rail {
+  container: rail / inline-size;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 24px;
+  min-width: 0;
+}
+/* Wide, a section gives up its boxes: its blocks lay out in the rail's or the page's own grid. */
+.home-section:not([data-collapsible]),
+.home-section:not([data-collapsible]) > .home-section-panel {
+  display: contents;
+}
+.home-block {
+  min-width: 0;
+}
+.home-block-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  min-height: 32px;
+  margin-bottom: 8px;
+}
+.home-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--ink);
+  font: 600 var(--text-section) / var(--text-section--line-height) var(--font-sans);
+}
+.home-count {
+  color: var(--muted);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.home-block-fact {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  font-variant-numeric: tabular-nums;
+}
+/* Queue's and Pipeline's way there ends near the block's right edge, with the times and menus;
+ * the work area pads its right edge by only 4px, so nothing reaches further (no sideways scroll). */
+.home-link {
+  margin: 0 -4px 0 auto;
+  padding-inline: 8px;
+  color: var(--primary);
+}
+.home-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+  color: var(--muted);
+}
+/* A narrow rail puts the slot fact under its heading. The head then outgrows its 32px and would
+ * lose the centring that sets one-line headings 5px down, so the padding keeps the heading level
+ * with Needs you's. */
+@container rail (max-width: 300px) {
+  .home-block-head {
+    row-gap: 0;
+  }
+  .home-block-head[data-fact] {
+    padding-top: 5px;
+  }
+  .home-block-head > .home-block-fact {
+    flex-basis: 100%;
+    margin: -5px 0 0;
+  }
+}
+
+/* A rail row is one control on one grid for runs and waiting queues alike: the bead, the job and
+ * what it does, and the time; under them the agent and its step or place, so every bead and name
+ * shares one edge. Its hover band reaches past it as a shadow, never moving or widening it. */
+.home-rows {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.home-row {
+  display: grid;
+  grid-template-columns: 9px minmax(0, 1fr) auto;
+  grid-template-areas: 'bead title meta' '. detail detail';
+  align-items: start;
+  gap: 4px 10px;
+  width: 100%;
+  min-width: 0;
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: var(--text-body);
+  font-weight: 400;
+  line-height: var(--text-body--line-height);
+  text-align: left;
+  text-decoration: none;
+  transition:
+    background-color 120ms var(--ease),
+    box-shadow 120ms var(--ease);
+}
+.home-row > .home-row-bead {
+  grid-area: bead;
+  margin-top: 6px;
+}
+/* Where the job and its action do not fit on one line (a long company in a narrow rail), the
+ * action moves under the job and wraps at its words, two lines at most, instead of being cut
+ * inside a word; its words are written to fit two (`requestLabel`). A job too long for the rail
+ * ends in an ellipsis. */
+.home-row-title {
+  display: flex;
+  flex-wrap: wrap;
+  grid-area: title;
+  align-items: baseline;
+  gap: 0 6px;
+  min-width: 0;
+}
+.home-row-subject {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.home-row-action {
+  display: -webkit-box;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+.home-row-meta {
+  grid-area: meta;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.home-row-detail {
+  display: flex;
+  grid-area: detail;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  color: var(--ink-soft);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+}
+.home-row-detail > .role-avatar {
+  width: 20px;
+  height: 20px;
+}
+/* One grammar for the second line, "Scout · 2nd in line"; a long step is clamped, whole in its
+ * tooltip. */
+.home-row-says {
+  display: -webkit-box;
+  min-width: 0;
+  overflow: hidden;
+  padding-top: 1px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+.home-row-says > strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.home-row-sep {
+  color: var(--muted);
+}
+.home-row:focus-visible,
+.home-rest-trigger:focus-visible,
+.home-crew:focus-visible,
+.home-since-row:focus-visible,
+.home-since-link:focus-visible,
+[data-since-heading]:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+@media (hover: hover) {
+  :is(button, a).home-row:hover,
+  .home-rest-trigger:hover,
+  .home-crew:hover,
+  :is(button, a).home-since-row:hover {
+    background: rgb(var(--tint) / 0.045);
+    box-shadow: 0 0 0 6px rgb(var(--tint) / 0.045);
+  }
+  .home-since-link:hover {
+    background: rgb(var(--tint) / 0.045);
+  }
+}
+/* What holds a slot without an agent working: a quiet line with an empty socket. */
+.home-note {
+  display: grid;
+  grid-template-columns: 9px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+}
+
+/* Up next: each row with Queue's order menu, its icon on the times' right edge; a real 44px box on
+ * phones and coarse pointers (the touch floor), so it never stretches the row on desktop. */
+.home-next {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 4px;
+}
+.home-next > .queue-menu-trigger {
+  width: 32px;
+  height: 32px;
+  margin: -6px -4px -6px 0;
+}
+.home-next > .queue-menu-trigger:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+/* The middle of a long line: the exact count and two names at most, opening in place. */
+.home-rest {
+  list-style: none;
+}
+.home-rest-trigger {
+  display: grid;
+  grid-template-columns: 9px minmax(0, 1fr) 16px;
+  grid-template-areas: '. count chevron' '. names chevron';
+  align-items: center;
+  column-gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  border-radius: 8px;
+  color: var(--ink);
+  text-align: left;
+  transition:
+    background-color 120ms var(--ease),
+    box-shadow 120ms var(--ease);
+}
+.home-rest-count {
+  grid-area: count;
+  font-weight: 600;
+}
+.home-rest-names {
+  grid-area: names;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.home-rest-chevron {
+  grid-area: chevron;
+  color: var(--muted);
+  transition: rotate 150ms var(--ease);
+}
+.home-rest-trigger[data-panel-open] .home-rest-chevron {
+  rotate: 180deg;
+}
+.home-rest-panel > .home-rows {
+  padding-top: 12px;
+}
+/* As the desk's panels: clipped to the moving edge while they open, never drawing over what
+ * follows, with 6px of reach so focus rings and hover bands stay whole once open. */
+:is(.home-rest-panel, .home-section-panel) {
+  overflow: clip;
+  overflow-clip-margin: 6px;
+}
+.home-rest-queue,
+.home-paused,
+.home-since-more {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  margin-top: 6px;
+  border-radius: 8px;
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+.home-paused {
+  color: var(--ink-soft);
+}
+:is(.home-rest-queue, .home-paused, .home-since-more, .home-stage-note):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+@media (hover: hover) {
+  :is(.home-rest-queue, .home-paused, .home-since-more, .home-stage-note):hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+/* The crew line: the working pebbles, the count over what is unusual, and the way to Crew. */
+.home-crew {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  border-radius: 8px;
+  color: var(--ink);
+  text-decoration: none;
+  transition:
+    background-color 120ms var(--ease),
+    box-shadow 120ms var(--ease);
+}
+.home-crew-pebbles {
+  display: flex;
+  flex: none;
+}
+.home-crew-pebbles > .role-avatar + .role-avatar {
+  margin-left: -5px;
+}
+.home-crew-text {
+  display: grid;
+  min-width: 0;
+}
+.home-crew-more {
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+}
+.home-crew-chevron {
+  flex: none;
+  margin-left: auto;
+  color: var(--muted);
+}
+
+/* Pipeline: a small ledger, figures right-aligned in tabular digits; Closed sits apart. */
+.home-stages {
+  display: grid;
+  margin: 0;
+}
+.home-stage {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+}
+.home-stage:first-child {
+  padding-top: 2px;
+  border-top-width: 0;
+}
+.home-stage[data-closed] {
+  margin-top: 6px;
+  border-top-color: var(--border-strong);
+}
+.home-stage > dt {
+  flex: 1;
+  min-width: 0;
+  color: var(--ink);
+}
+.home-stage > dd {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+/* A desktop target of 32px (the design language's floor) that reaches into the row's padding, so
+ * the ledger keeps its rhythm; below 48rem or with a coarse pointer it takes the 44px floor. */
+.home-stage-note {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  margin: -6px 0 -6px 8px;
+  border-radius: 6px;
+  color: var(--primary);
+  font-size: var(--text-caption);
+  text-decoration: none;
+}
+
+/* The work strip, below 880px of work width: a caption and one line per run on as many columns as
+ * fit, each the bead, the job, the agent (cut first if it must be) and the time at its right edge.
+ * Its beads sit 5px into a 14px column at the clipping edge, so a breathing halo stays whole. */
+.home-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 4px;
+}
+.home-strip-bar {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.home-strip-title {
+  color: var(--ink-soft);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  line-height: var(--text-caption--line-height);
+}
+.home-strip-fact {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  font-variant-numeric: tabular-nums;
+}
+.home-strip-runs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 212px), 1fr));
+  gap: 4px 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.home-strip-run {
+  display: grid;
+  grid-template-columns: 14px auto minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: 6px;
+  min-width: 0;
+}
+.home-strip-run > .clay-bead {
+  --breathe: 1.08;
+  align-self: center;
+  justify-self: end;
+}
+.home-strip-run > .clay-bead[data-live] {
+  outline-offset: 1px;
+}
+.home-strip-subject {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.home-strip-agent,
+.home-strip-time {
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  white-space: nowrap;
+}
+.home-strip-agent {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.home-strip-time {
+  font-variant-numeric: tabular-nums;
+}
+/* A run's step: in the tooltip, except on a phone, where it takes a second line (below). */
+.home-strip-step {
+  display: none;
+}
+/* Where three runs fit beside it (a 1024 window), the caption takes a label column, its fact under
+ * it, and the strip stays two lines in slot order. */
+@container home-body (min-width: 712px) {
+  .home-strip {
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: start;
+    column-gap: 16px;
+  }
+  .home-strip-bar {
+    display: grid;
+    gap: 0;
+    line-height: var(--text-body--line-height);
+  }
+  .home-strip-title {
+    line-height: var(--text-body--line-height);
+  }
+  .home-strip-fact {
+    margin-left: 0;
+  }
+  .home-strip-runs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 16px;
+  }
+}
+/* Where the caption has its own line, it pins at the work area's top while the runs scroll away,
+ * on a band of paper, and the strip's foot carries it off with the last run. Once pinned, where
+ * the browser can tell, the band casts the bands' shade; in dark, where a black shade barely
+ * shows, it also takes a hairline. */
+@container home-body (max-width: 711.98px) {
+  .home-strip-head {
+    position: sticky;
+    z-index: 3;
+    top: -2px;
+  }
+  .home-strip-bar::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: -2px 0 -4px;
+    background: var(--paper);
+  }
+  @supports (container-type: scroll-state) {
+    .home-strip-head {
+      container-type: scroll-state;
+    }
+    @container scroll-state(stuck: top) {
+      .home-strip-bar::before {
+        box-shadow: 0 10px 12px -8px var(--shade);
+      }
+      :root[data-theme='dark'] .home-strip-bar::before {
+        border-bottom: 1px solid var(--border);
+      }
+    }
+  }
+}
+
+/* Since you were last here: the day, then time, bead, what happened and where it leads. */
+.home-since {
+  container: since / inline-size;
+}
+.home-since-day + .home-since-day {
+  margin-top: 12px;
+}
+.home-since-label {
+  margin: 0 0 2px;
+  color: var(--ink-soft);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  line-height: var(--text-caption--line-height);
+}
+.home-since-lines {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.home-since-row {
+  display: grid;
+  grid-template-columns: 56px 9px minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: 10px;
+  width: 100%;
+  min-height: 32px;
+  padding: 6px 0;
+  border-radius: 8px;
+  color: var(--ink-soft);
+  font-size: var(--text-body);
+  font-weight: 400;
+  line-height: var(--text-body--line-height);
+  text-align: left;
+  text-decoration: none;
+  transition:
+    background-color 120ms var(--ease),
+    box-shadow 120ms var(--ease);
+}
+.home-since-time {
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.home-since-row > .home-since-bead {
+  align-self: center;
+}
+.home-since-text {
+  min-width: 0;
+  text-wrap: pretty;
+}
+.home-since-hint {
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  white-space: nowrap;
+}
+:is(button, a).home-since-row > .home-since-hint {
+  color: var(--ink-soft);
+}
+.home-since-line[data-kind='failed'] .home-since-text {
+  color: var(--ink);
+}
+.home-since-empty {
+  max-width: 68ch;
+  color: var(--muted);
+}
+.home-since-empty > strong {
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+/* A narrow section puts where a line leads under it, instead of squeezing the sentence. */
+@container since (max-width: 520px) {
+  .home-since-row {
+    grid-template-columns: 56px 9px minmax(0, 1fr);
+    row-gap: 2px;
+  }
+  .home-since-hint {
+    grid-column: 3;
+  }
+}
+
+/* Phone: the strip, the desk, then three sections that start closed (Since, Crew at work and
+ * Pipeline), joined by hairlines. */
+@variant max-mobile {
+  .home {
+    gap: 16px;
+  }
+  .home-rail {
+    gap: 0;
+  }
+  .home > .home-rail {
+    margin-top: -16px;
+  }
+  .home-section[data-collapsible] {
+    border-top: 1px solid var(--border);
+  }
+  .home-section-trigger {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 16px;
+    grid-template-areas: 'title chevron' 'fact chevron';
+    align-items: center;
+    column-gap: 12px;
+    width: 100%;
+    min-height: 56px;
+    padding: 8px 0;
+    text-align: left;
+  }
+  .home-section-title {
+    grid-area: title;
+    color: var(--ink);
+    font: 600 var(--text-section) / var(--text-section--line-height) var(--font-sans);
+  }
+  .home-section-fact {
+    grid-area: fact;
+    color: var(--muted);
+    font-size: var(--text-caption);
+    line-height: var(--text-caption--line-height);
+    font-variant-numeric: tabular-nums;
+  }
+  .home-section-chevron {
+    grid-area: chevron;
+    color: var(--muted);
+    transition: rotate 150ms var(--ease);
+  }
+  .home-section-trigger[data-panel-open] .home-section-chevron {
+    rotate: 180deg;
+  }
+  .home-section-trigger:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+  }
+  .home-section-panel > :last-child {
+    padding-bottom: 16px;
+  }
+  .home-section-panel > .home-block + .home-block {
+    margin-top: 20px;
+  }
+  /* For screen readers only: a section's own block heading, which repeats its trigger, and Working
+   * now's slot fact, which the title fact, the strip and Crew at work's trigger already state. */
+  .home-section[data-collapsible]
+    :is([data-section-title], .home-since > .home-block-head, .home-working .home-block-fact) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  /* Rail rows start at the screen's clipping edge: each bead sits 5px into a 14px column, so a
+   * breathing halo stays whole, and the order menu's 44px box grows to the left. */
+  :is(.home-row, .home-rest-trigger) {
+    grid-template-columns: 14px minmax(0, 1fr) auto;
+    column-gap: 6px;
+  }
+  .home-note {
+    grid-template-columns: 14px minmax(0, 1fr);
+    column-gap: 6px;
+  }
+  :is(.home-row, .home-note) > .home-row-bead {
+    --breathe: 1.08;
+    justify-self: end;
+  }
+  .home-next > .queue-menu-trigger {
+    margin: -12px 0 -12px -12px;
+  }
+  /* The work area has no side padding on a phone, so verbs end on its edge, never past it. */
+  .home-link {
+    margin-right: 0;
+  }
+  /* The strip on a phone: one column of runs under its caption, each 18px lines: the job, the
+   * agent and the time, then its step (a phone shows no tooltip), clamped to two lines as the
+   * rail's rows clamp theirs. */
+  .home-strip {
+    row-gap: 2px;
+  }
+  .home-strip-runs {
+    row-gap: 6px;
+  }
+  .home-strip-run {
+    line-height: 18px;
+  }
+  .home-strip-step {
+    display: -webkit-box;
+    grid-column: 2 / -1;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--ink-soft);
+    font-size: var(--text-caption);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  /* The desk's rhythm: 44px rows (the touch minimum) and record lines, a tighter heading. */
+  .needs-head {
+    min-height: 28px;
+    margin-bottom: 2px;
+  }
+  .needs-trigger {
+    min-height: 44px;
+    padding-block: 2px;
+  }
+  .needs-record {
+    min-height: 44px;
+    padding-block: 6px;
+  }
+  /* The since button takes its own line under the heading and keeps what was recorded: "Since
+   * 22:20 · 3 finished · 2 new asks", wrapping as it must. Its 44px target reaches into the air
+   * above and below, so the line keeps the caption's rhythm. */
+  .home-since-link {
+    flex-basis: 100%;
+    justify-content: flex-start;
+    margin: -8px 0 -6px;
+    padding: 0;
+    text-align: left;
+    text-wrap: pretty;
+  }
+  .home-since-link-long {
+    display: none;
+  }
+  .home-since-link-short {
+    display: inline;
+  }
+  .home-since-link-counts {
+    display: inline;
+  }
+  /* Focus rings stay inside the work area, which clips at the screen's edges. */
+  :is(.home-row, .home-since-row, .home-crew, .home-rest-trigger):focus-visible {
+    outline-offset: -2px;
+  }
+}
+/* Touch floor for row-shaped links (buttons already have the global one). */
+@media (width < 48rem), (pointer: coarse) {
+  a.home-row,
+  a.home-since-row,
+  .home-crew,
+  .home-rest-queue,
+  .home-paused,
+  .home-since-more,
+  .home-stage-note {
+    min-height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-row,
+  .home-rest-trigger,
+  .home-rest-chevron,
+  .home-crew,
+  .home-since-row,
+  .home-since-link,
+  .home-section-chevron {
+    transition: none;
+  }
+}

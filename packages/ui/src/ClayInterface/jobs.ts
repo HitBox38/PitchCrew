@@ -1,6 +1,7 @@
 import type { Card, Role, Snapshot } from '@pitchcrew/core';
 import { closedStateSet } from '../board-stages.ts';
 import { stateLabels } from '../lib/labels.ts';
+import { roleName } from '../lib/run-labels.ts';
 import { runActivityLabel } from '../lib/work-queue.ts';
 import { workflowSeat } from '@pitchcrew/core/states';
 import { jobStep, snapshotStepFacts, type JobStep } from '../lib/job-step.ts';
@@ -10,16 +11,13 @@ import { jobSignals, signalAsks, type Decision, type JobSignal } from './signals
 
 export type SidebarJob = { card: Card; signal: JobSignal; status: string };
 
-const roleName = (roles: Role[], id: string | null | undefined) =>
-  roles.find((role) => role.id === id)?.name ?? 'An agent';
-
 export const jobStatus = (card: Card, signal: JobSignal, roles: Role[]) => {
   const { decision, run } = signal;
   if (decision?.kind === 'packet') return decision.status ?? 'Approve packet';
   if (decision?.kind === 'browser') return 'Browser request';
   if (decision?.kind === 'brief') return 'Confirm brief';
-  if (decision?.kind === 'question') return `${roleName(roles, decision.roleId)} asked`;
-  if (run) return `${roleName(roles, run.roleId)} working`;
+  if (decision?.kind === 'question') return `${roleName({ roles }, decision.roleId)} asked`;
+  if (run) return `${roleName({ roles }, run.roleId)} working`;
   return stateLabels[card.state];
 };
 
@@ -42,7 +40,7 @@ export const sidebarJobs = (data: Snapshot) => {
 
 export const decisionTitle = (decision: Decision, data: Snapshot) => {
   const card = data.cards.find((item) => item.id === decision.cardId);
-  const who = roleName(data.roles, decision.roleId);
+  const who = roleName(data, decision.roleId);
   if (decision.kind === 'packet') {
     const approval = data.approvals.find((item) => item.id === decision.id);
     if (approval) return packetTitle(approval, card);
@@ -69,8 +67,18 @@ export const nextUp = (card: Card, data: Snapshot): NextUp | null => {
   const { decision, run } = signal;
   if (decision && signalAsks(signal))
     return { text: `Waiting on you: ${decisionTitle(decision, data)}`, tone: 'asks' };
-  if (run) return { text: `${roleName(data.roles, run.roleId)} is working`, tone: 'working' };
+  if (run) return { text: `${roleName(data, run.roleId)} is working`, tone: 'working' };
   if (decision) return { text: decision.status ?? decisionTitle(decision, data), tone: 'next' };
+  const text = nextStepText(card, data);
+  return text ? { text, tone: 'next' } : null;
+};
+
+/**
+ * The job's next application step from the brief, form, fit and packet gates ("Next: Scout checks
+ * the fit"), or null for a closed job or one with no step. It reads no decisions or runs (unlike
+ * `nextUp`, it builds no job signals), so a caller that already knows who has the move can use it.
+ */
+export const nextStepText = (card: Card, data: Snapshot): string | null => {
   if (trackIndex(card.state) === null) return null;
   const step = jobStep(card, snapshotStepFacts(card, data.approvals));
   const scout = seatName(data, 'scout', 'Scout');
@@ -91,7 +99,7 @@ export const nextUp = (card: Card, data: Snapshot): NextUp | null => {
     apply: 'you apply, then record your submission',
     outcome: outcomeNext[card.state] ?? 'you record their reply',
   };
-  return step ? { text: `Next: ${next[step]}`, tone: 'next' } : null;
+  return step ? `Next: ${next[step]}` : null;
 };
 
 const outcomeNext: Partial<Record<Card['state'], string>> = {
@@ -117,7 +125,7 @@ export const cardLine = (card: Card, signal: JobSignal, data: Snapshot): CardLin
     };
   if (signal.run)
     return {
-      text: `${roleName(data.roles, signal.run.roleId)} · ${runActivityLabel(signal.run)}`,
+      text: `${roleName(data, signal.run.roleId)} · ${runActivityLabel(signal.run)}`,
       tone: 'working',
     };
   const index = trackIndex(card.state);
@@ -149,26 +157,3 @@ export const columnBeads = (cards: Card[], signals: Map<string, JobSignal>) =>
     });
     return { id: card.id, tone, live: working };
   });
-
-/** Who is behind a decision and when it arrived: the reviewer for a packet, else the asking agent. */
-export const decisionSource = (decision: Decision, data: Snapshot) => {
-  const card = data.cards.find((item) => item.id === decision.cardId);
-  if (decision.kind === 'packet') {
-    const approval = data.approvals.find((item) => item.id === decision.id);
-    const handoff = approval?.submission;
-    if (decision.stage === 'apply') return { roleId: null, text: 'You exported the files' };
-    if (decision.stage === 'choose') return { roleId: null, text: 'You approved' };
-    if (decision.stage === 'verify')
-      return { roleId: handoff?.roleId ?? null, text: 'Submission uncertain' };
-    if (decision.stage === 'preparing')
-      return {
-        roleId: handoff?.roleId ?? null,
-        text: `Handed to ${roleName(data.roles, handoff?.roleId)}`,
-      };
-    const run = data.runs.find((item) => item.id === card?.packetReview?.runId);
-    return { roleId: run?.roleId ?? null, text: `${roleName(data.roles, run?.roleId)} agreed` };
-  }
-  if (decision.kind === 'brief') return { roleId: null, text: 'Brief extracted' };
-  const verb = decision.kind === 'browser' ? 'asks' : 'asked';
-  return { roleId: decision.roleId, text: `${roleName(data.roles, decision.roleId)} ${verb}` };
-};

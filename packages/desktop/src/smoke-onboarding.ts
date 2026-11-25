@@ -8,7 +8,7 @@ export const smokeOnboarding = `(async () => {
   const checklist = await waitFor(() => !document.querySelector('[role="dialog"]') && !!document.querySelector('.onboarding-checklist'));
   click('Set up later');
   const deferred = await waitFor(() => !document.querySelector('.onboarding-checklist'));
-  // The sidebar's Getting started row brings the deferred checklist back to Board.
+  // The sidebar's Getting started row brings the deferred checklist back to Home.
   document.querySelector('button[aria-label^="Getting started,"]')?.click();
   const resumed = await waitFor(() => !!document.querySelector('.onboarding-checklist'));
   click('Set up later');

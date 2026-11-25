@@ -1,14 +1,13 @@
 import type { ReactNode } from 'react';
+import { clockLabel } from '@/lib/time.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { timelineRuns } from '../helpers.ts';
 import { useNow } from '../hooks/useNow.ts';
 
-const time = (value: number) =>
-  new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
 /**
- * Today's runs for one agent as clay bars in a groove, in the agent's identity dye. The count can
- * be rendered by the caller, e.g. as the trigger for a keyboard-reachable list of the same runs.
+ * Today's runs for one agent as clay bars in a groove, in the agent's identity dye, from a start
+ * written in the shared clock ("8:00 AM", as the runs listed under it). The count can be rendered
+ * by the caller, e.g. as the trigger for a keyboard-reachable list of the same runs.
  */
 export const RunTimeline = ({
   roleId,
@@ -40,7 +39,7 @@ export const RunTimeline = ({
         <span className="clay-groove-now" />
       </div>
       <div className="clay-run-timeline-labels">
-        <span>{time(placed.start)}</span>
+        <span>{clockLabel(placed.start)}</span>
         {renderCount ? renderCount(label, count) : <span>{label}</span>}
       </div>
     </div>

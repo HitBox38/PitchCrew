@@ -79,8 +79,8 @@ describe('analytics lifecycle', () => {
         before_send: expect.any(Function),
       }),
     );
-    analytics.capture('$pageview', { page: 'board' });
-    analytics.capture('$pageview', { page: 'board' });
+    analytics.capture('$pageview', { page: 'home' });
+    analytics.capture('$pageview', { page: 'home' });
     analytics.capture('$pageview', { page: 'profile' });
     expect(sdk.capture).toHaveBeenCalledTimes(2);
     consent = false;

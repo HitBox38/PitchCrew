@@ -408,8 +408,8 @@ export const jobNextAction = (model: CardDetailsModel): JobNextAction => {
       });
     }
     case 'apply': {
-      // The files and the posting live in the Decisions handoff, as on the Board card; recording
-      // stays a separate, secondary move for after the user has really applied.
+      // The files and the posting live in the Decisions handoff (Home's packet row embeds it);
+      // recording stays a separate, secondary move for after the user has really applied.
       // The dock names where it goes: applying happens in the Decisions handoff, not in the sheet.
       const continueApplication = { label: 'Open in Decisions', perform: model.openInbox };
       if (cardPacketStage(card, data.approvals) === 'preparing')

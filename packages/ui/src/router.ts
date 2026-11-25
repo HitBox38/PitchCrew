@@ -18,7 +18,9 @@ import type { View } from './navigation.ts';
 import {
   isChatThread,
   validateChatSearch,
+  validateHomeSearch,
   validateInboxSearch,
+  validatePipelineSearch,
   validateSkillSearch,
   validateUpdateSearch,
 } from './navigation.ts';
@@ -53,10 +55,18 @@ const rootRoute = createRootRouteWithContext<{ getRoles: () => Role[] | undefine
   notFoundComponent: NotFoundPage,
 });
 
-const boardRoute = createRoute({
+const homeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  staticData: { view: 'board' },
+  staticData: { view: 'home' },
+  validateSearch: validateHomeSearch,
+  component: retryableLazy(() => import('@/HomePage/index.tsx'), 'HomePage'),
+});
+const pipelineRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/pipeline',
+  staticData: { view: 'pipeline' },
+  validateSearch: validatePipelineSearch,
   component: retryableLazy(() => import('@/BoardPage/index.tsx'), 'BoardPage'),
 });
 const queueRoute = createRoute({
@@ -156,7 +166,8 @@ const settingsRoute = createRoute({
 });
 
 const routeTree = rootRoute.addChildren([
-  boardRoute,
+  homeRoute,
+  pipelineRoute,
   queueRoute,
   crewRoute,
   chatIndexRoute,

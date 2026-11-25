@@ -20,7 +20,7 @@ afterAll(async () => {
   await cleanup();
 });
 test('job action runs the managed flow, saves explicit runtime alternatives and presents persisted reports on desktop and mobile', async () => {
-  await page.goto(host.daemon.url);
+  await page.goto(`${host.daemon.url}/pipeline`);
   await page.locator(`#board-job-${host.card.id} .clay-job-card`).waitFor({ timeout: 30000 });
   const defer = page.getByRole('button', { name: 'Set up later', exact: true });
   if (await defer.isVisible()) await defer.click();

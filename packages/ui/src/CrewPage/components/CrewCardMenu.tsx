@@ -23,7 +23,6 @@ export const CrewCardMenu = ({
   onReview,
 }: CrewCardProps) => {
   const navigate = useNavigate();
-  const busy = status.kind === 'working';
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -52,7 +51,8 @@ export const CrewCardMenu = ({
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem disabled={working || busy} onClick={onToggle}>
+          {/* Any running run of the role, a review seat included: the server refuses it until then. */}
+          <DropdownMenuItem disabled={working || status.busy} onClick={onToggle}>
             {role.enabled ? `Pause ${role.name}` : `Resume ${role.name}`}
           </DropdownMenuItem>
         </DropdownMenuGroup>

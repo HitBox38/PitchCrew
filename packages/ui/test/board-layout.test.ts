@@ -1,6 +1,5 @@
 import { chromium, type Browser, type Page } from 'playwright';
 import { afterAll, beforeAll, expect, test } from 'vitest';
-import type { UserInputRequest } from '@pitchcrew/core';
 import { cleanup, setup } from './helpers/daemon.ts';
 
 let host: Awaited<ReturnType<typeof setup>>;
@@ -10,27 +9,6 @@ let page: Page;
 beforeAll(async () => {
   host = await setup();
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
-  const conversation = host.daemon.service.createConversation({
-    title: 'Layout question',
-    participants: ['scout'],
-  });
-  const question: UserInputRequest = {
-    id: 'layout-question',
-    roleId: 'scout',
-    runId: 'layout-run',
-    cardId: null,
-    threadId: conversation.id,
-    sourceThreadId: conversation.id,
-    messageId: 'layout-message',
-    status: 'pending',
-    question: 'Which location would you prefer?',
-    options: [],
-    reason: '',
-    continuationNotes: '',
-    multiSelect: false,
-    createdAt: new Date().toISOString(),
-  };
-  host.daemon.service.board.record('user_input', question, 'scout', 'Fictional decision deck');
   for (let index = 0; index < 19; index++) {
     const card = host.daemon.service.createCard({
       company: `Layout Studio ${index}`,
@@ -48,7 +26,7 @@ beforeAll(async () => {
     viewport: { width: 1442, height: 962 },
     reducedMotion: 'reduce',
   });
-  await page.goto(host.daemon.url, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${host.daemon.url}/pipeline`, { waitUntil: 'domcontentloaded' });
   await page.locator('#stage-progress .clay-column-count').waitFor({ timeout: 30000 });
   await page.evaluate(() => document.fonts.ready);
 }, 60000);
