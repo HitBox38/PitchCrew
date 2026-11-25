@@ -191,14 +191,20 @@ test('keeps manual follow-up after export, enables exact downloads and confirms 
   await page.getByRole('button', { name: 'Close viewer', exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  // After a manual export every footer action stays whole and reachable on a phone, with
-  // I’ve submitted on its own full row; none hides behind a sideways scrollbar.
+  // After a manual export every footer action stays whole and reachable on a phone, with Open
+  // application page glazed on its own full row and I’ve submitted a secondary step after it;
+  // none hides behind a sideways scrollbar.
+  expect(
+    await page
+      .getByRole('button', { name: 'I’ve submitted', exact: true })
+      .getAttribute('data-variant'),
+  ).toBe('outline');
   for (const width of [390, 320]) {
     await page.setViewportSize({ width, height: 844 });
     expect(await packetFooterLayout()).toEqual({
       names: [
-        'I’ve submitted',
         'Open application page',
+        'I’ve submitted',
         'Let an agent prepare',
         'More packet actions',
       ],
