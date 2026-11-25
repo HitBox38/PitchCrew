@@ -11,7 +11,8 @@ export interface CardDetailsProps {
   working: boolean;
   initialSection?: JobSection;
   onClose: () => void;
-  onInbox: () => void;
+  /** Opens the job's packet row on Home, or its other waiting decision in Decisions. */
+  onPacket: () => void;
   onChat: (thread: string, runId: string) => void;
 }
 export type CardDetailsModel = ReturnType<typeof useCardDetails>;

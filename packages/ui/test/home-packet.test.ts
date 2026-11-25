@@ -12,6 +12,7 @@ let browser: Browser;
 let page: Page;
 let card: Card;
 let approval: Approval;
+let dogwood: { job: Card; requested: Approval };
 const problems: string[] = [];
 
 /** A job whose packet Writer drafted and Reviewer agreed, with its export approval requested. */
@@ -45,8 +46,9 @@ beforeAll(async () => {
     'Juniper Fixture',
     'fictional-application',
   ));
-  for (const company of ['Birch Fixture', 'Cedar Fixture', 'Dogwood Fixture'])
+  for (const company of ['Birch Fixture', 'Cedar Fixture'])
     await reviewedPacket(company, `fictional-${company.split(' ')[0]!.toLowerCase()}`);
+  dogwood = await reviewedPacket('Dogwood Fixture', 'fictional-dogwood');
   browser = await chromium.launch({ headless: true });
   page = await browser.newPage({ viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
   page.setDefaultTimeout(15000);
@@ -124,5 +126,28 @@ test('confirms Not applying in its dialog, records it and gives focus back to th
     )
     .toBe(true);
   expect(host.daemon.service.board.get<Card>('card', card.id).state).toBe('withdrawn');
+  expect(problems).toEqual([]);
+});
+
+test('sends job details’ packet step to the packet’s row on Home, not to Decisions', async () => {
+  await page.goto(`${host.daemon.url}/pipeline`);
+  await page.locator(`#board-job-${dogwood.job.id} .clay-job-card`).click();
+  const sheet = page.locator('.card-details-panel');
+  await sheet.waitFor();
+  await sheet.getByText('Approve the exact files on Home', { exact: true }).waitFor();
+  await sheet.getByRole('button', { name: 'Open on Home', exact: true }).first().click();
+  await sheet.waitFor({ state: 'detached' });
+  // Dogwood ranks last in its tier, so its fold opens to show the row, which takes focus.
+  const dogwoodRow = page.locator(`[data-needs-key="packet:${dogwood.requested.id}"]`);
+  await expect.poll(() => dogwoodRow.getAttribute('data-open')).toBe('');
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        document.activeElement?.closest('[data-needs-key]')?.getAttribute('data-needs-key'),
+      ),
+    )
+    .toBe(`packet:${dogwood.requested.id}`);
+  expect(new URL(page.url()).pathname).toBe('/');
+  expect(new URL(page.url()).search).toBe('');
   expect(problems).toEqual([]);
 });

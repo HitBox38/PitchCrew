@@ -32,7 +32,7 @@ const lines: Partial<Record<JobNowKind, string>> = {
   drafting: 'No agent is drafting right now',
   review: 'Draft ready for Reviewer',
   export: 'Packet reviewed · ready to export',
-  approve: 'Approve the exact files in Decisions',
+  approve: 'Approve the exact files on Home',
   choose: 'Packet approved · choose how to apply',
   apply: 'Files saved · apply when you’re ready',
   preparing: 'An agent is preparing your application',

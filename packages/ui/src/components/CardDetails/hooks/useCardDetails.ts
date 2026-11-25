@@ -115,7 +115,7 @@ export const useCardDetails = (props: CardDetailsProps) => {
     runRole,
     failed: latestJobFailure(card.id, data.runs),
     onClose: () => guard.requestLeave(props.onClose),
-    openInbox: () => guard.requestLeave(props.onInbox),
+    openPacket: () => guard.requestLeave(props.onPacket),
     openQueue: () =>
       guard.requestLeave(() => {
         props.onClose();

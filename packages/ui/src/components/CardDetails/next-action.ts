@@ -395,7 +395,7 @@ export const jobNextAction = (model: CardDetailsModel): JobNextAction => {
       const open = model.tab === 'application' && model.sections?.includes('export');
       return at({
         label: 'Request export approval',
-        hint: `${files}. You approve the exact files in Decisions. Nothing is sent.`,
+        hint: `${files}. You approve the exact files on Home. Nothing is sent.`,
         disabled: requesting || model.busy,
         perform: request,
         ...(open
@@ -408,15 +408,15 @@ export const jobNextAction = (model: CardDetailsModel): JobNextAction => {
       });
     }
     case 'apply': {
-      // The files and the posting live in the Decisions handoff (Home's packet row embeds it);
-      // recording stays a separate, secondary move for after the user has really applied.
-      // The dock names where it goes: applying happens in the Decisions handoff, not in the sheet.
-      const continueApplication = { label: 'Open in Decisions', perform: model.openInbox };
+      // The files and the posting live in the packet handoff on Home's packet row; recording stays a
+      // separate, secondary move for after the user has really applied. The dock names where it
+      // goes: applying happens in the handoff, not in the sheet.
+      const continueApplication = { label: 'Open on Home', perform: model.openPacket };
       if (cardPacketStage(card, data.approvals) === 'preparing')
         return {
           ...continueApplication,
           kind: 'preparing',
-          hint: 'This application was handed to an agent. Check its progress in Decisions. Nothing is submitted until you approve the final click.',
+          hint: 'This application was handed to an agent. Check its progress on Home. Nothing is submitted until you approve the final click.',
         };
       return at({
         ...continueApplication,
@@ -441,14 +441,14 @@ export const jobNextAction = (model: CardDetailsModel): JobNextAction => {
       return cardPacketStage(card, data.approvals) === 'choose'
         ? {
             kind: 'choose',
-            label: 'Open in Decisions',
-            hint: 'Packet approved. Choose how to apply in Decisions. Nothing has been sent.',
-            perform: model.openInbox,
+            label: 'Open on Home',
+            hint: 'Packet approved. Choose how to apply on Home. Nothing has been sent.',
+            perform: model.openPacket,
           }
         : at({
-            label: 'Open in Decisions',
+            label: 'Open on Home',
             hint: 'Review the exact documents before export.',
-            perform: model.openInbox,
+            perform: model.openPacket,
           });
     default:
       return {
