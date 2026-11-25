@@ -163,6 +163,42 @@ test('opens the Initech submission first, with its page and end, and ranks the t
   expect(await row(keys().failure).locator('.needs-kind').textContent()).toBe('Failed request');
 });
 
+test('brings a tier’s first row into view by its caption, never cutting a caption', async () => {
+  // A short window, so every tier's first row can rest where the desk brings it.
+  await page.setViewportSize({ width: 1440, height: 420 });
+  const scroller = page.locator('.workspace-body');
+  const before = await scroller.evaluate((element) => element.scrollTop);
+  let checked = 0;
+  // Each tier's first row, brought in as the desk brings in a row it opens.
+  const firsts = page.locator('.needs-tier-caption + .needs-row');
+  for (let index = 1; index < (await firsts.count()); index += 1) {
+    const geometry = await firsts.nth(index).evaluate((first) => {
+      const body = first.closest('.workspace-body')!;
+      body.scrollTop = body.scrollHeight;
+      first.scrollIntoView({ block: 'start', behavior: 'instant' });
+      const top = body.getBoundingClientRect().top;
+      const caption = first.previousElementSibling!.getBoundingClientRect();
+      const above = first.closest('.needs-tier')!.previousElementSibling?.getBoundingClientRect();
+      return {
+        row: Math.round(first.getBoundingClientRect().top - top),
+        caption: caption.top - top,
+        above: above ? above.bottom - top : 0,
+        // Neither end of the scroller held it back.
+        free: body.scrollTop > 0 && body.scrollTop < body.scrollHeight - body.clientHeight - 1,
+      };
+    });
+    if (!geometry.free) continue;
+    checked += 1;
+    expect(geometry.row).toBe(30);
+    // Its own caption shows whole, and the group above has left the view.
+    expect(geometry.caption).toBeGreaterThanOrEqual(0);
+    expect(geometry.above).toBeLessThanOrEqual(0);
+  }
+  expect(checked).toBeGreaterThan(1);
+  await scroller.evaluate((element, top) => (element.scrollTop = top), before);
+  await page.setViewportSize({ width: 1440, height: 900 });
+});
+
 test('moves between rows with the arrow keys, Home, End, j and k, skipping folded rows', async () => {
   // Three more tracking reviews fold the fourth row of their tier.
   const base = host.daemon.service.board.get<TrackingSignal>('tracking_signal', fixture.signalId);
@@ -622,11 +658,14 @@ test('decides each seeded kind in place, leaving record lines and opening the ne
   await expectCount(4);
   await expect.poll(focused).toBe(keys().failure);
   expect(await row(keys().failure).getAttribute('data-open')).toBe('');
-  // The failure is said once: its reason restates the headline, so only whose work it was stays.
+  // The failure is said once: its reason restates the headline, so whose work it was and when it
+  // stopped stay.
   expect(await row(keys().failure).locator('.needs-headline').textContent()).toBe(
     'Scout’s fit evaluation stopped before finishing',
   );
-  expect(await row(keys().failure).locator('.needs-who').textContent()).toBe('Scout');
+  expect(await row(keys().failure).locator('.needs-who').textContent()).toMatch(
+    /^Scout · .*\d:\d\d/,
+  );
   expect(
     await page
       .locator('[data-slot="toast"]')

@@ -15,7 +15,7 @@ import {
 } from '@/lib/attention-labels.ts';
 import { stateLabels } from '@/lib/labels.ts';
 import { roleName } from '@/lib/run-labels.ts';
-import { clockLabel } from '@/lib/time.ts';
+import { clockLabel, sinceLabel } from '@/lib/time.ts';
 import { executingRuns } from '@/lib/work-queue.ts';
 import { proposalNotice } from '@/components/ProfileView/helpers.ts';
 
@@ -153,8 +153,12 @@ const openWords: Record<AttentionKind, Words> = {
     // Nothing stopped is left, yet the queue stays paused: its saved reason is what paused it.
     if (queue && !stoppedDelivery(queue) && !failedFollowUp(queue))
       return { headline, provenance: reason ? `Paused when: ${history(reason)}` : '' };
-    // A reason that restates the headline gives way to its agent; one that names it says it once.
-    if (restatesHeadline(reason, headline, agent)) return { headline, provenance: agent };
+    // A reason that restates the headline gives way to its agent and when the work stopped, as
+    // other open rows say who and when ("Scout · yesterday 2:39 PM"); one that names it says it once.
+    if (restatesHeadline(reason, headline, agent)) {
+      const when = item.askedAt ? sinceLabel(Date.parse(item.askedAt), Date.now()) : '';
+      return { headline, provenance: [agent, when].filter(Boolean).join(' · ') };
+    }
     return {
       headline,
       provenance:

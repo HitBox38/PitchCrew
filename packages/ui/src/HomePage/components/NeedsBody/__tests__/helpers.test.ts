@@ -13,7 +13,7 @@ import {
   snapshot,
   task,
 } from '@/lib/__tests__/attention-fixture.ts';
-import { clockLabel } from '@/lib/time.ts';
+import { clockLabel, sinceLabel } from '@/lib/time.ts';
 import { openRowWords, restatesHeadline, waitingOn } from '../helpers.ts';
 
 const itemOf = (data: Snapshot, kind: AttentionKind) =>
@@ -41,6 +41,11 @@ const stopped = (error: string, status: 'failed' | 'paused' = 'failed') => [
   }),
 ];
 const failureWords = (data: Snapshot) => openRowWords(itemOf(data, 'failure'), data);
+/** Who stopped and when, as a failure's who line says it when its reason only echoes the headline. */
+const stoppedBy = (data: Snapshot, agent: string) => {
+  const at = itemOf(data, 'failure').askedAt;
+  return at ? `${agent} · ${sinceLabel(Date.parse(at), Date.now())}` : agent;
+};
 
 describe('The open row’s words', () => {
   it('releases a question’s slot only when no other run holds its queue', () => {
@@ -83,17 +88,21 @@ describe('The open row’s words', () => {
     expect(items.filter((entry) => !openRowWords(entry, data).headline)).toEqual([]);
   });
 
-  it('says a failure once: a reason that restates the headline gives way to the agent', () => {
+  it('says a failure once: a reason that restates the headline gives way to who and when', () => {
     // "Scout stopped." says again what "Scout’s fit evaluation stopped before finishing" says.
-    expect(failureWords(everyKind())).toEqual({
+    const data = everyKind();
+    expect(failureWords(data)).toEqual({
       headline: 'Scout’s fit evaluation stopped before finishing',
-      provenance: 'Scout',
+      provenance: stoppedBy(data, 'Scout'),
     });
+    expect(stoppedBy(data, 'Scout')).toMatch(/^Scout · .*\d:\d\d/);
     for (const error of [
       'Scout stopped before finishing.',
       'Scout’s fit evaluation stopped before finishing. Retry or skip this request.',
-    ])
-      expect(failureWords(corvid({ requests: stopped(error) })).provenance).toBe('Scout');
+    ]) {
+      const echo = corvid({ requests: stopped(error) });
+      expect(failureWords(echo).provenance).toBe(stoppedBy(echo, 'Scout'));
+    }
     // A reason with a fact of its own stays: after the agent, or verbatim when it names it.
     expect(failureWords(corvid({ requests: stopped('Codex exited (1).') })).provenance).toBe(
       'Scout · Codex exited (1).',
@@ -111,7 +120,7 @@ describe('The open row’s words', () => {
     });
     expect(failureWords(restart)).toEqual({
       headline: 'Scout’s fit evaluation was interrupted when Pitchcrew stopped',
-      provenance: 'Scout',
+      provenance: stoppedBy(restart, 'Scout'),
     });
     const followUp = (pauseKind: 'failed' | 'interrupted') =>
       corvid({
@@ -126,7 +135,7 @@ describe('The open row’s words', () => {
       });
     expect(failureWords(followUp('interrupted'))).toEqual({
       headline: 'Writer’s follow-up for Reviewer was interrupted when Pitchcrew stopped',
-      provenance: 'Writer',
+      provenance: stoppedBy(followUp('interrupted'), 'Writer'),
     });
     // Under "stopped before finishing" the same words name the cause, so they stay.
     expect(failureWords(followUp('failed')).provenance).toBe(

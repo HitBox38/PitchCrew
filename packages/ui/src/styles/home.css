@@ -212,6 +212,13 @@
   position: relative;
   display: block;
 }
+/* A tier's first row comes into view by its caption: 30px down (the body's 44px less 14px), so the
+ * group above leaves the view whole and this row's own caption sits over it, never a pinned
+ * caption cut in half. Rows lower in a tier keep the 44px, under their pinned caption. */
+.needs-tier-caption + .needs-row,
+.needs-tier-caption + .needs-row .needs-trigger {
+  scroll-margin-top: -14px;
+}
 .needs-tier:first-child > .needs-tier-caption {
   margin-top: 6px;
 }
