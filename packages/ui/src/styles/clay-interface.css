@@ -215,7 +215,7 @@
 }
 
 /* ── Pipeline: four stage columns of clay job cards ────────────────────────────
- * Columns at least 188 with a 12 gap; each column body scrolls on its own. On phones the stage
+ * Columns at least 164 with a 12 gap (four fit beside the expanded sidebar at 1024); each column body scrolls on its own. On phones the stage
  * selector sits above the one column it shows. */
 .clay-board {
   display: flex;
@@ -228,7 +228,7 @@
   min-width: 0;
   min-height: 0;
   flex: 1;
-  grid-template-columns: repeat(4, minmax(188px, 1fr));
+  grid-template-columns: repeat(4, minmax(164px, 1fr));
   gap: 12px;
   /* Match the card bodies' shadow gutters without overflowing the last column. */
   margin: -6px;

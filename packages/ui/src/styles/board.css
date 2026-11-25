@@ -367,6 +367,19 @@
     width: 100%;
     min-height: 44px;
   }
+  /* The select above names the stage and its count, so the column's own name and count are left
+   * to screen readers here; its beads and Sort keep the row, on the right. */
+  .clay-columns .clay-column-heading h2 {
+    position: absolute;
+    overflow: hidden;
+    width: 1px;
+    height: 1px;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .clay-columns .clay-column-beads {
+    margin-inline-start: auto;
+  }
   /* 44px touch targets for Add job and each column's and card's menu. */
   .board-add-split > .board-add-job {
     min-height: 44px;

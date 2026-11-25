@@ -23,7 +23,13 @@ export const BoardPage = () => {
   const { data, working, act, openCard, query, showClosed, filtered, stage, jobMutations } =
     controller;
   const stageSelect = (
-    <BoardStageSelect data={data} current={stage.current} select={stage.select} />
+    <BoardStageSelect
+      data={data}
+      filtered={filtered}
+      query={query}
+      current={stage.current}
+      select={stage.select}
+    />
   );
   return (
     <div className="board-workspace">
