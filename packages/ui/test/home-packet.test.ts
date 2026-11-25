@@ -135,6 +135,11 @@ test('sends job details’ packet step to the packet’s row on Home, not to Dec
   const sheet = page.locator('.card-details-panel');
   await sheet.waitFor();
   await sheet.getByText('Approve the exact files on Home', { exact: true }).waitFor();
+  // ⌘/Ctrl+1–4 leave the page under an open sheet alone.
+  await page.keyboard.press('ControlOrMeta+3');
+  await page.waitForTimeout(200);
+  expect(new URL(page.url()).pathname).toBe('/pipeline');
+  expect(await sheet.isVisible()).toBe(true);
   await sheet.getByRole('button', { name: 'Open on Home', exact: true }).first().click();
   await sheet.waitFor({ state: 'detached' });
   // Dogwood ranks last in its tier, so its fold opens to show the row, which takes focus.
