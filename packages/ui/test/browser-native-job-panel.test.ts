@@ -17,6 +17,10 @@ import type { BrowserProfilesState } from '../../core/src/browser-profiles.ts';
 import { afterAll, beforeAll, expect, test, vi } from 'vitest';
 import { setup, cleanup } from './helpers/daemon.ts';
 
+// Site access checks that a page's host resolves to a public address; resolve fictional hosts
+// without the network so the test never depends on DNS.
+vi.mock('node:dns/promises', () => ({ lookup: async () => [{ address: '8.8.8.8', family: 4 }] }));
+
 /* The browser panel of a job conversation: page tools in Page settings, the fixed approval tray,
  * site access, private control, Packet | Browser and the expanded view. It drives the same fake
  * native browser as browser-native.test.ts, which covers the agent DM panel's page tools in depth. */

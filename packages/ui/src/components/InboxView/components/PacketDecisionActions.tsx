@@ -44,24 +44,10 @@ export const PacketDecisionActions = (props: PacketActionProps) => {
       ) : null}
       {manual ? (
         <>
-          <Button
-            disabled={disabled}
-            onClick={() =>
-              void model.perform(() =>
-                action(
-                  `/approvals/${approval.id}/complete`,
-                  'POST',
-                  { state: 'submitted' },
-                  'Recorded your manual submission',
-                ),
-              )
-            }
-          >
-            I’ve submitted
-          </Button>
+          {/* Applying comes first; recording is the secondary step for after the user applied, so
+              one click never records a submission that was not made. */}
           {card.url ? (
             <Button
-              variant="outline"
               nativeButton={false}
               render={
                 <a
@@ -78,6 +64,22 @@ export const PacketDecisionActions = (props: PacketActionProps) => {
           ) : (
             <p className="decide-footer-note">Add the employer application link in job details.</p>
           )}
+          <Button
+            variant="outline"
+            disabled={disabled}
+            onClick={() =>
+              void model.perform(() =>
+                action(
+                  `/approvals/${approval.id}/complete`,
+                  'POST',
+                  { state: 'submitted' },
+                  'Recorded your manual submission',
+                ),
+              )
+            }
+          >
+            I’ve submitted
+          </Button>
         </>
       ) : null}
       {approval.submission ? agent : null}

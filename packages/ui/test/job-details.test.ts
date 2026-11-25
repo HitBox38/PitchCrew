@@ -30,7 +30,7 @@ beforeEach(async () => {
   });
   host.daemon.service.moveCard(card.id, 'shortlisted');
   await confirmFixtureApplication(host.request, card.id);
-  await page.goto(host.daemon.url);
+  await page.goto(`${host.daemon.url}/pipeline`);
   await page.locator(`#board-job-${card.id} .clay-job-card`).waitFor({ timeout: 30000 });
   const later = page.getByRole('button', { name: 'Set up later', exact: true });
   if (await later.isVisible()) await later.click();
@@ -284,7 +284,7 @@ test('shows a waiting review once across sheet entry points and keeps independen
     'Asked a review question',
   );
   const openBoardJob = async () => {
-    await page.goto(host.daemon.url);
+    await page.goto(`${host.daemon.url}/pipeline`);
     await page.locator(`#board-job-${card.id} .clay-job-card`).click();
     await page.getByRole('tab', { name: 'Job', exact: true }).waitFor();
   };

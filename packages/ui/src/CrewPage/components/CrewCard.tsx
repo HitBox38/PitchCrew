@@ -1,6 +1,6 @@
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { Button } from '@pitchcrew/design-system/button';
-import { capabilityLine, runtimeLine } from '@/CrewPage/helpers.ts';
+import { capabilityLine, crewExecuting, runtimeLine } from '@/CrewPage/helpers.ts';
 import type { CapabilityLine, CrewCardProps } from '@/CrewPage/types.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import {
@@ -42,7 +42,7 @@ export const CrewCard = (props: CrewCardProps) => {
       aria-labelledby={`crew-${role.id}-name`}
     >
       <div className="crew-card-head">
-        <span className="crew-pebble" data-live={status.kind === 'working' ? '' : undefined}>
+        <span className="crew-pebble" data-live={crewExecuting(status) ? '' : undefined}>
           <RoleAvatar agentRole={role.id} size="large" />
         </span>
         <span className="crew-card-actions">
@@ -59,11 +59,11 @@ export const CrewCard = (props: CrewCardProps) => {
           <CrewCardMenu {...props} />
         </span>
       </div>
-      <h2 id={`crew-${role.id}-name`} className="crew-card-name">
+      <h3 id={`crew-${role.id}-name`} className="crew-card-name">
         <Button className="crew-card-name-button" onClick={onConfigure}>
           {role.name}
         </Button>
-      </h2>
+      </h3>
       <p className="crew-card-model">{data ? runtimeLine(role, data) : null}</p>
       <p className="crew-card-capability">
         <Icon size={14} aria-hidden="true" />

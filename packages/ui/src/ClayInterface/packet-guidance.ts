@@ -1,35 +1,10 @@
-import { deliveryLifecycle } from '@pitchcrew/core/lifecycles';
 import type { Approval, Card, Snapshot } from '@pitchcrew/core';
 import { requestStatus } from '@/components/InboxView/status.ts';
 import { packetNeedsAction } from '@/lib/inbox.ts';
+import { packetStage, type PacketStage } from '@/lib/packet-stage.ts';
 
-/**
- * Where a packet decision that still needs the user actually stands. Attention eligibility stays
- * with `packetNeedsAction`; this only words it: a pending packet waits for approval, an approved
- * one for the user to choose how to apply, an exported manual handoff for the user to apply and
- * then record it, an agent handoff for its preparation, and an uncertain browser submission for the
- * user to check it. A manual export never means the application was sent.
- */
-export type PacketStage = 'approve' | 'choose' | 'apply' | 'preparing' | 'verify';
-
-export const packetStage = (approval: Approval, card: Card | undefined): PacketStage => {
-  if (approval.status === 'pending') return 'approve';
-  if (
-    card?.submissionAttempts?.some(
-      (attempt) => attempt.exportApprovalId === approval.id && attempt.status === 'uncertain',
-    )
-  )
-    return 'verify';
-  // The daemon records the manual choice only after verifying the exported files.
-  if (
-    approval.submission?.method === 'manual' &&
-    approval.status === 'consumed' &&
-    approval.exportDirectory
-  )
-    return 'apply';
-  if (approval.submission?.method === 'agent') return 'preparing';
-  return 'choose';
-};
+// Moved to lib so the attention model can read them; re-exported for existing importers.
+export { packetStage, packetWaitsOnUser, type PacketStage } from '@/lib/packet-stage.ts';
 
 /**
  * The newest eligible packet approval, shared by stage labels and direct handoff navigation.
@@ -45,17 +20,6 @@ export const cardPacketApproval = (card: Card, approvals: Approval[]): Approval 
 export const cardPacketStage = (card: Card, approvals: Approval[]): PacketStage | undefined => {
   const current = cardPacketApproval(card, approvals);
   return current ? packetStage(current, card) : undefined;
-};
-
-/**
- * Whether a packet decision is the user's move. Only queued or running preparation has an agent
- * next; stopped, completed, missing or waiting deliveries need the user to check progress.
- */
-export const packetWaitsOnUser = (approval: Approval, card: Card | undefined, data: Snapshot) => {
-  if (packetStage(approval, card) !== 'preparing') return true;
-  const requestId = approval.submission?.requestId;
-  const delivery = data.chatRequests?.find((item) => item.id === requestId)?.deliveries[0];
-  return !delivery || !deliveryLifecycle.is('moving', delivery.status);
 };
 
 /** Short status for job cards and the sidebar. */
@@ -86,20 +50,16 @@ export const packetStatus = (approval: Approval, card: Card | undefined, data: S
   return stage === 'preparing' ? preparingLabel(approval, data) : statusLabels[stage];
 };
 
+/** The verify stage's question, which Home also asks of every uncertain submission. */
+export const verifyTitle = (card: Card | undefined) =>
+  `Did the ${card?.company || 'this job'} application go through?`;
+
 export const packetTitle = (approval: Approval, card: Card | undefined) => {
   const company = card?.company || 'this job';
   const stage = packetStage(approval, card);
   if (stage === 'approve') return `Approve the ${card?.company ? `${company} ` : ''}packet?`;
   if (stage === 'choose') return `Choose how to apply to ${company}`;
   if (stage === 'apply') return `Apply to ${company}, then record it`;
-  if (stage === 'verify') return `Did the ${company} application go through?`;
+  if (stage === 'verify') return verifyTitle(card);
   return `Check on the ${company} application`;
 };
-
-/** The deck's one action: review a pending packet, otherwise continue the application. */
-export const packetAction = (stage: PacketStage | undefined) =>
-  !stage || stage === 'approve'
-    ? 'Review'
-    : stage === 'verify'
-      ? 'Check submission'
-      : 'Continue application';

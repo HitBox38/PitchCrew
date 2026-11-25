@@ -1,6 +1,6 @@
 # Job discovery
 
-Pitchcrew can watch public company job boards on Greenhouse, Ashby, Lever, Comeet and Workable. A scan reads each board you saved, keeps the postings that pass your filters and adds new ones to Board as leads. Scout can run the same scan from chat or a routine when you give it permission. You can also add one job from its posting link.
+Pitchcrew can watch public company job boards on Greenhouse, Ashby, Lever, Comeet and Workable. A scan reads each board you saved, keeps the postings that pass your filters and adds new ones to Pipeline as leads. Scout can run the same scan from chat or a routine when you give it permission. You can also add one job from its posting link.
 
 ## Add a source
 

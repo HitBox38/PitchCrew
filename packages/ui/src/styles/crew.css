@@ -971,3 +971,609 @@ a.crew-status:focus-visible {
     min-height: 0;
   }
 }
+
+/* Status trays: what else the agent runs beside its main line. */
+.crew-status-also {
+  color: var(--muted);
+}
+
+/* At work: Crew's agent lens over the job queues. One raised row per busy agent (identity, then
+ * its job-owned entries on recessed lines: bead | the job and its stamp over its step | control),
+ * idle agents in one recessed tray. Stamps and controls share one column width, so they line up
+ * down the lens. It lays out by its own width, not the window's. Its entries keep a reading
+ * measure, so a stamp stays near the job it dates, and its rows and idle tray stop at the identity
+ * column plus that measure, so on wide windows each raised row ends where its entries do and paper
+ * ground lies beside the lens. Waiting on you under it keeps the same width, so the work column
+ * has one right edge above the full-width roster; the page holds the lens's geometry for both. */
+.crew-page {
+  --crew-lens-identity-column: 180px;
+  /* 80ch of step line plus the bead, stamp gap and control around it. */
+  --crew-lens-measure: 40rem;
+}
+.crew-page > .crew-lens.ui-section {
+  margin-top: 0;
+}
+.crew-lens {
+  --crew-lens-quiet: var(--muted);
+  --crew-lens-control: 2rem;
+  container: crew-lens / inline-size;
+}
+/* Muted ink falls just under 4.5:1 on the dark recess, so dark lifts it toward ink-soft. */
+:root[data-theme='dark'] .crew-lens {
+  --crew-lens-quiet: color-mix(in oklab, var(--muted) 45%, var(--ink-soft));
+}
+.crew-lens-rows {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+/* A row's padding (14px and 8px), its identity column and gap (12px), then the entries' measure. */
+.crew-lens-rows,
+.crew-lens-idle,
+.crew-page > .crew-waiting {
+  max-width: calc(34px + var(--crew-lens-identity-column) + var(--crew-lens-measure));
+}
+.crew-lens-row {
+  display: grid;
+  grid-template-columns: var(--crew-lens-identity-column) minmax(0, 1fr);
+  align-items: start;
+  gap: 8px 12px;
+  padding: 8px 8px 8px 14px;
+  border-radius: 16px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+.crew-lens-identity {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 12px;
+  padding-top: 5px;
+}
+.crew-lens-identity-text,
+.crew-lens-disclosure {
+  min-width: 0;
+}
+.crew-lens-name {
+  color: var(--ink);
+  font: 600 var(--text-section) / var(--text-section--line-height) var(--font-sans);
+  overflow-wrap: anywhere;
+}
+.crew-lens-meta {
+  color: var(--crew-lens-quiet);
+  font-size: var(--text-detail);
+  line-height: var(--text-detail--line-height);
+  overflow-wrap: anywhere;
+}
+.crew-lens-pebble {
+  position: relative;
+}
+.crew-lens-pebble > .role-avatar {
+  width: 40px;
+  height: 40px;
+}
+/* The state bead on the pebble's rim, set off from it by a ring of the clay's own light. */
+.crew-pebble > .clay-bead.crew-pebble-bead {
+  --bead-size: 0.8125rem;
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  outline: 2px solid var(--surface-bright);
+}
+/* Forced open while wide: the panel shows its entries' focus rings instead of clipping them. */
+.crew-lens-disclosure:not([data-collapsible]) > .crew-lens-panel {
+  overflow: visible;
+}
+
+.crew-lens-entries {
+  display: grid;
+  max-width: var(--crew-lens-measure);
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+.crew-lens-entry {
+  position: relative;
+  display: grid;
+  min-height: 50px;
+  grid-template-columns: 0.5625rem minmax(0, 1fr) var(--crew-lens-control);
+  align-items: start;
+  column-gap: 10px;
+  padding: 0 6px 0 12px;
+  border-radius: 12px;
+  background: var(--crew-recess);
+  box-shadow: var(--crew-recess-shadow);
+  transition: box-shadow var(--duration-press) var(--ease);
+}
+/* On line one: 5px of padding, then half the 20px line less half the bead. */
+.crew-lens-entry > .crew-lens-bead {
+  margin-top: 10.5px;
+}
+/* Work that waits on the user sits on the browser tray's ochre wash, so it is found before any
+ * stamp is read. The recess is a gradient in light, so the wash is layered over it. */
+.crew-lens-entry[data-state='asks'] {
+  background:
+    linear-gradient(color-mix(in oklab, var(--ochre-soft) 55%, transparent) 0 0), var(--crew-recess);
+}
+:root[data-theme='dark'] .crew-lens-entry[data-state='asks'] {
+  --crew-lens-quiet: color-mix(in oklab, var(--muted) 30%, var(--ink-soft));
+  background:
+    linear-gradient(color-mix(in oklab, var(--ochre-soft) 80%, transparent) 0 0), var(--crew-recess);
+}
+.crew-lens-entry:hover {
+  box-shadow:
+    var(--crew-recess-shadow),
+    0 0 0 1px var(--border-strong);
+}
+/* The entry's link covers the whole line and draws its one focus ring around it. */
+.crew-lens-open {
+  display: grid;
+  min-width: 0;
+  min-height: 50px;
+  grid-template-columns: minmax(0, 1fr) minmax(6.5rem, max-content);
+  grid-template-areas:
+    'line stamp'
+    'detail detail';
+  align-content: center;
+  column-gap: 10px;
+  padding: 5px 0;
+  color: var(--ink);
+  text-align: start;
+}
+.crew-lens-open::after {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  content: '';
+}
+.crew-lens-open:focus-visible {
+  outline: none;
+}
+.crew-lens-open:focus-visible::after {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+/* Line one: the job and its chip keep their whole width while they fit, and the action takes what
+ * is left, so it gives way first (flex shrank the company too: "Waypo…" beside a long action).
+ * Auto tracks share a line too short for both evenly, so even a very long company leaves the chip
+ * whole. Margins rather than a gap, so a missing chip leaves no space. */
+.crew-lens-line {
+  display: grid;
+  min-width: 0;
+  grid-area: line;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+}
+.crew-lens-subject {
+  min-width: 0;
+  grid-column: 1;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.crew-lens-action {
+  min-width: 0;
+  grid-column: 3;
+  margin-left: 8px;
+  overflow: hidden;
+  color: var(--crew-lens-quiet);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.crew-lens-line > .crew-lens-chip {
+  height: 20px;
+  grid-column: 2;
+  margin-left: 8px;
+}
+/* A group's names wrap whole at word boundaries rather than cutting a company. */
+.crew-lens-entry[data-group] .crew-lens-line {
+  display: block;
+  text-wrap: pretty;
+}
+.crew-lens-entry[data-group] .crew-lens-subject {
+  overflow: visible;
+  white-space: normal;
+}
+.crew-lens-stamp {
+  grid-area: stamp;
+  color: var(--crew-lens-quiet);
+  font-size: var(--text-detail);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--text-label--line-height);
+  text-align: end;
+  white-space: nowrap;
+}
+:is(.crew-lens-stamp, .crew-lens-member-stamp, .crew-lens-fact-word) > [data-tone='ochre'] {
+  color: var(--ochre);
+}
+/* Plain ochre falls just under 4.5:1 at 12px on light clay; a step toward ink clears it. */
+:root:not([data-theme='dark'])
+  :is(.crew-lens-stamp, .crew-lens-member-stamp, .crew-lens-fact-word)
+  > [data-tone='ochre'] {
+  color: color-mix(in oklab, var(--ochre) 88%, var(--ink));
+}
+:is(.crew-lens-stamp, .crew-lens-member-stamp, .crew-lens-fact-word) > [data-tone='rose'] {
+  color: var(--rose);
+}
+/* A step, wait or reason longer than the line wraps to two balanced lines at word boundaries
+ * rather than cutting a word ("· hol…" at 1024); the clamp is only a backstop. The entries' own
+ * measure keeps it a reading line. */
+.crew-lens-detail {
+  display: -webkit-box;
+  min-width: 0;
+  grid-area: detail;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  color: var(--ink-soft);
+  font-size: var(--text-label);
+  -webkit-line-clamp: 2;
+  line-height: var(--text-label--line-height);
+  text-wrap: balance;
+}
+.crew-lens-detail-action {
+  display: none;
+  color: var(--crew-lens-quiet);
+}
+/* Above the entry's link for clicks; its pointer lets them through to the link. */
+.crew-lens-control {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 50px;
+  align-items: center;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+.crew-lens-control > .queue-menu-trigger {
+  width: 32px;
+  height: 32px;
+  pointer-events: auto;
+}
+/* The shared ring keys on `data-slot='button'`, which a menu trigger replaces with its own slot, so
+ * the job queue's menu draws the house ring itself, as Home's Up next does. */
+.crew-lens-control > .queue-menu-trigger:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+.crew-lens-pointer {
+  margin-right: 8px;
+  color: var(--muted);
+}
+.crew-lens-chevron {
+  flex: none;
+  color: var(--muted);
+  transition: rotate var(--duration-press) var(--ease);
+}
+.crew-lens-open[data-panel-open] ~ .crew-lens-control > .crew-lens-chevron,
+.crew-lens-trigger[data-panel-open] > .crew-lens-chevron,
+.crew-lens-idle-trigger[data-panel-open] > .crew-lens-chevron {
+  rotate: 180deg;
+}
+/* A group's list keeps to the entry's own columns, above its link, each job with its stamp. */
+.crew-lens-group-panel {
+  position: relative;
+  z-index: 1;
+  grid-column: 2 / -1;
+}
+.crew-lens-group-panel > ul {
+  display: grid;
+  gap: 2px;
+  padding-bottom: 6px;
+}
+.crew-lens-member {
+  display: flex;
+  width: 100%;
+  min-height: 32px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 8px;
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+}
+.crew-lens-member:hover {
+  background: rgb(var(--tint) / 0.07);
+}
+.crew-lens-member-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.crew-lens-member-stamp {
+  flex: none;
+  color: var(--crew-lens-quiet);
+  font-size: var(--text-detail);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.crew-lens-more {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  margin-bottom: 6px;
+  padding: 0 8px;
+  border-radius: 8px;
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+/* Inside panels that clip while they open, rings stay within the control. */
+.crew-lens-member:focus-visible,
+.crew-lens-more:focus-visible,
+.crew-lens-trigger:focus-visible {
+  outline-offset: -2px;
+}
+
+/* Idle agents rest together, folded: faces and "4 idle" on the rows' identity column, names on
+ * the entries' edge. */
+.crew-lens-rows + .crew-lens-idle {
+  margin-top: 8px;
+}
+.crew-lens-idle {
+  border-radius: 16px;
+  background: var(--crew-recess);
+  box-shadow: var(--crew-recess-shadow);
+}
+.crew-lens-idle-trigger {
+  display: grid;
+  width: 100%;
+  min-height: 48px;
+  grid-template-columns: var(--crew-lens-identity-column) minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  border-radius: 16px;
+  color: var(--ink);
+  text-align: start;
+}
+.crew-lens-idle-lead {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+}
+.crew-lens-idle-lead > strong {
+  flex: none;
+  font-weight: 600;
+}
+.crew-lens-idle-faces {
+  display: flex;
+  flex: none;
+}
+.crew-lens-idle-faces > .role-avatar + .role-avatar {
+  margin-left: -6px;
+}
+.crew-lens-idle-names {
+  min-width: 0;
+  color: var(--crew-lens-quiet);
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  text-wrap: pretty;
+}
+.crew-lens-idle-whole {
+  white-space: nowrap;
+}
+.crew-lens-idle-panel > ul {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+  padding: 0 8px 8px;
+}
+.crew-lens-idle-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 6px;
+}
+.crew-lens-idle-copy {
+  min-width: 0;
+}
+.crew-lens-idle-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 8px;
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+}
+.crew-lens-idle-name > strong {
+  font-weight: 600;
+}
+
+/* A lens under 40rem: the identity becomes a heading line above the work, with a 32px pebble. */
+@container crew-lens (width < 40rem) {
+  .crew-lens-row {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 10px 8px 8px;
+  }
+  .crew-lens-identity {
+    align-items: center;
+    gap: 10px;
+    padding: 0 0 0 6px;
+  }
+  .crew-lens-identity-text {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 8px;
+  }
+  .crew-lens-identity .crew-lens-pebble > .role-avatar {
+    width: 32px;
+    height: 32px;
+  }
+  .crew-lens-identity .crew-pebble > .clay-bead.crew-pebble-bead {
+    --bead-size: 0.6875rem;
+  }
+  /* A smaller pebble wears the quieter ring a live bead wears. */
+  .crew-lens-identity .crew-pebble[data-live] > .role-avatar {
+    outline-width: 2px;
+    outline-offset: 2px;
+  }
+  .crew-lens-idle-trigger {
+    grid-template-columns: auto minmax(0, 1fr) 16px;
+  }
+}
+/* Phones and narrow windows (36rem of lens): line one keeps the job and its stamp; the action leads
+ * the step line, which wraps as it does everywhere and may take a third line for the two. */
+@container crew-lens (width < 36rem) {
+  .crew-lens-entry {
+    padding-left: 10px;
+  }
+  .crew-lens-open {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .crew-lens-line > .crew-lens-action {
+    display: none;
+  }
+  .crew-lens-detail-action {
+    display: inline;
+  }
+  .crew-lens-detail {
+    -webkit-line-clamp: 3;
+  }
+  .crew-lens-idle-trigger {
+    grid-template-areas:
+      'lead lead chevron'
+      'names names chevron';
+    row-gap: 0;
+  }
+  .crew-lens-idle-lead {
+    grid-area: lead;
+  }
+  .crew-lens-idle-names {
+    grid-area: names;
+  }
+  .crew-lens-idle-trigger > .crew-lens-chevron {
+    grid-area: chevron;
+  }
+}
+
+/* A folded row (`data-folds`, below 36rem of lens): one raised line with the pebble, the name and
+ * its facts as one paragraph, and a chevron; it opens in place to the same entries. Its padding is
+ * the same open and closed, and the pebble, the name's line and the chevron keep one centre line at
+ * the top, so nothing hops when the facts (one line or two) give way to the runtime line. */
+.crew-lens-row[data-folds] {
+  display: block;
+  padding: 0;
+}
+.crew-lens-row[data-folds] > .crew-lens-identity {
+  display: none;
+}
+.crew-lens-row[data-folds] .crew-lens-entries {
+  padding: 0 8px 8px;
+}
+.crew-lens-trigger:not([hidden]) {
+  display: grid;
+  width: 100%;
+  min-height: 46px;
+  grid-template-columns: 28px minmax(0, 1fr) 16px;
+  align-items: start;
+  column-gap: 12px;
+  padding: 8px 14px 8px 10px;
+  border-radius: 16px;
+  color: var(--ink);
+  text-align: start;
+}
+.crew-lens-trigger .crew-lens-pebble > .role-avatar {
+  width: 28px;
+  height: 28px;
+}
+.crew-lens-trigger .crew-pebble > .clay-bead.crew-pebble-bead {
+  --bead-size: 0.6875rem;
+}
+.crew-lens-trigger .crew-pebble[data-live] > .role-avatar {
+  outline-width: 2px;
+  outline-offset: 2px;
+}
+/* Facts wrap as whole units, each led by 12px holding a centred separator; the strip that would
+ * start a line with a separator is clipped away at the left. A fact longer than the line ends in
+ * an ellipsis rather than pushing the page sideways. */
+.crew-lens-trigger-text {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: baseline;
+  margin-left: -12px;
+  /* The name's 22px line centred on the 28px pebble. */
+  padding-top: 3px;
+  clip-path: inset(-4px 0 -4px 12px);
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+}
+.crew-lens-trigger > .crew-lens-chevron {
+  margin-top: 6px;
+}
+.crew-lens-trigger-text > * {
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+  padding-left: 12px;
+}
+.crew-lens-trigger-name {
+  font: 600 var(--text-section) / var(--text-section--line-height) var(--font-sans);
+  overflow-wrap: anywhere;
+}
+.crew-lens-fact {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.crew-lens-sep {
+  position: absolute;
+  left: 4px;
+  color: var(--crew-lens-quiet);
+}
+.crew-lens-trigger-name + .crew-lens-fact > .crew-lens-sep {
+  visibility: hidden;
+}
+.crew-lens-fact-word,
+.crew-lens-trigger-meta {
+  color: var(--crew-lens-quiet);
+  font-size: var(--text-detail);
+  font-variant-numeric: tabular-nums;
+}
+.crew-lens-trigger[data-panel-open] .crew-lens-fact,
+.crew-lens-trigger:not([data-panel-open]) .crew-lens-trigger-meta {
+  display: none;
+}
+
+/* Dark: a filled socket reads as a black bead on the recess, so it is hollow with a muted rim;
+ * light keeps a faint rim, so queued work still shows its bead. */
+:root[data-theme='dark'] .crew-lens .clay-bead[data-empty] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--muted);
+}
+:root:not([data-theme='dark']) .crew-lens .clay-bead[data-empty] {
+  box-shadow:
+    var(--clay-sunken),
+    inset 0 0 0 1px color-mix(in srgb, var(--muted) 50%, transparent);
+}
+/* Touch: every entry control and list row reaches 44px under 768px or on coarse pointers. */
+@media (width < 48rem), (pointer: coarse) {
+  .crew-lens {
+    --crew-lens-control: 2.75rem;
+  }
+  .crew-lens-control {
+    height: 54px;
+  }
+  .crew-lens-control > .queue-menu-trigger {
+    width: 44px;
+    height: 44px;
+  }
+  .crew-lens-member,
+  .crew-lens-more {
+    min-height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .crew-lens-entry,
+  .crew-lens-chevron {
+    transition: none;
+  }
+}

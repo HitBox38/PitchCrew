@@ -10,10 +10,18 @@ import { noRemoteImages } from '@/components/ai-elements/message/constants.tsx';
 
 type ClaySkillProposalProps = Pick<SkillProposalsProps, 'name' | 'working' | 'act'> & {
   proposal: SkillProposal;
+  /** Home's desk: Add skill leads the verbs, the note under them (`ProposalFooter`). */
+  approveFirst?: boolean;
 };
 
 /** A skill suggestion as a clay card with its exact instructions in a recessed tray. */
-export const ClaySkillProposal = ({ proposal, name, working, act }: ClaySkillProposalProps) => {
+export const ClaySkillProposal = ({
+  proposal,
+  name,
+  working,
+  act,
+  approveFirst,
+}: ClaySkillProposalProps) => {
   const { skill } = proposal;
   return (
     <>
@@ -48,6 +56,7 @@ export const ClaySkillProposal = ({ proposal, name, working, act }: ClaySkillPro
         approveLabel="Add skill"
         working={working}
         act={act}
+        approveFirst={approveFirst}
       />
     </>
   );

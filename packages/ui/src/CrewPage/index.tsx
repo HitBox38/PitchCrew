@@ -8,6 +8,7 @@ import { pendingInstructionUpdates } from '@/lib/instruction-updates.ts';
 import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { CrewDismissed } from './components/CrewDismissed.tsx';
+import { CrewLens } from './components/CrewLens/index.tsx';
 import { CrewRetired } from './components/CrewRetired.tsx';
 import { CrewTitleActions } from './components/CrewTitleActions.tsx';
 import { CrewUpdateReview } from './components/CrewUpdateReview.tsx';
@@ -44,29 +45,36 @@ export const CrewPage = () => {
     <div className="crew-page">
       <CrewTitleActions data={data} working={working} />
       <CrewUpdateReview data={data} action={action} working={working} />
-      {roles.length ? (
-        <div className="crew-grid">
-          {roles.map((role) => (
-            <CrewCard
-              key={role.id}
-              role={role}
-              status={crewStatus(role, data, now)}
-              update={updates.find((update) => update.roleId === role.id)}
-              now={now}
-              working={working}
-              onConfigure={() => setRoleId(role.id)}
-              onChat={() => void openChat(role.id)}
-              onToggle={() => toggle(role)}
-              onReview={() => review(role.id)}
-            />
-          ))}
-        </div>
-      ) : (
-        <p className="ui-empty">
-          {updatesOnly ? 'No agents have new default instructions.' : 'No agents yet.'}
-        </p>
-      )}
+      <CrewLens data={data} now={now} />
+      {/* What Crew's badge counts, on the first screen with the work it governs. */}
       <CrewWaiting data={data} updates={updates} onReview={review} />
+      <section className="ui-section crew-roster" aria-labelledby="crew-roster-heading">
+        <h2 className="ui-section-heading" id="crew-roster-heading">
+          Agents
+        </h2>
+        {roles.length ? (
+          <div className="crew-grid">
+            {roles.map((role) => (
+              <CrewCard
+                key={role.id}
+                role={role}
+                status={crewStatus(role, data, now)}
+                update={updates.find((update) => update.roleId === role.id)}
+                now={now}
+                working={working}
+                onConfigure={() => setRoleId(role.id)}
+                onChat={() => void openChat(role.id)}
+                onToggle={() => toggle(role)}
+                onReview={() => review(role.id)}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="ui-empty">
+            {updatesOnly ? 'No agents have new default instructions.' : 'No agents yet.'}
+          </p>
+        )}
+      </section>
       <CrewDismissed data={data} onReview={review} />
       <CrewRetired roles={data.roles.filter((role) => role.retiredAt)} />
     </div>

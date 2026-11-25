@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ApplicationContext, Card, Role, Run, RuntimeInfo, Snapshot } from '@pitchcrew/core';
 import { states } from '@pitchcrew/core/states';
-import { crewShortcut, quickStatuses, shortcutLabels } from '../helpers.ts';
+import { crewShortcut, quickStatuses, seatBlocker, shortcutLabels } from '../helpers.ts';
 
 const card = { id: 'job', state: 'lead', owner: null, packet: null } as Card;
 const role = { id: 'custom-agent', workflow: 'scout', enabled: true, runtime: 'codex' } as Role;
@@ -85,6 +85,33 @@ describe('board job actions', () => {
       })?.reason,
     ).toBeUndefined();
     expect(crewShortcut({ ...card, owner: role.id }, data)?.reason).toContain('active work');
+  });
+
+  it('names the workspace reason a seat cannot start, the same words the single action shows', () => {
+    expect(seatBlocker('scout', data)).toBe('');
+    for (const roles of [[], [{ ...role, enabled: false }], [{ ...role, retiredAt: 'today' }]])
+      expect(seatBlocker('scout', { ...data, roles })).toBe(
+        'Enable an agent in the scout seat in Crew.',
+      );
+    expect(seatBlocker('writer', data)).toBe('Enable an agent in the writer seat in Crew.');
+    expect(seatBlocker('scout', { ...data, roles: [{ ...role, runtime: 'gemini-cli' }] })).toBe(
+      'Choose a runtime that supports isolated application work in Crew.',
+    );
+    expect(seatBlocker('scout', { ...data, runtimes: [] })).toBe(
+      'Install this agent’s runtime in Settings.',
+    );
+    expect(seatBlocker('scout', { ...data, profile: [] })).toBe(
+      'Add your profile notes before starting the crew.',
+    );
+    // A job's own work still comes first in the single action, before the workspace's reason.
+    expect(crewShortcut({ ...card, owner: role.id }, { ...data, roles: [] })?.reason).toBe(
+      'Wait for this job’s active work to finish.',
+    );
+    for (const blocked of [
+      { ...data, roles: [] },
+      { ...data, profile: [] },
+    ])
+      expect(crewShortcut(card, blocked)?.reason).toBe(seatBlocker('scout', blocked));
   });
 
   it('offers cancellation for active workflow and attached chat runs even if the role is unavailable', () => {

@@ -5,7 +5,7 @@ import { setupProgress } from '@/Onboarding/helpers.ts';
 import { useOnboarding } from '@/Onboarding/hooks/useOnboarding.ts';
 
 /**
- * “Getting started · 2 of 3 ready” while setup is incomplete. It opens the Board setup checklist,
+ * “Getting started · 2 of 3 ready” while setup is incomplete. It opens the setup checklist on Home,
  * bringing it back if setup was put off; the introduction is in Settings and the command palette.
  */
 export const SetupRow = () => {

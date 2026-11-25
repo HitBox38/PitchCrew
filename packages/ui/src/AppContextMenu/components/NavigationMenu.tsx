@@ -23,7 +23,7 @@ export const NavigationMenu = ({
     </ContextMenuSubTrigger>
     <ContextMenuSubContent aria-label="Workspace pages">
       <ContextMenuGroup>
-        {(['board', ...workspaceViews, 'settings'] as const).map((item) => {
+        {(['home', 'pipeline', ...workspaceViews, 'settings'] as const).map((item) => {
           const Icon = viewIcons[item];
           return (
             <ContextMenuItem key={item} disabled={item === view} onClick={() => navigate(item)}>

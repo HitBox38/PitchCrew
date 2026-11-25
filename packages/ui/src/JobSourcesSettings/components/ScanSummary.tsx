@@ -8,7 +8,11 @@ export const ScanSummary = ({ summary }: { summary: JobScanSummary }) => {
     <output className="settings-callout job-source-summary" aria-live="polite">
       <p>
         {scanSummaryText(summary)}{' '}
-        {summary.new ? <Link to="/">Open the board to review new leads.</Link> : null}
+        {summary.new ? (
+          <Link to="/pipeline" search={{ mode: 'table', view: 'not-scored' }}>
+            Open Pipeline to review new leads.
+          </Link>
+        ) : null}
       </p>
       {failed.length ? (
         <ul className="settings-failed grid gap-1">

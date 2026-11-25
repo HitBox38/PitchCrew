@@ -43,6 +43,6 @@ const steps = [
   },
   {
     title: 'Add your background and a job.',
-    text: 'Write factual notes in Profile and add a job to Board. A setup checklist walks you through it.',
+    text: 'Write factual notes in Profile and add your first job. The setup checklist on Home walks you through it.',
   },
 ];

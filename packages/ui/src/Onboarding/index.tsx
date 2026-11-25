@@ -9,8 +9,8 @@ export const Onboarding = () => {
   return <WelcomeDialog step={data.onboarding.step} working={working} error={error} save={save} />;
 };
 
-/** The Board setup checklist, placed by the Board inside its Needs you deck. */
-export const BoardSetup = () => {
+/** The setup checklist, placed first on Home while onboarding is in setup. */
+export const HomeSetup = () => {
   const { data, working, error, save } = useOnboarding();
   if (!data || data.onboarding?.status !== 'setup') return null;
   return <SetupChecklist data={data} working={working} error={error} save={save} />;

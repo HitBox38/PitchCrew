@@ -12,10 +12,6 @@
   flex-direction: column;
   container: decide / inline-size;
 }
-/* The pager replaces the title row's default count. */
-.workspace-title-fact:has(.decide-pager) > .workspace-default-fact {
-  display: none;
-}
 .decide-pager {
   display: inline-flex;
   align-items: center;

@@ -9,6 +9,7 @@ import { X } from 'lucide-react';
 
 const stateWords = {
   working: 'Working',
+  approving: 'Waiting for your OK',
   waiting: 'Waiting on your answer',
   paused: 'Paused',
   unavailable: 'Runtime unavailable',

@@ -2,7 +2,7 @@ import type { Page } from 'playwright';
 
 const moreTrigger = (page: Page) => page.getByRole('button', { name: /^More(?: pages|, )/ });
 
-/** Queue, Skills, Routines, Insights and Activity live behind the sidebar's More menu. */
+/** Decisions, Queue, Skills, Routines, Insights and Activity live in the sidebar's More menu. */
 export const openMorePage = async (page: Page, name: string | RegExp) => {
   await moreTrigger(page).click();
   await page

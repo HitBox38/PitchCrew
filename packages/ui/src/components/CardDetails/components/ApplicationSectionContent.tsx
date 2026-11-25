@@ -49,14 +49,14 @@ export const ApplicationSectionContent = ({
     <>
       <p className="quiet">
         {model.exported
-          ? 'Exported. Apply from Decisions, then record your submission after you apply.'
+          ? 'Exported. Apply from Home, then record your submission after you apply.'
           : card.state === 'awaiting_approval'
-            ? 'Your exact documents are waiting for your approval in Decisions.'
+            ? 'Your exact documents are waiting for your approval on Home.'
             : 'Available once the packet is reviewed.'}
       </p>
       {card.state === 'awaiting_approval' && !model.exported ? (
-        <Button variant="outline" onClick={model.openInbox}>
-          Open in Decisions
+        <Button variant="outline" onClick={model.openPacket}>
+          Open on Home
         </Button>
       ) : null}
     </>

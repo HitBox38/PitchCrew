@@ -2,13 +2,19 @@ import { useEffect, useEffectEvent, useLayoutEffect, useRef } from 'react';
 import type { QuestionFocusIntent, QuestionFormProps } from '../types.ts';
 import { optionShortcut, ownsNumberKeys } from '../helpers.ts';
 import { useQuestionResponse } from './useQuestionResponse.ts';
-import { questionShortcutTarget } from '../focus.ts';
+import { questionFormTarget, questionShortcutTarget } from '../focus.ts';
 import { editQuestion, emptyQuestionDraft, useQuestionState } from '../question-state.ts';
 
 // Long enough to show the chosen option before the card closes, as in T3 Code.
 const answerDelay = 200;
 
-export const useQuestionAnswer = ({ question, action, active, onResolved }: QuestionFormProps) => {
+export const useQuestionAnswer = ({
+  question,
+  action,
+  active,
+  onResolved,
+  answerOnSubmit = false,
+}: QuestionFormProps) => {
   const draft = useQuestionState((state) => state.drafts[question.id] ?? emptyQuestionDraft);
   const selected = draft.selected,
     text = draft.text;
@@ -16,7 +22,8 @@ export const useQuestionAnswer = ({ question, action, active, onResolved }: Ques
     clearTimer();
     editQuestion(question.id, question.threadId, {
       text: value,
-      ...(!question.multiSelect ? { selected: [] } : {}),
+      // Typing replaces a single choice, except where a choice waits for Answer and continue.
+      ...(!question.multiSelect && !answerOnSubmit ? { selected: [] } : {}),
     });
   };
   const setSelected = (value: string[] | ((current: string[]) => string[])) =>
@@ -45,7 +52,8 @@ export const useQuestionAnswer = ({ question, action, active, onResolved }: Ques
     latestResponse.current = respond;
   });
   const disabled = response.disabled;
-  // Multiple choice toggles; a single choice answers at once, with any detail already typed.
+  // Multiple choice toggles; a single choice answers at once, with any detail already typed, or
+  // with `answerOnSubmit` only selects.
   const choose = (id: string, shortcut = false) => {
     if (disabled) return;
     if (question.multiSelect) {
@@ -60,6 +68,7 @@ export const useQuestionAnswer = ({ question, action, active, onResolved }: Ques
       return;
     }
     setSelected([id]);
+    if (answerOnSubmit) return;
     timer.current = window.setTimeout(
       () => void latestResponse.current(false, [id], 'surface'),
       answerDelay,
@@ -75,7 +84,7 @@ export const useQuestionAnswer = ({ question, action, active, onResolved }: Ques
         event.repeat ||
         event.isComposing ||
         ownsNumberKeys(event.target) ||
-        !questionShortcutTarget(question.id, event.target)
+        !(answerOnSubmit ? questionFormTarget : questionShortcutTarget)(question.id, event.target)
       )
         return;
       const index = optionShortcut(event, question.options.length);
@@ -85,7 +94,7 @@ export const useQuestionAnswer = ({ question, action, active, onResolved }: Ques
     };
     document.addEventListener('keydown', pick);
     return () => document.removeEventListener('keydown', pick);
-  }, [active, disabled, question.id, question.options]);
+  }, [active, disabled, question.id, question.options, answerOnSubmit]);
   return {
     selected,
     text,
@@ -98,6 +107,7 @@ export const useQuestionAnswer = ({ question, action, active, onResolved }: Ques
     choose,
     respond,
     disabled,
+    answerOnSubmit,
     canAnswer: (selected.length > 0 || !!text.trim()) && !response.rejectedSameAnswer,
   };
 };

@@ -2,6 +2,7 @@ import {
   Activity,
   BookOpen,
   CalendarClock,
+  House,
   IdCard,
   Inbox,
   Lightbulb,
@@ -16,11 +17,17 @@ import type { View } from '@/navigation.ts';
 
 /** Every page, in sidebar order; secondary pages are named as they appear under More. */
 export const paletteViews: { id: View; title: string; context: string; icon: LucideIcon }[] = [
-  { id: 'board', title: 'Board', context: 'Jobs by stage', icon: SquareKanban },
-  { id: 'inbox', title: 'Decisions', context: 'Waiting for your decision', icon: Inbox },
+  {
+    id: 'home',
+    title: 'Home',
+    context: 'What waits on you and what the crew is doing',
+    icon: House,
+  },
+  { id: 'pipeline', title: 'Pipeline', context: 'Jobs by stage', icon: SquareKanban },
   { id: 'crew', title: 'Crew', context: 'Agents and their work', icon: Users },
   { id: 'profile', title: 'Profile', context: 'Notes your crew can cite', icon: IdCard },
   { id: 'chat', title: 'Chat', context: 'Conversations', icon: MessageSquare },
+  { id: 'inbox', title: 'Decisions', context: 'Waiting for your decision', icon: Inbox },
   { id: 'queue', title: 'Queue', context: 'Running and waiting work', icon: ListOrdered },
   { id: 'skills', title: 'Skills', context: 'Instructions for agents', icon: BookOpen },
   { id: 'routines', title: 'Routines', context: 'Scheduled actions', icon: CalendarClock },

@@ -25,7 +25,7 @@ test('requires form inspection or explicit manual checking, then confirms the ac
   });
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  await page.goto(host.daemon.url);
+  await page.goto(`${host.daemon.url}/pipeline`);
   await page.locator(`#board-job-${card.id} .clay-job-card`).waitFor({ timeout: 30000 });
   const later = page.getByRole('button', { name: 'Set up later', exact: true });
   if (await later.isVisible()) await later.click();

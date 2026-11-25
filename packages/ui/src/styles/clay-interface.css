@@ -214,24 +214,21 @@
   display: none;
 }
 
-/* ── Board: the Needs you deck beside four stage columns of clay job cards ─────
- * Deck 318 wide; columns at least 188 with a 12 gap; each column body scrolls on its own. */
+/* ── Pipeline: four stage columns of clay job cards ────────────────────────────
+ * Columns at least 164 with a 12 gap (four fit beside the expanded sidebar at 1024); each column body scrolls on its own. On phones the stage
+ * selector sits above the one column it shows. */
 .clay-board {
   display: flex;
   min-height: 0;
   flex: 1;
   gap: 14px;
 }
-.clay-board:has(> .clay-deck-clear) {
-  flex-direction: column;
-  gap: 10px;
-}
 .clay-columns {
   display: grid;
   min-width: 0;
   min-height: 0;
   flex: 1;
-  grid-template-columns: repeat(4, minmax(188px, 1fr));
+  grid-template-columns: repeat(4, minmax(164px, 1fr));
   gap: 12px;
   /* Match the card bodies' shadow gutters without overflowing the last column. */
   margin: -6px;
@@ -306,7 +303,7 @@
   display: none;
 }
 /* Preserve the title, full count and sort target before spending space on summary beads.
- * Use each column's width: the decision deck and sidebar can both reduce it. */
+ * Use each column's width: the sidebar can reduce it. */
 @container board-column (width < 16rem) {
   .clay-column-beads {
     display: none;
@@ -510,246 +507,8 @@
   }
 }
 
-/* Needs you: a recessed deck with the top decision as a raised card over two shadows. The deck
- * is as tall as its content (never a full-height well) and scrolls only past the page height. */
-.clay-deck {
-  display: flex;
-  width: 318px;
-  max-height: 100%;
-  flex: none;
-  flex-direction: column;
-  gap: 6px;
-  align-self: flex-start;
-  padding: 14px;
-  overflow-y: auto;
-  border-radius: 18px;
-  background: var(--sunken-fill);
-  box-shadow: var(--clay-sunken);
-  scrollbar-width: thin;
-}
-.clay-deck-heading {
-  display: flex;
-  min-height: 26px;
-  align-items: center;
-  gap: 8px;
-  padding-inline: 2px;
-  color: var(--ochre);
-  font-weight: 600;
-}
-.clay-deck-count {
-  color: var(--muted);
-  font-size: var(--text-caption);
-  font-weight: 400;
-}
-.clay-pips {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-inline-start: auto;
-}
-.clay-pips > i {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--border-strong);
-}
-.clay-pips > i[data-current] {
-  width: 20px;
-  border-radius: 4px;
-  background: radial-gradient(circle at 35% 30%, var(--orb-light), transparent 46%), var(--ochre);
-}
-.clay-deck-stack {
-  position: relative;
-  margin-top: 4px;
-}
-.clay-deck-stack[data-depth='1'] {
-  padding-bottom: 10px;
-}
-.clay-deck-stack[data-depth='2'] {
-  padding-bottom: 20px;
-}
-.clay-deck-stack::before,
-.clay-deck-stack::after {
-  position: absolute;
-  inset-inline: 10px;
-  bottom: 10px;
-  height: 2rem;
-  border-radius: 16px;
-  background: var(--clay-fill);
-  box-shadow: var(--clay);
-  content: '';
-  opacity: 0.85;
-}
-.clay-deck-stack::after {
-  inset-inline: 20px;
-  bottom: 0;
-  opacity: 0.55;
-}
-.clay-deck-stack[data-depth='0']::before,
-.clay-deck-stack[data-depth='0']::after,
-.clay-deck-stack[data-depth='1']::after {
-  display: none;
-}
-.clay-deck-stack[data-depth='1']::before {
-  bottom: 0;
-}
-.clay-deck-card {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 16px;
-  border-radius: 16px;
-  background: var(--clay-fill);
-  box-shadow: var(--clay);
-}
-.clay-deck-source {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-  color: var(--muted);
-  font-size: var(--text-caption);
-}
-.clay-deck-source > .role-avatar {
-  width: 20px;
-  height: 20px;
-}
-.clay-deck-card h3 {
-  font: 600 1.0625rem/1.25 var(--font-sans);
-}
-.clay-deck-job {
-  color: var(--ink-soft);
-  font-size: var(--text-caption);
-}
-.clay-deck-detail {
-  display: -webkit-box;
-  margin-top: 12px;
-  overflow: hidden;
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: var(--sunken-fill);
-  box-shadow: var(--clay-sunken);
-  color: var(--ink-soft);
-  font-size: var(--text-caption);
-  line-height: 1.45;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 5;
-}
-.clay-deck-handoff {
-  display: none;
-}
-.clay-deck-evidence {
-  display: grid;
-  gap: 10px;
-  margin-top: 14px;
-  font-size: var(--text-caption);
-}
-.clay-deck-files {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.clay-deck-files > li {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 8px;
-  border-radius: 8px;
-  background: var(--sunken-fill);
-  color: var(--ink-soft);
-}
-.clay-deck-highlights {
-  display: grid;
-  gap: 5px;
-  color: var(--ink-soft);
-}
-.clay-deck-highlights > li {
-  display: flex;
-  gap: 6px;
-  line-height: 1.4;
-}
-.clay-deck-highlights svg {
-  flex: none;
-  margin-top: 2px;
-  color: var(--moss);
-}
-.clay-deck-highlights span {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-.clay-deck-actions {
-  display: flex;
-  gap: 6px;
-  margin-top: auto;
-  padding-top: 14px;
-}
-.clay-deck-actions > :first-child {
-  flex: 1;
-}
-.clay-deck-then {
-  margin: 12px 2px 0;
-  color: var(--muted);
-  font-size: var(--text-caption);
-  font-weight: 600;
-}
-.clay-deck-next {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 9px 10px;
-  border-radius: 10px;
-  background: var(--clay-fill);
-  box-shadow: var(--clay);
-  text-align: start;
-  transition: box-shadow var(--duration-press) var(--ease-material);
-}
-.clay-deck-next:hover {
-  box-shadow: var(--clay-hover);
-}
-.clay-deck-next:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-.clay-deck-next > .role-avatar {
-  width: 20px;
-  height: 20px;
-}
-.clay-deck-next > span {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-}
-.clay-deck-next > span > span {
-  overflow: hidden;
-  color: var(--muted);
-  font-size: var(--text-caption);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.clay-deck-clear {
-  display: flex;
-  min-height: 48px;
-  flex: none;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  border-radius: 12px;
-  background: var(--sunken-fill);
-  box-shadow: var(--clay-sunken);
-  color: var(--muted);
-  font-size: var(--text-label);
-}
-.clay-deck-clear svg {
-  flex: none;
-  color: var(--moss);
-}
-
-/* Below 1124px of work width the deck becomes a compact strip above a scrolling pipeline.
- * When both cannot fit, scroll the Board instead of shrinking the pipeline out of reach. */
+/* Below 1124px of work width (every phone included) the stage selector stacks above the
+ * columns. When both cannot fit, scroll Pipeline instead of shrinking the columns out of reach. */
 @container board (width < 70.25rem) {
   .clay-board {
     flex-direction: column;
@@ -760,95 +519,6 @@
   .clay-board > .clay-columns {
     min-height: 240px;
     flex-shrink: 0;
-  }
-  .clay-deck {
-    width: auto;
-    max-height: none;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    align-self: stretch;
-    gap: 8px 12px;
-    padding: 10px 12px;
-    overflow: visible;
-  }
-  .clay-deck > .onboarding-checklist,
-  .clay-deck > .onboarding-checklist + .clay-deck-heading {
-    flex-basis: 100%;
-  }
-  .clay-deck-stack,
-  .clay-deck-stack[data-depth] {
-    min-width: 0;
-    flex: 1 1 20rem;
-    margin: 0;
-    padding: 0;
-  }
-  .clay-deck-stack::before,
-  .clay-deck-stack::after,
-  .clay-deck-source,
-  .clay-deck-evidence,
-  .clay-deck-detail,
-  .clay-deck-then,
-  .clay-deck-next {
-    display: none;
-  }
-  .clay-deck-card {
-    min-height: 0;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 2px 12px;
-    padding: 8px 8px 8px 14px;
-    border-radius: 12px;
-  }
-  .clay-deck-card h3 {
-    font-size: 0.9375rem;
-  }
-  .clay-deck-card .clay-deck-handoff {
-    display: block;
-    flex-basis: 100%;
-    margin: 2px 0;
-    color: var(--muted);
-    font-size: var(--text-caption);
-  }
-  .clay-deck-actions {
-    margin-inline-start: auto;
-    padding-top: 0;
-  }
-  /* A question shows its own words (two lines at most) instead of the job's fit. */
-  .clay-deck-card[data-kind='question'] {
-    padding-block: 10px;
-  }
-  .clay-deck-card[data-kind='question'] h3 {
-    flex-basis: 100%;
-  }
-  /* Which job the question concerns: one muted 12/18 line, without the fit. */
-  .clay-deck-card[data-kind='question'] .clay-deck-job {
-    flex-basis: 100%;
-    overflow: hidden;
-    color: var(--muted);
-    font-size: var(--text-caption);
-    line-height: 1.125rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .clay-deck-card[data-kind='question'] .clay-deck-fit {
-    display: none;
-  }
-  .clay-deck-card[data-kind='question'] .clay-deck-detail {
-    display: -webkit-box;
-    flex: 1 1 18rem;
-    margin: 0;
-    padding: 0;
-    background: none;
-    box-shadow: none;
-    color: var(--ink);
-    font-size: var(--text-label);
-    line-height: 1.25rem;
-    -webkit-line-clamp: 2;
-  }
-  .clay-deck-card[data-kind='question'] .clay-deck-actions {
-    padding-top: 8px;
   }
 }
 

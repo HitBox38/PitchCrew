@@ -7,8 +7,10 @@ import type {
   Run,
   ChatRequest,
   ComputerApproval,
+  Snapshot,
   SubmissionAttempt,
 } from '@pitchcrew/core';
+import { attentionItems } from '../src/lib/attention.ts';
 import { setup, cleanup, confirmFixtureApplication, finish } from './helpers/daemon.ts';
 let host: Awaited<ReturnType<typeof setup>>;
 let browser: Browser;
@@ -189,14 +191,20 @@ test('keeps manual follow-up after export, enables exact downloads and confirms 
   await page.getByRole('button', { name: 'Close viewer', exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  // After a manual export every footer action stays whole and reachable on a phone, with
-  // I’ve submitted on its own full row; none hides behind a sideways scrollbar.
+  // After a manual export every footer action stays whole and reachable on a phone, with Open
+  // application page glazed on its own full row and I’ve submitted a secondary step after it;
+  // none hides behind a sideways scrollbar.
+  expect(
+    await page
+      .getByRole('button', { name: 'I’ve submitted', exact: true })
+      .getAttribute('data-variant'),
+  ).toBe('outline');
   for (const width of [390, 320]) {
     await page.setViewportSize({ width, height: 844 });
     expect(await packetFooterLayout()).toEqual({
       names: [
-        'I’ve submitted',
         'Open application page',
+        'I’ve submitted',
         'Let an agent prepare',
         'More packet actions',
       ],
@@ -456,10 +464,19 @@ test('keeps automatic browser approvals out of Decisions, its count and history'
   await page
     .getByRole('heading', { name: 'Submitter asks to use the browser', exact: true })
     .waitFor();
-  // Only the asked request waits: the pager, the sheet and the sidebar badge all leave the rest out.
+  // Only the asked request waits: the pager and the sheet leave the rest out, and so does Home's
+  // sidebar badge, which counts every attention item.
   expect(await page.locator('.decide-position').textContent()).toBe('1 of 1');
   expect(await page.locator('[data-decision-id]').getAttribute('data-decision-id')).toBe(asked.id);
-  await page.getByRole('link', { name: 'Decisions, 1 waiting on you', exact: true }).waitFor();
+  const waiting = attentionItems(
+    (await host.request<Snapshot>('/snapshot?view=workspace')).result,
+  ).map((item) => item.key);
+  expect(waiting).toContain(`browser:${asked.id}`);
+  expect(waiting).not.toContain(`browser:${allowed.id}`);
+  expect(waiting).not.toContain(`browser:${ran.id}`);
+  await page
+    .getByRole('link', { name: `Home, ${waiting.length} waiting on you`, exact: true })
+    .waitFor();
   await page.goto(`${host.daemon.url}/inbox?view=history&entry=browser:${ran.id}`);
   await page.locator('.decision-history-row').first().waitFor();
   expect(await page.locator(`[data-request-key="browser:${ran.id}"]`).count()).toBe(0);

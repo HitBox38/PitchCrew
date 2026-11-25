@@ -31,7 +31,7 @@ beforeAll(async () => {
     if (request.isNavigationRequest() && request.frame() === page.mainFrame()) reloads += 1;
   });
   await page.goto(host.daemon.url);
-  await page.locator(`#board-job-${card.id} .clay-job-card`).waitFor({ timeout: 30000 });
+  await page.getByRole('region', { name: 'Needs you' }).waitFor({ timeout: 30000 });
   reloads = 0;
 }, 60000);
 
@@ -59,7 +59,7 @@ test('the HTML entry gives feedback before JavaScript starts', async () => {
     expect(await initial.locator('.skip-link').count()).toBe(0);
     release();
     await navigation;
-    await initial.locator('.clay-job-card').first().waitFor({ timeout: 30000 });
+    await initial.getByRole('region', { name: 'Needs you' }).waitFor({ timeout: 30000 });
   } finally {
     release();
     await initial.close();
@@ -84,7 +84,7 @@ test('a slow initial workspace download shows loading feedback until it arrives'
       .waitFor({ timeout: 5000 });
     expect(await initial.getByRole('banner', { name: 'Workspace controls' }).count()).toBe(0);
     release();
-    await initial.locator('.clay-job-card').first().waitFor({ timeout: 30000 });
+    await initial.getByRole('region', { name: 'Needs you' }).waitFor({ timeout: 30000 });
     expect(await initial.getByText('Opening your local workspace…').count()).toBe(0);
   } finally {
     release();
@@ -95,10 +95,8 @@ test('a slow initial workspace download shows loading feedback until it arrives'
 test('a page that fails to load keeps the workspace and recovers only through a confirmed reload', async () => {
   const documentOrigin = await page.evaluate(() => performance.timeOrigin);
   blocking = true;
-  await page
-    .getByRole('link', { name: /^Decisions/ })
-    .first()
-    .click();
+  // Pipeline's page has not loaded in this window yet, so its chunk is requested now.
+  await page.getByRole('link', { name: 'Pipeline', exact: true }).click();
   const failure = page.getByRole('alert').filter({ hasText: 'This page didn’t load' });
   await failure.waitFor({ timeout: 15000 });
   expect(blocked.length).toBeGreaterThan(0);
@@ -117,15 +115,13 @@ test('a page that fails to load keeps the workspace and recovers only through a 
   await failure.getByRole('button', { name: 'Reload Pitchcrew…' }).click();
   await failure.getByText(/Unsent messages and unsaved edits in this window are lost/).waitFor();
   await failure.getByRole('button', { name: 'Reload', exact: true }).click();
-  await page.getByRole('heading', { name: 'Decisions', level: 1 }).waitFor({ timeout: 30000 });
+  await page.getByRole('heading', { name: 'Pipeline', level: 1 }).waitFor({ timeout: 30000 });
   expect(reloads).toBe(1);
 });
 
 test('a job sheet that fails to load closes without taking down the workspace', async () => {
-  await page
-    .getByRole('link', { name: /^Board/ })
-    .first()
-    .click();
+  // The confirmed reload above reopened Pipeline.
+  await page.getByRole('link', { name: 'Pipeline', exact: true }).click();
   const job = page.locator(`#board-job-${card.id} .clay-job-card`);
   await job.waitFor({ timeout: 30000 });
   reloads = 0;
@@ -137,7 +133,7 @@ test('a job sheet that fails to load closes without taking down the workspace', 
   await dialog.getByRole('button', { name: 'Keep this window' }).click();
   await dialog.getByRole('button', { name: 'Close', exact: true }).click();
   await dialog.waitFor({ state: 'detached' });
-  // Board and the app bar keep working after the failed sheet closes.
+  // Pipeline and the app bar keep working after the failed sheet closes.
   await job.waitFor();
   expect(await page.getByRole('banner', { name: 'Workspace controls' }).count()).toBe(1);
   expect(reloads).toBe(0);

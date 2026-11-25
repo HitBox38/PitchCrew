@@ -1,5 +1,5 @@
-/* Onboarding: a centred 600px clay sheet for the two-screen introduction, then the Board setup
- * checklist inside the Needs you deck (or alone on an empty board). */
+/* Onboarding: a centred 600px clay sheet for the two-screen introduction, then the setup
+ * checklist first on Home (placed by styles/home.css). */
 .onboarding-dialog {
   display: flex;
   width: min(600px, calc(100vw - 32px));
@@ -98,7 +98,7 @@
   margin-right: auto;
 }
 
-/* Board setup checklist: a content-sized recessed section with three 64px rows. */
+/* Setup checklist: a content-sized recessed section with three 64px rows. */
 .onboarding-checklist {
   display: grid;
   gap: 8px;
@@ -106,17 +106,6 @@
   border-radius: 12px;
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
-}
-.clay-deck > .onboarding-checklist {
-  padding: 0 0 12px;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-}
-.clay-deck > .onboarding-checklist + .clay-deck-heading {
-  margin-top: 4px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
 }
 .onboarding-checklist-heading {
   display: flex;
@@ -162,12 +151,6 @@
 .onboarding-checklist-footer {
   display: flex;
   justify-content: flex-end;
-}
-.board-workspace > .onboarding-checklist {
-  width: min(640px, 100%);
-  min-height: 0;
-  padding: 16px;
-  overflow-y: auto;
 }
 @variant max-mobile {
   .onboarding-dialog {

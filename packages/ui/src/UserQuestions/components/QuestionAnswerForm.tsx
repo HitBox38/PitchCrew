@@ -5,6 +5,27 @@ import type { QuestionFormProps } from '../types.ts';
 
 export const QuestionAnswerForm = (props: QuestionFormProps) => {
   const form = useQuestionAnswer(props);
+  const cancel = (
+    <Button
+      variant="ghost"
+      size="sm"
+      aria-label="Cancel question"
+      disabled={form.disabled}
+      onClick={() => void form.respond(true)}
+    >
+      Cancel question
+    </Button>
+  );
+  const answer = (
+    <Button
+      type="submit"
+      size="sm"
+      className="button primary small"
+      disabled={form.disabled || !form.canAnswer}
+    >
+      Answer and continue
+    </Button>
+  );
   return (
     <form
       className="user-question-form"
@@ -17,23 +38,8 @@ export const QuestionAnswerForm = (props: QuestionFormProps) => {
     >
       <QuestionAnswerFields question={props.question} form={form} />
       <div className="user-question-actions">
-        <Button
-          variant="ghost"
-          size="sm"
-          aria-label="Cancel question"
-          disabled={form.disabled}
-          onClick={() => void form.respond(true)}
-        >
-          Cancel question
-        </Button>
-        <Button
-          type="submit"
-          size="sm"
-          className="button primary small"
-          disabled={form.disabled || !form.canAnswer}
-        >
-          Answer and continue
-        </Button>
+        {props.answerFirst ? answer : cancel}
+        {props.answerFirst ? cancel : answer}
       </div>
     </form>
   );

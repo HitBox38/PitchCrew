@@ -1,5 +1,6 @@
 import type { Snapshot, WorkQueueView } from '@pitchcrew/core';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { queueMove } from '../helpers.ts';
 import { QueueCard } from './QueueCard.tsx';
 import { QueueList } from './QueueList.tsx';
 import { QueueSection } from './QueueSection.tsx';
@@ -15,8 +16,7 @@ export const QueuePending = ({
   data: Snapshot;
 }) => {
   const action = useWorkspaceStore((state) => state.action);
-  const commit = (id: string, beforeId: string | null) =>
-    action(`/queue/${encodeURIComponent(id)}`, 'PUT', { action: 'move', beforeId });
+  const commit = queueMove(action);
   const groups = [
     ['Ready work', 'Up next', ready, 'Nothing is waiting for a slot.', 'Workspace waiting order'],
     ['Work on hold', 'On hold', held, 'Nothing is on hold.', 'Workspace held order'],

@@ -12,15 +12,18 @@ import type { useQueueActions } from '@/hooks/useQueueActions.ts';
 export const QueueRunningMenu = ({
   queue,
   model,
+  label,
 }: {
   queue: WorkQueueView;
   model: ReturnType<typeof useQueueActions>;
+  /** The trigger's accessible name where the queue title alone would be unclear. */
+  label?: string;
 }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={<Button variant="ghost" size="icon" className="queue-menu-trigger" />}
-        aria-label={`Queue actions for ${queue.title}`}
+        aria-label={label ?? `Queue actions for ${queue.title}`}
       >
         <MoreHorizontal size={16} aria-hidden="true" />
       </DropdownMenuTrigger>

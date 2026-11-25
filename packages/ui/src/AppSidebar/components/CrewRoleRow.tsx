@@ -51,10 +51,10 @@ export const CrewRoleRow = memo(
             {role.name}
             <span className="sidebar-row-meta"> {asking ? 'Waiting for you' : status}</span>
           </span>
-          {running ? (
-            <StatusBead status="running" />
-          ) : asking ? (
+          {asking ? (
             <StatusBead status="waiting" />
+          ) : running ? (
+            <StatusBead status="running" />
           ) : null}
         </SidebarMenuButton>
         <DropdownMenu>

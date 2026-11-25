@@ -69,7 +69,7 @@ The Decisions packet sheet lists only checks that actually ran on the frozen fil
 - **Result** with the service name, the document, the check time and the provider's passage details where supported.
 - **Outdated** when the document text no longer matches the checked digest, with the same Check action.
 
-Advisory rows never use the rose failure bead; a flagged result is a warning tone, and Not checked is an empty socket. Job details' Reviews section shows the same rows beside the Reviewer summary and Writer change notes. Decisions history keeps the saved result on decided packets. The Board's Needs you deck and chat's read-only Packet panel show the row's state but not the Check action; checks start only from Decisions or job details. Browser request and question sheets are unchanged.
+Advisory rows never use the rose failure bead; a flagged result is a warning tone, and Not checked is an empty socket. Job details' Reviews section shows the same rows beside the Reviewer summary and Writer change notes. Decisions history keeps the saved result on decided packets. Chat's read-only Packet panel shows the row's state but not the Check action; checks start only from Decisions, Home's open packet rows (the same `PacketDetails`) or job details. Browser request and question sheets are unchanged.
 
 ## Acting on a detector advisory
 

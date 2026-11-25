@@ -19,7 +19,7 @@ export const smokeInsights = `(async () => {
   const importedCard = (await request('/snapshot')).cards.find((card) => card.id === imported.rows[0].cardIds[0]);
   const importReady = importedCard?.weight === -1 && importedCard.lessons?.[0]?.text === 'Fictional imported lesson from native smoke.';
   const first = await register(0);
-  document.querySelector('a[href="/"]')?.click();
+  document.querySelector('a[href="/pipeline"]')?.click();
   const cardSelector = '.clay-job-card[aria-label="Open Fictional Analyst at Fictional Learning 0"]';
   if (!await waitFor(() => !!document.querySelector(cardSelector))) return false;
   document.querySelector(cardSelector).click();

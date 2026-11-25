@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
-const typing = (target: EventTarget | null) => {
+/** Whether a key press belongs to text entry: a field, editable text or anything inside a form. */
+export const typing = (target: EventTarget | null) => {
   return (
     target instanceof HTMLElement &&
     (target.isContentEditable ||

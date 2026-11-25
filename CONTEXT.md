@@ -28,6 +28,10 @@ _Avoid_: Pending approval (when referring only to whether a request has been rea
 An outstanding user step after packet approval, such as completing a manual application or verifying a submission outcome. Exporting files does not complete the follow-up.
 _Avoid_: Pending approval (when the packet is already approved), submitted application (when applying has not been recorded)
 
+**Attention item**:
+Anything saved that waits on the user before work or a record can move on, such as an Inbox request, a user input request, a drafting confirmation, a failed request awaiting recovery, a tracking review or a crew proposal; the user-facing list of them is called "Needs you". Each item keeps its own kind and consequences, so grouping items never merges their decisions.
+_Avoid_: Decision (when implying every item is an approval), notification, approval queue
+
 **Agent-assisted submission**:
 An application process in which a crew agent prepares the employer's form and submits it after the user approves the exact final submission action. Choosing this method does not itself approve the final submission.
 _Avoid_: Unattended submission, automatic application (when implying no final user decision)

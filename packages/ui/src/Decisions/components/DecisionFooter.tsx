@@ -5,7 +5,16 @@ import { BrowserDecisionFooter } from '@/components/InboxView/components/Browser
 import { PacketApprovalActions } from '@/components/InboxView/components/PacketApprovalActions.tsx';
 import { Button } from '@pitchcrew/design-system/button';
 import type { Decision } from '@/ClayInterface/signals.ts';
+import { snapshotStepFacts } from '@/lib/job-step.ts';
 import { briefAnswersNeeded } from '../helpers.ts';
+
+/** The brief's button, named for its first step in job details: the form check comes first. */
+const briefVerb = (card: Card, data: Snapshot) =>
+  snapshotStepFacts(card, data.approvals).formMissing
+    ? 'Check form and confirm'
+    : briefAnswersNeeded(card)
+      ? 'Answer and confirm'
+      : 'Review and confirm';
 
 type DecisionFooterProps = {
   decision: Decision;
@@ -46,7 +55,7 @@ export const DecisionFooter = (props: DecisionFooterProps) => {
         <div className="decide-footer-bar">
           <div className="decide-actions">
             <Button onClick={() => openCard(card.id, 'application')}>
-              {briefAnswersNeeded(card) ? 'Answer and confirm' : 'Review and confirm'}
+              {briefVerb(card, data)}
             </Button>
           </div>
           <p className="decide-consequence">Writer and Reviewer only see what you confirm.</p>

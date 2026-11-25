@@ -1,18 +1,16 @@
 import type { ReadyWorkspaceProps } from '@/App/types.ts';
 import { viewTitles } from '@/AppSidebar/constants.ts';
-import { closedStateSet } from '@/board-stages.ts';
 import type { View } from '@/navigation.ts';
 import type { Role, Snapshot } from '@pitchcrew/core';
 
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
 
-/** The one quiet fact beside each page title; pages may replace it with their own. */
-const pageFact = (view: View | undefined, data: Snapshot, pending: number) => {
-  if (view === 'board') {
-    const active = data.cards.filter((card) => !closedStateSet.has(card.state)).length;
-    return data.cards.length ? `${active} active` : '';
-  }
-  if (view === 'inbox') return pending ? `${pending} waiting` : '';
+/**
+ * The one quiet fact beside each page title; pages may replace it with their own. Home and
+ * Decisions write their own (Home its count, Decisions its pager or its history), and Pipeline's
+ * Open | Closed segment already counts its jobs, so none of them has one here.
+ */
+const pageFact = (view: View | undefined, data: Snapshot) => {
   if (view === 'crew') {
     const roles = data.roles.filter((role) => !role.retiredAt);
     const working = new Set(
@@ -30,7 +28,7 @@ const pageFact = (view: View | undefined, data: Snapshot, pending: number) => {
 const pageTitle = (view: View | undefined) => (view ? viewTitles[view] : 'Page not found');
 
 export const getWorkspaceModel = (props: ReadyWorkspaceProps) => {
-  const { data, view, pending, recentIds, act } = props;
+  const { data, view, recentIds, act } = props;
   const running = data.runs.filter((r) => r.status === 'running');
   const recentCards = recentIds
     .map((id) => data.cards.find((card) => card.id === id))
@@ -55,6 +53,6 @@ export const getWorkspaceModel = (props: ReadyWorkspaceProps) => {
     recentCards,
     toggleRole,
     title: pageTitle(view),
-    fact: pageFact(view, data, pending),
+    fact: pageFact(view, data),
   };
 };

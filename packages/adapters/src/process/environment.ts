@@ -37,5 +37,5 @@ export const cliEnvironment = (env: Record<string, string | undefined> = {}) => 
   return environment;
 };
 
-// Drafting, research and high-effort reasoning need the same budget as browser work.
-export const runtimeTimeLimit = 30 * 60 * 1000;
+// One run limit for the adapters and the UI's "about HH:MM" estimates.
+export { runtimeTimeLimit } from '@pitchcrew/core/run-limits';

@@ -4,7 +4,7 @@ import { sidebarCounts } from '@/AppSidebar/helpers.ts';
 
 export const WorkspaceSidebar = ({
   view,
-  pending,
+  attention,
   data,
   openCard,
   recentCards,
@@ -15,7 +15,7 @@ export const WorkspaceSidebar = ({
   <ClaySidebar
     data={data}
     view={view}
-    counts={sidebarCounts(data, pending)}
+    counts={sidebarCounts(attention)}
     recent={recentCards}
     working={working}
     onOpenCard={openCard}

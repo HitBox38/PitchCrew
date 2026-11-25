@@ -18,16 +18,16 @@ import { isMac } from '@/shortcuts.ts';
 
 /** What each count means, for its accessible name and tone. */
 const countMeaning = {
-  board: { noun: '', tone: '' },
-  inbox: { noun: 'waiting on you', tone: 'ochre' },
+  home: { noun: 'waiting on you', tone: 'ochre' },
+  pipeline: { noun: '', tone: '' },
   crew: { noun: 'updates or proposals', tone: 'plum' },
   profile: { noun: 'proposals to review', tone: 'ochre' },
 } as const;
 
 /**
- * Board, Decisions, Crew and Profile with ⌘1–4, then More for the secondary pages. A count
- * replaces the shortcut hint while something is waiting. Its counts are rebuilt on every update,
- * so it compares them by content.
+ * Home, Pipeline, Crew and Profile with ⌘1–4, then More for the secondary pages (Decisions
+ * first). A count replaces the shortcut hint while something is waiting. Its counts are rebuilt
+ * on every update, so it compares them by content.
  */
 export const ClayNav = memo(({ view, counts }: WorkspaceLinksProps) => {
   const { setOpenMobile } = useSidebar();

@@ -24,7 +24,7 @@ beforeEach(async () => {
     url: 'https://example.com/fictional-job',
     tags: ['design'],
   });
-  await page.goto(host.daemon.url);
+  await page.goto(`${host.daemon.url}/pipeline`);
   await page.locator(`#board-job-${card.id} .clay-job-card`).waitFor({ timeout: 30000 });
   const later = page.getByRole('button', { name: 'Set up later', exact: true });
   if (await later.isVisible()) await later.click();

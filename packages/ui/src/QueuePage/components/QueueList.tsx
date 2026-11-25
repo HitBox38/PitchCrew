@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { m } from 'motion/react';
 import { QueueGrip } from './QueueGrip.tsx';
 import { useQueueOrder } from '../hooks/useQueueOrder.ts';
+import { queueMoves } from '../helpers.ts';
 import type { QueueMoves } from '../types.ts';
 
 /** An ordered list with drag, arrow-key and menu reordering; Make next jumps to the top. */
@@ -28,17 +29,7 @@ export const QueueList = <T extends { id: string }>({
       {model.visible.map((item, index) => {
         const disabled = model.busy || !movable(item);
         const move = (beforeId: string | null) => () => void model.move(item.id, beforeId);
-        const first = model.visible[head];
-        const moves: QueueMoves = disabled
-          ? {}
-          : {
-              up: index > head ? move(model.visible[index - 1]?.id ?? null) : undefined,
-              down:
-                index < model.visible.length - 1
-                  ? move(model.visible[index + 2]?.id ?? null)
-                  : undefined,
-              makeNext: index > head && first ? move(first.id) : undefined,
-            };
+        const moves: QueueMoves = disabled ? {} : queueMoves(model.visible, index, head, move);
         const handle = <QueueGrip group={group} id={item.id} disabled={disabled} moves={moves} />;
         return (
           <m.li

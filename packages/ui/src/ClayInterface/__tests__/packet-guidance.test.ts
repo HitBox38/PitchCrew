@@ -1,15 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { Approval, Card, ComputerApproval, Snapshot } from '@pitchcrew/core';
 import { packetNeedsAction } from '../../lib/inbox.ts';
-import {
-  cardLine,
-  columnBeads,
-  decisionSource,
-  decisionTitle,
-  jobStatus,
-  nextUp,
-} from '../jobs.ts';
-import { cardPacketApproval, packetAction } from '../packet-guidance.ts';
+import { cardLine, columnBeads, decisionTitle, jobStatus, nextUp } from '../jobs.ts';
+import { cardPacketApproval } from '../packet-guidance.ts';
 import { decisions, jobAsks, jobSignals, signalAsks } from '../signals.ts';
 
 const packet = { resume: 'Resume', coverLetter: '', formAnswers: '', note: '', claims: [] };
@@ -78,9 +71,7 @@ const surfaces = (data: Snapshot) => {
     status: jobStatus(card, signal, data.roles),
     line: cardLine(card, signal, data).text,
     title: decisionTitle(decision!, data),
-    source: decisionSource(decision!, data).text,
     next: nextUp(card, data)?.text,
-    action: packetAction(decision!.stage),
   };
 };
 
@@ -91,9 +82,7 @@ describe('packet decision guidance', () => {
     expect(view.status).toBe('Approve packet');
     expect(view.line).toBe('Approve packet');
     expect(view.title).toBe('Approve the Acme (fictional) packet?');
-    expect(view.source).toBe('Reviewer agreed');
     expect(view.next).toBe('Waiting on you: Approve the Acme (fictional) packet?');
-    expect(view.action).toBe('Review');
   });
 
   it('asks how to apply once the packet is approved but not exported', () => {
@@ -103,8 +92,6 @@ describe('packet decision guidance', () => {
     expect(view.decision.stage).toBe('choose');
     expect(view.status).toBe('Choose how to apply');
     expect(view.title).toBe('Choose how to apply to Acme (fictional)');
-    expect(view.source).toBe('You approved');
-    expect(view.action).toBe('Continue application');
     expect(JSON.stringify(view)).not.toMatch(/Approve/u);
   });
 
@@ -116,9 +103,7 @@ describe('packet decision guidance', () => {
     expect(view.line).toBe('Ready to apply');
     expect(view.title).toBe('Apply to Acme (fictional), then record it');
     expect(view.next).toBe('Waiting on you: Apply to Acme (fictional), then record it');
-    expect(view.source).toBe('You exported the files');
     expect(view.decision.detail).toContain('Nothing has been sent');
-    expect(view.action).toBe('Continue application');
     expect(JSON.stringify(view)).not.toMatch(/Approve|submitted/u);
     // Presentation only: the job is still awaiting approval, not recorded as submitted.
     expect(data.cards[0]!.state).toBe('awaiting_approval');
@@ -143,7 +128,6 @@ describe('packet decision guidance', () => {
     expect(running.decision.stage).toBe('preparing');
     expect(running.status).toBe('Agent preparing');
     expect(running.title).toBe('Check on the Acme (fictional) application');
-    expect(running.source).toBe('Handed to Submitter');
     expect(running.decision.detail).toContain('Nothing is submitted until you approve');
     expect(running.next).not.toContain('Waiting on you');
     const failed = surfaces(snapshot([handoff], { chatRequests: request('failed') }));
@@ -264,7 +248,6 @@ describe('packet decision guidance', () => {
     expect(view.decision.stage).toBe('verify');
     expect(view.status).toBe('Verify submission');
     expect(view.title).toBe('Did the Acme (fictional) application go through?');
-    expect(view.action).toBe('Check submission');
   });
 
   it('leaves attention eligibility and counts unchanged', () => {
@@ -315,7 +298,6 @@ describe('packet decision guidance', () => {
     expect(decisionTitle(brief!, data)).toBe('Confirm the Acme (fictional) brief');
     expect(decisionTitle(browser!, data)).toBe('Submitter asks to use the browser');
     expect(decisionTitle(question!, data)).toBe('Reviewer has a question');
-    expect(packetAction(browser!.stage)).toBe('Review');
     const signal = jobSignals(data).get('job') ?? {};
     expect(jobStatus(data.cards[0]!, signal, data.roles)).toBe('Confirm brief');
   });

@@ -13,6 +13,8 @@ type ClayRoleProposalProps = Pick<RoleProposalsProps, 'working' | 'act'> & {
   current: Role;
   active: boolean;
   sourceName?: string;
+  /** Home's desk: Apply changes leads the verbs, the note under them (`ProposalFooter`). */
+  approveFirst?: boolean;
 };
 
 /** A role proposal as a clay card: reason, an instruction diff and capability beads in trays. */
@@ -23,6 +25,7 @@ export const ClayRoleProposal = ({
   working,
   sourceName,
   act,
+  approveFirst,
 }: ClayRoleProposalProps) => {
   const before = proposal.beforeRole ?? current;
   const instructions = proposal.changes.instructions;
@@ -69,6 +72,7 @@ export const ClayRoleProposal = ({
         working={working}
         blocked={active}
         act={act}
+        approveFirst={approveFirst}
       />
     </>
   );
