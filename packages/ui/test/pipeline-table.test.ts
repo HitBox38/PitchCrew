@@ -349,6 +349,10 @@ test('never says “Not sent” for a lost answer: queued once the snapshot show
   expect(await result.locator('.bulk-result-text').allTextContents()).toEqual([
     'No answer from Pitchcrew · check this job’s queue before retrying',
   ]);
+  // The line asks for a check, so it carries the way to make it.
+  expect(
+    await result.getByRole('link', { name: /^Check queue for .+$/ }).getAttribute('href'),
+  ).toBe('/queue');
   expect(await result.getByText('Each job is checked again when it starts.').count()).toBe(0);
   await page.locator('.selection-bar').getByText('1 selected').waitFor();
   expect(await fitsFor(kite)).toBe(1);
