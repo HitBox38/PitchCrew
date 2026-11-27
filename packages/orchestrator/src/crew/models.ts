@@ -41,6 +41,9 @@ export const detect = async (context: CrewContext): Promise<RuntimeInfo[]> => {
               },
             };
           });
+        const previous = context.runtimes.find((runtime) => runtime.id === adapter.id);
+        if (previous?.version !== health.version || previous?.available !== health.available)
+          context.modelCatalogs.delete(adapter.id);
         const cached = context.modelCatalogs.get(adapter.id);
         return {
           ...health,
@@ -48,7 +51,7 @@ export const detect = async (context: CrewContext): Promise<RuntimeInfo[]> => {
           customReasoning: adapter.customReasoning === true,
           ...(health.available && cached && cached.expiresAt > Date.now()
             ? cached.catalog
-            : suggestedModels(adapter)),
+            : suggestedModels(adapter, undefined, health.version)),
         };
       }),
   );
@@ -73,10 +76,12 @@ const runtimeModelsPrepared = async (
         runtime.id === id ? { ...runtime, configurationError: undefined, ...health } : runtime,
       );
     }
+    const runtime = context.runtimes.find((entry) => entry.id === id);
     return discoverModels(
       adapters[id],
-      context.runtimes.some((runtime) => runtime.id === id && runtime.available),
+      runtime?.available ?? false,
       context.modelController.signal,
+      runtime?.version,
     );
   })()
     .then((catalog) => {

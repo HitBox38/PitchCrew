@@ -15,12 +15,15 @@ export const CrewRoles = ({ data, working, onConfigureRole, onToggleRole }: Crew
   });
   const roles = data.roles.filter((role) => !role.retiredAt);
   if (!roles.length || (state === 'collapsed' && !isMobile)) return null;
-  const running = new Set(
-    data.runs.filter((run) => run.status === 'running').map((run) => run.roleId),
-  );
-  const asking = new Set(
-    data.userInputs?.filter((q) => q.status === 'pending').map((q) => q.roleId) ?? [],
-  );
+  const live = data.runs.filter((run) => run.status === 'running');
+  const running = new Set(live.map((run) => run.roleId));
+  // A browser request waiting on one of its live runs asks the user as a question does.
+  const asking = new Set([
+    ...(data.userInputs?.filter((q) => q.status === 'pending').map((q) => q.roleId) ?? []),
+    ...data.computerApprovals
+      .filter((a) => a.status === 'pending' && !a.automatic && live.some((r) => r.id === a.runId))
+      .map((a) => a.roleId),
+  ]);
   return (
     <SidebarCategory id="crew" label="Crew" className="sidebar-crew" defaultOpen={false}>
       <SidebarGroupContent>

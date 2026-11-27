@@ -292,7 +292,7 @@ export const trackingAction = async (
         capability.roleId,
         capability.roleId,
         'user',
-        `Application tracking needs your review: ${input.company} — ${input.title}. ${evidence.reason} Open the board to review the exact email evidence.`,
+        `Application tracking needs your review: ${input.company} — ${input.title}. ${evidence.reason} Review the exact email evidence in Needs you on Home.`,
         card?.id ?? null,
         capability.runId,
       );

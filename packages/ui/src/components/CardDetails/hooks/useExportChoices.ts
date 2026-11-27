@@ -25,7 +25,7 @@ export const useExportChoices = (card: Card, action: Action) => {
       `/cards/${card.id}/approval`,
       'POST',
       { formats: exportFormats(format), layout },
-      'Documents generated for review in Decisions',
+      'Documents generated for review in Needs you',
     )
       .catch(() => {})
       .finally(() => {

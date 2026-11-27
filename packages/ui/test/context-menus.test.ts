@@ -22,7 +22,7 @@ beforeAll(async () => {
   await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 }, 60000);
 beforeEach(async () => {
-  await page.goto(host.daemon.url, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${host.daemon.url}/pipeline`, { waitUntil: 'domcontentloaded' });
   await page.locator('.job-actions-trigger').first().waitFor({ timeout: 30000 });
   const later = page.getByRole('button', { name: 'Set up later', exact: true });
   if (await later.isVisible()) await later.click();
@@ -33,7 +33,8 @@ afterAll(async () => {
 });
 
 test('workspace context actions navigate between every main page', async () => {
-  for (const [view, path] of Object.entries(viewPaths).filter(([view]) => view !== 'board')) {
+  // From Pipeline through every other page, Home first.
+  for (const [view, path] of Object.entries(viewPaths).filter(([view]) => view !== 'pipeline')) {
     await openMenu();
     await workspaceMenu().waitFor();
     await page.getByRole('menuitem', { name: 'Go to…', exact: true }).press('ArrowRight');
@@ -50,6 +51,12 @@ test('workspace context actions navigate between every main page', async () => {
   await expect.poll(() => workspaceMenu().isVisible()).toBe(true);
   await page.screenshot({ path: '/tmp/pitchcrew-workspace-context-menu.png' });
   await page.keyboard.press('Escape');
+  // Back to Pipeline, the page the loop starts from, so Go to… is checked for it too.
+  await openMenu();
+  await page.getByRole('menuitem', { name: 'Go to…', exact: true }).press('ArrowRight');
+  await page.getByRole('menuitem', { name: 'Pipeline', exact: true }).click();
+  await expect.poll(() => new URL(page.url()).pathname).toBe('/pipeline');
+  await page.getByRole('heading', { name: 'Pipeline', exact: true }).waitFor();
   expect(errors).toEqual([]);
 }, 60000);
 
@@ -68,7 +75,7 @@ test('workspace actions open existing search and creation dialogs with focus', a
 });
 
 test('copies the selected text and clicked link without navigating', async () => {
-  const heading = page.getByRole('heading', { name: 'Board', exact: true });
+  const heading = page.getByRole('heading', { name: 'Pipeline', exact: true });
   await heading.evaluate((element) => {
     const range = document.createRange();
     range.selectNodeContents(element);
@@ -77,13 +84,13 @@ test('copies the selected text and clicked link without navigating', async () =>
   });
   await heading.click({ button: 'right' });
   await page.getByRole('menuitem', { name: 'Copy selected text', exact: true }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('Board');
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('Pipeline');
   const link = page.getByRole('link', { name: /^Profile/ }).first();
   const href = await link.evaluate((element) => (element as HTMLAnchorElement).href);
   await link.click({ button: 'right' });
   await page.getByRole('menuitem', { name: 'Copy link', exact: true }).click();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(href);
-  expect(new URL(page.url()).pathname).toBe('/');
+  expect(new URL(page.url()).pathname).toBe('/pipeline');
 });
 
 test('editing controls retain their context behavior and refresh preserves the local draft', async () => {

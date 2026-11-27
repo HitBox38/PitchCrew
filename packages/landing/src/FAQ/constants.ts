@@ -7,7 +7,7 @@ export const questions = [
   {
     question: 'What do I need to get started?',
     answer:
-      'Download the app, install and sign in to a supported AI tool, then choose it for your agents in Crew. Add factual notes about your experience in Profile and your first job on Board. The installer includes its own Node.js, local server and Chromium.',
+      'Download the app, install and sign in to a supported AI tool, then choose it for your agents in Crew. Add factual notes about your experience in Profile and your first job in Pipeline. The installer includes its own Node.js, local server and Chromium.',
   },
   {
     question: 'Which AI tools can I use?',

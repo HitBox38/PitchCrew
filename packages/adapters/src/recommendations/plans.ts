@@ -3,12 +3,13 @@ import type { ReasoningLevel, RuntimeId } from '@pitchcrew/core';
 // Editorial starting points, not measured runtime rankings. Keep selectors in adapters.
 // https://learn.chatgpt.com/docs/models
 // https://platform.claude.com/docs/en/models/overview
-const sol = 'gpt-6.1-sol';
-const astra = 'gpt-6-astra';
+const sol = ['gpt-6.2-sol', 'gpt-6.1-sol'];
+const astra = ['gpt-6.2-astra', 'gpt-6-astra'];
+const terra = 'gpt-6.1-terra';
 const luna = 'gpt-6-luna';
 const sonnet = 'claude-sonnet-5-5';
 const opus = 'claude-opus-5-5';
-const haiku = 'claude-haiku-4-5';
+const haiku = ['claude-haiku-5-5', 'claude-haiku-4-5'];
 const pro = 'gemini-pro';
 const flash = 'gemini-flash';
 
@@ -20,42 +21,42 @@ interface RecommendationPlan {
 export const recommendationPlans: Readonly<Record<string, RecommendationPlan>> = {
   scout: {
     runtime: 'codex',
-    models: [sol, astra, sonnet, opus, pro, luna, flash, haiku],
+    models: [...sol, ...astra, sonnet, opus, pro, terra, luna, flash, ...haiku],
     reasoning: 'medium',
   },
   writer: {
     runtime: 'claude-code',
-    models: [sonnet, opus, sol, astra, pro, luna, flash, haiku],
+    models: [sonnet, opus, ...sol, ...astra, pro, terra, luna, flash, ...haiku],
     reasoning: 'high',
   },
   reviewer: {
     runtime: 'codex',
-    models: [astra, opus, sol, sonnet, pro, luna, haiku, flash],
+    models: [...astra, opus, ...sol, sonnet, pro, terra, luna, ...haiku, flash],
     reasoning: 'high',
   },
   submitter: {
     runtime: 'codex',
-    models: [sol, astra, sonnet, opus, pro, luna, flash, haiku],
+    models: [terra, ...sol, ...astra, sonnet, opus, pro, luna, flash, ...haiku],
     reasoning: 'medium',
   },
   tracker: {
     runtime: 'codex',
-    models: [luna, sonnet, sol, haiku, flash, astra, opus, pro],
+    models: [luna, terra, sonnet, ...sol, ...haiku, flash, ...astra, opus, pro],
     reasoning: 'high',
   },
   documenter: {
     runtime: 'codex',
-    models: [sol, sonnet, astra, opus, pro, luna, flash, haiku],
+    models: [...sol, sonnet, ...astra, opus, pro, terra, luna, flash, ...haiku],
     reasoning: 'medium',
   },
   'pipeline-coach': {
     runtime: 'codex',
-    models: [astra, opus, sol, sonnet, pro, luna, haiku, flash],
+    models: [...astra, opus, ...sol, sonnet, pro, terra, luna, ...haiku, flash],
     reasoning: 'high',
   },
   'career-coach': {
     runtime: 'codex',
-    models: [sol, astra, sonnet, opus, pro, luna, flash, haiku],
+    models: [...sol, ...astra, sonnet, opus, pro, terra, luna, flash, ...haiku],
     reasoning: 'high',
   },
 };

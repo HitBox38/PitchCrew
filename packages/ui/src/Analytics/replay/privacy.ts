@@ -148,7 +148,8 @@ export const sanitizeReplayProperties = (
 };
 /** Replay uses a content-free wireframe; no source DOM attribute survives serialization. */
 const replaySurfaces = [
-  'board',
+  'home',
+  'pipeline',
   'crew',
   'chat',
   'inbox',

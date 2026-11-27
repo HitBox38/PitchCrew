@@ -5,6 +5,7 @@ import {
   approvalSummary,
   browserStatusLabel,
   describePageElement,
+  isFinalSubmission,
 } from '../helpers.ts';
 
 const page = {
@@ -97,4 +98,17 @@ it('words an automatic request’s status as the server’s, never as the user�
       .filter((status) => status !== 'pending')
       .map((status) => browserStatusLabel({ status, automatic: true })),
   ).toEqual(['Allowed automatically', 'Expired', 'Ran automatically', 'Failed']);
+});
+
+it('counts a dialog that continues an uncertain submission as a final submission, as the server does', () => {
+  expect(isFinalSubmission({ kind: 'click', selector: '#send', purpose: 'submission' })).toBe(true);
+  expect(
+    isFinalSubmission({
+      kind: 'dialog',
+      decision: 'accept',
+      submissionAttemptId: '3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d',
+    }),
+  ).toBe(true);
+  expect(isFinalSubmission({ kind: 'dialog', decision: 'dismiss' })).toBe(false);
+  expect(isFinalSubmission({ kind: 'click', selector: '#more' })).toBe(false);
 });

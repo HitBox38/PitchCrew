@@ -45,7 +45,7 @@ export const ComposerJobPicker = ({
           <CommandEmpty>
             {jobItems.some((item) => item.value)
               ? 'No matching jobs. Try another company or title.'
-              : 'No jobs yet. Add a job from the board.'}
+              : 'No jobs yet. Add a job in Pipeline.'}
           </CommandEmpty>
           {jobItems
             .filter((item) => item.value)

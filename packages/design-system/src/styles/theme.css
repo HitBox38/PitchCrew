@@ -165,6 +165,9 @@
   --rim: rgb(255 255 255 / 0.9);
   --orb-light: rgb(255 255 255 / 0.8);
   --overlay: rgb(26 28 34 / 0.24);
+  /* Shadows cast by bands pinned over a scroller, and the softer shade at a scroller's edges. */
+  --shade: rgb(var(--tint) / 0.3);
+  --shade-soft: rgb(var(--tint) / 0.12);
   --inverse: #2b2d31;
   --on-inverse: #f4f3ef;
   --on-inverse-muted: #b9bac0;
@@ -255,6 +258,9 @@
   --rim: rgb(255 255 255 / 0.07);
   --orb-light: rgb(255 255 255 / 0.14);
   --overlay: rgb(0 0 0 / 0.5);
+  /* Black barely shows on the dark ground, so a stuck band also steps its tone or adds a hairline. */
+  --shade: rgb(0 0 0 / 0.45);
+  --shade-soft: rgb(0 0 0 / 0.3);
   --inverse: #ebe9e3;
   --on-inverse: #1c1d20;
   --on-inverse-muted: #5d5e64;

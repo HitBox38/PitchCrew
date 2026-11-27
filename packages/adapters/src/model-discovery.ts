@@ -2,6 +2,7 @@ import type { RuntimeAdapter, RuntimeModel, RuntimeModelCatalog } from '@pitchcr
 import { execFile } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { promisify, stripVTControlCharacters } from 'node:util';
+import { compareRuntimeVersions } from './maintenance/catalog.ts';
 import { modelReasoning, piReasoning } from './reasoning.ts';
 import { cliEnvironment } from './process.ts';
 import { runtimeCommand } from './process/executable.ts';
@@ -58,9 +59,16 @@ export const normalizeModels = (models: readonly RuntimeModel[]): RuntimeModel[]
   return [...unique.values()];
 };
 
-export const suggestedModels = (adapter: RuntimeAdapter, detail?: string): RuntimeModelCatalog => {
+export const suggestedModels = (
+  adapter: RuntimeAdapter,
+  detail?: string,
+  version = '',
+): RuntimeModelCatalog => {
   return {
-    models: adapter.models,
+    models:
+      adapter.id === 'codex' && (compareRuntimeVersions(version, '0.159.0') ?? -1) < 0
+        ? adapter.models.filter((model) => model.value !== 'gpt-6.1-terra')
+        : adapter.models,
     modelSource: adapter.id === 'demo' ? 'none' : 'fallback',
     modelDetail:
       adapter.id === 'demo'
@@ -73,13 +81,16 @@ export const discoverModels = async (
   adapter: RuntimeAdapter,
   available: boolean,
   signal?: AbortSignal,
+  version?: string,
 ): Promise<RuntimeModelCatalog> => {
   if (adapter.id === 'demo') return suggestedModels(adapter);
-  if (!available) return suggestedModels(adapter, 'Runtime unavailable. Showing suggested models.');
+  if (!available)
+    return suggestedModels(adapter, 'Runtime unavailable. Showing suggested models.', version);
   if (!adapter.listModels)
     return suggestedModels(
       adapter,
       'Model discovery is not supported for this runtime. Showing suggestions.',
+      version,
     );
   try {
     const models = normalizeModels(await adapter.listModels(signal));
@@ -92,7 +103,11 @@ export const discoverModels = async (
     };
   } catch {
     // CLI stderr and arbitrary provider metadata must never enter snapshots or the UI.
-    return suggestedModels(adapter, 'Could not load models from the runtime. Showing suggestions.');
+    return suggestedModels(
+      adapter,
+      'Could not load models from the runtime. Showing suggestions.',
+      version,
+    );
   }
 };
 

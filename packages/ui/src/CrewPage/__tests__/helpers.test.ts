@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { Role, Run, Snapshot } from '@pitchcrew/core';
 import {
+  alsoWorking,
   capabilityLine,
+  crewExecuting,
   crewRoster,
   crewStatus,
   crewSummary,
@@ -47,6 +49,7 @@ const base = {
   ],
   connectors: [],
   userInputs: [],
+  computerApprovals: [],
   proposals: [],
   skillProposals: [],
 } as unknown as Snapshot;
@@ -126,12 +129,23 @@ describe('crew status', () => {
   it('puts a pending question ahead of idle and pause states', () => {
     const data = {
       ...base,
-      userInputs: [{ roleId: 'writer', status: 'pending', cardId: null, threadId: 'thread-2' }],
+      userInputs: [
+        {
+          roleId: 'writer',
+          status: 'pending',
+          cardId: null,
+          threadId: 'thread-2',
+          createdAt: '2026-11-01T11:50:00',
+        },
+      ],
     } as unknown as Snapshot;
     expect(crewStatus(role('writer', { enabled: false }), data, now)).toEqual({
       kind: 'waiting',
       subject: 'Fictional planning',
       threadId: 'thread-2',
+      since: '2026-11-01T11:50:00',
+      alsoRunning: 0,
+      busy: false,
     });
   });
   it('says paused, unavailable or needs sign-in with the setup that fixes it', () => {
@@ -139,8 +153,12 @@ describe('crew status', () => {
     expect(crewStatus(gmail, base, now)).toEqual({
       kind: 'paused',
       cause: { text: 'Connect Google for Gmail.', section: 'accounts' },
+      busy: false,
     });
-    expect(crewStatus(role('scout', { enabled: false }), base, now)).toEqual({ kind: 'paused' });
+    expect(crewStatus(role('scout', { enabled: false }), base, now)).toEqual({
+      kind: 'paused',
+      busy: false,
+    });
     const missing = { ...base, runtimes: [{ id: 'codex', available: false, models: [] }] };
     expect(crewStatus(role('scout'), missing as unknown as Snapshot, now).kind).toBe('unavailable');
     const signedOut = {
@@ -155,11 +173,131 @@ describe('crew status', () => {
   });
   it('gives one idle fact from the latest finished run', () => {
     const data = { ...base, runs: [run({ finishedAt: '2026-11-01T11:00:00' })] } as Snapshot;
-    expect(crewStatus(role('writer'), data, now)).toMatchObject({ kind: 'idle' });
+    expect(crewStatus(role('writer'), data, now)).toMatchObject({
+      kind: 'idle',
+      fact: 'Idle. Last worked on Northstar 1h ago.',
+    });
+    // Days later it says so in Crew's compact style, never a lowercased date ("nov 18").
+    const older = { ...base, runs: [run({ finishedAt: '2026-10-29T09:00:00' })] } as Snapshot;
+    expect(crewStatus(role('writer'), older, now)).toMatchObject({
+      fact: 'Idle. Last worked on Northstar 3d ago.',
+    });
     expect(crewStatus(role('scout'), data, now)).toEqual({
       kind: 'idle',
       fact: 'Idle. No runs yet.',
+      busy: false,
     });
+  });
+  const live = (patch: Partial<Run> = {}) =>
+    run({ status: 'running', finishedAt: null, startedAt: '2026-11-01T11:54:00', ...patch });
+  const approval = (patch: Record<string, unknown> = {}) => ({
+    id: 'approval-1',
+    runId: 'run-1',
+    roleId: 'writer',
+    cardId: 'card-1',
+    status: 'pending',
+    createdAt: '2026-11-01T11:58:00',
+    ...patch,
+  });
+  it('reports a question first even while the agent runs other work', () => {
+    const data = {
+      ...base,
+      runs: [live()],
+      userInputs: [
+        {
+          roleId: 'writer',
+          status: 'pending',
+          cardId: null,
+          threadId: 'thread-2',
+          createdAt: '2026-11-01T11:59:00',
+        },
+      ],
+    } as unknown as Snapshot;
+    const status = crewStatus(role('writer'), data, now);
+    expect(status).toEqual({
+      kind: 'waiting',
+      subject: 'Fictional planning',
+      threadId: 'thread-2',
+      since: '2026-11-01T11:59:00',
+      alsoRunning: 1,
+      also: 'Northstar',
+      busy: true,
+    });
+    expect(alsoWorking(status)).toBe('Also working on Northstar');
+    expect(crewExecuting(status)).toBe(true);
+  });
+  it('reports a browser request waiting on one of its live runs before plain work', () => {
+    const data = {
+      ...base,
+      runs: [live()],
+      computerApprovals: [approval()],
+    } as unknown as Snapshot;
+    const status = crewStatus(role('writer'), data, now);
+    expect(status).toMatchObject({
+      kind: 'approving',
+      approvalId: 'approval-1',
+      subject: 'Northstar',
+      since: '2026-11-01T11:58:00',
+      alsoRunning: 0,
+      busy: true,
+    });
+    expect(status.kind === 'approving' && status.run.id).toBe('run-1');
+    // The run holds its slot but waits on the user, so the pebble stays still.
+    expect(crewExecuting(status)).toBe(false);
+    expect(alsoWorking(status)).toBe('');
+  });
+  it('ignores approved and automatic browser records: they never wait on the user', () => {
+    const data = {
+      ...base,
+      runs: [live()],
+      computerApprovals: [approval({ automatic: true }), approval({ id: 'b', status: 'approved' })],
+    } as unknown as Snapshot;
+    expect(crewStatus(role('writer'), data, now).kind).toBe('working');
+  });
+  it('counts every live run, newest first, and names the one other job', () => {
+    const data = {
+      ...base,
+      cards: [...base.cards, { id: 'card-2', company: 'Globex' }],
+      runs: [live({ id: 'run-2', cardId: 'card-2' }), live()],
+    } as unknown as Snapshot;
+    const status = crewStatus(role('writer'), data, now);
+    expect(status).toMatchObject({
+      kind: 'working',
+      subject: 'Globex',
+      more: 1,
+      also: 'Northstar',
+    });
+    expect(alsoWorking(status)).toBe('Also working on Northstar');
+    const three = { ...data, runs: [...data.runs, live({ id: 'run-3' })] } as Snapshot;
+    expect(alsoWorking(crewStatus(role('writer'), three, now))).toBe('Also working on 2 more jobs');
+  });
+  it('shows the live step from the chat stream when it has one', () => {
+    const data = {
+      ...base,
+      runs: [live({ message: 'Starting role…' })],
+      activityRuns: [
+        live({
+          activity: [
+            {
+              id: 'step',
+              kind: 'tool',
+              label: 'Reading the job post',
+              status: 'running',
+              startedAt: '2026-11-01T11:59:00',
+              finishedAt: null,
+            },
+          ],
+        }),
+      ],
+    } as unknown as Snapshot;
+    expect(crewStatus(role('writer'), data, now)).toMatchObject({ phase: 'Reading the job post' });
+  });
+  it('calls an agent holding only a review seat idle but busy, so Pause waits for it', () => {
+    const data = {
+      ...base,
+      runs: [live({ id: 'seat', reviewSeatReservation: true })],
+    } as unknown as Snapshot;
+    expect(crewStatus(role('writer'), data, now)).toMatchObject({ kind: 'idle', busy: true });
   });
 });
 

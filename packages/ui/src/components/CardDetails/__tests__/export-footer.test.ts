@@ -94,7 +94,7 @@ it('requests the visible Word choice once from the footer instead of the suggest
     '/cards/job/approval',
     'POST',
     { formats: ['docx'], layout: 'formatted' },
-    'Documents generated for review in Decisions',
+    'Documents generated for review in Needs you',
   );
   expect(footer().disabled).toBe(true);
   expect(render().requesting).toBe(true);

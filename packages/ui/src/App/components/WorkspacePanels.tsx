@@ -60,12 +60,14 @@ export const WorkspacePanels = ({
               working={working}
               onClose={() => setSelectedId(null)}
               initialSection={selectedJobSection}
-              onInbox={() => {
+              onPacket={() => {
                 setSelectedId(null);
-                const waiting =
-                  cardPacketApproval(selected, data.approvals) ??
-                  decisions(data).find((item) => item.cardId === selected.id);
-                void navigate({ to: '/inbox', search: { decision: waiting?.id } });
+                // The packet's Needs you row on Home (key `packet:<approval>`), else Decisions.
+                const packet = cardPacketApproval(selected, data.approvals);
+                const waiting = decisions(data).find((item) => item.cardId === selected.id);
+                void (packet
+                  ? navigate({ to: '/', search: { item: `packet:${packet.id}` } })
+                  : navigate({ to: '/inbox', search: { decision: waiting?.id } }));
               }}
               onChat={(thread, run) => {
                 setSelectedId(null);

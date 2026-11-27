@@ -92,7 +92,7 @@ export const DecisionsView = ({ data, action, working, openCard }: DecisionsView
           <Link to="/inbox" search={{ view: 'history' }}>
             History
           </Link>
-          <Link to="/">Board</Link>
+          <Link to="/">Home</Link>
         </div>
       )}
     </section>

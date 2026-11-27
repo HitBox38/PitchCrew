@@ -4,6 +4,7 @@ import { afterAll, expect, test } from 'vitest';
 // The development UI (Vite and development React) is deliberate here: React reports misuse of
 // `use()` only in development builds, which the shared production UI fixture cannot show.
 import { cleanup, setup } from '../../orchestrator/test/helpers/daemon.ts';
+import { openMorePage } from './helpers/navigation.ts';
 
 let browser: Browser | undefined;
 
@@ -29,8 +30,10 @@ test('lazy pages and panels suspend the way development React expects', async ()
   page.on('console', (message) => {
     if (['error', 'warning'].includes(message.type())) reports.push(message.text());
   });
-  // The app shell, Board, the job sheet and Decisions are each a first-time lazy import here.
+  // The app shell, Home, Pipeline, the job sheet and Decisions are each a first-time lazy import.
   await page.goto(host.daemon.url);
+  await page.getByRole('heading', { name: 'Needs you', level: 2 }).waitFor({ timeout: 90000 });
+  await page.getByRole('link', { name: 'Pipeline', exact: true }).click();
   const job = page.locator(`#board-job-${card.id} .clay-job-card`);
   await job.waitFor({ timeout: 90000 });
   await job.click();
@@ -38,10 +41,7 @@ test('lazy pages and panels suspend the way development React expects', async ()
   await sheet.getByText('Interface Engineer').first().waitFor({ timeout: 30000 });
   await page.keyboard.press('Escape');
   await sheet.waitFor({ state: 'detached' });
-  await page
-    .getByRole('link', { name: /^Decisions/ })
-    .first()
-    .click();
+  await openMorePage(page, 'Decisions');
   await page.getByRole('heading', { name: 'Decisions', level: 1 }).waitFor({ timeout: 30000 });
   expect(reports.filter((text) => /use\(\)/.test(text))).toEqual([]);
 }, 180000);

@@ -27,7 +27,7 @@ const model = (patch: Partial<CardDetailsModel> = {}): CardDetailsModel => {
     act: vi.fn(),
     openApplication: vi.fn(),
     setTab: vi.fn(),
-    openInbox: vi.fn(),
+    openPacket: vi.fn(),
     openChat: vi.fn(),
     ...patch,
   } as unknown as CardDetailsModel;
@@ -216,10 +216,10 @@ it('keeps packet review, export approval and manual submission as distinct decis
   exporting.perform();
   expect(exportChoices.request).toHaveBeenCalledOnce();
   const awaiting = { ...reviewed, state: 'awaiting_approval' as const };
-  expect(jobNextAction({ ...base, card: awaiting }).label).toBe('Open in Decisions');
-  // Exported files continue in Decisions; recording stays a secondary move after applying.
+  expect(jobNextAction({ ...base, card: awaiting }).label).toBe('Open on Home');
+  // Exported files continue on Home; recording stays a secondary move after applying.
   const exported = jobNextAction({ ...base, card: awaiting, exported: true });
-  expect(exported.label).toBe('Open in Decisions');
+  expect(exported.label).toBe('Open on Home');
   // Recording moves the job, so it waits for any request in flight even though it is quiet.
   expect(exported.alternates?.map((item) => [item.label, item.acts])).toEqual([
     ['Record manual submission', true],

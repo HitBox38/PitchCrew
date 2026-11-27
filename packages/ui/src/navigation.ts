@@ -67,8 +67,26 @@ export const validateChatSearch = (search: Record<string, unknown>): { run?: str
   };
 };
 
+/** Home opens one Needs you item from a link: its key, `<kind>:<record id>`. */
+export const validateHomeSearch = (search: Record<string, unknown>): { item?: string } => ({
+  item:
+    typeof search.item === 'string' && /^[a-z-]+:[\w:.-]{1,200}$/.test(search.item)
+      ? search.item
+      : undefined,
+});
+
+/** Pipeline shows the board or the table, optionally on one saved view of the table. */
+export const validatePipelineSearch = (
+  search: Record<string, unknown>,
+): { mode?: 'board' | 'table'; view?: string } => ({
+  mode: search.mode === 'board' || search.mode === 'table' ? search.mode : undefined,
+  view:
+    typeof search.view === 'string' && /^[a-z-]{1,32}$/.test(search.view) ? search.view : undefined,
+});
+
 export const viewPaths = {
-  board: '/',
+  home: '/',
+  pipeline: '/pipeline',
   queue: '/queue',
   crew: '/crew',
   chat: '/chat',

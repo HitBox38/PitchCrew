@@ -190,19 +190,19 @@ const model = (card: Card, data: Snapshot, patch: Partial<CardDetailsModel> = {}
     act: vi.fn(),
     openApplication: vi.fn(),
     setTab: vi.fn(),
-    openInbox: vi.fn(),
+    openPacket: vi.fn(),
     ...patch,
   }) as unknown as CardDetailsModel;
 
 describe('job details footer at the handoff', () => {
-  it('continues the application in Decisions and keeps recording secondary', () => {
+  it('continues the application on Home and keeps recording secondary', () => {
     const next = model(job(), snapshot([fixtures.manual]));
     const action = jobNextAction(next);
-    expect(action.label).toBe('Open in Decisions');
+    expect(action.label).toBe('Open on Home');
     expect(action.hint).toContain('Nothing has been sent');
     expect(action.hint).toContain('only after you’ve applied');
     action.perform();
-    expect(next.openInbox).toHaveBeenCalledOnce();
+    expect(next.openPacket).toHaveBeenCalledOnce();
     expect(next.act).not.toHaveBeenCalled();
     const [record] = action.alternates ?? [];
     expect(record?.label).toBe('Record manual submission');
@@ -216,17 +216,17 @@ describe('job details footer at the handoff', () => {
 
   it('never offers recording while an agent prepares, and words an approved packet', () => {
     const preparing = jobNextAction(model(job(), snapshot([fixtures.agent])));
-    expect(preparing.label).toBe('Open in Decisions');
+    expect(preparing.label).toBe('Open on Home');
     expect(preparing.alternates).toBeUndefined();
     expect(preparing.hint).toContain('Nothing is submitted until you approve');
     const approved = model(job(), snapshot([fixtures.approved]), { exported: false });
     expect(jobNextAction(approved)).toMatchObject({
-      label: 'Open in Decisions',
+      label: 'Open on Home',
       hint: expect.stringContaining('Choose how to apply'),
     });
     expect(
       jobNextAction(model(job(), snapshot([fixtures.pending]), { exported: false })).label,
-    ).toBe('Open in Decisions');
+    ).toBe('Open on Home');
     const uncertain = job({
       submissionAttempts: [{ exportApprovalId: 'approval', status: 'uncertain' }],
     } as Partial<Card>);

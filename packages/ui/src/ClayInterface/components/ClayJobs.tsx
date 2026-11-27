@@ -55,7 +55,7 @@ export const ClayJobs = ({ sidebar, onOpenCard }: ClayJobsProps) => {
             <SidebarMenuItem>
               <SidebarMenuButton
                 className="clay-job-row clay-job-leads"
-                render={<Link to="/" onClick={navigation.closeMobile} />}
+                render={<Link to="/pipeline" onClick={navigation.closeMobile} />}
               >
                 <span className="clay-bead" data-size="sm" data-empty="" aria-hidden="true" />
                 <span className="clay-job-company">

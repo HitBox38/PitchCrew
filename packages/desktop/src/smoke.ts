@@ -235,7 +235,7 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
               insightsReady = await ${smokeInsights};
               document.querySelectorAll('[data-slot="toast-close"]').forEach((button) => button.click());
               await waitFor(() => !document.querySelector('[data-slot="toast"]'));
-              // Watch from Board so none of the three conversations is on screen.
+              // Watch from Home so none of the three conversations is on screen.
               document.querySelector('a[href="/"]')?.click();
               await waitFor(() => location.pathname === '/' && !!document.querySelector('.workspace-title-row'));
 

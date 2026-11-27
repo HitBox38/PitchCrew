@@ -3,7 +3,7 @@ import { focusStage } from '../focus.ts';
 
 /**
  * The stage shown on phones and the target of Jump to. Jumping clears the board search, selects
- * Pipeline or Closed, then scrolls to and focuses that column heading.
+ * Open or Closed, then scrolls to and focuses that column heading.
  */
 export const useBoardStage = (
   showClosed: boolean,

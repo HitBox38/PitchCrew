@@ -56,7 +56,8 @@ beforeEach(async () => {
   host.daemon.service.moveCard(card.id, 'shortlisted');
   await page.goto(`${host.daemon.url}/inbox?decision=brief-${card.id}`);
   await page.getByRole('heading', { name: 'Confirm the JOIN brief', exact: true }).waitFor();
-  await page.getByRole('button', { name: 'Review and confirm', exact: true }).click();
+  // The job links a form nobody has checked, so the decision names that first step.
+  await page.getByRole('button', { name: 'Check form and confirm', exact: true }).click();
   await page.getByRole('button', { name: 'Edit brief', exact: true }).click();
   await page.getByRole('textbox', { name: 'Company context', exact: true }).waitFor();
 }, 30000);

@@ -50,17 +50,16 @@ export const recommendRuntime = (
   const installed = order.flatMap((id) =>
     runtimes.filter((runtime) => runtime.id === id && runtime.available),
   );
+  const candidates = installed.length
+    ? installed
+    : runtimes.filter((runtime) => runtime.id === plan.runtime);
+  if (!candidates.length) throw new Error('The recommended runtime is not registered.');
   // Native catalogs win over unverified suggestions, then model fit, then runtime preference.
   for (const source of ['runtime', 'fallback'] as const)
     for (const key of [...plan.models, ...previousModels])
-      for (const runtime of installed.filter((runtime) => runtime.modelSource === source)) {
+      for (const runtime of candidates.filter((runtime) => runtime.modelSource === source)) {
         const model = selectModel(runtime, key, plan.reasoning);
         if (model) return configuration(runtime, model, plan.reasoning);
       }
-  const fallback = installed[0] ?? runtimes.find((runtime) => runtime.id === plan.runtime);
-  if (!fallback) throw new Error('The recommended runtime is not registered.');
-  const model = fallback.available
-    ? undefined
-    : selectModel(fallback, plan.models[0], plan.reasoning);
-  return configuration(fallback, model, plan.reasoning);
+  return configuration(candidates[0], undefined, plan.reasoning);
 };

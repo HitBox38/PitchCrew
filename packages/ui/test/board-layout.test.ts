@@ -1,6 +1,5 @@
 import { chromium, type Browser, type Page } from 'playwright';
 import { afterAll, beforeAll, expect, test } from 'vitest';
-import type { UserInputRequest } from '@pitchcrew/core';
 import { cleanup, setup } from './helpers/daemon.ts';
 
 let host: Awaited<ReturnType<typeof setup>>;
@@ -10,27 +9,6 @@ let page: Page;
 beforeAll(async () => {
   host = await setup();
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
-  const conversation = host.daemon.service.createConversation({
-    title: 'Layout question',
-    participants: ['scout'],
-  });
-  const question: UserInputRequest = {
-    id: 'layout-question',
-    roleId: 'scout',
-    runId: 'layout-run',
-    cardId: null,
-    threadId: conversation.id,
-    sourceThreadId: conversation.id,
-    messageId: 'layout-message',
-    status: 'pending',
-    question: 'Which location would you prefer?',
-    options: [],
-    reason: '',
-    continuationNotes: '',
-    multiSelect: false,
-    createdAt: new Date().toISOString(),
-  };
-  host.daemon.service.board.record('user_input', question, 'scout', 'Fictional decision deck');
   for (let index = 0; index < 19; index++) {
     const card = host.daemon.service.createCard({
       company: `Layout Studio ${index}`,
@@ -48,7 +26,7 @@ beforeAll(async () => {
     viewport: { width: 1442, height: 962 },
     reducedMotion: 'reduce',
   });
-  await page.goto(host.daemon.url, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${host.daemon.url}/pipeline`, { waitUntil: 'domcontentloaded' });
   await page.locator('#stage-progress .clay-column-count').waitFor({ timeout: 30000 });
   await page.evaluate(() => document.fonts.ready);
 }, 60000);
@@ -81,6 +59,8 @@ const geometry = () =>
           const titleRange = document.createRange();
           titleRange.selectNodeContents(heading.firstChild!);
           return {
+            // Phones leave the name and count to screen readers under the stage select.
+            shown: heading.getBoundingClientRect().width > 1,
             label: column.getAttribute('aria-label'),
             column: rect(column),
             header: rect(column.querySelector('.clay-column-heading')!),
@@ -96,9 +76,9 @@ const geometry = () =>
 
 const expectReadable = async () => {
   const measured = await geometry();
-  for (const { label, column, header, title, count, beads, sort } of measured.columns) {
+  for (const { shown, label, column, header, title, count, beads, sort } of measured.columns) {
     const details = JSON.stringify({ label, column, header, title, count, beads, sort });
-    for (const item of [title, count, sort]) {
+    for (const item of shown ? [title, count, sort] : [sort]) {
       expect(item.x, details).toBeGreaterThanOrEqual(header.x - 1);
       expect(item.right, details).toBeLessThanOrEqual(header.right + 1);
       expect(item.y, details).toBeGreaterThanOrEqual(header.y - 1);
@@ -106,18 +86,20 @@ const expectReadable = async () => {
     }
     const overlaps = (a: typeof title, b: typeof title) =>
       a.x < b.right && b.x < a.right && a.y < b.bottom && b.y < a.bottom;
-    expect(overlaps(title, count), details).toBe(false);
-    expect(overlaps(title, sort), details).toBe(false);
-    expect(overlaps(count, sort), details).toBe(false);
-    if (beads.width) {
+    if (shown) {
+      expect(overlaps(title, count), details).toBe(false);
+      expect(overlaps(title, sort), details).toBe(false);
+      expect(overlaps(count, sort), details).toBe(false);
+    }
+    if (beads.width) expect(overlaps(sort, beads), details).toBe(false);
+    if (shown && beads.width) {
       expect(overlaps(title, beads), details).toBe(false);
       expect(overlaps(count, beads), details).toBe(false);
-      expect(overlaps(sort, beads), details).toBe(false);
     }
     expect(sort.width, details).toBeGreaterThanOrEqual(32);
   }
   expect(measured.document.scroll).toBeLessThanOrEqual(measured.document.client);
-  const minimum = measured.columns.length === 5 ? 860 : measured.columns.length === 4 ? 800 : 0;
+  const minimum = measured.columns.length === 5 ? 860 : measured.columns.length === 4 ? 704 : 0;
   expect(measured.pipeline.scroll, JSON.stringify(measured.pipeline)).toBe(
     Math.max(measured.pipeline.client, minimum),
   );
@@ -144,6 +126,11 @@ test('pipeline headers stay readable at the reported size, with either sidebar a
         const progress = measured.columns.find((column) =>
           column.label?.startsWith('In progress'),
         )!;
+        // From 1024 up all four columns fit, the sidebar open or not: Applied never runs off.
+        if (width >= 1024)
+          expect(measured.pipeline.scroll, JSON.stringify(measured.pipeline)).toBe(
+            measured.pipeline.client,
+          );
         if (progress.column.width < 256) expect(progress.beads.width).toBe(0);
         else expect(progress.beadSizes).toEqual([8, 8, 8, 8, 8]);
       }
@@ -162,6 +149,11 @@ test('phone stages retain readable counts and full touch targets without horizon
       }, count);
       const measured = await expectReadable();
       expect(measured.columns).toHaveLength(1);
+      // The select names the stage and its count once; the heading under it is not shown again.
+      expect(measured.columns[0].shown).toBe(false);
+      expect(
+        await page.getByRole('combobox', { name: 'Board stage', exact: true }).textContent(),
+      ).toMatch(/^In progress · \d+/);
       expect(measured.columns[0].sort.width).toBeGreaterThanOrEqual(44);
       expect(measured.columns[0].sort.height).toBeGreaterThanOrEqual(44);
       expect(measured.pipeline.scroll).toBe(measured.pipeline.client);

@@ -6,10 +6,9 @@ import {
   CollapsibleTrigger,
 } from '@pitchcrew/design-system/collapsible';
 import { todaysRuns } from '@/CrewPage/helpers.ts';
+import { clockLabel } from '@/lib/time.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
-const clock = (value: string) =>
-  new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 const states = {
   running: 'Working',
   waiting: 'Waiting',
@@ -48,7 +47,7 @@ export const CrewTimeline = ({
           {data
             ? todaysRuns(roleId, data, now).map(({ run, subject }) => (
                 <li key={run.id}>
-                  <time dateTime={run.startedAt}>{clock(run.startedAt)}</time>
+                  <time dateTime={run.startedAt}>{clockLabel(run.startedAt)}</time>
                   {run.threadId ? (
                     <Link
                       to="/chat/$thread"

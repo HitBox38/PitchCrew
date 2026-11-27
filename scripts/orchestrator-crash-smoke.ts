@@ -286,7 +286,7 @@ const run = async () => {
     });
     const { customCapabilities } = await import('../packages/core/src/index.ts');
     const targets = [
-      { id: 'crash-smoke-codex', runtime: 'codex', model: 'gpt-6.1-sol' },
+      { id: 'crash-smoke-codex', runtime: 'codex', model: 'gpt-6.2-sol' },
       { id: 'crash-smoke-claude', runtime: 'claude-code', model: 'claude-opus-5-5' },
     ];
     const submissions = await Promise.all(

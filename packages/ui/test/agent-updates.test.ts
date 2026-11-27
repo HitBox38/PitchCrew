@@ -140,7 +140,7 @@ test('notification review, dismissal, rediscovery and explicit replacement updat
 
 test('collapsed and mobile sidebars retain the update reminder and a direct review remains usable', async () => {
   // Away from Skills, the collapsed rail keeps the reminder as a dot on More.
-  await page.getByRole('link', { name: 'Board', exact: true }).click();
+  await page.getByRole('link', { name: 'Pipeline', exact: true }).click();
   await page.getByRole('button', { name: 'Hide sidebar', exact: true }).click();
   const more = page.locator('[data-collapsible="icon"]').getByRole('button', {
     name: 'More pages, 1 skill update',

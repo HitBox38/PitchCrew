@@ -46,72 +46,6 @@
 .chat-work-empty svg {
   flex-shrink: 0;
 }
-.chat-proposal {
-  padding: 16px;
-  border: 0;
-  border-radius: 12px 13px 11px 12px;
-  background: var(--surface-bright);
-  background-image: var(--fibres);
-  box-shadow: var(--sheet);
-  font-size: 14px;
-}
-.chat-proposal + .chat-proposal {
-  margin-top: 12px;
-}
-.chat-proposal > header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-.chat-proposal > header > div {
-  flex: 1;
-  min-width: 0;
-}
-.chat-proposal h4 {
-  margin: 0;
-  font:
-    600 14px 'Source Sans 3',
-    sans-serif;
-}
-.chat-proposal time {
-  color: var(--muted);
-  font-size: 11px;
-}
-.chat-proposal [data-slot='accordion'] {
-  margin-top: 15px;
-}
-.chat-proposal [data-slot='accordion-trigger'] {
-  cursor: pointer;
-  font-size: var(--text-label);
-  color: var(--primary);
-}
-.chat-instruction-comparison {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 12px;
-}
-.chat-proposal > footer {
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-}
-.chat-proposal footer p {
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.5;
-}
-.chat-proposal footer > div {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 13px;
-}
-.chat-proposal footer .button {
-  height: 33px;
-  font-size: 12px;
-}
 .chat-task-list {
   list-style: none;
   padding: 0;
@@ -226,15 +160,6 @@
 @variant max-chat {
   .chat-work-content {
     padding: 18px 12px 24px;
-  }
-  .chat-instruction-comparison {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .chat-proposal {
-    padding: 14px;
-  }
-  .chat-proposal footer > div {
-    flex-wrap: wrap;
   }
   .chat-task strong {
     flex-wrap: wrap;

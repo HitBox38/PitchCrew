@@ -57,7 +57,7 @@ export const WorkspaceHeaderFact = ({ children }: { children: ReactNode }) => {
   return fact ? createPortal(<span data-page-fact="">{children}</span>, fact) : null;
 };
 
-/** An optional segment placed right after the fact, e.g. Pipeline | Closed. */
+/** An optional segment placed right after the fact, e.g. Open | Closed. */
 export const WorkspaceHeaderSegment = ({ children }: { children: ReactNode }) => {
   const { segment } = useContext(HeaderSlots);
   return segment ? createPortal(children, segment) : null;

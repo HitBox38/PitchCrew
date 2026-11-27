@@ -8,7 +8,7 @@ export const recommendationModel = (runtime: RuntimeId, model: RuntimeModel): st
   if (runtime === 'claude-code') {
     if (value === 'sonnet') return 'claude-sonnet-5-5';
     if (value === 'opus') return 'claude-opus-5-5';
-    if (value === 'haiku') return 'claude-haiku-4-5';
+    if (value === 'haiku') return 'claude-haiku-5-5';
   }
   // Copilot and Kiro use dotted Claude version selectors.
   value = value.replace(/^(claude-(?:sonnet|opus|haiku)-\d+)\.(\d+)/, '$1-$2');
