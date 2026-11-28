@@ -1,6 +1,7 @@
 import { importLimits, importRowLimits } from './import-limits.ts';
 import { z } from 'zod';
 import { cardInput, type CardInput } from './cards.ts';
+import { cardLifecycle } from './lifecycles.ts';
 import { transitions, type CardState } from './states.ts';
 import { canonicalJobUrl } from './tracking.ts';
 import { lessonLimits } from './insights.ts';
@@ -175,9 +176,7 @@ export const planImportRow = (row: ApplicationImportRow, now: number = Date.now(
   }
   const start = reached ? 'submitted' : 'lead';
   const allowed = new Set<CardState>(
-    reached
-      ? ['submitted', 'screening', 'interviewing', 'offer', 'rejected', 'withdrawn', 'ghosted']
-      : ['lead', 'shortlisted', 'withdrawn'],
+    reached ? [...submittedStates, 'withdrawn'] : ['lead', 'shortlisted', 'withdrawn'],
   );
   const sequence: typeof history = [];
   for (const entry of history)
@@ -437,11 +436,9 @@ interface RawRow {
   error?: string;
 }
 
+// Withdrawal can happen before applying. These statuses establish that submission happened.
 const submittedStates = new Set<CardState>([
-  'submitted',
-  'screening',
-  'interviewing',
-  'offer',
+  ...cardLifecycle.groups.applied,
   'rejected',
   'ghosted',
 ]);

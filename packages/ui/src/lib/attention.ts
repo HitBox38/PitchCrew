@@ -1,12 +1,12 @@
 import type {
   Approval,
-  Card,
   ChatRequest,
   RemoteMcpRequest,
   Run,
   Snapshot,
   WorkQueueView,
 } from '@pitchcrew/core';
+import { cardLifecycle } from '@pitchcrew/core/lifecycles';
 import { runtimeTimeLimit } from '@pitchcrew/core/run-limits';
 import { packetNeedsAction } from './inbox.ts';
 import { pendingInstructionUpdates } from './instruction-updates.ts';
@@ -168,15 +168,6 @@ const verifyHold = 'Verify the previous submission outcome first.';
 const profileHold =
   'Finish the approved profile update on Profile before starting runs or editing notes.';
 
-/** Statuses where an extracted brief still gates drafting, review or export. */
-const briefStates: ReadonlySet<Card['state']> = new Set([
-  'shortlisted',
-  'drafting',
-  'changes_requested',
-  'in_review',
-  'agreed',
-  'awaiting_approval',
-]);
 /** Queued actions that check the confirmed brief and form before they start. */
 const briefActions = new Set(['draft', 'review', 'deep-review']);
 
@@ -460,7 +451,7 @@ const packetItems = (index: Index) =>
 const briefItems = (index: Index) =>
   index.data.cards.flatMap((card) => {
     const context = card.applicationContext;
-    if (!context || !briefStates.has(card.state)) return [];
+    if (!context || card.state === 'lead' || !cardLifecycle.is('preparing', card.state)) return [];
     const facts = snapshotStepFacts(card, index.data.approvals);
     if (!facts.formMissing && facts.briefConfirmed && !facts.missingAnswers) return [];
     const queue = index.queueById.get(`job:${card.id}`);

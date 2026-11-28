@@ -3,6 +3,7 @@ import type { ApprovalRequest } from './types.ts';
 import { browserStatusLabel } from '@/ComputerApprovals/helpers.ts';
 import { packetStatusLabel, packetNeedsAction } from './helpers.ts';
 import { stateLabels } from '@/lib/labels.ts';
+import { postSubmissionStates } from '@/lib/job-step.ts';
 export const requestStatus = (request: ApprovalRequest, data: Snapshot) => {
   if (request.kind === 'browser') return browserStatusLabel(request.approval);
   const approval = request.approval;
@@ -13,12 +14,8 @@ export const requestStatus = (request: ApprovalRequest, data: Snapshot) => {
     )
   )
     return 'Verify submission';
-  if (
-    card &&
-    ['submitted', 'screening', 'interviewing', 'offer', 'rejected', 'ghosted'].includes(card.state)
-  )
-    return stateLabels[card.state];
   if (card?.state === 'withdrawn') return 'Not applying';
+  if (card && postSubmissionStates.has(card.state)) return stateLabels[card.state];
   if (!packetNeedsAction(approval, data.cards))
     return approval.status === 'rejected' ? 'Rejected' : 'Completed or superseded';
   if (approval.submission?.method === 'manual') return 'Ready for you to submit';

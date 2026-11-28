@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Approval, Card } from '@pitchcrew/core';
-// Tests only: checks the zod-free mirror against core without bundling zod into the UI.
+// Compare the form metadata checked by both the job-step UI and the server.
 import { applicationFormIsCurrent } from '../../../../core/src/application-form.ts';
 import { formIsCurrent, jobStep, snapshotStepFacts, type JobStepFacts } from '../job-step.ts';
 

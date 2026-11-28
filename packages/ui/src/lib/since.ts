@@ -1,7 +1,7 @@
-import type { CardState, Run, Snapshot, TrackingSignal } from '@pitchcrew/core';
+import type { Run, Snapshot, TrackingSignal } from '@pitchcrew/core';
 import { datedAsk, type AttentionItem } from './attention.ts';
 import { attentionKindLabel, attentionSubject } from './attention-labels.ts';
-import { stateLabels } from './labels.ts';
+import { positiveStates, stateLabels } from './labels.ts';
 import { roleName, runDone, runSubject, runWork } from './run-labels.ts';
 import { clockLabel, sinceLabel } from './time.ts';
 
@@ -66,12 +66,6 @@ export type SinceLine = {
   count?: number;
 };
 
-/** Recorded statuses that move an application forward; their lines and records take a moss bead. */
-export const positiveStates: ReadonlySet<CardState> = new Set([
-  'screening',
-  'interviewing',
-  'offer',
-]);
 const settled: ReadonlySet<Run['status']> = new Set(['completed', 'failed', 'cancelled']);
 
 /** A routine run that started more than five minutes after its scheduled time says so. */

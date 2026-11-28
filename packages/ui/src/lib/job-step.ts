@@ -1,4 +1,5 @@
 import type { Approval, Card } from '@pitchcrew/core';
+import { cardLifecycle } from '@pitchcrew/core/lifecycles';
 
 /**
  * The next application move for a job at rest (no agent running, nothing pending in the queue).
@@ -36,13 +37,8 @@ export type JobStepFacts = {
 };
 
 export const postSubmissionStates: ReadonlySet<Card['state']> = new Set([
-  'submitted',
-  'screening',
-  'interviewing',
-  'offer',
-  'rejected',
-  'ghosted',
-  'withdrawn',
+  ...cardLifecycle.groups.applied,
+  ...cardLifecycle.groups.closed,
 ]);
 
 export const packetNeedsReview = (card: Card) =>
@@ -69,9 +65,9 @@ type InspectedForm = Extract<
 >;
 
 /**
- * Employer requirement metadata in a fixed key order, without `missingAnswer`: resolving an answer
- * is preparation progress, not a changed requirement. Mirrors `applicationFormIsCurrent` in
- * `@pitchcrew/core/application-form`, which the UI cannot import at runtime without bundling zod.
+ * The job-step UI compares the fields below and ignores progress on missing answers.
+ * The server's `applicationFormIsCurrent` also compares control metadata such as
+ * `optionsTotal` and `constraints`.
  */
 const requirementKey = (form: Omit<InspectedForm, 'status'>) =>
   JSON.stringify([
