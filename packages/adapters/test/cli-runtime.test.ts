@@ -415,9 +415,12 @@ describe.each([
     context.signal = controller.signal;
     const result = adapters[runtime].run(context);
     const rejected = expect(result).rejects.toThrow('Run cancelled');
-    await vi.waitFor(async () => expect((await requestFor(context)).runtime).toBeDefined());
-    controller.abort();
-    await rejected;
+    try {
+      await expect.poll(async () => (await requestFor(context)).runtime).toBeDefined();
+    } finally {
+      controller.abort();
+      await rejected;
+    }
   });
   it('does not launch a subprocess for an already cancelled run', async () => {
     const context = await contextFor(runtime);
