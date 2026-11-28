@@ -21,6 +21,25 @@ const paintedViewport =
   'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(() => resolve({ x: visualViewport.pageLeft, y: visualViewport.pageTop }), 0))))';
 const positionSchema = z.object({ x: z.number().finite(), y: z.number().finite() });
 
+const waitForMaskPaint = async (contents: WebContents): Promise<unknown> => {
+  if (!contents.isLoadingMainFrame())
+    return contents.executeJavaScriptInIsolatedWorld(1001, [{ code: paintedViewport }]);
+  // Electron queues executeJavaScriptInIsolatedWorld until did-stop-loading. A visible
+  // form can keep loading a remote image long after its fields and masks have painted.
+  const { frameTree } = await contents.debugger.sendCommand('Page.getFrameTree');
+  const { executionContextId } = await contents.debugger.sendCommand('Page.createIsolatedWorld', {
+    frameId: frameTree.frame.id,
+    worldName: 'pitchcrew-capture-paint',
+  });
+  const { result } = await contents.debugger.sendCommand('Runtime.evaluate', {
+    expression: paintedViewport,
+    contextId: executionContextId,
+    awaitPromise: true,
+    returnByValue: true,
+  });
+  return positionSchema.parse(result.value);
+};
+
 /**
  * A CDP clip places its origin in document CSS pixels (Playwright sends the scroll position for
  * a viewport screenshot), but Electron copies a rect of the visible view in DIPs. Move the
@@ -128,10 +147,7 @@ export const captureNativePage = async (
       // A separate world keeps the page from replacing these scheduling primitives.
       // A paint wait has not started a copy: expire it so an unanswered renderer
       // promise cannot poison the queue. A late paint result cannot reach readback.
-      const painted: unknown = await Promise.race([
-        contents.executeJavaScriptInIsolatedWorld(1001, [{ code: paintedViewport }]),
-        deadline,
-      ]);
+      const painted = await Promise.race([waitForMaskPaint(contents), deadline]);
       assertCurrent();
       let rect: Rectangle | undefined;
       if (clip && area) {

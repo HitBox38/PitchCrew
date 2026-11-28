@@ -77,6 +77,31 @@ export const checkNativeBrowserFunctionality = async (
 Geometry: ${JSON.stringify(await query(`(()=>{const rect=document.querySelector('#child')?.getBoundingClientRect();return {rect:rect?.toJSON(),at:rect?document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2)?.outerHTML:null,scrollX,scrollY,innerWidth,innerHeight,active:document.activeElement?.outerHTML,frameSignals:window.fixtureFrameSignals}})()`))}
 Native input: ${JSON.stringify(await fixture({ kind: 'input-signals', id: state.id }))}`);
   };
+  await driver.perform({ kind: 'navigate', url: `${origin}/loading-form` });
+  let loadingImage: string;
+  try {
+    assert.ok((await inspectText()).text.includes('Apply'));
+    const request = await manager.request(
+      scope,
+      { kind: 'click', selector: '#apply' },
+      'Inspect the visible form before all images load',
+    );
+    assert.equal(request.status, 'pending');
+    loadingImage = request.page.screenshot;
+    manager.decide(request.id, false);
+  } finally {
+    assert.equal(await fixture({ kind: 'finish-image', id: state.id }), true);
+  }
+  const masked = await fixture<number[]>({
+    kind: 'frame-pixel',
+    id: state.id,
+    image: loadingImage,
+    selector: '#secret',
+  });
+  assert.ok(
+    masked[0] > 200 && masked[1] < 80 && masked[2] > 200,
+    'Loading form credential must be masked',
+  );
   await act({ kind: 'navigate', url: `${origin}/constraints` });
   assertFormConstraints(await inspectText());
   await act({ kind: 'navigate', url: `${origin}/form` });

@@ -25,6 +25,7 @@ const fixture = () => {
     focusedFrame: {},
     isFocused: () => true,
     debugger: { sendCommand },
+    isLoadingMainFrame: () => false,
     executeJavaScriptInIsolatedWorld: vi.fn(async () => {}),
     capturePage,
   }) as unknown as WebContents;

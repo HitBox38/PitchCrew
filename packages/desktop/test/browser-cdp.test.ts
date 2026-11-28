@@ -264,6 +264,7 @@ it('captures a hidden native guest without the CDP screenshot command that stall
   const events = new EventEmitter();
   const contents = Object.assign(events, {
     isDestroyed: () => false,
+    isLoadingMainFrame: () => false,
     executeJavaScriptInIsolatedWorld: vi.fn(async () => top),
     getZoomFactor: () => 1,
     capturePage,
@@ -301,6 +302,7 @@ it('rejects empty, mismatched and excessive native captures instead of distortin
   const image = { isEmpty: () => false, getSize: () => ({ width: 700, height: 500 }) };
   const capturePage = vi.fn(async () => image);
   const contents = Object.assign(new EventEmitter(), {
+    isLoadingMainFrame: () => false,
     executeJavaScriptInIsolatedWorld: vi.fn(async () => top),
     getZoomFactor: () => 1,
     capturePage,
@@ -325,6 +327,7 @@ it('normalizes exact display backing pixels without accepting a changed viewport
     resize: vi.fn(() => normalized),
   };
   const contents = Object.assign(new EventEmitter(), {
+    isLoadingMainFrame: () => false,
     executeJavaScriptInIsolatedWorld: vi.fn(async () => top),
     getZoomFactor: () => 1,
     capturePage: vi.fn(async () => image),
@@ -347,6 +350,7 @@ it.each(['paint', 'capture'])(
     vi.useFakeTimers();
     try {
       const contents = Object.assign(new EventEmitter(), {
+        isLoadingMainFrame: () => false,
         executeJavaScriptInIsolatedWorld: vi.fn(() =>
           phase === 'paint' ? new Promise(() => {}) : Promise.resolve(),
         ),
@@ -380,6 +384,7 @@ it('waits for the credential-mask paint before reading the native surface', asyn
     toJPEG: () => bytes,
   }));
   const contents = Object.assign(new EventEmitter(), {
+    isLoadingMainFrame: () => false,
     executeJavaScriptInIsolatedWorld,
     getZoomFactor: () => 1,
     capturePage,
@@ -414,6 +419,7 @@ const scrolledGuest = (
     toPNG: () => bytes,
   }));
   const contents = Object.assign(new EventEmitter(), {
+    isLoadingMainFrame: () => false,
     executeJavaScriptInIsolatedWorld: vi.fn(async () => position),
     getZoomFactor: () => zoom,
     capturePage,
