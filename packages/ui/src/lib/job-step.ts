@@ -1,4 +1,5 @@
 import type { Approval, Card } from '@pitchcrew/core';
+import { formRequirementKey } from '@pitchcrew/core/form-requirements';
 
 /**
  * The next application move for a job at rest (no agent running, nothing pending in the queue).
@@ -61,37 +62,6 @@ export const packetExported = (card: Card, approvals: Approval[]) =>
       JSON.stringify(approval.packet) === JSON.stringify(card.packet),
   );
 
-type InspectedForm = Extract<
-  NonNullable<NonNullable<Card['applicationContext']>['form']>,
-  {
-    status: 'inspected';
-  }
->;
-
-/**
- * Employer requirement metadata in a fixed key order, without `missingAnswer`: resolving an answer
- * is preparation progress, not a changed requirement. Mirrors `applicationFormIsCurrent` in
- * `@pitchcrew/core/application-form`, which the UI cannot import at runtime without bundling zod.
- */
-const requirementKey = (form: Omit<InspectedForm, 'status'>) =>
-  JSON.stringify([
-    form.url,
-    form.fields.map((field) => [
-      field.label,
-      field.type,
-      field.required,
-      field.visible,
-      field.disabled,
-      field.accept,
-      field.options,
-      field.maxLength ?? null,
-      field.assessed,
-      field.condition,
-    ]),
-    form.blockers,
-    form.uninspected,
-  ]);
-
 /** Whether the adopted form choice still matches the latest inspected form requirements. */
 export const formIsCurrent = (card: Card) => {
   const form = card.applicationContext?.form;
@@ -100,8 +70,8 @@ export const formIsCurrent = (card: Card) => {
   if (form.status === 'manual') return !assessment;
   if (!assessment) return false;
   return (
-    requirementKey(form) ===
-    requirementKey({
+    formRequirementKey(form) ===
+    formRequirementKey({
       url: assessment.page.url,
       fields: assessment.fields,
       blockers: assessment.blockers,
