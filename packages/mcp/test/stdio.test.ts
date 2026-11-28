@@ -35,11 +35,13 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
     await reservation.listen(daemon.http);
     for (const file of profile) await daemon.service.saveProfile(file.name, file.content);
     const board = daemon.service.board;
+    const sourceHtml = '<article>' + 'fictional source 🐦'.repeat(1600) + '</article>';
     const card = board.createCard(
       cardInput.parse({
         company: 'Fixture Studio',
         title: 'Frontend Engineer',
         description: 'Build accessible scheduling interfaces.',
+        sourceHtml,
       }),
     );
     board.move(card.id, 'shortlisted', 'user');
@@ -281,7 +283,23 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
     const current = await client.callTool({ name: 'pitchcrew_get_card', arguments: {} });
     expect(current.structuredContent).toMatchObject({
       card: { id: card.id, packet, state: 'awaiting_approval' },
+      omittedFields: expect.arrayContaining(['sourceHtml']),
     });
+    expect(Buffer.byteLength(JSON.stringify(current.structuredContent))).toBeLessThan(8192);
+    let sourceCursor: string | null = null;
+    let restored = '';
+    do {
+      const result = await client.callTool({
+        name: 'pitchcrew_get_card',
+        arguments: { field: 'sourceHtml', ...(sourceCursor ? { cursor: sourceCursor } : {}) },
+      });
+      expect(result.isError).not.toBe(true);
+      const part = result.structuredContent as { text: string; nextCursor: string | null };
+      expect(Buffer.byteLength(JSON.stringify(part))).toBeLessThan(8192);
+      restored += part.text;
+      sourceCursor = part.nextCursor;
+    } while (sourceCursor);
+    expect(restored).toBe(sourceHtml);
     const sources = await client.callTool({ name: 'pitchcrew_read_profile', arguments: {} });
     expect(sources.structuredContent).toMatchObject({ profile: expect.arrayContaining(profile) });
     const first = await client.callTool({ name: 'pitchcrew_get_history', arguments: { limit: 2 } });

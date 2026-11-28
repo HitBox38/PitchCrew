@@ -1,5 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { packetSchema, resumeReviewPacketSchema } from '@pitchcrew/core';
+import { packetSchema, readFieldQuery, resumeReviewPacketSchema } from '@pitchcrew/core';
 import { z } from 'zod';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
@@ -15,11 +15,11 @@ export const registerPacketTools = (
     {
       title: 'Current application',
       description:
-        'Read the application card assigned to this run, including its packet and feedback.',
-      inputSchema: {},
+        'Read the assigned application, packet and feedback. A large card lists omittedFields. Request a field by name or dotted path (such as packet.resume or applicationContext.requirements.0). For a long value, append text pages using nextCursor as cursor with the same field.',
+      inputSchema: readFieldQuery.shape,
       annotations: readOnly,
     },
-    () => call('card'),
+    (input) => call('card', { input }),
   );
   server.registerTool(
     'pitchcrew_read_profile',

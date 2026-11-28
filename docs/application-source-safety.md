@@ -1,5 +1,7 @@
 # Application source safety
 
+`pitchcrew_get_card` returns the attached card within an 8 KiB JSON budget. A compact response lists the omitted fields and includes the brief's revision and confirmation status when the full context does not fit. Read an omitted field, a nested dotted path or an array element by passing `field`. Large values return text pages and a `nextCursor` bound to the same field value. Isolated runs and review specialists can select fields only from their existing filtered card view.
+
 Status: implemented and verified with the provider-free test suite, production builds, browser checks and a hidden Electron smoke test. Decisions were resolved on October 12–13, 2026 through a grill-with-docs session. The architectural boundary is recorded in [ADR 0001](adr/0001-separate-job-sources-from-drafting-context.md); terms live in [CONTEXT.md](../CONTEXT.md).
 
 ## Incident and previous exposure

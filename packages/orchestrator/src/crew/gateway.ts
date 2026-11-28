@@ -2,6 +2,7 @@ import { findRun } from '@pitchcrew/board';
 import { subagentCard } from './deep-reviews/inputs.ts';
 import { qualityAgentAction } from '../quality/agent.ts';
 import { lintRunPacket } from './gateway/packet.ts';
+import { readCardPage } from './gateway/read-pages.ts';
 import { startDeepReview } from './deep-reviews/index.ts';
 import { reviewAgentAction } from './deep-reviews/subagents.ts';
 import { randomUUID } from 'node:crypto';
@@ -379,13 +380,11 @@ const dispatchAgentCall = async (
     throw new Error('This chat has no attached application.');
   if (action === 'card') {
     const card = context.board.get<Card>('card', capability.cardId!);
-    return {
-      card: isolated
-        ? activeRun.reviewSubagentId
-          ? subagentCard(draftingCard(card, activeRun.purpose))
-          : draftingCard(card, activeRun.purpose)
-        : card,
-    };
+    const visible = isolated ? draftingCard(card, activeRun.purpose) : card;
+    return readCardPage(
+      isolated && activeRun.reviewSubagentId ? subagentCard(visible) : visible,
+      toolInput(data),
+    );
   }
   if (action === 'profile') return { profile: await readProfile(context.directory) };
   if (action === 'history') {
