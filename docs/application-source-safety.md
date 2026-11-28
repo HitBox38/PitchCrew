@@ -146,7 +146,7 @@ The inspection conversation uses the existing scoped browser and approval tools.
 
 Ordinary isolated drafting/review rejects questions without a confirmed personal requirement ID or an exact unique assessed form label before saving or showing them. Agents put explanatory text in `reason` and retry with the valid ID or label; accepting a paraphrased label would save an answer that the next isolated run cannot recover, causing repeated questions. Managed deep-review clarifications retain their separate review-scoped answer path. Historical unbound answers remain in the transcript and are not inferred into confirmed requirements.
 
-Answering a confirmed personal requirement changes the packet context revision. In that same answer transaction, previously answered exact-label form questions bound to the preceding revision are carried forward through appended question events: the personal answer is the only changed input, so the confirmed form and employer requirements are unchanged. Actual brief/form edits retain their existing invalidation behavior.
+An isolated Writer or Reviewer receives the question and user-message reference for a personal requirement answered by either role when its ID, question and answer still match the confirmed brief. Answering a confirmed personal requirement changes the packet context revision. In that same answer transaction, previously answered exact-label form questions bound to the preceding revision are carried forward through appended question events: the personal answer is the only changed input, so the confirmed form and employer requirements are unchanged. Actual brief/form edits retain their existing invalidation behavior.
 
 ## Contributor rules
 

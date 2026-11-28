@@ -211,9 +211,13 @@ it('inspects before drafting and carries confirmed fields through isolated extra
       throw new Error('End second question turn');
     }
     expect(context.card.applicationContext!.requirements[0]!.answer).toBe('Two weeks');
-    if (context.role.id === 'writer')
-      expect(context.userAnswers).toContainEqual(expect.objectContaining({ answer: 'Two weeks' }));
-    expect(context.userAnswers).toHaveLength(context.role.id === 'writer' ? 2 : 1);
+    expect(context.userAnswers).toContainEqual(
+      expect.objectContaining({
+        question: 'When could you start?',
+        answer: 'Two weeks',
+      }),
+    );
+    expect(context.userAnswers).toHaveLength(2);
     return context.role.id === 'writer'
       ? {
           role: 'writer',
