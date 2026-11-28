@@ -37,7 +37,7 @@ The existing [decision records](adr/) explain the distinctions between captured 
 
 Core owns portable business decisions and versioned data contracts. The board applies durable changes inside SQLite transactions. The daemon composes these operations with the runtime adapters, MCP tools and bounded packet workers. Host applications depend on declared package exports. Browser clients consume the small core entry points they need. The renderer and landing site share visual primitives and privacy-preserving replay code. Each client decides whether it may record and where it may send events.
 
-The final source scan covered 2,553 production files and 6,251 distinct eager import edges with zero eager cycles. The package graph now contains eleven workspaces. All baseline package edges in the table above still apply except the landing-to-UI edge. Landing and UI now both import session-replay, which has no workspace imports. The [boundary checks](adr/0008-check-dependencies-at-the-workspace-and-module-levels.md) run in CI. Subprocess entry points and preload isolation also have runtime checks.
+The final source scan covered 2,553 production files and 6,259 distinct eager import edges with zero eager cycles. The package graph now contains eleven workspaces. All baseline package edges in the table above still apply except the landing-to-UI edge. Landing and UI now both import session-replay, which has no workspace imports. The [boundary checks](adr/0008-check-dependencies-at-the-workspace-and-module-levels.md) run in CI. Subprocess entry points and preload isolation also have runtime checks.
 
 ## Optimization pool
 
@@ -78,3 +78,17 @@ The final source scan covered 2,553 production files and 6,251 distinct eager im
 **Regression prevention.** Oxlint reads workspace manifests and checks eager module cycles, private source imports and undeclared dependencies. Node tests independently check the declared graph, including desktop build dependencies, and release metadata. Independent negative probes exercised a sibling source directory, the renderer alias and a package cycle through desktop. The workspace tests ran on both supported Node lines on Windows and at the minimum versions on Linux.
 
 **Raw tag and word limits.** SQLite reads at most one tag beyond the accepted source-row limit to report clipping. The parser uses the same bound. The normalized card retains its own ten-tag limit. The packet defaults, reset dialog, new word rule and completion suggestion now read their word limits from core.
+
+**Pipeline stages and outcomes.** The board lanes, stage track, Home attention, Decisions history and import planner reuse the lifecycle groups. Importing a withdrawal still distinguishes evidence of a previous submission from a job closed before applying. Before and after results matched for 520 UI comparisons and 544 import combinations. All 138 focused tests passed.
+
+**Portable adapter fixtures.** The Windows run exposed four relative-path assertions with Unix-only setup paths. The tests now construct native paths and assert their displayed relative forms. The affected parser and activity suites passed all 112 tests on Windows.
+
+**Subprocess cancellation fixtures.** Each live cancellation test waits for a capture written by its child before aborting. If readiness fails, it still aborts and awaits the child's rejection before cleanup. Independent review exercised all ten adapters.
+
+## Integrated verification
+
+- The production UI and desktop host built successfully. All 16 Electron journeys passed. The hidden shell and native-browser smoke checks verified guest recovery, exact approvals, renderer isolation and cleanup.
+- The native Bun 1.4.4 smoke passed SQLite persistence, HTTP sessions, SSE, bounded Node helpers, stdio MCP, export approval rejection and development UI startup.
+- The first full Vitest run overlapped ongoing edits. Five suites reported failures. Rerunning those five on the combined branch passed all 236 tests serially.
+- The subsequent full `bun run check` passed lint, formatting, strict typechecking, all 56 Node tests, 4,512 Vitest tests and production builds for the app, desktop and landing site. Vitest reported eight skips across the full run.
+- The Windows x64 installer built successfully. The unpacked app launched its bundled Chromium, rendered through its own daemon and stopped that daemon on quit. Both packet worker entry points processed fictional inputs using the packaged Bun, Node helper and materialized workspace directories. The NSIS process-handling fixture passed its short-path, owned-process and exclusion checks.
