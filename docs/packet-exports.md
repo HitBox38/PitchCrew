@@ -10,7 +10,7 @@ A failed export stays on the request for retry. Recovery of an already-consumed 
 
 ## Opening saved files
 
-The job sheet offers **Open packet folder** beside the posting control when `packets/<card id>/` in the data folder contains saved files. Draft versions and approved exports live in that directory. The action opens it in the system file manager. Unfinished staging directories do not count, and the request never accepts a path.
+The job sheet offers **Open packet folder** beside the posting control when `packets/<card id>/` in the data folder contains saved files. Draft versions and approved exports live in that directory. The action opens it in the system file manager. A file manager that fails immediately is reported on the sheet; Explorer on Windows counts as opened once it starts, because it exits with an error code after a successful open. Unfinished staging directories do not count, and the request never accepts a path.
 
 ## Verification before approval
 
