@@ -102,6 +102,8 @@ Hover, bounded element scrolling and drag actions use the same exact-action gate
 
 ## Form assessments and submission receipts
 
+Inspection reads the accessibility text from each document root. If a frame's text or structured controls cannot be read, the snapshot identifies the missing evidence and retains the part it could read.
+
 Both native and headless inspection return bounded read-only constraint evidence on controls. `constraints.minLength`, `maxLength`, `min`, `max` and `step` describe the corresponding HTML attributes as `declared` (the exact string, at most 200 characters), `absent` (no attribute), or `unavailable` (oversized or containing a recognized credential). These are declarations, including malformed strings, rather than proof of effective browser validation, script rules or server limits. Absent attributes do not mean unlimited: browser defaults may apply. Missing `constraints` on historical records means unavailable evidence. The existing numeric `maxLength` remains for compatibility. `uploadSizeLimit` is always `unknown`: HTML file inputs have no standardized maximum byte-size attribute, and neither `accept`, custom data attributes nor nearby prose establishes one. No validation handlers or page interactions are invoked to collect this evidence.
 
 Select controls return at most 100 choices of at most 500 characters each. `optionsTotal` is the current native option count; `optionsTruncated` is true if either choices or choice text was cut. False means that this native select's current choices fit the bounds, not that later pages or dynamically loaded choices are complete. Missing choice completeness on older records is unknown.
