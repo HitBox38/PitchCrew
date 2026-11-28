@@ -98,6 +98,30 @@ it('queues one correction from a group delivery into an isolated draft with befo
       writer.id,
       'Writer released the application',
     );
+    const blocker: Run = {
+      id: 'concurrent-review',
+      cardId: card.id,
+      roleId: 'reviewer',
+      runtime: 'demo',
+      status: 'running',
+      mode: 'workflow',
+      requestId: delivery.id,
+      message: 'Reviewing fixture packet',
+      startedAt: new Date().toISOString(),
+      finishedAt: null,
+    };
+    daemon.service.board.record('run', blocker, 'reviewer', 'Started fixture review');
+    await expect(daemon.service.agentCall(tokens[0]!, 'quality', correction)).rejects.toThrow(
+      'to finish working on this application',
+    );
+    expect(daemon.service.board.list('writing_correction')).toHaveLength(0);
+    expect(daemon.service.board.list('task')).toHaveLength(0);
+    daemon.service.board.record(
+      'run',
+      { ...blocker, status: 'completed', finishedAt: new Date().toISOString() },
+      'reviewer',
+      'Finished fixture review',
+    );
     const queued = await daemon.service.agentCall(tokens[0]!, 'quality', correction);
     expect(queued.taskId).toBeDefined();
     daemon.service.board.updateCard(
