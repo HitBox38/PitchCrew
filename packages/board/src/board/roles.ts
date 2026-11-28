@@ -1,4 +1,5 @@
 import {
+  decodeEvent,
   defaultCapabilities,
   type Role,
   type RuntimeId,
@@ -7,10 +8,26 @@ import {
 import { defaultRoles } from './default-roles.ts';
 import type { BoardContext } from './types.ts';
 
-/** Older Documenter rows predate the save grant. No stored choice means the default: it can save. */
+/**
+ * Older Documenter rows predate the save grant. Settings saves stored the default off, so a
+ * seeded role that was never actually granted saving gets it. An off after a real on stays off.
+ */
 const enableDocumenterSaving = (context: BoardContext) => {
   const documenter = context.list<Role>('role').find((role) => role.id === 'documenter');
-  if (!documenter || documenter.retiredAt || documenter.capabilities?.editProfile != null) return;
+  if (!documenter || documenter.retiredAt || documenter.capabilities?.editProfile === true) return;
+  const rows = context.db
+    .prepare(
+      "SELECT json FROM events WHERE json_extract(json,'$.kind') = 'role' AND json_extract(json,'$.entityId') = ? ORDER BY id",
+    )
+    .all('documenter') as { json: string }[];
+  const events = rows.map((row) => decodeEvent(row.json));
+  if (events[0]?.actor !== 'system') return;
+  let granted = false;
+  for (const event of events) {
+    const value = (event.data as Role).capabilities?.editProfile;
+    if (granted && value === false) return;
+    if (value === true) granted = true;
+  }
   const role: Role = {
     ...documenter,
     capabilities: { ...defaultCapabilities, ...documenter.capabilities, editProfile: true },

@@ -1,6 +1,6 @@
 # Profile editing and watched maintenance
 
-Documenter defaults include direct profile editing, watched maintenance and routine management. Production defaults start paused. Startup turns on `editProfile` for an existing Documenter that never stored that choice; an explicit off stays off, and instructions are not rewritten. Startup adds no watches or schedules and changes no profile notes. The same tools remain available to any user-configured role.
+Documenter defaults include direct profile editing, watched maintenance and routine management. Production defaults start paused. Startup turns on `editProfile` for a seeded Documenter when saving was never on, including a stored off that a settings save filled in; an off after saving was on stays off. A custom role that reused the id is left alone, and instructions are not rewritten. Startup adds no watches or schedules and changes no profile notes. The same tools remain available to any user-configured role.
 
 ## Direct user requests
 
@@ -60,4 +60,4 @@ All agent runs must finish before applying a maintenance proposal. The board rec
 
 ## Contributor rules
 
-**Profile editing and maintenance.** `editProfile` permits baseline-checked note saves/deletions only in the owning direct user chat. Documenter defaults enable it, and startup turns it on when that role has no saved choice; an explicit off stays off. GitHub-backed changes sync only within imported source folders through the dedicated optimistic writer, with a connected GitHub account; general GitHub access remains separate. Local edits survive remote failure and report unsynced status. Scheduled and crew-triggered maintenance still uses `maintainProfile`, enabled watches, pinned evidence and exact user-reviewed proposals applied while runs are idle. Interrupted approved updates block new writes and launches until recovered. See [docs/profile-maintenance.md](profile-maintenance.md).
+**Profile editing and maintenance.** `editProfile` permits baseline-checked note saves/deletions only in the owning direct user chat. Documenter defaults enable it, and startup turns it on for a seeded Documenter when saving was never on, including a settings-filled off; an off after saving was on stays off. GitHub-backed changes sync only within imported source folders through the dedicated optimistic writer, with a connected GitHub account; general GitHub access remains separate. Local edits survive remote failure and report unsynced status. Scheduled and crew-triggered maintenance still uses `maintainProfile`, enabled watches, pinned evidence and exact user-reviewed proposals applied while runs are idle. Interrupted approved updates block new writes and launches until recovered. See [docs/profile-maintenance.md](profile-maintenance.md).
