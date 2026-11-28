@@ -1,8 +1,34 @@
-import { defineConfig } from 'oxlint';
+import { defineConfig, type OxlintOverride } from 'oxlint';
 import { workspaces } from './scripts/workspace-manifests.ts';
+
+const appShadcnRules: OxlintOverride['rules'] = {
+  'shadcn/no-arbitrary-values': ['error', { deny: ['color'] }],
+  'shadcn/require-static-classes': 'error',
+  'shadcn/no-restyle': [
+    'error',
+    { deny: [], contracts: [{ pattern: '^Button$', deny: ['bg-*'] }] },
+  ],
+};
+
+const shadcnRules: Record<string, OxlintOverride['rules']> = {
+  '@pitchcrew/design-system': {
+    'shadcn/no-raw-colors': 'error',
+    'shadcn/no-inline-styles': 'error',
+  },
+  '@pitchcrew/ui': {
+    ...appShadcnRules,
+    'shadcn/no-raw-colors': ['error', { allow: ['text-button'] }],
+  },
+  '@pitchcrew/landing': {
+    ...appShadcnRules,
+    'shadcn/no-raw-colors': ['error', { allow: ['text-link'] }],
+  },
+};
 
 export default defineConfig({
   plugins: ['typescript', 'react', 'jsx-a11y', 'import'],
+  jsPlugins: ['@shadcn/lint'],
+  settings: { shadcn: { componentImports: ['^@pitchcrew/design-system/'] } },
   categories: { correctness: 'error' },
   rules: {
     // Asset query imports such as Vite's ?url acquire their default export during bundling.
@@ -53,7 +79,7 @@ export default defineConfig({
           ]
         : [];
     const src = `${directory}/src`;
-    return [
+    const overrides: OxlintOverride[] = [
       {
         files: [`${src}/**`],
         excludeFiles: ['**/__tests__/**'],
@@ -81,5 +107,14 @@ export default defineConfig({
         rules: { 'no-restricted-imports': ['error', { paths, patterns: sharedPatterns }] },
       },
     ];
+    const styleRules = shadcnRules[name];
+    if (styleRules) {
+      overrides.push({
+        files: [`${src}/**`],
+        excludeFiles: ['**/__tests__/**', '**/*.test.*', '**/*.spec.*'],
+        rules: styleRules,
+      });
+    }
+    return overrides;
   }),
 });

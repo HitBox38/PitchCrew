@@ -26,9 +26,8 @@ export const ReferenceChip = ({
   return (
     <Popover>
       <PopoverTrigger
-        render={
-          <Button variant="ghost" className={`chat-reference chat-reference-${reference.kind}`} />
-        }
+        render={<Button variant="ghost" className="chat-reference" />}
+        data-reference-kind={reference.kind}
         data-unavailable={unavailable || undefined}
         aria-label={`${type}: ${reference.label}${unavailable ? ', unavailable' : ''}`}
         data-reference-token={reference.token}

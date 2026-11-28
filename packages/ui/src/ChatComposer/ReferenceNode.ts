@@ -39,7 +39,8 @@ export class ReferenceNode extends TextNode {
   createDOM(config: EditorConfig): HTMLElement {
     const element = super.createDOM(config);
     const ref = this.getReference();
-    element.className = `chat-reference-token chat-reference-${ref.kind}`;
+    element.className = 'chat-reference-token';
+    element.dataset.referenceKind = ref.kind;
     element.dataset.label = `${ref.kind === 'agent' ? '@' : ref.kind === 'skill' ? '◇' : '/'} ${ref.label}`;
     element.dataset.referenceKey = this.getKey();
     element.setAttribute('aria-label', `${ref.kind}: ${ref.label}`);

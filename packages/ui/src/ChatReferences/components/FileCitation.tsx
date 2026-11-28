@@ -56,7 +56,8 @@ export const FileCitation = ({ url, label }: { url: string; label: string }) => 
         }}
       >
         <PopoverTrigger
-          render={<Button variant="ghost" className="chat-reference chat-reference-file" />}
+          render={<Button variant="ghost" className="chat-reference" />}
+          data-reference-kind="file"
           aria-label={`File: ${label}${unavailable ? ', unavailable' : ''}`}
           data-reference-token={`[${label}](${url})`}
           data-unavailable={unavailable || undefined}
