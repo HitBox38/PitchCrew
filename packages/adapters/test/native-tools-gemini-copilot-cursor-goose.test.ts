@@ -1,4 +1,6 @@
 import type { ActivityToolKind, ChatContext, RuntimeActivity, RuntimeId } from '@pitchcrew/core';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import type {
   NativeToolEvent,
@@ -22,7 +24,10 @@ interface Case {
   rows: RuntimeActivity[];
 }
 
-const cwd = '/work/fictional-run';
+const cwd = join(tmpdir(), 'fictional-run');
+const relativePlanPath = join('notes', 'plan.md');
+const planPath = join(cwd, relativePlanPath);
+const missingPath = join(cwd, 'missing.md');
 
 const parse = (parser: NativeToolParser, events: Event[]) => {
   const read = parser({ cwd });
@@ -137,20 +142,20 @@ const geminiCases: Case[] = [
     events: [
       geminiUse('shell-2', 'run_shell_command', { command: 'npm test' }),
       geminiResult('shell-2', { status: 'success', output: 'Command exited with code: 1' }),
-      geminiUse('read-3', 'read_file', { file_path: `${cwd}/notes/plan.md` }),
+      geminiUse('read-3', 'read_file', { file_path: planPath }),
       geminiResult('read-3', { status: 'success', output: 'PRIVATE_ARG' }),
     ],
     parsed: [
       start('shell-2', 'command', { detail: 'npm test' }),
       finish('shell-2', false),
-      start('read-3', 'read', { detail: 'notes/plan.md' }),
+      start('read-3', 'read', { detail: relativePlanPath }),
       finish('read-3', false),
     ],
     rows: [
       row('shell-2', 'command', 'Running command', 'running', { detail: 'npm test' }),
       row('shell-2', 'command', 'Ran command', 'completed', { detail: 'npm test' }),
-      row('read-3', 'read', 'Reading file', 'running', { detail: 'notes/plan.md' }),
-      row('read-3', 'read', 'Read file', 'completed', { detail: 'notes/plan.md' }),
+      row('read-3', 'read', 'Reading file', 'running', { detail: relativePlanPath }),
+      row('read-3', 'read', 'Read file', 'completed', { detail: relativePlanPath }),
     ],
   },
   {
@@ -393,13 +398,13 @@ const copilotCases: Case[] = [
   {
     name: 'a file read completes with its path from the run folder',
     events: [
-      copilotStart('toolu_03', 'view', { path: `${cwd}/notes/plan.md` }),
+      copilotStart('toolu_03', 'view', { path: planPath }),
       copilotDone('toolu_03', true, { result: { content: 'PRIVATE_ARG' } }),
     ],
-    parsed: [start('toolu_03', 'read', { detail: 'notes/plan.md' }), finish('toolu_03', false)],
+    parsed: [start('toolu_03', 'read', { detail: relativePlanPath }), finish('toolu_03', false)],
     rows: [
-      row('toolu_03', 'read', 'Reading file', 'running', { detail: 'notes/plan.md' }),
-      row('toolu_03', 'read', 'Read file', 'completed', { detail: 'notes/plan.md' }),
+      row('toolu_03', 'read', 'Reading file', 'running', { detail: relativePlanPath }),
+      row('toolu_03', 'read', 'Read file', 'completed', { detail: relativePlanPath }),
     ],
   },
   {
@@ -580,19 +585,19 @@ const cursorCases: Case[] = [
     name: 'a read completes, and an id with a newline stays one step',
     events: [
       cursorCall('started', 'call_x\nfc_y', {
-        readToolCall: { args: { path: `${cwd}/notes/plan.md` } },
+        readToolCall: { args: { path: planPath } },
       }),
       cursorCall('completed', 'call_x\nfc_y', {
         readToolCall: { result: { success: { content: 'PRIVATE_ARG', totalLines: 1 } } },
       }),
     ],
     parsed: [
-      start('call_x\nfc_y', 'read', { detail: 'notes/plan.md' }),
+      start('call_x\nfc_y', 'read', { detail: relativePlanPath }),
       finish('call_x\nfc_y', false),
     ],
     rows: [
-      row('call_x_fc_y', 'read', 'Reading file', 'running', { detail: 'notes/plan.md' }),
-      row('call_x_fc_y', 'read', 'Read file', 'completed', { detail: 'notes/plan.md' }),
+      row('call_x_fc_y', 'read', 'Reading file', 'running', { detail: relativePlanPath }),
+      row('call_x_fc_y', 'read', 'Read file', 'completed', { detail: relativePlanPath }),
     ],
   },
   {
@@ -693,9 +698,9 @@ const cursorCases: Case[] = [
       cursorCall('started', 'tool_11', {
         function: { name: 'custom_tool', arguments: '{"query":"PRIVATE_ARG"}' },
       }),
-      cursorCall('started', 'tool_12', { readToolCall: { args: { path: `${cwd}/missing.md` } } }),
+      cursorCall('started', 'tool_12', { readToolCall: { args: { path: missingPath } } }),
       cursorCall('completed', 'tool_12', {
-        readToolCall: { result: { fileNotFound: { path: `${cwd}/missing.md` } } },
+        readToolCall: { result: { fileNotFound: { path: missingPath } } },
       }),
     ],
     parsed: [
