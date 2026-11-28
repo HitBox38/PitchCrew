@@ -345,7 +345,8 @@ describe('profile maintenance', () => {
           'propose_profile_note',
           {
             proposalId: detected.id,
-            name: 'project-observation.md',
+            // Proposed notes may exceed the editor's 100-character filename limit.
+            name: `${'project-'.repeat(13)}observation.md`,
             content:
               'The fictional project exports an accessibility flag. Personal contribution needs verification.',
             paths: ['src/tool.ts'],

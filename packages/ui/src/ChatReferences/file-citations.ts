@@ -1,4 +1,5 @@
 import { packetSourceNames, parseFileCitation } from '@pitchcrew/core/chat-citations';
+import { packetExportFileName } from '@pitchcrew/core/packet-files';
 import type { ReferenceCatalog } from './types.ts';
 import type { ViewerFile } from '@/FileViewer/types.ts';
 import { fileNotes } from '@/lib/document-findings.ts';
@@ -27,7 +28,7 @@ export const citationFile = (url: string, catalog: ReferenceCatalog): ViewerFile
   if (artifact)
     return {
       id: url,
-      name: artifact.name,
+      name: packetExportFileName(approval.packet.resume, artifact.name),
       kind: artifact.mimeType === 'application/pdf' ? 'pdf' : 'docx',
       mimeType: artifact.mimeType,
       bytes: artifact.bytes,
@@ -46,7 +47,7 @@ export const citationFile = (url: string, catalog: ReferenceCatalog): ViewerFile
   if (source)
     return {
       id: url,
-      name: name!,
+      name: packetExportFileName(approval.packet.resume, name!),
       kind: 'markdown',
       mimeType: 'text/markdown',
       text: approval.packet[source],

@@ -1,3 +1,4 @@
+import { packetRuleLimits } from '@pitchcrew/core/packet-rule-options';
 import { Input } from '@pitchcrew/design-system/input';
 import { Textarea } from '@pitchcrew/design-system/textarea';
 import { FormSelect } from '@/FormSelect/index.tsx';
@@ -19,7 +20,7 @@ export const RulePatternFields = ({ rule, index, change }: RuleFormProps) => {
           onChange={(event) => change({ [field]: event.target.value })}
           autoComplete="off"
           spellCheck={false}
-          maxLength={300}
+          maxLength={packetRuleLimits.patternLength}
         />
       </label>
       {canonical ? (
@@ -61,7 +62,7 @@ export const RulePatternFields = ({ rule, index, change }: RuleFormProps) => {
                 id={ruleFormKey(index, 'equals')}
                 value={fieldText(rule.equals)}
                 onChange={(event) => change({ equals: event.target.value })}
-                maxLength={300}
+                maxLength={packetRuleLimits.valueLength}
                 autoComplete="off"
               />
             </label>

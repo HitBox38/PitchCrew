@@ -87,8 +87,10 @@ test('shows the waiting packet as a decision with the Reviewer summary before hi
   const summary = page.getByRole('region', { name: 'Packet summary', exact: true });
   expect(await summary.getByRole('heading', { name: 'Reviewer’s assessment' }).count()).toBe(1);
   expect(await summary.getByRole('heading', { name: 'What to do next' }).count()).toBe(1);
-  expect(await page.getByRole('button', { name: /^resume.pdf PDF/ }).count()).toBe(1);
-  expect(await page.getByRole('button', { name: /^resume.md Markdown/ }).count()).toBe(1);
+  expect(await page.getByRole('button', { name: /^Example_Candidate_CV.pdf PDF/ }).count()).toBe(1);
+  expect(
+    await page.getByRole('button', { name: /^Example_Candidate_CV.md Markdown/ }).count(),
+  ).toBe(1);
   await page.getByRole('button', { name: 'History', exact: true }).click();
   await page.getByText('No packet or browser decisions yet', { exact: true }).waitFor();
   expect(new URL(page.url()).searchParams.get('view')).toBe('history');
@@ -102,15 +104,17 @@ test('shows the waiting packet as a decision with the Reviewer summary before hi
     .waitFor();
 });
 test('searches actual PDF text, zooms sharply and keeps approval out of attachment dialogs', async () => {
-  await page.getByRole('button', { name: /^resume.pdf PDF/ }).click();
-  const dialog = page.getByRole('dialog', { name: 'resume.pdf', exact: true });
+  await page.getByRole('button', { name: /^Example_Candidate_CV.pdf PDF/ }).click();
+  const dialog = page.getByRole('dialog', { name: 'Example_Candidate_CV.pdf', exact: true });
   await dialog
     .locator('.textLayer')
     .getByText('Built React interfaces.', { exact: false })
     .waitFor();
   expect(await dialog.getByRole('button', { name: /Approve/ }).count()).toBe(0);
   expect(
-    await dialog.getByRole('button', { name: 'Download resume.pdf', exact: true }).isDisabled(),
+    await dialog
+      .getByRole('button', { name: 'Download Example_Candidate_CV.pdf', exact: true })
+      .isDisabled(),
   ).toBe(true);
   await dialog.getByRole('button', { name: 'Find', exact: true }).click();
   await dialog.getByRole('textbox', { name: 'Find in document' }).fill('React');
@@ -132,8 +136,8 @@ test('searches actual PDF text, zooms sharply and keeps approval out of attachme
   await dialog.waitFor({ state: 'hidden' });
 });
 test('offers Markdown Rendered/Source and searchable script-free DOCX previews', async () => {
-  await page.getByRole('button', { name: /^resume.md Markdown/ }).click();
-  const markdown = page.getByRole('dialog', { name: 'resume.md', exact: true });
+  await page.getByRole('button', { name: /^Example_Candidate_CV.md Markdown/ }).click();
+  const markdown = page.getByRole('dialog', { name: 'Example_Candidate_CV.md', exact: true });
   expect(
     await markdown
       .getByRole('button', { name: 'Rendered', exact: true })
@@ -142,7 +146,9 @@ test('offers Markdown Rendered/Source and searchable script-free DOCX previews',
   await markdown.getByRole('button', { name: 'Source', exact: true }).click();
   expect(await markdown.locator('pre').textContent()).toBe(approval.packet.resume);
   await markdown.getByRole('button', { name: 'Next attachment', exact: true }).click();
-  await page.getByRole('dialog', { name: 'cover_letter.md', exact: true }).waitFor();
+  await page
+    .getByRole('dialog', { name: 'Example_Candidate_Cover_Letter.md', exact: true })
+    .waitFor();
   await page.getByRole('button', { name: 'Previous attachment', exact: true }).click();
   expect(
     await markdown
@@ -150,8 +156,8 @@ test('offers Markdown Rendered/Source and searchable script-free DOCX previews',
       .getAttribute('aria-pressed'),
   ).toBe('true');
   await page.getByRole('button', { name: 'Close viewer', exact: true }).click();
-  await page.getByRole('button', { name: /^resume.docx DOCX/ }).click();
-  const docx = page.getByRole('dialog', { name: 'resume.docx', exact: true });
+  await page.getByRole('button', { name: /^Example_Candidate_CV.docx DOCX/ }).click();
+  const docx = page.getByRole('dialog', { name: 'Example_Candidate_CV.docx', exact: true });
   await docx
     .frameLocator('iframe')
     .getByText('Built React interfaces.', { exact: false })
@@ -184,10 +190,10 @@ test('keeps manual follow-up after export, enables exact downloads and confirms 
     'Ready for you to submit',
   );
   expect(host.daemon.service.board.get<Card>('card', card.id).state).toBe('awaiting_approval');
-  await page.getByRole('button', { name: /^resume.md Markdown/ }).click();
+  await page.getByRole('button', { name: /^Example_Candidate_CV.md Markdown/ }).click();
   const downloading = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Download resume.md', exact: true }).click();
-  expect((await downloading).suggestedFilename()).toBe('resume.md');
+  await page.getByRole('button', { name: 'Download Example_Candidate_CV.md', exact: true }).click();
+  expect((await downloading).suggestedFilename()).toBe('Example_Candidate_CV.md');
   await page.getByRole('button', { name: 'Close viewer', exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -216,8 +222,10 @@ test('keeps manual follow-up after export, enables exact downloads and confirms 
   }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.evaluate(() => document.documentElement.setAttribute('data-desktop', 'mac'));
-  await page.getByRole('button', { name: /^resume.md Markdown/ }).click();
-  const bounds = await page.getByRole('dialog', { name: 'resume.md', exact: true }).boundingBox();
+  await page.getByRole('button', { name: /^Example_Candidate_CV.md Markdown/ }).click();
+  const bounds = await page
+    .getByRole('dialog', { name: 'Example_Candidate_CV.md', exact: true })
+    .boundingBox();
   expect(bounds!.x).toBeGreaterThanOrEqual(0);
   expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(391);
   expect(bounds!.y).toBeGreaterThanOrEqual(40);
@@ -236,7 +244,7 @@ test('keeps manual follow-up after export, enables exact downloads and confirms 
   // A withdrawn packet leaves Decisions and is found again by filename in History.
   await page.getByText('No decisions waiting', { exact: true }).waitFor();
   await page.getByRole('button', { name: 'History', exact: true }).click();
-  await page.getByRole('textbox', { name: 'Search history' }).fill('resume.pdf');
+  await page.getByRole('textbox', { name: 'Search history' }).fill('Example_Candidate_CV.pdf');
   expect(await page.locator('.decision-history-row').count()).toBe(1);
   await page.getByRole('textbox', { name: 'Search history' }).fill('missing.pdf');
   await page.getByText('No past decisions match.', { exact: true }).waitFor();
@@ -253,7 +261,9 @@ test('keeps manual follow-up after export, enables exact downloads and confirms 
     .waitFor();
   expect(await sheet.locator('.decision-stage').textContent()).toBe('Job stage: Withdrawn');
   expect(new URL(page.url()).searchParams.get('entry')).toBe(`packet:${approval.id}`);
-  expect(await sheet.getByRole('button', { name: /^resume.pdf PDF/ }).count()).toBe(1);
+  expect(await sheet.getByRole('button', { name: /^Example_Candidate_CV.pdf PDF/ }).count()).toBe(
+    1,
+  );
   expect(await page.getByRole('button', { name: 'I’ve submitted', exact: true }).count()).toBe(0);
   expect(errors).toEqual([]);
 });

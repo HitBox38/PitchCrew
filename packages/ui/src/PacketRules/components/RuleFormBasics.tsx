@@ -1,7 +1,7 @@
 import { Input } from '@pitchcrew/design-system/input';
 import { Checkbox } from '@pitchcrew/design-system/checkbox';
 import { FormSelect } from '@/FormSelect/index.tsx';
-import { documentLabels } from '../constants.ts';
+import { packetDocumentLabels } from '@pitchcrew/core/packet-documents';
 import { fieldDocuments, fieldText, ruleFormKey, type RuleDraft } from '../form-helpers.ts';
 
 export interface RuleFormProps {
@@ -44,7 +44,7 @@ export const RuleFormBasics = ({ rule, index, change }: RuleFormProps) => {
       <fieldset>
         <legend className="settings-legend">Apply to</legend>
         <div className="flex flex-wrap gap-x-5 gap-y-3">
-          {Object.entries(documentLabels).map(([value, label]) => (
+          {Object.entries(packetDocumentLabels).map(([value, label]) => (
             <label className="checkbox-label" key={value}>
               <Checkbox
                 checked={selectedDocuments.has(value)}

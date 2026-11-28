@@ -1,5 +1,7 @@
 import type { recordOptions, eventWithTime } from 'posthog-js/rrweb';
-import { replayBlockSelector, sanitizeReplayEvent, wireframeGeometry } from './privacy';
+import { replayBlockSelector, sanitizeReplayEvent, wireframeGeometry } from './privacy.ts';
+
+export { sanitizeReplayProperties } from './privacy.ts';
 
 type Recorder = {
   record: (options: recordOptions<eventWithTime>) => (() => void) | undefined;

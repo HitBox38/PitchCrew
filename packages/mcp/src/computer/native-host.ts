@@ -3,7 +3,7 @@ import type {
   DesktopBrowserHost,
   NativeBrowserState,
   NativeBrowserCommand,
-} from '../../../core/src/native-browser.ts';
+} from '@pitchcrew/core/native-browser';
 import type { BrowserDriver } from './types.ts';
 import { createAttachedBrowserDriver, launchBrowser } from './driver.ts';
 

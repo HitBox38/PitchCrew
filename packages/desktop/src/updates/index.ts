@@ -4,7 +4,7 @@ import type { AppUpdater } from 'electron-updater';
 import { createRequire } from 'node:module';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { checkGitHubRelease } from '../../../orchestrator/src/app-updates/github.ts';
+import { checkGitHubRelease } from '@pitchcrew/orchestrator/release-check';
 import { canUpdatePackagedDaemon, requestDaemonUpdate } from '../packaged.ts';
 import { createDesktopUpdater, type UpdateDriver } from './controller.ts';
 import { trustedUpdateSender, updateChannels } from './ipc.ts';

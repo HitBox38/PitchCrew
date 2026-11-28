@@ -18,6 +18,7 @@
     "packages/**/*.ts",
     "packages/**/*.tsx",
     "vitest.config.ts",
+    "oxlint.config.ts",
     "scripts/**/*.ts",
     "electron-builder.config.ts"
   ],

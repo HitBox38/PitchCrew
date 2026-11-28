@@ -103,6 +103,14 @@ export const cardLifecycle = defineLifecycle('Job', {
     draftable: ['shortlisted', 'changes_requested'],
     /** Reviewer may review the current packet. */
     reviewable: ['in_review', 'agreed', 'awaiting_approval'],
+    /** Managed deep review may start here, including by creating the first packet. */
+    deepReviewable: [
+      'shortlisted',
+      'changes_requested',
+      'in_review',
+      'agreed',
+      'awaiting_approval',
+    ],
   },
 });
 

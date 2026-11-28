@@ -13,7 +13,7 @@ import { checkNativeBrowserTabs } from './fixtures/native-browser-tabs.ts';
 import { Board } from '../../board/src/index.ts';
 import { ComputerManager } from '../../mcp/src/computer.ts';
 import { electronExecutable } from '../../../scripts/electron-path.ts';
-import type { DesktopBrowserHost } from '../../core/src/native-browser.ts';
+import type { DesktopBrowserHost } from '@pitchcrew/core/native-browser';
 import { writeNativeCommand } from './fixtures/native-browser-command.ts';
 import {
   checkNativeCaptureRecovery,

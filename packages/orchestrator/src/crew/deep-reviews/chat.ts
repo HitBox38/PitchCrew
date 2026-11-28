@@ -1,6 +1,7 @@
 import { reviewPerspectives, type ReviewPerspective } from '@pitchcrew/core/deep-review-labels';
 import { randomUUID } from 'node:crypto';
 import {
+  cardLifecycle,
   workflowSeat,
   type Card,
   type ChatMessage,
@@ -97,11 +98,7 @@ export const queueDeepReviewChat = (
     context.board.record('chat_request', request, 'user', 'Asked which job to deep review');
     const cards = context.board
       .list<Card>('card')
-      .filter((card) =>
-        ['shortlisted', 'changes_requested', 'in_review', 'agreed', 'awaiting_approval'].includes(
-          card.state,
-        ),
-      )
+      .filter((card) => cardLifecycle.is('deepReviewable', card.state))
       .slice(-20)
       .reverse();
     askUser(

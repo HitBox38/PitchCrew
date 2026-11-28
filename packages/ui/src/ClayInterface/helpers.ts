@@ -1,4 +1,6 @@
 import type { CardState, ChatRequest, Run, RunActivity, UserInputRequest } from '@pitchcrew/core';
+import { cardLifecycle } from '@pitchcrew/core/lifecycles';
+import { stateLabels } from '@/lib/labels.ts';
 import type { PacketStage } from './packet-guidance.ts';
 
 type ChatDelivery = ChatRequest['deliveries'][number];
@@ -13,21 +15,13 @@ export const trackSteps: TrackStep[] = [
   { id: 'drafting', label: 'Drafting', states: ['drafting', 'changes_requested'] },
   { id: 'review', label: 'Review', states: ['in_review'] },
   { id: 'approve', label: 'You approve', states: ['agreed', 'awaiting_approval'] },
-  { id: 'applied', label: 'Applied', states: ['submitted', 'screening', 'interviewing', 'offer'] },
+  { id: 'applied', label: 'Applied', states: [...cardLifecycle.groups.applied] },
 ];
 
 /** Index of the current step, or null for closed jobs that left the workflow. */
 export const trackIndex = (state: CardState): number | null => {
   const index = trackSteps.findIndex((step) => step.states.includes(state));
   return index === -1 ? null : index;
-};
-
-// The six-stage track keeps one Applied step; its label names the recorded outcome so
-// moving to Interviewing visibly sticks without adding stages.
-const appliedOutcomes: Partial<Record<CardState, string>> = {
-  screening: 'Screening',
-  interviewing: 'Interviewing',
-  offer: 'Offer',
 };
 
 // Once a packet decision exists, the approval step names where it actually stands, so the track
@@ -52,7 +46,7 @@ export const stepLabel = (state: CardState, index: number, stage?: PacketStage, 
   const current = trackIndex(state);
   if (step?.id === 'approve' && current !== null && current > index) return 'Approval';
   if (!step || current !== index) return step?.label ?? '';
-  if (step.id === 'applied') return appliedOutcomes[state] ?? step.label;
+  if (step.id === 'applied' && state !== 'submitted') return stateLabels[state];
   if (step.id === 'approve' && stage) return approveLabels[stage][short ? 'short' : 'full'];
   return step.label;
 };

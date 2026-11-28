@@ -31,6 +31,13 @@ export const stateLabels: Record<CardState, string> = {
   ghosted: 'No response',
 };
 
+/** Employer progress shown with a moss bead in decision history and on Home. */
+export const positiveStates: ReadonlySet<CardState> = new Set([
+  'screening',
+  'interviewing',
+  'offer',
+]);
+
 export const jobProviderLabels: Record<JobProvider, string> = {
   greenhouse: 'Greenhouse',
   ashby: 'Ashby',

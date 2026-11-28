@@ -31,6 +31,56 @@ const source = (name: string): ProfileSource => ({
 });
 
 describe('profile note file management', () => {
+  it('keeps long service and imported filenames while the editor caps names at 100 characters', async () => {
+    const { daemon, directory, request } = await setup();
+    const name = `${'a'.repeat(98)}.md`;
+    const file = { name, content: 'Fictional note' };
+    expect(await daemon.service.saveProfile(name, file.content)).toEqual([file]);
+    await writeFile(join(directory, 'profile-sources.json'), JSON.stringify([source(name)]));
+    expect((await daemon.service.profileSources.list())[0].files[0].name).toBe(name);
+
+    const atLimit = { ...file, name: `${'a'.repeat(97)}.md` };
+    expect((await request('/profile', 'PUT', atLimit)).response.status).toBe(200);
+    const saved = await request<{ error: string }>('/profile', 'PUT', file);
+    expect(saved.response.status).toBe(400);
+    expect(JSON.parse(saved.result.error)).toMatchObject([{ code: 'too_big', maximum: 100 }]);
+    await expect(daemon.service.saveProfile('work..history.md', 'Fictional')).rejects.toThrow(
+      'Use a simple Markdown filename.',
+    );
+  });
+
+  it('reports filename length, format and consecutive dots in order with operation-specific messages', async () => {
+    const { daemon, directory, request } = await setup();
+    const name = `${'a'.repeat(98)}..TXT`;
+    const size = { code: 'too_big', message: 'Too big: expected string to have <=100 characters' };
+    const format = {
+      code: 'invalid_format',
+      message: 'Invalid string: must match pattern /^[\\w.-]+\\.md$/',
+    };
+    const dots = { code: 'custom', message: 'Invalid input' };
+    const editMessage = 'Use a simple Markdown filename.';
+
+    const renamed = await request<{ error: string }>('/profile/rename', 'POST', {
+      from: 'work.md',
+      to: name,
+    });
+    expect(JSON.parse(renamed.result.error)).toMatchObject([
+      size,
+      { code: 'invalid_format', message: editMessage },
+      { code: 'custom', message: editMessage },
+    ]);
+    const moved = await request<{ error: string }>('/profile/organization', 'POST', {
+      action: 'move',
+      name,
+      folder: '',
+    });
+    expect(JSON.parse(moved.result.error)).toMatchObject([size, format, dots]);
+    await writeFile(join(directory, 'profile-sources.json'), JSON.stringify([source(name)]));
+    await expect(daemon.service.profileSources.list()).rejects.toMatchObject({
+      issues: [format, dots],
+    });
+  });
+
   it('renames a note with its explicit folder and imported source record', async () => {
     const { request, directory } = await setup();
     await request('/profile', 'PUT', { name: 'atlas.md', content: '# Atlas\n\n- Fictional.' });

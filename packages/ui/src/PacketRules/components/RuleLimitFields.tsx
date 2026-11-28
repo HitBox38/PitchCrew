@@ -1,3 +1,4 @@
+import { packetRuleLimits } from '@pitchcrew/core/packet-rule-options';
 import { Input } from '@pitchcrew/design-system/input';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { fieldText, ruleFormKey } from '../form-helpers.ts';
@@ -33,7 +34,7 @@ export const RuleLimitFields = ({ rule, index, change }: RuleFormProps) => (
           onChange={(event) => change({ heading: event.target.value || undefined })}
           autoComplete="off"
           spellCheck={false}
-          maxLength={300}
+          maxLength={packetRuleLimits.patternLength}
           placeholder="Experience|Projects…"
         />
       </label>

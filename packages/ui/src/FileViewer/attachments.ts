@@ -1,5 +1,6 @@
 import type { ApprovalRequest } from '@/components/InboxView/types.ts';
-import { readableWordCount } from '@/lib/packet-labels.ts';
+import { packetExportFileName } from '@pitchcrew/core/packet-files';
+import { readableWordCount } from '@/lib/readable-word-count.ts';
 import { fileNotes } from '@/lib/document-findings.ts';
 import type { ViewerFile } from './types.ts';
 const sourceNames = {
@@ -66,7 +67,7 @@ export const attachmentFiles = (
   return [
     ...(packet.artifacts ?? []).map((artifact): ViewerFile => ({
       id: artifact.digest,
-      name: artifact.name,
+      name: packetExportFileName(packet.packet.resume, artifact.name),
       kind: artifact.mimeType === 'application/pdf' ? 'pdf' : 'docx',
       mimeType: artifact.mimeType,
       bytes: artifact.bytes,
@@ -82,7 +83,7 @@ export const attachmentFiles = (
     })),
     ...Object.entries(sourceNames).map(([source, name]): ViewerFile => ({
       id: name,
-      name,
+      name: packetExportFileName(packet.packet.resume, name),
       kind: 'markdown',
       mimeType: 'text/markdown;charset=utf-8',
       text: packet.packet[source as keyof typeof sourceNames],

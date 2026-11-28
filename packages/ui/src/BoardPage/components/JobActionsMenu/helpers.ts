@@ -1,4 +1,5 @@
 import { statusActionLabels } from '@/lib/labels.ts';
+import { snapshotBriefConfirmed } from '@/lib/job-step.ts';
 import { cardLifecycle } from '@pitchcrew/core/lifecycles';
 import type { Card, CardState, Snapshot } from '@pitchcrew/core';
 import { workflowSeat } from '@pitchcrew/core/states';
@@ -75,13 +76,9 @@ export const crewShortcut = (card: Card, data: Snapshot): CrewShortcut | null =>
   if (blocker) return { ...base, reason: blocker };
   if (seat === 'reviewer' && !card.packet)
     return { ...base, reason: 'There is no application packet to review yet.' };
-  const context = card.applicationContext;
   return {
     ...base,
-    needsBrief:
-      !context ||
-      (seat !== 'scout' &&
-        (!context.confirmedAt || context.confirmedRevision !== context.revision)),
+    needsBrief: seat === 'scout' ? !card.applicationContext : !snapshotBriefConfirmed(card),
   };
 };
 

@@ -2,9 +2,10 @@ import { JobHeading } from './JobHeading.tsx';
 import { JobState } from './JobState.tsx';
 import { JobAgents } from './JobAgents.tsx';
 import type { CardDetailsModel } from '../types.ts';
+import { usePacketFolder } from '../hooks/usePacketFolder.ts';
 import { JobProgress } from '@/ClayInterface/components/JobProgress.tsx';
 import { Button } from '@pitchcrew/design-system/button';
-import { ExternalLink, Pencil, X } from 'lucide-react';
+import { ExternalLink, FolderOpen, Pencil, X } from 'lucide-react';
 
 type JobSummaryProps = Pick<CardDetailsModel, 'card' | 'onClose'> &
   Partial<Pick<CardDetailsModel, 'data' | 'agents' | 'openChat' | 'editBlocker' | 'setEditing'>>;
@@ -19,6 +20,7 @@ export const JobSummary = ({
   editBlocker,
   setEditing,
 }: JobSummaryProps) => {
+  const packetFolder = usePacketFolder(card.id, card.updatedAt);
   return (
     <header className="job-summary shrink-0">
       <div className="flex items-start justify-between gap-3">
@@ -47,6 +49,18 @@ export const JobSummary = ({
               aria-label="Open job posting"
             >
               <ExternalLink size={16} />
+            </Button>
+          ) : null}
+          {packetFolder.available ? (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Open packet folder"
+              title="Open packet folder"
+              disabled={packetFolder.opening}
+              onClick={packetFolder.open}
+            >
+              <FolderOpen size={16} />
             </Button>
           ) : null}
           <Button variant="ghost" size="icon-sm" onClick={onClose} aria-label="Close dialog">

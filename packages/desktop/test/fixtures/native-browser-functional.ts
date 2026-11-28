@@ -6,6 +6,7 @@ import type { Board } from '../../../board/src/index.ts';
 import { reviewFixturePacket } from '../../../board/test/fixtures/application-context.ts';
 import { packet } from '../../../board/test/fixtures/packet.ts';
 import { cardInput, type BrowserAction, type SubmissionAttempt } from '../../../core/src/index.ts';
+import { packetExportFileName } from '../../../core/src/packet-files.ts';
 import type { ComputerManager } from '../../../mcp/src/computer.ts';
 import { exportApprovedPacket } from '../../../mcp/src/index.ts';
 import { renderArtifacts } from '../../../packet/src/index.ts';
@@ -77,6 +78,31 @@ export const checkNativeBrowserFunctionality = async (
 Geometry: ${JSON.stringify(await query(`(()=>{const rect=document.querySelector('#child')?.getBoundingClientRect();return {rect:rect?.toJSON(),at:rect?document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2)?.outerHTML:null,scrollX,scrollY,innerWidth,innerHeight,active:document.activeElement?.outerHTML,frameSignals:window.fixtureFrameSignals}})()`))}
 Native input: ${JSON.stringify(await fixture({ kind: 'input-signals', id: state.id }))}`);
   };
+  await driver.perform({ kind: 'navigate', url: `${origin}/loading-form` });
+  let loadingImage: string;
+  try {
+    assert.ok((await inspectText()).text.includes('Apply'));
+    const request = await manager.request(
+      scope,
+      { kind: 'click', selector: '#apply' },
+      'Inspect the visible form before all images load',
+    );
+    assert.equal(request.status, 'pending');
+    loadingImage = request.page.screenshot;
+    manager.decide(request.id, false);
+  } finally {
+    assert.equal(await fixture({ kind: 'finish-image', id: state.id }), true);
+  }
+  const masked = await fixture<number[]>({
+    kind: 'frame-pixel',
+    id: state.id,
+    image: loadingImage,
+    selector: '#secret',
+  });
+  assert.ok(
+    masked[0] > 200 && masked[1] < 80 && masked[2] > 200,
+    'Loading form credential must be masked',
+  );
   await act({ kind: 'navigate', url: `${origin}/constraints` });
   assertFormConstraints(await inspectText());
   await act({ kind: 'navigate', url: `${origin}/form` });
@@ -831,14 +857,15 @@ const checkNativePacketUpload = async (
       id,
       expression: `(async()=>{const file=document.querySelector('#resume').files[0];return {name:file.name,type:file.type,bytes:Array.from(new Uint8Array(await file.arrayBuffer()))}})()`,
     });
-    assert.equal(received.name, file);
+    const named = packetExportFileName(packet.resume, file);
+    assert.equal(received.name, named);
     assert.equal(
       received.type,
       file.endsWith('.pdf')
         ? 'application/pdf'
         : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     );
-    assert.deepEqual(Buffer.from(received.bytes), await readFile(join(output, file)));
+    assert.deepEqual(Buffer.from(received.bytes), await readFile(join(output, named)));
   }
   const approval = await manager.request(
     scope,
@@ -846,8 +873,9 @@ const checkNativePacketUpload = async (
     'Prove changed exported bytes cannot reach native input',
   );
   manager.decide(approval.id, true);
-  const original = await readFile(join(output, 'resume.pdf'));
-  await writeFile(join(output, 'resume.pdf'), Buffer.from('tampered fictional bytes'));
+  const pdfName = packetExportFileName(packet.resume, 'resume.pdf');
+  const original = await readFile(join(output, pdfName));
+  await writeFile(join(output, pdfName), Buffer.from('tampered fictional bytes'));
   await assert.rejects(
     manager.execute(scope.runId, approval.id, signal, authorize, 0),
     /file changed/,
@@ -858,9 +886,9 @@ const checkNativePacketUpload = async (
       id,
       expression: `document.querySelector('#resume').files[0].name`,
     }),
-    'resume.docx',
+    packetExportFileName(packet.resume, 'resume.docx'),
   );
-  await writeFile(join(output, 'resume.pdf'), original);
+  await writeFile(join(output, pdfName), original);
   const fill = await manager.request(
     scope,
     { kind: 'fill', selector: '#name', value: 'Example candidate' },
@@ -905,7 +933,7 @@ const checkNativePacketUpload = async (
   assert.equal(receipts[0].name, 'Example candidate');
   assert.deepEqual(
     Buffer.from(receipts[0].file.bytes),
-    await readFile(join(output, 'resume.docx')),
+    await readFile(join(output, packetExportFileName(packet.resume, 'resume.docx'))),
   );
   const attempt = board
     .list<SubmissionAttempt>('submission_attempt')

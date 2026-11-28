@@ -55,7 +55,7 @@ export const workflowSeat = (role: {
     (roleIds.includes(role.id as WorkflowSeat) ? (role.id as WorkflowSeat) : 'chat')
   );
 };
-export { boardActionLabels } from './work-queue.ts';
+export { boardActionLabels } from './board-action-labels.ts';
 // Zod-free state machine and ids, safe to import from the UI bundle.
 export const states = [
   'lead',

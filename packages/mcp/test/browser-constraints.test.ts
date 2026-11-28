@@ -1,5 +1,5 @@
 import { chromium } from 'playwright';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { Board } from '@pitchcrew/board';
 import { cardInput, inspectedApplicationForm, type FormAssessment } from '@pitchcrew/core';
 import { createBrowserDriver } from '../src/computer/driver.ts';
@@ -84,6 +84,39 @@ it('retains frame selectors and reports control overflow without claiming comple
     });
     expect(snapshot.uninspected).toContain('More than 100 controls in about:blank');
     expect(await page.frameLocator(field.frame!).locator(field.selector).count()).toBe(1);
+  } finally {
+    await driver.close();
+  }
+});
+
+it('keeps main-document field evidence when a widget contains a second body or page text is unavailable', async () => {
+  const browser = await chromium.launch({ headless: true });
+  const driver = await createBrowserDriver(browser);
+  const page = browser.contexts()[0].pages()[0];
+  try {
+    await page.setContent(
+      '<label>Work sample<input required maxlength="80"></label><div id="widget"></div>',
+    );
+    await page.locator('#widget').evaluate((el) => {
+      el.attachShadow({ mode: 'open' }).append(document.createElement('body'));
+    });
+    expect(await page.locator('body').count()).toBe(2);
+    const snapshot = await driver.snapshot({ includeImage: false });
+    expect(snapshot.uninspected).toEqual([]);
+    expect(snapshot.text).toContain('Work sample');
+    expect(snapshot.controls).toMatchObject([
+      { label: 'Work sample', required: true, maxLength: 80 },
+    ]);
+
+    const root = page.mainFrame().locator(':root');
+    vi.spyOn(root, 'ariaSnapshot').mockRejectedValue(new Error('Text unavailable'));
+    const locate = page.mainFrame().locator.bind(page.mainFrame());
+    vi.spyOn(page.mainFrame(), 'locator').mockImplementation((selector, options) =>
+      selector === ':root' ? root : locate(selector, options),
+    );
+    const partial = await driver.snapshot({ includeImage: false });
+    expect(partial.controls).toEqual(snapshot.controls);
+    expect(partial.uninspected).toContain('Unavailable frame text: about:blank');
   } finally {
     await driver.close();
   }

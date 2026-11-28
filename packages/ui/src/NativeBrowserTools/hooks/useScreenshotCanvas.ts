@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
-import type { DesktopBrowserCapture } from '../../../../core/src/native-browser.ts';
+import type { DesktopBrowserCapture } from '@pitchcrew/core/native-browser';
 import { browserCaptureImage } from '../media.ts';
 
 type Point = { x: number; y: number };

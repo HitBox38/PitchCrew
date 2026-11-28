@@ -4,7 +4,7 @@ import type {
   NativeBrowserIdentity,
   NativeBrowserState,
   NativeBrowserCommand,
-} from '../../../core/src/native-browser.ts';
+} from '@pitchcrew/core/native-browser';
 import {
   type BrowserAction,
   type BrowserTab,

@@ -1,4 +1,5 @@
 import type { Card } from '@pitchcrew/core';
+import Database from 'better-sqlite3';
 import { legacyTracker } from './fixtures/legacy-tracker.ts';
 import { execFile } from 'node:child_process';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
@@ -7,7 +8,12 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { afterEach, expect, it } from 'vitest';
-import { Board, applyApplicationImport, previewApplicationImport } from '../src/index.ts';
+import {
+  Board,
+  applyApplicationImport,
+  convertLegacyTracker,
+  previewApplicationImport,
+} from '../src/index.ts';
 
 const script = fileURLToPath(
   new URL('../../../scripts/convert-legacy-tracker.ts', import.meta.url),
@@ -19,6 +25,32 @@ afterEach(async () => {
       throw new Error('Refusing unsafe cleanup target.');
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+it('clips raw tracker tags only when an application exceeds 100 source tags', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-legacy-'));
+  directories.push(directory);
+  const source = join(directory, 'tracker.db');
+  legacyTracker(source);
+  const db = new Database(source);
+  try {
+    const tag = db.prepare('INSERT INTO tags (id, name) VALUES (?, ?)');
+    const link = db.prepare('INSERT INTO application_tags (application_id, tag_id) VALUES (?, ?)');
+    db.transaction(() => {
+      for (let i = 0; i <= 100; i++) {
+        const id = 1000 + i;
+        tag.run(id, String(id));
+        if (i < 100) link.run(2, id);
+        link.run(3, id);
+      }
+    })();
+  } finally {
+    db.close();
+  }
+  const { rows, stats } = convertLegacyTracker(source);
+  expect(stats.clipped).toBe(1);
+  expect(rows[1].tags).toHaveLength(100);
+  expect(rows[2].tags).toEqual(rows[1].tags);
 });
 
 it('converts a legacy SQLite tracker into an import file that previews and applies', async () => {

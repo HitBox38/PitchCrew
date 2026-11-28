@@ -25,6 +25,7 @@ const fixture = () => {
     focusedFrame: {},
     isFocused: () => true,
     debugger: { sendCommand },
+    isLoadingMainFrame: () => false,
     executeJavaScriptInIsolatedWorld: vi.fn(async () => {}),
     capturePage,
   }) as unknown as WebContents;
@@ -121,44 +122,64 @@ it('keeps tab teardown behind an unfinished actual native copy after its caller 
   expect(drained).toBe(true);
 });
 
-it('recovers image capture on the same tab after a credential-mask paint timeout', async () => {
-  vi.useFakeTimers();
-  const { automation, contents, capturePage, events } = fixture();
-  const oldPaint = deferred<void>();
-  const freshPaint = deferred<void>();
-  vi.mocked(contents.executeJavaScriptInIsolatedWorld)
-    .mockReturnValueOnce(oldPaint.promise)
-    .mockReturnValueOnce(freshPaint.promise);
-  const first = automation.send('Page.captureScreenshot', {}, undefined, 'agent');
-  const expired = expect(first).rejects.toThrow(
-    'Native browser capture timed out while waiting for credential masks to paint.',
-  );
-  await vi.advanceTimersByTimeAsync(5000);
-  await expired;
-  expect(automation.active).toBe(false);
-  expect(capturePage).not.toHaveBeenCalled();
+it.each([false, true])(
+  'recovers on the same tab after a mask-paint timeout (loading: %s)',
+  async (loading) => {
+    vi.useFakeTimers();
+    const { automation, contents, capturePage, events, sendCommand } = fixture();
+    const oldPaint = deferred<void>();
+    const freshPaint = deferred<void>();
+    const paint = vi
+      .fn<() => Promise<void>>()
+      .mockReturnValueOnce(oldPaint.promise)
+      .mockReturnValueOnce(freshPaint.promise);
+    vi.spyOn(contents, 'isLoadingMainFrame').mockReturnValue(loading);
+    if (loading) {
+      sendCommand.mockImplementation(async (method) => {
+        if (method === 'Page.getFrameTree')
+          return { frameTree: { frame: { id: 'loading-frame' } } };
+        if (method === 'Page.createIsolatedWorld') return { executionContextId: 17 };
+        if (method === 'Runtime.evaluate') {
+          await paint();
+          return { result: { value: { x: 0, y: 0 } } };
+        }
+        return {};
+      });
+    } else {
+      vi.mocked(contents.executeJavaScriptInIsolatedWorld).mockImplementation(paint);
+    }
+    const first = automation.send('Page.captureScreenshot', {}, undefined, 'agent');
+    const expired = expect(first).rejects.toThrow(
+      'Native browser capture timed out while waiting for credential masks to paint.',
+    );
+    await vi.advanceTimersByTimeAsync(5000);
+    await expired;
+    expect(automation.active).toBe(false);
+    expect(capturePage).not.toHaveBeenCalled();
 
-  // No navigation, renderer restart or completion of the old paint wait: a new
-  // screenshot must wait for its own masks, rather than inherit an abandoned wait.
-  const next = automation
-    .send('Page.captureScreenshot', {}, undefined, 'agent')
-    .catch((error: unknown) => error);
-  await vi.advanceTimersByTimeAsync(0);
-  expect(capturePage).not.toHaveBeenCalled();
-  freshPaint.resolve();
-  await vi.advanceTimersByTimeAsync(5000);
-  try {
-    expect(await next).toEqual({ data: Buffer.from('masked-native-page').toString('base64') });
-    await drainNativeCapture(contents);
-    expect(capturePage).toHaveBeenCalledOnce();
-  } finally {
-    oldPaint.resolve();
+    // No navigation, renderer restart or completion of the old paint wait: a new
+    // screenshot must wait for its own masks, rather than inherit an abandoned wait.
+    const next = automation
+      .send('Page.captureScreenshot', {}, undefined, 'agent')
+      .catch((error: unknown) => error);
     await vi.advanceTimersByTimeAsync(0);
-    events.emit('destroyed');
-  }
-  // The old scheduling callback cannot start a late, potentially unmasked copy.
-  expect(capturePage).toHaveBeenCalledOnce();
-});
+    expect(capturePage).not.toHaveBeenCalled();
+    freshPaint.resolve();
+    await vi.advanceTimersByTimeAsync(5000);
+    try {
+      expect(await next).toEqual({ data: Buffer.from('masked-native-page').toString('base64') });
+      await drainNativeCapture(contents);
+      expect(capturePage).toHaveBeenCalledOnce();
+    } finally {
+      oldPaint.resolve();
+      await vi.advanceTimersByTimeAsync(0);
+      events.emit('destroyed');
+    }
+    // The old scheduling callback cannot start a late, potentially unmasked copy.
+    expect(paint).toHaveBeenCalledTimes(2);
+    expect(capturePage).toHaveBeenCalledOnce();
+  },
+);
 
 it('releases an abandoned command without undercounting another owner when it finally settles', async () => {
   vi.useFakeTimers();

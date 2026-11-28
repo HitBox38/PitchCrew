@@ -58,6 +58,13 @@ describe('board job actions', () => {
     expect(crewShortcut({ ...draft, applicationContext: confirmed }, writer)).toMatchObject({
       needsBrief: false,
     });
+    const stale = {
+      ...draft,
+      applicationContext: { ...confirmed, form: { status: 'manual' as const } },
+      formAssessments: [{}] as Card['formAssessments'],
+    };
+    expect(crewShortcut(stale, writer)).toMatchObject({ needsBrief: true });
+    expect(crewShortcut({ ...stale, state: 'lead' }, data)).toMatchObject({ needsBrief: false });
     const review = {
       ...card,
       state: 'in_review' as const,

@@ -1,6 +1,8 @@
 import { registerDeepReviewRoutes } from './deep-reviews.ts';
 import { registerCardChangeRoutes } from './card-changes.ts';
+import { registerPacketFolderRoutes } from './packet-folder.ts';
 import { roleIdSchema, states } from '@pitchcrew/core';
+import { maxEditedProfileFilenameLength } from '@pitchcrew/core/profile-filenames';
 import { deleteJob, editJob, setCardStatus, runsWithStatus } from '@pitchcrew/board';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
@@ -14,6 +16,7 @@ export const registerBoardRoutes = (app: FastifyInstance, service: CrewService) 
   registerApplicationContextRoutes(app, service);
   registerDeepReviewRoutes(app, service);
   registerCardChangeRoutes(app, service);
+  registerPacketFolderRoutes(app, service);
   app.get<IdRoute>('/api/cards/:id', (req) =>
     service.board.get<Card>('card', z.uuid().parse(req.params.id)),
   );
@@ -76,7 +79,7 @@ export const registerBoardRoutes = (app: FastifyInstance, service: CrewService) 
   app.put('/api/profile', async (req, res) => {
     const body = z
       .object({
-        name: z.string().max(100),
+        name: z.string().max(maxEditedProfileFilenameLength),
         content: z.string().max(50000),
         baseline: z
           .string()

@@ -6,6 +6,7 @@ export default defineConfig([
     format: 'esm',
     outDir: 'dist',
     dts: false,
+    failOnWarn: true,
     deps: { neverBundle: ['electron'], alwaysBundle: ['ws', /^zod(?:\/|$)/] },
   },
   {
@@ -15,6 +16,7 @@ export default defineConfig([
     outDir: 'dist',
     clean: false,
     dts: false,
+    failOnWarn: true,
     deps: { neverBundle: ['electron'] },
   },
 ]);

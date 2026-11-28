@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { RuntimeHeldError } from '../../runtime-maintenance/availability.ts';
 import { assertConfirmedContext, digestPacket, runsWithStatus } from '@pitchcrew/board';
 import {
+  cardLifecycle,
   deepReviewLifecycle,
   deepReviewOptionsSchema,
   workflowSeat,
@@ -17,9 +18,9 @@ import {
 } from '@pitchcrew/core';
 import { readProfile } from '@pitchcrew/packet';
 import { assertProfileReady } from '../../profile-sources/mutation.ts';
-import { assertApplicationRuntime } from '../application-context/extraction.ts';
+import { assertApplicationRuntime } from '../application-context/runtime.ts';
 import { relatedConversation, canReadConversation } from '../conversations.ts';
-import { requireRole } from '../roles.ts';
+import { requireRole } from '../role-lookup.ts';
 import { runConfiguration, packetDigest } from '../pipeline/snapshots.ts';
 import type { CrewContext } from '../types.ts';
 import { executeDeepReview } from './lifecycle.ts';
@@ -62,11 +63,7 @@ const startDeepReviewPrepared = async (
   const reviewer = workflowRole(context, 'reviewer', options.reviewerId);
   const writer = workflowRole(context, 'writer', options.writerId);
   const card = context.board.get<Card>('card', cardId);
-  if (
-    !['shortlisted', 'changes_requested', 'in_review', 'agreed', 'awaiting_approval'].includes(
-      card.state,
-    )
-  )
+  if (!cardLifecycle.is('deepReviewable', card.state))
     throw new Error(
       'Shortlist this job before deep review; submitted and closed applications cannot be rewritten.',
     );

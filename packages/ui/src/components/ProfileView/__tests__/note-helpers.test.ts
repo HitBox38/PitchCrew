@@ -122,8 +122,12 @@ describe('profile notices', () => {
 describe('note filenames', () => {
   it('accepts simple Markdown filenames that do not replace another note', () => {
     expect(filenameProblem('about-me.md', ['work.md'])).toBe('');
-    expect(filenameProblem('work.md', ['work.md'])).toMatch(/already uses/);
-    for (const name of ['notes.txt', 'a/b.md', '..md', 'a..b.md', ''])
-      expect(filenameProblem(name, [])).toMatch(/ending in \.md/);
+    expect(filenameProblem('.work.v2.md', [])).toBe('');
+    expect(filenameProblem('Work.md', ['work.md'])).toMatch(/already uses/);
+    expect(filenameProblem(`${'a'.repeat(98)}..TXT`, [])).toBe(
+      'Use a filename of at most 100 characters.',
+    );
+    for (const name of ['notes.txt', 'a/b.md', '..md', 'a..b.md', 'A.MD', ''])
+      expect(filenameProblem(name, [name])).toMatch(/ending in \.md/);
   });
 });

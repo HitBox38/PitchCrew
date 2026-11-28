@@ -16,8 +16,8 @@ import {
   type Session,
 } from 'electron';
 import { randomUUID } from 'node:crypto';
-import { assertPublicUrl } from '../../../mcp/src/computer/network.ts';
-import type { NativeBrowserState } from '../../../core/src/native-browser.ts';
+import { assertPublicUrl } from '@pitchcrew/mcp/computer/network';
+import type { NativeBrowserState } from '@pitchcrew/core/native-browser';
 import type { RelayGroup, RelayPage } from './cdp.ts';
 import type { createDomBrowserHost } from './dom-host.ts';
 

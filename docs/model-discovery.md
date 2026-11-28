@@ -20,6 +20,8 @@ Discovery is separate from installation `detect()` and the configuration-specifi
 
 The daemon caches each result in memory for five minutes and deduplicates concurrent requests. **Refresh models** rechecks the runtime version and bypasses the cache. Missing, unsupported, failed or malformed runtimes receive a labeled curated fallback. Codex fallback catalogs include GPT-6.1 Terra only when the detected CLI version is 0.159.0 or newer. Discovery has a ten-second timeout, a two-megabyte output bound, catalog size and selector limits, and is cancelled when the daemon closes. No model catalog is written to board events or role configuration. Selected `provider/model` values persist unchanged, and previously saved values remain visible even when absent from the current catalog.
 
+Codex, Claude Code and Copilot share the child-process lifecycle in `packages/adapters/src/process/model-catalog.ts`. Their adapters own the handshake, request sequence and interpretation of model metadata. Codex and Claude read newline-delimited JSON and tolerate plain-text startup lines. Copilot reads Content-Length framed JSON-RPC. All three discard diagnostics. Claude counts stderr and stdout together toward the output bound, while Codex and Copilot apply it to stdout. Discovery waits for child close before returning a catalog or reporting a timeout or cancellation.
+
 The session-protected loopback endpoint is `POST /api/runtimes/:id/models` with `{ "refresh": false }` (or `true` for a forced refresh). It returns `models`, `modelSource` (`runtime`, `fallback`, or `none`) and `modelDetail`.
 
 ## Workspace model choices

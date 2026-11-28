@@ -1,4 +1,4 @@
-import type { DesktopBrowserView } from '../../../core/src/native-browser.ts';
+import type { DesktopBrowserView } from '@pitchcrew/core/native-browser';
 import { browserViewStyle } from '../../../ui/src/DesktopBrowserHost/presentation.ts';
 
 /** Minimal trusted host using the production presentation contract and preload bridge. */

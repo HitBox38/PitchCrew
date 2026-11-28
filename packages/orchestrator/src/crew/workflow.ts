@@ -17,11 +17,11 @@ import {
   waitingOnUser,
   cancelUserQuestions,
 } from './user-input/lifecycle.ts';
-import { finishDelivery } from './conversation-queue.ts';
+import { finishDelivery } from './queue/deliveries.ts';
 import { startTaskRun } from './task-start.ts';
 import { relatedConversation } from './conversations.ts';
 import { drainConversationQueue } from './conversation-queue.ts';
-import { requireRole } from './roles.ts';
+import { requireRole } from './role-lookup.ts';
 import { assertProfileReady } from '../profile-sources/mutation.ts';
 import { runConfiguration, packetDigest } from './pipeline/snapshots.ts';
 import { adapters } from '@pitchcrew/adapters';
@@ -49,7 +49,7 @@ import { join } from 'node:path';
 import type { CrewContext } from './types.ts';
 import { assertConfirmedContext, assertExtractedContext, digestPacket } from '@pitchcrew/board';
 import { draftingCard, missingPersonalAnswers } from '@pitchcrew/core';
-import { assertApplicationRuntime } from './application-context/extraction.ts';
+import { assertApplicationRuntime } from './application-context/runtime.ts';
 import { applicationUserAnswers } from './application-context/answers.ts';
 import { changeSummary } from './change-summary.ts';
 import { applyPacketEvaluation } from './packet-evaluation.ts';

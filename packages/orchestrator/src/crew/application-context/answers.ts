@@ -17,6 +17,7 @@ export const applicationUserAnswers = (
   const application = context.board.get<Card>('card', cardId).applicationContext;
   const requirements = application?.requirements ?? [];
   const assessment = ['fit', 'packet-evaluation'].includes(purpose ?? '');
+  const packetWork = ['application-draft', 'application-review'].includes(purpose ?? '');
   const isFormQuestion = (question: UserInputRequest) =>
     Boolean(
       application &&
@@ -29,18 +30,22 @@ export const applicationUserAnswers = (
       (question) =>
         question.status === 'answered' &&
         question.cardId === cardId &&
-        (question.roleId === roleId || isFormQuestion(question)) &&
         question.answer &&
         question.answerMessageId,
     )
     .filter((question) => {
       const origin = context.board.get<Run>('run', question.runId);
-      return question.applicationRequirementId
-        ? ['application-draft', 'application-review'].includes(origin.purpose ?? '')
-        : (['application-draft', 'application-review'].includes(purpose ?? '') &&
-            ['application-draft', 'application-review'].includes(origin.purpose ?? '') &&
-            isFormQuestion(question)) ||
-            (assessment && ['fit', 'packet-evaluation'].includes(origin.purpose ?? ''));
+      const packetOrigin = ['application-draft', 'application-review'].includes(
+        origin.purpose ?? '',
+      );
+      if (question.applicationRequirementId)
+        return packetOrigin && (packetWork || question.roleId === roleId);
+      if (packetWork) return packetOrigin && isFormQuestion(question);
+      return (
+        assessment &&
+        question.roleId === roleId &&
+        ['fit', 'packet-evaluation'].includes(origin.purpose ?? '')
+      );
     })
     .flatMap((question) => {
       const message = context.board.get<ChatMessage>('message', question.answerMessageId!);
@@ -60,7 +65,13 @@ export const applicationUserAnswers = (
         throw new Error('Application answer provenance is invalid. Ask the user again.');
       if (
         question.applicationRequirementId &&
-        !requirements.some((r) => r.id === question.applicationRequirementId && r.answer === answer)
+        !requirements.some(
+          (r) =>
+            r.personal &&
+            r.id === question.applicationRequirementId &&
+            r.question === question.question &&
+            r.answer === answer,
+        )
       )
         return [];
       return [
@@ -68,9 +79,7 @@ export const applicationUserAnswers = (
           questionId: question.id,
           messageId: message.id,
           answer,
-          ...(isFormQuestion(question) || (assessment && !question.applicationRequirementId)
-            ? { question: question.question }
-            : {}),
+          question: question.question,
         },
       ];
     })

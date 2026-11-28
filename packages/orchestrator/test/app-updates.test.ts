@@ -72,17 +72,23 @@ describe('public build update checks', () => {
     },
   );
 
-  it('accepts the What changed heading and does not include later release sections', async () => {
+  it('keeps feature bullets with version numbers and skips the release PR and later sections', async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
       json({
         ...release,
         name: 'Pitchcrew 0.11.0',
-        body: '## What changed\n- Keep keyboard focus\n## Downloads\n- Windows installer',
+        body: [
+          '## What changed',
+          '* Release 0.11.0 by @fictional in https://github.com/HitBox38/PitchCrew/pull/1',
+          '- Support runtime 2.0.0',
+          '## Downloads',
+          '- Windows installer',
+        ].join('\r\n'),
       }),
     );
     expect(
       (await create(fetcher, { current: { ...current, commit: null } }).check()).latest,
-    ).toMatchObject({ changes: ['Keep keyboard focus'], moreChanges: false });
+    ).toMatchObject({ version: '0.11.0', changes: ['Support runtime 2.0.0'], moreChanges: false });
   });
 
   it('reads installer build identity without Git and rejects malformed metadata', async () => {

@@ -12,7 +12,7 @@ export const readAttachmentText = async (
       execArgv: [],
       resourceLimits: { maxOldGenerationSizeMb: 256 },
       workerData: {
-        module: new URL('./attachment-text.ts', import.meta.resolve('@pitchcrew/packet')).href,
+        module: import.meta.resolve('@pitchcrew/packet/attachment-text'),
         bytes,
         mimeType,
       },

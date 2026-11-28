@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type {
   BrowserProfilesCommand,
   BrowserProfilesState,
-} from '../../../../core/src/browser-profiles.ts';
+} from '@pitchcrew/core/browser-profiles';
 /** Profile commands for one browser; prepare takes control first while the agent is idle. */
 export const useNativeProfiles = (id: string, prepare?: () => Promise<unknown>) => {
   const [state, setState] = useState<BrowserProfilesState | null>(null);

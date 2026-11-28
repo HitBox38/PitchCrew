@@ -1,5 +1,5 @@
 import { shell } from 'electron';
-import type { NativeBrowserCommand } from '../../../core/src/native-browser.ts';
+import type { NativeBrowserCommand } from '@pitchcrew/core/native-browser';
 import { isAllowedExternalUrl } from '../external-url.ts';
 import type { NativeGroup } from './pages.ts';
 

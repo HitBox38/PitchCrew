@@ -9,9 +9,9 @@ import {
   type ChatMessage,
   type ChatRequest,
 } from '@pitchcrew/core';
-import { requireRole } from './roles.ts';
+import { requireRole } from './role-lookup.ts';
 import type { CrewContext } from './types.ts';
-import { stopConversationWork } from './conversation-queue.ts';
+import { stopConversationWork } from './queue/stop.ts';
 
 export const conversations = (context: CrewContext): Conversation[] => {
   return context.board.list<Conversation>('conversation');

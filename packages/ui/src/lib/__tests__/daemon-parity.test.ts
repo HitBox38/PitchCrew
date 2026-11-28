@@ -1,24 +1,14 @@
 import { expect, it } from 'vitest';
-import { importLimits } from '../../../../core/src/imports.ts';
-import { packetRuleLimits } from '../../../../core/src/packet-rules.ts';
 import { noteNameSchema } from '../../../../orchestrator/src/profile-notes/helpers.ts';
 import {
   nextOccurrence,
   parseRoutine,
 } from '../../../../orchestrator/src/crew/routines/schedule.ts';
-import { maxImportBytes, maxImportRows } from '@/ImportApplications/constants.ts';
-import { rulesFileBytes } from '@/PacketRules/constants.ts';
 import { filenameProblem } from '@/components/ProfileView/helpers.ts';
 import { draftInput, initialDraft } from '@/RoutinesPage/helpers.ts';
 import { nextRunPreview } from '@/RoutinesPage/schedule-preview.ts';
 
 // Each UI copy of a daemon rule is paired with its original here, so drift fails CI.
-
-it('shares the daemon limits the UI repeats', () => {
-  expect(maxImportBytes).toBe(importLimits.bytes);
-  expect(maxImportRows).toBe(importLimits.rows);
-  expect(rulesFileBytes).toBe(packetRuleLimits.fileBytes);
-});
 
 it.each([
   'Work-history.md',

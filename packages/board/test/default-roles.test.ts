@@ -123,37 +123,108 @@ describe('default crew', () => {
     expect(board.list('run')).toEqual([]);
   });
 
-  it('keeps profile editing separate from existing watched-source grants', () => {
+  it('turns on profile saving for a seeded Documenter that never had it on', () => {
     const board = create();
     const documenter = defaultRoles('demo', true).find((role) => role.id === 'documenter')!;
     const { editProfile: _editProfile, ...capabilities } = documenter.capabilities!;
     const saved = { ...documenter, capabilities };
-    const historical = JSON.stringify({
-      id: 1,
-      version: 36,
-      kind: 'role',
-      entityId: saved.id,
-      data: saved,
-      actor: 'user',
-      message: 'Existing watched-source access',
-      createdAt: '2026-11-01T00:00:00Z',
-    });
-    board.db.prepare('INSERT INTO events(json) VALUES (?)').run(historical);
+    const event = (id: number, data: Role, actor: string, message: string) =>
+      JSON.stringify({
+        id,
+        version: 36,
+        kind: 'role',
+        entityId: data.id,
+        data,
+        actor,
+        message,
+        createdAt: '2026-11-01T00:00:00Z',
+      });
+    const seeded = event(1, saved, 'system', 'Initialized Documenter');
+    const filled = event(
+      2,
+      { ...saved, capabilities: { ...capabilities, editProfile: false } },
+      'user',
+      'Saved model',
+    );
+    const insert = board.db.prepare('INSERT INTO events(json) VALUES (?)');
+    insert.run(seeded);
+    insert.run(filled);
     board.rebuild();
     board.seedRoles();
-    expect(board.get<Role>('role', 'documenter')).toEqual(saved);
-    expect(board.get<Role>('role', 'documenter').capabilities?.editProfile).toBeUndefined();
+    expect(board.get<Role>('role', 'documenter')).toEqual({
+      ...saved,
+      capabilities: { ...saved.capabilities, editProfile: true },
+    });
     expect(
       board
         .list<Role>('role')
         .filter((role) => role.id !== 'documenter')
         .every((role) => role.capabilities?.editProfile !== true),
     ).toBe(true);
+    const granted = board.events();
+    board.seedRoles();
+    expect(board.events()).toEqual(granted);
     board.rebuild();
-    expect(board.get<Role>('role', 'documenter')).toEqual(saved);
+    expect(board.get<Role>('role', 'documenter').capabilities?.editProfile).toBe(true);
+    const stored = (id: number) =>
+      (board.db.prepare('SELECT json FROM events WHERE id=?').get(id) as { json: string }).json;
+    expect(stored(1)).toBe(seeded);
+    expect(stored(2)).toBe(filled);
+    board.record(
+      'role',
+      { ...saved, capabilities: { ...capabilities, editProfile: false } },
+      'user',
+      'Turned profile saving off',
+    );
+    board.seedRoles();
+    expect(board.get<Role>('role', 'documenter').capabilities?.editProfile).toBe(false);
+
+    const untouched = create();
+    untouched.db.prepare('INSERT INTO events(json) VALUES (?)').run(seeded);
+    untouched.rebuild();
+    untouched.seedRoles();
+    expect(untouched.get<Role>('role', 'documenter').capabilities?.editProfile).toBe(true);
+  });
+
+  it('leaves a user-created documenter id and a retired Documenter unchanged', () => {
+    const documenter = defaultRoles('demo', true).find((role) => role.id === 'documenter')!;
+    const { editProfile: _editProfile, ...capabilities } = documenter.capabilities!;
+    const event = (data: Role, actor: string) =>
+      JSON.stringify({
+        id: 1,
+        version: 36,
+        kind: 'role',
+        entityId: data.id,
+        data,
+        actor,
+        message: 'Existing role',
+        createdAt: '2026-11-01T00:00:00Z',
+      });
+    const custom = create();
+    const customEvent = event({ ...documenter, name: 'Notes bot', capabilities }, 'user');
+    custom.db.prepare('INSERT INTO events(json) VALUES (?)').run(customEvent);
+    custom.rebuild();
+    custom.seedRoles();
+    expect(custom.get<Role>('role', 'documenter')).toMatchObject({ name: 'Notes bot' });
+    expect(custom.get<Role>('role', 'documenter').capabilities?.editProfile).toBeUndefined();
     expect(
-      (board.db.prepare('SELECT json FROM events WHERE id=1').get() as { json: string }).json,
-    ).toBe(historical);
+      (custom.db.prepare('SELECT json FROM events WHERE id=1').get() as { json: string }).json,
+    ).toBe(customEvent);
+
+    const retired = create();
+    const retiredRole = {
+      ...documenter,
+      retiredAt: '2026-10-04T00:00:00.000Z',
+      capabilities,
+    };
+    const retiredEvent = event(retiredRole, 'system');
+    retired.db.prepare('INSERT INTO events(json) VALUES (?)').run(retiredEvent);
+    retired.rebuild();
+    retired.seedRoles();
+    expect(retired.get<Role>('role', 'documenter')).toEqual(retiredRole);
+    expect(
+      (retired.db.prepare('SELECT json FROM events WHERE id=1').get() as { json: string }).json,
+    ).toBe(retiredEvent);
   });
 
   it('backfills missing defaults without replacing customized, colliding or retired identities', () => {

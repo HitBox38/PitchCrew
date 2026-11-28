@@ -2,7 +2,8 @@ import { useMemo, useState, type FormEvent } from 'react';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useDevicePreferences } from '@/lib/device-preferences.ts';
-import { rulesFileBytes, rulesFileName } from '../constants.ts';
+import { packetRuleLimits } from '@pitchcrew/core/packet-rule-options';
+import { rulesFileName } from '../constants.ts';
 import { formatRules, parseDraft, ruleViews } from '../helpers.ts';
 import type { PacketRulesProps } from '../types.ts';
 import { useRulesValidation } from './useRulesValidation.ts';
@@ -41,8 +42,8 @@ export const usePacketRules = ({ state }: PacketRulesProps) => {
     }
   };
   const importFile = async (file: File) => {
-    if (file.size > rulesFileBytes) {
-      setToast(`Rules files can be at most ${rulesFileBytes / 1024} KB.`, 'error');
+    if (file.size > packetRuleLimits.fileBytes) {
+      setToast(`Rules files can be at most ${packetRuleLimits.fileBytes / 1024} KB.`, 'error');
       return;
     }
     setDraft(await file.text());

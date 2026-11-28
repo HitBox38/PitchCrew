@@ -127,7 +127,7 @@ export const answerUserQuestion = (
           flagged: application.flagged,
           form: application.form,
         },
-        true,
+        'personal-answer',
       );
       const revision = updated.applicationContext!.revision;
       // Only a personal answer changed; the confirmed form questions still mean the same thing.

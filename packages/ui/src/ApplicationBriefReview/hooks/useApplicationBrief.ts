@@ -1,5 +1,6 @@
 import { useDirtyNotification } from '@/hooks/useDirtyNotification.ts';
 import { api } from '@/api.ts';
+import { briefRevisionConfirmed } from '@/lib/job-step.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { isolatesApplications } from '@/lib/runtimes.ts';
 import type { ExtractedJob } from '@pitchcrew/core';
@@ -166,12 +167,11 @@ export const useApplicationBrief = ({
       { cardId: card.id, roleId: reviewer.id, action: 'review' },
       'Packet review queued',
     );
-  const confirmed =
-    Boolean(
-      loaded?.context?.confirmedAt &&
-      loaded.context.confirmedRevision === loaded.context.revision &&
-      loaded.context.sourceRevision === loaded.sourceRevision,
-    ) && Boolean(loaded?.formCurrent);
+  const confirmed = Boolean(
+    loaded?.formCurrent &&
+    loaded.context?.sourceRevision === loaded.sourceRevision &&
+    briefRevisionConfirmed(loaded.context),
+  );
   return {
     draft,
     setDraft,

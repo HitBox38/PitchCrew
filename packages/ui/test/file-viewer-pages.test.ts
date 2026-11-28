@@ -399,6 +399,9 @@ test('keeps locked Markdown free of table downloads and scales tables and code w
 
 test('finds whole words at paragraph edges and never across paragraphs', async () => {
   const notes = page.getByRole('dialog', { name: 'notes.md' });
+  // The previous test closes a zoom menu, which can leave focus outside the dialog. Find only
+  // hears the shortcut while focus is inside the viewer.
+  await notes.locator('.file-view-body').focus();
   await page.keyboard.press('ControlOrMeta+f');
   const field = notes.getByRole('textbox', { name: 'Find in document' });
   const count = () => notes.locator('.file-findbar output').textContent();

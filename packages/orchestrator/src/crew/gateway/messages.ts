@@ -1,15 +1,18 @@
 import { conversationMessages } from '../conversation-context.ts';
 import { conversation, canReadConversation } from '../conversations.ts';
 import type { AgentCapabilities } from '@pitchcrew/core';
-import { delegationRoundInput, roleIdSchema, type Run } from '@pitchcrew/core';
-import { startRound } from '../delegation-rounds.ts';
+import { delegationRoundInput, messagePageQuery, roleIdSchema, type Run } from '@pitchcrew/core';
+import { messagePage } from './message-page.ts';
+import { startRound } from '../start-delegation-round.ts';
 import { z } from 'zod';
 import type { CrewContext, RunCapability } from '../types.ts';
 
 export const readMessages = async (
   context: CrewContext,
   capability: RunCapability,
+  data: Record<string, unknown>,
 ): Promise<Record<string, unknown>> => {
+  const { beforeId, limit } = messagePageQuery.parse(data);
   const run = context.board.get<import('@pitchcrew/core').Run>('run', capability.runId);
   // Distinct threads in first-message order, read from the thread index alone.
   const threads = (
@@ -21,12 +24,10 @@ export const readMessages = async (
   )
     .map((row) => row.threadId)
     .filter((id) => canReadConversation(context, capability.roleId, id));
-  return {
-    messages: threads
-      .flatMap((id) => conversationMessages(context, id, capability.roleId, run.requestId))
-      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-      .slice(-100),
-  };
+  const messages = threads
+    .flatMap((id) => conversationMessages(context, id, capability.roleId, run.requestId))
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  return messagePage(messages, beforeId, limit ?? 100);
 };
 export const queueMessage = async (
   context: CrewContext,

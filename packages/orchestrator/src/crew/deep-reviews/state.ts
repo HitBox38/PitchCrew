@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { assertConfirmedContext, runsForDeepReview } from '@pitchcrew/board';
-import type { Card, DeepReview, ProfileFile, Run } from '@pitchcrew/core';
+import type { Card, DeepReview, ProfileFile, ReviewSubagent, Run } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 import type { LiveDeepReview } from './types.ts';
 import { packetDigest } from '../pipeline/snapshots.ts';
@@ -12,6 +12,14 @@ export const profileDigest = (profile: ProfileFile[]) => {
 };
 export const review = (context: CrewContext, id: string) => {
   return context.board.get<DeepReview>('deep_review', id);
+};
+export const reviewChildren = (context: CrewContext, id: string) => {
+  const rows = context.board.db
+    .prepare(
+      "SELECT json FROM entities WHERE kind='review_subagent' AND json_extract(json,'$.reviewId')=? ORDER BY rowid",
+    )
+    .all(id) as { json: string }[];
+  return rows.map((row) => JSON.parse(row.json) as ReviewSubagent);
 };
 export const updateReview = (
   context: CrewContext,

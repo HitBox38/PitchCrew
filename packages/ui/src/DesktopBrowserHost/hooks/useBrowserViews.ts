@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { DesktopBrowserView } from '../../../../core/src/native-browser.ts';
+import type { DesktopBrowserView } from '@pitchcrew/core/native-browser';
 
 export const useBrowserViews = () => {
   const [views, setViews] = useState<DesktopBrowserView[]>([]);

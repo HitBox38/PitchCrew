@@ -1,5 +1,5 @@
 import type { RunContext } from '@pitchcrew/core';
-import { packetTextLimits } from '@pitchcrew/core';
+import { packetDocuments, packetTextLimits } from '@pitchcrew/core';
 
 // Feedback, summaries and change notes are shown to the user as written.
 const plainNames =
@@ -32,11 +32,12 @@ export const writerResultShape = (revising: boolean) =>
 const characters = (field: keyof typeof packetTextLimits) =>
   `${field} ${packetTextLimits[field].toLocaleString('en-US')}`;
 // The schema rejects an oversized or non-string field, so the Writer must know the limits.
-const writerPacketLimits = `Each packet document is one Markdown string within its character limit: ${(['resume', 'coverLetter', 'formAnswers', 'note'] as const).map(characters).join(', ')}. packet.note is a concise handoff for the user and Reviewer (drafting decisions, limitations, unanswered questions): write it for this draft instead of appending to an earlier note, keep revision history in changes, and use "" when there is nothing to add.`;
+const writerPacketLimits = `Each packet document is one Markdown string within its character limit: ${packetDocuments.map(characters).join(', ')}. packet.note is a concise handoff for the user and Reviewer (drafting decisions, limitations, unanswered questions): write it for this draft instead of appending to an earlier note, keep revision history in changes, and use "" when there is nothing to add.`;
+const exportFileNames = `Start the resume with the user's full name alone as a level-1 heading, copied from Profile and not invented. Export names the resume and cover letter from that heading, for example Ada_Lovelace_CV.pdf and Ada_Lovelace_Cover_Letter.md.`;
 /** Tells the Writer which packet mode this run is in, so the example and instructions agree. */
 export const writerModeInstructions = (revising: boolean) =>
   `${
     revising
       ? 'This run revises the existing packet: include changes with one to eight non-empty notes.'
       : 'This run writes the first draft: there is no existing packet, so omit the changes field entirely. Never return an empty changes list.'
-  } ${writerPacketLimits}`;
+  } ${writerPacketLimits} ${exportFileNames}`;

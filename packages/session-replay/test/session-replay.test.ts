@@ -1,27 +1,21 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
-import { stripTypeScriptTypes } from 'node:module';
+import { createRequire, stripTypeScriptTypes } from 'node:module';
 import { expect, it } from 'vitest';
 
 it('ships useful wireframe snapshots and pointer interactions without private DOM data or side effects', async () => {
   const secret = 'PRIVATE_replay_ada@example.test_Users_resume_Company42';
-  const root = new URL('../../ui/src/Analytics/replay/', import.meta.url);
-  const compile = (source: string) => stripTypeScriptTypes(source);
-  const privacy = compile(await readFile(new URL('privacy.ts', root), 'utf8'));
-  const recorder = compile(await readFile(new URL('recorder.ts', root), 'utf8')).replace(
-    "'./privacy'",
-    "'/privacy.js'",
-  );
-  const rrweb = await readFile(
-    new URL('../../ui/node_modules/posthog-js/dist/rrweb.js', import.meta.url),
-    'utf8',
-  );
+  const require = createRequire(import.meta.url);
   const payloads: string[] = [];
   const assets: Record<string, string> = {
-    '/privacy.js': privacy,
-    '/recorder.js': recorder,
-    '/rrweb.js': rrweb,
+    '/privacy.ts': stripTypeScriptTypes(
+      await readFile(require.resolve('../src/privacy.ts'), 'utf8'),
+    ),
+    '/replay.js': stripTypeScriptTypes(
+      await readFile(require.resolve('@pitchcrew/session-replay'), 'utf8'),
+    ),
+    '/rrweb.js': await readFile(require.resolve('posthog-js/rrweb'), 'utf8'),
   };
   const server = createServer((request, response) => {
     if (request.url === '/capture') {
@@ -44,9 +38,11 @@ it('ships useful wireframe snapshots and pointer interactions without private DO
     response.end(`<!doctype html><title>${secret}</title><style>body{margin:0}nav{width:220px;height:600px}a{display:block;width:180px;height:42px}main{position:absolute;left:230px;top:0;width:600px;height:600px}</style>
       <nav><a id="nav" data-replay-surface="home" href="/?${secret}" aria-label="${secret}" title="${secret}">Home ${secret}</a></nav>
       <main><section id="${secret}" data-company="${secret}">${secret}<input type="hidden" value="${secret}"><input type="file" aria-label="${secret}"><img src="/${secret}"></section></main>
+      <script type="importmap">{"imports":{"posthog-js/rrweb":"/rrweb.js"}}</script>
       <script type="module">
-      import {record, Replayer} from '/rrweb.js'; window.Replayer=Replayer; import {createReplay} from '/recorder.js'; import {sanitizeReplayProperties} from '/privacy.js';
-      window.allowed=true; window.replay=createReplay(async()=>({record,node:id=>record.mirror.getNode(id)}),()=>window.allowed,
+      import {Replayer} from 'posthog-js/rrweb'; window.Replayer=Replayer;
+      import {createReplay, loadLocalRecorder, sanitizeReplayProperties} from '/replay.js';
+      window.allowed=true; window.replay=createReplay(loadLocalRecorder,()=>window.allowed,
         events=>fetch('/capture',{method:'POST',body:JSON.stringify(sanitizeReplayProperties({$snapshot_data:events,$session_id:'fixture-session',$window_id:'fixture-window'}))}));
       document.querySelector('#nav').addEventListener('click',e=>e.preventDefault());
       await window.replay.setEnabled(true); window.ready=true;

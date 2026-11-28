@@ -31,7 +31,10 @@ export const FormRequirements = ({
   return (
     <div className="grid gap-3" aria-label="Form requirements for this packet">
       <p className="quiet">
-        {count === 1 ? '1 field' : `${count} fields`}, {required} required · {pageName(form.url)}
+        {count
+          ? `${count} ${count === 1 ? 'field' : 'fields'}, ${required} required`
+          : 'No form fields captured'}{' '}
+        · {pageName(form.url)}
         {checkedAt ? (
           <>
             {' · '}
@@ -41,6 +44,12 @@ export const FormRequirements = ({
           </>
         ) : null}
       </p>
+      {count === 0 ? (
+        <p className="quiet">
+          Use Add requirement in the brief editor for questions you verified on the form. Select
+          Needs my personal answer for questions that require your input.
+        </p>
+      ) : null}
       <FormFindings form={form} />
       <FormFieldList
         key={String(reviewing)}

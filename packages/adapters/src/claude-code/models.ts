@@ -1,14 +1,7 @@
 import type { RuntimeModel } from '@pitchcrew/core';
-import { spawn } from 'node:child_process';
-import { tmpdir } from 'node:os';
-import {
-  modelDiscoveryMaxBytes,
-  modelDiscoveryTimeout,
-  normalizeModels,
-} from '../model-discovery.ts';
-import { cliEnvironment, terminateCli } from '../process.ts';
+import { normalizeModels } from '../model-discovery.ts';
+import { readModelCatalog } from '../process/model-catalog.ts';
 import { modelReasoning } from '../reasoning.ts';
-import { runtimeCommand } from '../process/executable.ts';
 
 export const parseClaudeModels = (result: unknown): RuntimeModel[] => {
   const output = result as { models?: unknown } | undefined;
@@ -31,57 +24,33 @@ export const parseClaudeModels = (result: unknown): RuntimeModel[] => {
   );
 };
 
-export const readClaudeModels = async (
+export const readClaudeModels = (
   command: string,
   args: string[],
   signal?: AbortSignal,
-  timeout = modelDiscoveryTimeout,
+  timeout?: number,
 ): Promise<RuntimeModel[]> => {
-  signal?.throwIfAborted();
-  return new Promise((resolve, reject) => {
-    const invocation = runtimeCommand(command, args);
-    const child = spawn(invocation.file, invocation.args, {
-      cwd: tmpdir(),
-      env: cliEnvironment(),
-      windowsHide: true,
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
-    const requestId = 'pitchcrew-models';
-    let buffer = '',
-      bytes = 0,
-      stopped = false;
-    let completed: RuntimeModel[] | undefined;
-    let failure: Error | undefined;
-    let killTimer: ReturnType<typeof setTimeout> | undefined;
-    const send = (message: Record<string, unknown>) => {
-      if (!stopped && !child.stdin.destroyed) child.stdin.write(JSON.stringify(message) + '\n');
-    };
-    const stop = (error?: Error, result?: RuntimeModel[]) => {
-      if (stopped) return;
-      stopped = true;
-      failure = error;
-      completed = result;
-      child.stdin.end();
-      terminateCli(child);
-      killTimer = setTimeout(() => child.kill('SIGKILL'), 500);
-      killTimer.unref();
-    };
-    const abort = () => stop(new Error('Model discovery cancelled.'));
-    const timer = setTimeout(() => stop(new Error('Model discovery timed out.')), timeout);
-    signal?.addEventListener('abort', abort, { once: true });
-    const cleanup = () => {
-      clearTimeout(timer);
-      clearTimeout(killTimer);
-      signal?.removeEventListener('abort', abort);
-    };
-    const receive = (
+  const requestId = 'pitchcrew-models';
+  return readModelCatalog(command, args, {
+    name: 'Claude',
+    wire: 'json-lines',
+    countStderr: true,
+    signal,
+    timeout,
+    initialRequest: {
+      type: 'control_request',
+      request_id: requestId,
+      request: { subtype: 'initialize' },
+    },
+    receive: (
       event: {
         type?: unknown;
         request_id?: unknown;
         response?: { subtype?: unknown; request_id?: unknown; response?: unknown };
       } | null,
+      send,
     ) => {
-      if (stopped || !event) return;
+      if (!event) return;
       if (event.type === 'control_request') {
         if (typeof event.request_id !== 'string')
           throw new Error('Invalid Claude control request.');
@@ -97,51 +66,8 @@ export const readClaudeModels = async (
       }
       if (event.type !== 'control_response' || event.response?.request_id !== requestId) return;
       if (event.response.subtype !== 'success') throw new Error('Claude model request failed.');
-      stop(undefined, parseClaudeModels(event.response.response));
-    };
-    const countBytes = (chunk: string | Buffer) => {
-      if (stopped) return false;
-      bytes += Buffer.byteLength(chunk);
-      if (bytes <= modelDiscoveryMaxBytes) return true;
-      stop(new Error('Model discovery output exceeded its limit.'));
-      return false;
-    };
-    child.stdout.setEncoding('utf8');
-    child.stdout.on('data', (chunk: string) => {
-      if (!countBytes(chunk)) return;
-      buffer += chunk;
-      let end: number;
-      while (!stopped && (end = buffer.indexOf('\n')) >= 0) {
-        const line = buffer.slice(0, end);
-        buffer = buffer.slice(end + 1);
-        let event: Parameters<typeof receive>[0];
-        try {
-          event = JSON.parse(line) as Parameters<typeof receive>[0];
-        } catch {
-          continue;
-        }
-        try {
-          receive(event);
-        } catch {
-          stop(new Error('Could not read the Claude model catalog.'));
-        }
-      }
-    });
-    // Bound and discard diagnostics, including any account or provider metadata.
-    child.stderr.on('data', (chunk: Buffer) => countBytes(chunk));
-    child.stdin.on('error', () => {});
-    child.on('error', () => {
-      stopped = true;
-      cleanup();
-      reject(new Error('Could not start Claude model discovery.'));
-    });
-    child.on('close', () => {
-      cleanup();
-      if (failure) reject(failure);
-      else if (completed !== undefined) resolve(completed);
-      else reject(new Error('Claude exited before returning its models.'));
-    });
-    send({ type: 'control_request', request_id: requestId, request: { subtype: 'initialize' } });
+      return parseClaudeModels(event.response.response);
+    },
   });
 };
 

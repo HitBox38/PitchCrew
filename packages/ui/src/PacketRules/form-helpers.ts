@@ -1,3 +1,4 @@
+import { defaultPacketWordLimits, packetRuleLimits } from '@pitchcrew/core/packet-rule-options';
 import type { PacketRule } from '@pitchcrew/core';
 
 export type RuleKind = PacketRule['kind'];
@@ -18,7 +19,11 @@ export const ruleKinds: { value: RuleKind; label: string }[] = [
 export const editableDocument = (value: unknown): RulesDocument | null => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   const document = value as Record<string, unknown>;
-  if (document.version !== 1 || !Array.isArray(document.rules) || document.rules.length > 100)
+  if (
+    document.version !== 1 ||
+    !Array.isArray(document.rules) ||
+    document.rules.length > packetRuleLimits.rules
+  )
     return null;
   if (
     !document.rules.every(
@@ -45,7 +50,8 @@ export const newRule = (kind: RuleKind, rules: RuleDraft[]): RuleDraft => {
   let suffix = 1;
   while (rules.some((rule) => rule.id === `${prefix}-${suffix}`)) suffix++;
   const base = { id: `${prefix}-${suffix}`, severity: 'warn', documents: ['resume'] };
-  if (kind === 'word_limit') return { ...base, kind, max: 650, count: 'all' };
+  if (kind === 'word_limit')
+    return { ...base, kind, max: defaultPacketWordLimits.resume, count: 'all' };
   if (kind === 'max_bullets') return { ...base, kind, max: 5, flags: '' };
   if (kind === 'canonical_lines') return { ...base, kind, selector: '', flags: '', values: [''] };
   return { ...base, kind, pattern: '', flags: '', maxCount: 0 };

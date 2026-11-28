@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { Approval, Card } from '@pitchcrew/core';
-// Tests only: checks the zod-free mirror against core without bundling zod into the UI.
-import { applicationFormIsCurrent } from '../../../../core/src/application-form.ts';
-import { formIsCurrent, jobStep, snapshotStepFacts, type JobStepFacts } from '../job-step.ts';
+import { formAssessment } from '../../../../board/test/fixtures/form.ts';
+import {
+  applicationFormIsCurrent,
+  inspectedApplicationForm,
+} from '../../../../core/src/application-form.ts';
+import { jobStep, snapshotStepFacts, type JobStepFacts } from '../job-step.ts';
 
 const ready: JobStepFacts = {
   hasBrief: true,
@@ -103,33 +106,44 @@ describe('job step', () => {
   });
 
   it('treats only changed inspected requirements as needing confirmation again', () => {
-    const control = (fields: Record<string, unknown> = {}) => ({
+    type Field = NonNullable<Card['formAssessments']>[number]['fields'][number];
+    const baseline = {
       label: 'Why us?',
       type: 'textarea',
       required: true,
       visible: true,
       disabled: false,
       accept: '',
-      options: [] as string[],
+      options: ['Remote', 'Hybrid'],
       maxLength: 500,
+      optionsTotal: 2,
+      optionsTruncated: false,
+      buttonType: 'button',
+      group: { role: 'group', label: 'Application', required: true },
+      constraints: {
+        minLength: { status: 'declared', value: '20' },
+        maxLength: { status: 'absent' },
+        min: { status: 'absent' },
+        max: { status: 'absent' },
+        step: { status: 'absent' },
+        uploadSizeLimit: 'unknown',
+      },
       assessed: true,
       condition: '',
       missingAnswer: 'Why us?',
       // Browser-only details never reach the brief and must not count as changes.
       selector: '#why',
-      name: 'why',
-      ...fields,
-    });
+    } satisfies Field;
+    const control = (overrides: Partial<Field> = {}): Field => ({ ...baseline, ...overrides });
     type Assessment = NonNullable<Card['formAssessments']>[number];
-    const assessment = (fields: Record<string, unknown>[], blockers: string[] = []) =>
-      ({
-        page: { url: 'https://example.com/apply', title: 'Apply', fingerprint: 'f' },
-        fields,
-        blockers,
-        uninspected: [],
-      }) as unknown as Assessment;
-    const { selector: _selector, name: _name, ...adopted } = control();
-    const linked = (assessments: Assessment[]) =>
+    const assessment = (fields: Field[], blockers: string[] = []): Assessment => ({
+      ...formAssessment('job'),
+      fields,
+      blockers,
+      uninspected: [],
+    });
+    const adopted = inspectedApplicationForm({ formAssessments: [assessment([baseline])] });
+    const linked = (assessments: Assessment[], form = adopted) =>
       card({
         state: 'shortlisted',
         url: 'https://example.com/apply',
@@ -137,20 +151,15 @@ describe('job step', () => {
         applicationContext: context({
           confirmedAt: 'now',
           confirmedRevision: 'r1',
-          form: {
-            status: 'inspected',
-            url: 'https://example.com/apply',
-            fields: [adopted],
-            blockers: [],
-            uninspected: [],
-          },
-        } as unknown as Partial<NonNullable<Card['applicationContext']>>),
+          form,
+        }),
       });
     const facts = (job: Card) => {
-      expect(formIsCurrent(job)).toBe(applicationFormIsCurrent(job));
-      return snapshotStepFacts(job, []);
+      const snapshot = snapshotStepFacts(job, []);
+      expect(snapshot.briefConfirmed).toBe(applicationFormIsCurrent(job));
+      return snapshot;
     };
-    const current = (job: Card) => formIsCurrent(job) && facts(job).briefConfirmed;
+    const current = (job: Card) => facts(job).briefConfirmed;
     expect(current(linked([assessment([control()])]))).toBe(true);
     // A newer identical inspection stays current.
     expect(
@@ -158,21 +167,60 @@ describe('job step', () => {
     ).toBe(true);
     // Resolving an answer is progress, not a changed requirement.
     expect(current(linked([assessment([control({ missingAnswer: '' })])]))).toBe(true);
+    expect(
+      current(
+        linked([
+          assessment([
+            control({
+              group: { required: true, label: 'Application', role: 'group' },
+              constraints: {
+                ...baseline.constraints,
+                minLength: { value: '20', status: 'declared' },
+              },
+            }),
+          ]),
+        ]),
+      ),
+    ).toBe(true);
     // Changed requirements need confirming again and send a shortlisted job back to the brief.
     for (const changed of [
+      [control({ optionsTotal: 3 })],
+      [control({ options: ['Hybrid', 'Remote'] })],
+      [control({ optionsTruncated: true })],
+      [control({ group: { ...baseline.group, required: false } })],
+      [control({ constraints: { ...baseline.constraints, minLength: { status: 'absent' } } })],
       [control({ maxLength: 300 })],
       [control({ required: false })],
+      [control({ buttonType: 'submit' })],
+      [control({ optionsTotal: 101, optionsTruncated: true })],
+      [control({ group: { role: 'fieldset', label: 'Work authorization', required: true } })],
+      [
+        control({
+          constraints: {
+            minLength: { status: 'absent' },
+            maxLength: { status: 'absent' },
+            min: { status: 'declared', value: '18' },
+            max: { status: 'absent' },
+            step: { status: 'absent' },
+            uploadSizeLimit: 'unknown',
+          },
+        }),
+      ],
       [control({ label: 'Why this team?' })],
       [control(), control({ label: 'Portfolio' })],
     ]) {
       const job = linked([assessment([control()]), assessment(changed)]);
-      expect(formIsCurrent(job)).toBe(false);
-      expect(facts(job).briefConfirmed).toBe(false);
-      expect(jobStep(job, facts(job))).toBe('confirm-brief');
+      const snapshot = facts(job);
+      expect(snapshot.briefConfirmed).toBe(false);
+      expect(jobStep(job, snapshot)).toBe('confirm-brief');
     }
     expect(current(linked([assessment([control()], ['Sign-in required'])]))).toBe(false);
+    const historical = assessment([control({ optionsTruncated: undefined })]);
+    const historicalForm = inspectedApplicationForm({ formAssessments: [historical] });
+    expect(current(linked([historical], historicalForm))).toBe(true);
+    expect(current(linked([assessment([baseline])], historicalForm))).toBe(false);
     // An adopted inspection with no assessment behind it is not current.
-    expect(formIsCurrent(linked([]))).toBe(false);
+    expect(current(linked([]))).toBe(false);
   });
 
   it('counts only a consumed export of the current packet', () => {

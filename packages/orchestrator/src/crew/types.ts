@@ -167,6 +167,7 @@ export interface CrewContext {
   ): AgentTask;
   finishTask(run: Run): void;
   taskPermissionsAllow(task: AgentTask): boolean;
+  drainConversationQueue(): Promise<void>;
   drainTasks(): Promise<void>;
   exportPacket(id: string, assertActive?: () => void): Promise<string>;
   agentCall(

@@ -1,4 +1,6 @@
 import type { Approval, Card } from '@pitchcrew/core';
+import { formChoiceIsCurrent } from '@pitchcrew/core/form-requirements';
+import { cardLifecycle } from '@pitchcrew/core/lifecycles';
 
 /**
  * The next application move for a job at rest (no agent running, nothing pending in the queue).
@@ -36,13 +38,8 @@ export type JobStepFacts = {
 };
 
 export const postSubmissionStates: ReadonlySet<Card['state']> = new Set([
-  'submitted',
-  'screening',
-  'interviewing',
-  'offer',
-  'rejected',
-  'ghosted',
-  'withdrawn',
+  ...cardLifecycle.groups.applied,
+  ...cardLifecycle.groups.closed,
 ]);
 
 export const packetNeedsReview = (card: Card) =>
@@ -61,57 +58,11 @@ export const packetExported = (card: Card, approvals: Approval[]) =>
       JSON.stringify(approval.packet) === JSON.stringify(card.packet),
   );
 
-type InspectedForm = Extract<
-  NonNullable<NonNullable<Card['applicationContext']>['form']>,
-  {
-    status: 'inspected';
-  }
->;
+export const briefRevisionConfirmed = (context: Card['applicationContext'] | null) =>
+  Boolean(context?.confirmedAt && context.confirmedRevision === context.revision);
 
-/**
- * Employer requirement metadata in a fixed key order, without `missingAnswer`: resolving an answer
- * is preparation progress, not a changed requirement. Mirrors `applicationFormIsCurrent` in
- * `@pitchcrew/core/application-form`, which the UI cannot import at runtime without bundling zod.
- */
-const requirementKey = (form: Omit<InspectedForm, 'status'>) =>
-  JSON.stringify([
-    form.url,
-    form.fields.map((field) => [
-      field.label,
-      field.type,
-      field.required,
-      field.visible,
-      field.disabled,
-      field.accept,
-      field.options,
-      field.maxLength ?? null,
-      field.assessed,
-      field.condition,
-    ]),
-    form.blockers,
-    form.uninspected,
-  ]);
-
-/** Whether the adopted form choice still matches the latest inspected form requirements. */
-export const formIsCurrent = (card: Card) => {
-  const form = card.applicationContext?.form;
-  const assessment = card.formAssessments?.at(-1);
-  if (!form) return !card.url && !assessment;
-  if (form.status === 'manual') return !assessment;
-  if (!assessment) return false;
-  return (
-    requirementKey(form) ===
-    requirementKey({
-      url: assessment.page.url,
-      fields: assessment.fields,
-      blockers: assessment.blockers,
-      uninspected: [
-        ...assessment.uninspected,
-        ...(!assessment.fields.length ? ['No application controls were inspected.'] : []),
-      ],
-    })
-  );
-};
+export const snapshotBriefConfirmed = (card: Card) =>
+  briefRevisionConfirmed(card.applicationContext) && formChoiceIsCurrent(card);
 
 /**
  * Facts from the workspace snapshot alone. Job details replaces the brief facts with the loaded
@@ -122,10 +73,7 @@ export const snapshotStepFacts = (card: Card, approvals: Approval[]): JobStepFac
   const inspected = !!card.formAssessments?.length;
   return {
     hasBrief: !!context,
-    // Changed inspected requirements (or a newer inspection than a manual choice) need confirming.
-    briefConfirmed: Boolean(
-      context?.confirmedAt && context.confirmedRevision === context.revision && formIsCurrent(card),
-    ),
+    briefConfirmed: snapshotBriefConfirmed(card),
     formMissing: !!card.url && !context?.form && !inspected,
     missingAnswers: !!context?.requirements.some(
       (entry) => entry.required && entry.personal && !entry.answer.trim(),

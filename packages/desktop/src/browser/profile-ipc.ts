@@ -5,8 +5,8 @@ import { z } from 'zod';
 import {
   browserProfilesCommandSchema,
   type BrowserProfilesState,
-} from '../../../core/src/browser-profiles.ts';
-import { assertPublicUrl } from '../../../mcp/src/computer/network.ts';
+} from '@pitchcrew/core/browser-profiles';
+import { assertPublicUrl } from '@pitchcrew/mcp/computer/network';
 import { parseCookieExport, type ImportedCookie } from './cookie-import.ts';
 import type { createNativeBrowserHost } from './host.ts';
 

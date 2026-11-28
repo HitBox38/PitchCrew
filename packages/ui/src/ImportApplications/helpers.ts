@@ -1,6 +1,6 @@
 import type { CardState, ImportRowStatus } from '@pitchcrew/core';
 import { stateLabels } from '../lib/labels.ts';
-import { maxImportBytes } from './constants.ts';
+import { importLimits, importFileSizeLabel } from '@pitchcrew/core/import-limits';
 import type { ImportUpload } from './types.ts';
 
 export const importFormat = (name: string): 'json' | 'csv' | 'sqlite' | null => {
@@ -14,7 +14,8 @@ export const readImportFile = async (
 ): Promise<ImportUpload> => {
   const format = importFormat(file.name);
   if (!format) throw new Error('Choose a .db, .sqlite, .sqlite3, .json or .csv file.');
-  if (file.size > maxImportBytes) throw new Error('Import files can be at most 2 MB.');
+  if (file.size > importLimits.bytes)
+    throw new Error(`Import files can be at most ${importFileSizeLabel}.`);
   if (format === 'sqlite') {
     const bytes = new Uint8Array(await file.arrayBuffer());
     let binary = '';

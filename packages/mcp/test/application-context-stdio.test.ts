@@ -111,6 +111,13 @@ it('exposes no extraction tools and only application-scoped drafting/review tool
         const result = await client.callTool({ name: 'pitchcrew_get_card', arguments: {} });
         expect(result.isError).not.toBe(true);
         expect(JSON.stringify(result)).not.toContain('RAW-HIDDEN-DIRECTIVE');
+        for (const field of ['sourceHtml', 'constructor.name']) {
+          const hidden = await client.callTool({
+            name: 'pitchcrew_get_card',
+            arguments: { field },
+          });
+          expect(hidden.isError).toBe(true);
+        }
         const report = await client.callTool({
           name: 'pitchcrew_report_technical_problem',
           arguments: {
