@@ -1,6 +1,12 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["typescript", "react", "jsx-a11y"],
+  "jsPlugins": ["@shadcn/lint"],
+  "settings": {
+    "shadcn": {
+      "componentImports": ["^@pitchcrew/design-system/"]
+    }
+  },
   "categories": { "correctness": "error" },
   "rules": {
     "func-style": ["error", "expression"],
@@ -74,6 +80,29 @@
             ]
           }
         ]
+      }
+    },
+    {
+      "files": ["packages/design-system/src/**"],
+      "excludeFiles": ["**/__tests__/**", "**/*.test.*", "**/*.spec.*"],
+      "rules": {
+        "shadcn/no-raw-colors": "error"
+      }
+    },
+    {
+      "files": ["packages/ui/src/**"],
+      "excludeFiles": ["**/__tests__/**", "**/*.test.*", "**/*.spec.*"],
+      "rules": {
+        "shadcn/no-raw-colors": ["error", { "allow": ["text-button"] }],
+        "shadcn/no-arbitrary-values": ["error", { "deny": ["color"] }]
+      }
+    },
+    {
+      "files": ["packages/landing/src/**"],
+      "excludeFiles": ["**/__tests__/**", "**/*.test.*", "**/*.spec.*"],
+      "rules": {
+        "shadcn/no-raw-colors": ["error", { "allow": ["text-link"] }],
+        "shadcn/no-arbitrary-values": ["error", { "deny": ["color"] }]
       }
     }
   ]
