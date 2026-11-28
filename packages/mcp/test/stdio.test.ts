@@ -35,11 +35,13 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
     await reservation.listen(daemon.http);
     for (const file of profile) await daemon.service.saveProfile(file.name, file.content);
     const board = daemon.service.board;
+    const sourceHtml = '<article>' + 'fictional source 🐦'.repeat(1600) + '</article>';
     const card = board.createCard(
       cardInput.parse({
         company: 'Fixture Studio',
         title: 'Frontend Engineer',
         description: 'Build accessible scheduling interfaces.',
+        sourceHtml,
       }),
     );
     board.move(card.id, 'shortlisted', 'user');
@@ -278,15 +280,126 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
         expect.objectContaining({ threadId: dm.id, from: 'reviewer', to: 'writer' }),
       ]),
     });
+    const prefix = 'x'.repeat(499);
+    const longText = prefix + '🌱 Fictional message '.repeat(480);
+    const large = daemon.service.addMessage(dm.id, 'writer', 'reviewer', longText, card.id, null);
+    daemon.service.board.record(
+      'message',
+      { ...large, memoryIds: ['fixture-memory'] },
+      'writer',
+      'Referenced fixture',
+    );
+    const recent = await client.callTool({
+      name: 'pitchcrew_read_messages',
+      arguments: { limit: 1 },
+    });
+    expect(recent.structuredContent).toMatchObject({
+      messages: [
+        {
+          id: large.id,
+          content: prefix,
+          truncated: true,
+          omittedFields: expect.arrayContaining(['content', 'memoryIds']),
+        },
+      ],
+      beforeId: large.id,
+    });
+    expect(Buffer.byteLength(JSON.stringify(recent.structuredContent))).toBeLessThan(8192);
+    const olderMessages = await client.callTool({
+      name: 'pitchcrew_read_messages',
+      arguments: { beforeId: large.id },
+    });
+    expect(olderMessages.structuredContent).toEqual(messages.structuredContent);
+    let messageCursor: string | null = null;
+    let restoredMessage = '';
+    do {
+      const result = await client.callTool({
+        name: 'pitchcrew_read_conversation',
+        arguments: {
+          conversationId: dm.id,
+          messageId: large.id,
+          ...(messageCursor ? { cursor: messageCursor } : {}),
+        },
+      });
+      expect(result.isError).not.toBe(true);
+      const part = result.structuredContent as { text: string; nextCursor: string | null };
+      expect(Buffer.byteLength(JSON.stringify(part))).toBeLessThan(8192);
+      restoredMessage += part.text;
+      messageCursor = part.nextCursor;
+    } while (messageCursor);
+    expect(restoredMessage).toBe(longText);
     const current = await client.callTool({ name: 'pitchcrew_get_card', arguments: {} });
     expect(current.structuredContent).toMatchObject({
       card: { id: card.id, packet, state: 'awaiting_approval' },
+      omittedFields: expect.arrayContaining(['sourceHtml']),
     });
+    expect(Buffer.byteLength(JSON.stringify(current.structuredContent))).toBeLessThan(8192);
+    let sourceCursor: string | null = null;
+    let restored = '';
+    do {
+      const result = await client.callTool({
+        name: 'pitchcrew_get_card',
+        arguments: { field: 'sourceHtml', ...(sourceCursor ? { cursor: sourceCursor } : {}) },
+      });
+      expect(result.isError).not.toBe(true);
+      const part = result.structuredContent as { text: string; nextCursor: string | null };
+      expect(Buffer.byteLength(JSON.stringify(part))).toBeLessThan(8192);
+      restored += part.text;
+      sourceCursor = part.nextCursor;
+    } while (sourceCursor);
+    expect(restored).toBe(sourceHtml);
+    // Give both fields the same long value, so only the field name distinguishes their cursors.
+    board.updateCard(card.id, { feedback: [sourceHtml] }, 'reviewer', 'Set long feedback');
+    const feedbackField = 'feedback.0';
+    const feedbackPage = await client.callTool({
+      name: 'pitchcrew_get_card',
+      arguments: { field: feedbackField },
+    });
+    const { nextCursor: cursor } = feedbackPage.structuredContent as { nextCursor: string | null };
+    expect(cursor).toEqual(expect.any(String));
+    const continueField = (field: string) =>
+      client.callTool({
+        name: 'pitchcrew_get_card',
+        arguments: { field, cursor },
+      });
+    const stale = {
+      isError: true,
+      content: [{ type: 'text', text: expect.stringContaining('Field changed') }],
+    };
+    expect(await continueField('sourceHtml')).toMatchObject(stale);
+    board.updateCard(
+      card.id,
+      { feedback: [sourceHtml + ' updated'] },
+      'reviewer',
+      'Edited long feedback',
+    );
+    expect(await continueField(feedbackField)).toMatchObject(stale);
+    board.updateCard(card.id, { feedback: [] }, 'reviewer', 'Cleared fixture feedback');
     const sources = await client.callTool({ name: 'pitchcrew_read_profile', arguments: {} });
     expect(sources.structuredContent).toMatchObject({ profile: expect.arrayContaining(profile) });
+    const reason = 'Fixture milestone\u0000with remaining text';
+    board.updateCard(card.id, {}, 'reviewer', reason);
     const first = await client.callTool({ name: 'pitchcrew_get_history', arguments: { limit: 2 } });
     const page = first.structuredContent as { events: { id: number }[]; nextCursor: number };
     expect(page.events).toHaveLength(2);
+    expect(Buffer.byteLength(JSON.stringify(first.structuredContent))).toBeLessThan(8192);
+    expect(page.events[0]).toMatchObject({ message: reason, data: { state: 'awaiting_approval' } });
+    expect(JSON.stringify(page.events)).not.toContain('sourceHtml');
+    const historic = await client.callTool({
+      name: 'pitchcrew_get_history',
+      arguments: { eventId: page.events[0]!.id, field: 'data.packet.resume' },
+    });
+    expect(historic.structuredContent).toEqual({
+      field: 'data.packet.resume',
+      value: packet.resume,
+    });
+    const otherCard = board.createCard(cardInput.parse({ company: 'Fictional', title: 'Other' }));
+    const otherEvent = board.history(otherCard.id)[0]!;
+    const forbidden = await client.callTool({
+      name: 'pitchcrew_get_history',
+      arguments: { eventId: otherEvent.id, field: 'data.company' },
+    });
+    expect(forbidden.isError).toBe(true);
     const older = await client.callTool({
       name: 'pitchcrew_get_history',
       arguments: { beforeEventId: page.nextCursor, limit: 2 },

@@ -1,6 +1,13 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { adapters } from '@pitchcrew/adapters';
-import type { Role, Run, Snapshot, WritingCorrection, RunContext } from '@pitchcrew/core';
+import type {
+  ChatRequest,
+  Role,
+  Run,
+  Snapshot,
+  WritingCorrection,
+  RunContext,
+} from '@pitchcrew/core';
 import { packetExportFileName } from '@pitchcrew/core/packet-files';
 import { packet } from '../../board/test/fixtures/packet.ts';
 import {
@@ -28,7 +35,7 @@ const prepared = async () => {
 afterEach(cleanup);
 const clearDocuments = { reports: [], errors: [], warnings: [], repairable: [] };
 
-it('queues a current user correction into an isolated draft, preserving before/after and guide provenance', async () => {
+it('queues one correction from a group delivery into an isolated draft with before/after and guide provenance', async () => {
   const { daemon, request, card } = await prepared();
   vi.spyOn(documents, 'inspectPacketDocuments').mockResolvedValue(clearDocuments);
   const writer = daemon.service.board.get<Role>('role', 'writer');
@@ -44,49 +51,94 @@ it('queues a current user correction into an isolated draft, preserving before/a
     text: 'Prefer concrete openings.',
     scope: 'resume',
   });
-  let complete!: () => void;
-  let signalStarted!: () => void;
-  const started = new Promise<void>((resolve) => {
-    signalStarted = resolve;
+  let complete!: (result: { reply: string }) => void;
+  const replies = new Promise<{ reply: string }>((resolve) => {
+    complete = resolve;
   });
-  vi.spyOn(adapters.demo, 'chat').mockImplementation(
-    () =>
-      new Promise((resolve) => {
-        complete = () => resolve({ reply: 'Queued the requested correction.' });
-        signalStarted();
-      }),
-  );
+  const chat = vi.spyOn(adapters.demo, 'chat').mockImplementation(() => replies);
   const launches: RunContext[] = [];
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {
     launches.push(context);
     return { role: 'writer', packet };
   });
-  const root = (
-    await request<Run>('/roles/writer/chat', 'POST', {
-      cardId: card.id,
+  const group = daemon.service.createConversation({
+    title: 'Application revisions',
+    participants: ['writer', 'reviewer'],
+    cardId: card.id,
+  });
+  const delivery = (
+    await request<ChatRequest>(`/conversations/${group.id}/messages`, 'POST', {
       content: 'Please remove the generic opening. RAW-CHAT-DATA-SHOULD-NOT-BE-DRAFT-CONTEXT',
     })
   ).result;
-  await started;
-  const message = daemon.service.board
-    .list<import('@pitchcrew/core').ChatMessage>('message')
-    .find((m) => m.from === 'user' && m.cardId === card.id)!;
-  const token = [...daemon.service.capabilities.entries()].find(
-    ([, cap]) => cap.runId === root.id,
-  )![0];
-  const queued = await daemon.service.agentCall(token, 'quality', {
+  await vi.waitFor(() => expect(chat).toHaveBeenCalledTimes(2));
+  const correction = {
     input: {
       action: 'writing_correct',
-      messageId: message.id,
+      messageId: delivery.messageId,
       quote: 'Please remove the generic opening.',
       preference: 'Remove generic openings',
       scope: 'resume',
       writerId: 'writer',
     },
-  });
-  expect(queued.taskId).toBeDefined();
-  complete();
-  await finish(request, root.id);
+  };
+  const tokens = Array.from(daemon.service.capabilities.keys());
+  try {
+    daemon.service.board.updateCard(
+      card.id,
+      { owner: writer.id },
+      writer.id,
+      'Writer claimed the application',
+    );
+    await expect(daemon.service.agentCall(tokens[0]!, 'quality', correction)).rejects.toThrow(
+      `Wait for ${writer.name} to finish working on this application`,
+    );
+    daemon.service.board.updateCard(
+      card.id,
+      { owner: null },
+      writer.id,
+      'Writer released the application',
+    );
+    const blocker: Run = {
+      id: 'concurrent-review',
+      cardId: card.id,
+      roleId: 'reviewer',
+      runtime: 'demo',
+      status: 'running',
+      mode: 'workflow',
+      requestId: delivery.id,
+      message: 'Reviewing fixture packet',
+      startedAt: new Date().toISOString(),
+      finishedAt: null,
+    };
+    daemon.service.board.record('run', blocker, 'reviewer', 'Started fixture review');
+    await expect(daemon.service.agentCall(tokens[0]!, 'quality', correction)).rejects.toThrow(
+      'to finish working on this application',
+    );
+    expect(daemon.service.board.list('writing_correction')).toHaveLength(0);
+    expect(daemon.service.board.list('task')).toHaveLength(0);
+    daemon.service.board.record(
+      'run',
+      { ...blocker, status: 'completed', finishedAt: new Date().toISOString() },
+      'reviewer',
+      'Finished fixture review',
+    );
+    const queued = await daemon.service.agentCall(tokens[0]!, 'quality', correction);
+    expect(queued.taskId).toBeDefined();
+    daemon.service.board.updateCard(
+      card.id,
+      { owner: writer.id },
+      writer.id,
+      'Writer claimed the correction',
+    );
+    expect(await daemon.service.agentCall(tokens[1]!, 'quality', correction)).toMatchObject({
+      correctionId: queued.correctionId,
+      alreadyQueued: true,
+    });
+  } finally {
+    daemon.service.board.updateCard(card.id, { owner: null }, writer.id, 'Released fixture claim');
+    complete({ reply: 'Queued the requested correction.' });
+  }
   await waitForSnapshot(request, (s) => s.tasks.length === 1 && s.tasks[0].status === 'completed');
   expect(launches).toHaveLength(1);
   expect(launches[0].purpose).toBe('application-draft');

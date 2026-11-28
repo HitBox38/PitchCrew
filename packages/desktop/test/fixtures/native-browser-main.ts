@@ -1,5 +1,9 @@
 import { nativeArtifactFixture } from './native-browser-artifacts.ts';
-import { installNativeFixtureSite, nativeFixtureDownloads } from './native-browser-site.ts';
+import {
+  finishFixtureImage,
+  installNativeFixtureSite,
+  nativeFixtureDownloads,
+} from './native-browser-site.ts';
 import { parseCookieExport } from '../../src/browser/cookie-import.ts';
 import { randomUUID } from 'node:crypto';
 import { app, BrowserWindow, session, nativeImage, webContents } from 'electron';
@@ -157,6 +161,15 @@ void app
         commandKind = command.kind;
         commandId = command.id;
         const group = host.groups.get(command.id);
+        if (command.kind === 'finish-image' && group) {
+          const contents = group.pages.get(group.active)!.contents;
+          const loading = contents.isLoadingMainFrame();
+          finishFixtureImage(contents.session);
+          await writeFile(
+            process.env.PITCHCREW_NATIVE_SMOKE_RESULT!,
+            JSON.stringify({ nonce: command.nonce, value: loading }),
+          );
+        }
         if (command.kind === 'mask-paint-timeout') {
           if (!group) throw new Error('Native capture fixture group not found.');
           if (command.operation === 'arm')

@@ -1,5 +1,10 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { packetSchema, resumeReviewPacketSchema } from '@pitchcrew/core';
+import {
+  historyReadQuery,
+  packetSchema,
+  readFieldQuery,
+  resumeReviewPacketSchema,
+} from '@pitchcrew/core';
 import { z } from 'zod';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
@@ -15,11 +20,11 @@ export const registerPacketTools = (
     {
       title: 'Current application',
       description:
-        'Read the application card assigned to this run, including its packet and feedback.',
-      inputSchema: {},
+        'Read the assigned application, packet and feedback. A large card lists omittedFields. Request a field by name or dotted path (such as packet.resume or applicationContext.requirements.0). For a long value, append text pages using nextCursor as cursor with the same field.',
+      inputSchema: readFieldQuery.shape,
       annotations: readOnly,
     },
-    () => call('card'),
+    (input) => call('card', { input }),
   );
   server.registerTool(
     'pitchcrew_read_profile',
@@ -37,19 +42,11 @@ export const registerPacketTools = (
       {
         title: 'Application history',
         description:
-          'Read immutable history for the assigned card, newest first. Use nextCursor as beforeEventId to read older events.',
-        inputSchema: {
-          beforeEventId: z
-            .number()
-            .int()
-            .positive()
-            .optional()
-            .describe('Exclusive cursor from a previous history response.'),
-          limit: z.number().int().min(1).max(200).default(100).describe('Maximum events per page.'),
-        },
+          'Read compact immutable events for the attached card, newest first. Pass nextCursor as beforeEventId for older events. To inspect a snapshot, pass eventId and a field such as data.feedback, data.packet.resume or message. For long values, continue with the same eventId and field and pass nextCursor as cursor.',
+        inputSchema: historyReadQuery.shape,
         annotations: readOnly,
       },
-      (query) => call('history', query),
+      (input) => call('history', { input }),
     );
   server.registerTool(
     'pitchcrew_lint_packet',

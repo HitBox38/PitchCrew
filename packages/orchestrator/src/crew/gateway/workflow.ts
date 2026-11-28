@@ -1,5 +1,5 @@
 import {
-  assertConfirmedContext,
+  assertExtractedContext,
   changeJobState,
   deleteJob,
   searchApplications,
@@ -126,8 +126,14 @@ const reviewFeedback = (
   if (cardId !== capability.cardId)
     throw new Error('Review feedback can only be saved for the attached job.');
   const card = context.board.get<Card>('card', cardId);
-  const brief = assertConfirmedContext(card);
-  if (!card.packet || card.packetContextRevision !== brief.revision)
+  // A newer inspection may itself be the reason for blocking this packet.
+  const brief = assertExtractedContext(card);
+  if (
+    !card.packet ||
+    !brief.confirmedAt ||
+    brief.confirmedRevision !== brief.revision ||
+    card.packetContextRevision !== brief.revision
+  )
     throw new Error(
       'This packet was not drafted for the current confirmed brief. Ask the Writer for a fresh draft first.',
     );

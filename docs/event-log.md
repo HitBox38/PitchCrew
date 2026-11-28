@@ -4,6 +4,8 @@ Rules for contributors and coding agents. If a change makes anything here false,
 
 New events use the current version (`currentEventVersion` in `packages/core/src/events.ts`). Every earlier version stays decodable; never rewrite or delete stored events.
 
+The crew's `pitchcrew_get_history` reads an 8 KiB page of event IDs, actors, timestamps, messages and card states, newest first. Pass `nextCursor` as `beforeEventId` for older events. Pass an `eventId` from that card to read a historical field such as `data.feedback` or the full `message`. Long values use the same field paging as `pitchcrew_get_card`. The board retains each complete snapshot.
+
 - **Event log.** Version 40 adds an optional tool kind (`tool`), one-line public target (`detail`) and failure reason (`error`) to run activity entries; historical tool steps without them show the generic tool glyph and no target or reason, and versions 1–39 remain decodable.
 - Version 39 adds the Accept edits (`edits`), Auto (`auto`) and Full access (`full`) browser modes to role, conversation override and run configuration records, an optional `mode` on automatic browser action approvals naming the mode that allowed them, and an optional `external` flag on chat requests sent by external MCP apps; versions 1–38 remain decodable.
 - Version 38 adds optional bounded declared constraint, semantic group and choice-completeness evidence to inspected controls and confirmed form requirements; historical missing evidence stays unavailable and versions 1–37 remain decodable.

@@ -1,6 +1,14 @@
 import { conversationMessages } from '../conversation-context.ts';
 import { z } from 'zod';
-import { defaultCapabilities, memoryInput, type AgentMemory, type Run } from '@pitchcrew/core';
+import {
+  conversationReadQuery,
+  defaultCapabilities,
+  memoryInput,
+  type AgentMemory,
+  type Run,
+} from '@pitchcrew/core';
+import { messagePage } from './message-page.ts';
+import { readField } from './read-pages.ts';
 import { randomUUID } from 'node:crypto';
 import {
   conversation,
@@ -25,23 +33,18 @@ export const conversationAction = async (
       conversations: conversations(context).filter((item) => item.participants.includes(role.id)),
     };
   if (action === 'conversation_messages') {
-    const input = z
-      .object({
-        conversationId: z.string().min(1),
-        beforeId: z.string().optional(),
-        limit: z.number().int().min(1).max(100).default(40),
-      })
-      .parse(data);
+    const input = conversationReadQuery.parse(data);
     if (!canReadConversation(context, role.id, input.conversationId))
       throw new Error('This role cannot access the conversation.');
     const active = context.board.get<Run>('run', capability.runId);
     const messages = conversationMessages(context, input.conversationId, role.id, active.requestId);
-    const end = input.beforeId
-      ? messages.findIndex((message) => message.id === input.beforeId)
-      : messages.length;
-    if (end < 0) throw new Error('Message cursor not found.');
-    const page = messages.slice(Math.max(0, end - input.limit), end);
-    return { messages: page, beforeId: end > input.limit ? page[0]?.id : null };
+    if (input.messageId) {
+      const message = messages.find((item) => item.id === input.messageId);
+      if (!message) throw new Error('Message not found in this conversation.');
+      return readField(message, input.field ?? 'content', input.cursor);
+    }
+    if (input.field || input.cursor) throw new Error('Choose a messageId to read a message field.');
+    return messagePage(messages, input.beforeId, input.limit ?? 40);
   }
   if (!permissions.messageAgents) throw new Error('Agent messaging capability is disabled.');
   if (action === 'create_group') {
