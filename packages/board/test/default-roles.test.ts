@@ -123,7 +123,7 @@ describe('default crew', () => {
     expect(board.list('run')).toEqual([]);
   });
 
-  it('keeps profile editing separate from existing watched-source grants', () => {
+  it('turns on profile saving for a Documenter that never stored the choice', () => {
     const board = create();
     const documenter = defaultRoles('demo', true).find((role) => role.id === 'documenter')!;
     const { editProfile: _editProfile, ...capabilities } = documenter.capabilities!;
@@ -141,8 +141,10 @@ describe('default crew', () => {
     board.db.prepare('INSERT INTO events(json) VALUES (?)').run(historical);
     board.rebuild();
     board.seedRoles();
-    expect(board.get<Role>('role', 'documenter')).toEqual(saved);
-    expect(board.get<Role>('role', 'documenter').capabilities?.editProfile).toBeUndefined();
+    expect(board.get<Role>('role', 'documenter')).toEqual({
+      ...saved,
+      capabilities: { ...saved.capabilities, editProfile: true },
+    });
     expect(
       board
         .list<Role>('role')
@@ -150,10 +152,17 @@ describe('default crew', () => {
         .every((role) => role.capabilities?.editProfile !== true),
     ).toBe(true);
     board.rebuild();
-    expect(board.get<Role>('role', 'documenter')).toEqual(saved);
+    expect(board.get<Role>('role', 'documenter').capabilities?.editProfile).toBe(true);
     expect(
       (board.db.prepare('SELECT json FROM events WHERE id=1').get() as { json: string }).json,
     ).toBe(historical);
+    const off = {
+      ...saved,
+      capabilities: { ...saved.capabilities, editProfile: false as const },
+    };
+    board.record('role', off, 'user', 'Turned profile saving off');
+    board.seedRoles();
+    expect(board.get<Role>('role', 'documenter').capabilities?.editProfile).toBe(false);
   });
 
   it('backfills missing defaults without replacing customized, colliding or retired identities', () => {

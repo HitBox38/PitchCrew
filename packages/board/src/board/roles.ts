@@ -1,6 +1,22 @@
-import { type Role, type RuntimeId, type RuntimeConfiguration } from '@pitchcrew/core';
+import {
+  defaultCapabilities,
+  type Role,
+  type RuntimeId,
+  type RuntimeConfiguration,
+} from '@pitchcrew/core';
 import { defaultRoles } from './default-roles.ts';
 import type { BoardContext } from './types.ts';
+
+/** Older Documenter rows predate the save grant. No stored choice means the default: it can save. */
+const enableDocumenterSaving = (context: BoardContext) => {
+  const documenter = context.list<Role>('role').find((role) => role.id === 'documenter');
+  if (!documenter || documenter.retiredAt || documenter.capabilities?.editProfile != null) return;
+  const role: Role = {
+    ...documenter,
+    capabilities: { ...defaultCapabilities, ...documenter.capabilities, editProfile: true },
+  };
+  context.record('role', role, 'system', 'Enabled profile saving for Documenter');
+};
 
 export const seedRoles = (
   context: BoardContext,
@@ -27,5 +43,6 @@ export const seedRoles = (
         `Initialized ${role.name}`,
       );
     }
+    enableDocumenterSaving(context);
   })();
 };
