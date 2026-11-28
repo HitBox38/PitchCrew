@@ -10,6 +10,7 @@ import {
   type Run,
   type Snapshot,
 } from '@pitchcrew/core';
+import { packetExportFileName } from '@pitchcrew/core/packet-files';
 import { verifiedArtifact } from '@pitchcrew/packet';
 import { symlink, readFile, utimes, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -135,7 +136,11 @@ describe('packet rules', () => {
       );
       expect(exported.response.status).toBe(200);
       for (const [name, bytes] of frozen)
-        expect(await readFile(join(exported.result.directory, name))).toEqual(bytes);
+        expect(
+          await readFile(
+            join(exported.result.directory, packetExportFileName(approval.packet.resume, name)),
+          ),
+        ).toEqual(bytes);
       expect(daemon.service.board.get<Approval>('approval', approval.id).status).toBe('consumed');
     },
   );
