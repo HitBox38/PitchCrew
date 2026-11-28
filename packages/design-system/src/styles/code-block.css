@@ -3,6 +3,7 @@
   background: var(--paper-deep);
 }
 [data-slot='code-block-content'] {
+  counter-reset: line var(--code-block-line-offset, 0);
   margin: 0;
   overscroll-behavior-inline: contain;
   scrollbar-gutter: stable;

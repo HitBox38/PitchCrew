@@ -43,7 +43,7 @@ it.each([false, true])(
   'preserves GFM tables, tasks and strike-through with resolved mentions (user=%s)',
   (user) => {
     const html = render('@career-coach Please check this.' + body, user);
-    expect(html).toContain('chat-reference-agent');
+    expect(html).toContain('data-reference-kind="agent"');
     expect(html).toContain('<table');
     expect(html).toContain('<th');
     expect(html).toContain('aria-label="Completed item"');
@@ -54,7 +54,7 @@ it.each([false, true])(
 
 it('preserves GFM beside a file citation and leaves undecorated replies unchanged', () => {
   const cited = render('[Resume](pitchcrew-file:profile/resume.md)' + body);
-  expect(cited).toContain('chat-reference-file');
+  expect(cited).toContain('data-reference-kind="file"');
   for (const html of [cited, render('Plain reply.' + body)]) {
     expect(html).toContain('<table');
     expect(html).toContain('aria-label="Completed item"');

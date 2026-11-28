@@ -86,7 +86,8 @@
       "files": ["packages/design-system/src/**"],
       "excludeFiles": ["**/__tests__/**", "**/*.test.*", "**/*.spec.*"],
       "rules": {
-        "shadcn/no-raw-colors": "error"
+        "shadcn/no-raw-colors": "error",
+        "shadcn/no-inline-styles": "error"
       }
     },
     {
@@ -94,7 +95,8 @@
       "excludeFiles": ["**/__tests__/**", "**/*.test.*", "**/*.spec.*"],
       "rules": {
         "shadcn/no-raw-colors": ["error", { "allow": ["text-button"] }],
-        "shadcn/no-arbitrary-values": ["error", { "deny": ["color"] }]
+        "shadcn/no-arbitrary-values": ["error", { "deny": ["color"] }],
+        "shadcn/require-static-classes": "error"
       }
     },
     {
@@ -102,7 +104,8 @@
       "excludeFiles": ["**/__tests__/**", "**/*.test.*", "**/*.spec.*"],
       "rules": {
         "shadcn/no-raw-colors": ["error", { "allow": ["text-link"] }],
-        "shadcn/no-arbitrary-values": ["error", { "deny": ["color"] }]
+        "shadcn/no-arbitrary-values": ["error", { "deny": ["color"] }],
+        "shadcn/require-static-classes": "error"
       }
     }
   ]

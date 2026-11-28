@@ -7,15 +7,15 @@
   border: 1px solid color-mix(in srgb, var(--reference-ink) 28%, transparent);
   border-radius: 6px;
 }
-.chat-reference-agent {
+[data-reference-kind='agent'] {
   --reference-ink: var(--primary);
   --reference-fill: var(--primary-soft);
 }
-.chat-reference-file {
+[data-reference-kind='file'] {
   --reference-ink: var(--teal);
   --reference-fill: var(--teal-soft);
 }
-.chat-reference-skill {
+[data-reference-kind='skill'] {
   --reference-ink: var(--plum);
   --reference-fill: var(--plum-soft);
 }
