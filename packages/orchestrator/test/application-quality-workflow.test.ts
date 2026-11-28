@@ -85,11 +85,18 @@ it('queues one correction from a group delivery into an isolated draft with befo
   try {
     const queued = await daemon.service.agentCall(tokens[0]!, 'quality', correction);
     expect(queued.taskId).toBeDefined();
+    daemon.service.board.updateCard(
+      card.id,
+      { owner: writer.id },
+      writer.id,
+      'Writer claimed the correction',
+    );
     expect(await daemon.service.agentCall(tokens[1]!, 'quality', correction)).toMatchObject({
       correctionId: queued.correctionId,
       alreadyQueued: true,
     });
   } finally {
+    daemon.service.board.updateCard(card.id, { owner: null }, writer.id, 'Released fixture claim');
     complete({ reply: 'Queued the requested correction.' });
   }
   await waitForSnapshot(request, (s) => s.tasks.length === 1 && s.tasks[0].status === 'completed');

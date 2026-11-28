@@ -122,6 +122,10 @@ export const qualityAgentAction = async (
     const message = userMessage(context, run, input.messageId);
     if (!message.content.includes(input.quote)) throw new Error('Quote the exact user correction.');
     const card = context.board.get<Card>('card', capability.cardId);
+    const existing = context.board
+      .list<WritingCorrection>('writing_correction')
+      .find((c) => c.messageId === message.id && c.cardId === card.id);
+    if (existing) return { correctionId: existing.id, alreadyQueued: true };
     assertConfirmedContext(card);
     if (
       !card.packet ||
@@ -141,10 +145,6 @@ export const qualityAgentAction = async (
       throw new Error(
         `Wait for ${owner}'s active application work to finish before requesting a correction.`,
       );
-    const existing = context.board
-      .list<WritingCorrection>('writing_correction')
-      .find((c) => c.messageId === message.id && c.cardId === card.id);
-    if (existing) return { correctionId: existing.id, alreadyQueued: true };
     return context.board.db.transaction(() => {
       const guide = writingGuide(context);
       const correction: WritingCorrection = {
