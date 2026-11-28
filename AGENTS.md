@@ -13,7 +13,7 @@ See [docs/status.md](docs/status.md) for the current feature inventory and [docs
 ## Branch and release workflow
 
 - `dev` is the integration branch for all development. Create every feature, fix, refactor, documentation and maintenance branch from the latest `dev`, and target `dev` when opening its pull request.
-- `main` is the production release branch. Release through a pull request with `dev` as the head and `main` as the base; individual work branches must not target `main`.
+- `main` is the production release branch. Release through a pull request with `dev` as the head and `main` as the base; individual work branches must not target `main`. Apply the `release` label to the release pull request so its title is omitted from the generated changelog.
 - Every release pull request must include a version bump above the current `main` version. Prepare the bump on `dev` (directly or through a preparation branch merged into `dev`) before opening the release pull request. The root `package.json` supplies the installer version; keep workspace package versions in sync with it.
 - Use semantic versioning (`MAJOR.MINOR.PATCH`): patch for fixes, minor for backward-compatible features, and major for breaking changes. Select and explain the bump in each `dev` → `main` release pull request based on the changes since the previous release.
 - Include the chosen version, a summary of changes and validation in the release pull request. Required CI must pass before merging. Merging into `main` triggers the existing verified-installer publication workflow with `build-<full commit SHA>` tags.
