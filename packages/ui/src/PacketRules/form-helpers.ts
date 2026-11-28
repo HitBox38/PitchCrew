@@ -1,3 +1,4 @@
+import { packetRuleLimits } from '@pitchcrew/core/packet-rule-options';
 import type { PacketRule } from '@pitchcrew/core';
 
 export type RuleKind = PacketRule['kind'];
@@ -18,7 +19,11 @@ export const ruleKinds: { value: RuleKind; label: string }[] = [
 export const editableDocument = (value: unknown): RulesDocument | null => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   const document = value as Record<string, unknown>;
-  if (document.version !== 1 || !Array.isArray(document.rules) || document.rules.length > 100)
+  if (
+    document.version !== 1 ||
+    !Array.isArray(document.rules) ||
+    document.rules.length > packetRuleLimits.rules
+  )
     return null;
   if (
     !document.rules.every(

@@ -3,6 +3,7 @@ import {
   applicationImportRequest,
   assertTransition,
   importLimits,
+  importFileSizeLabel,
   normalizeApplicationText,
   parseApplicationImport,
   planImportRow,
@@ -36,7 +37,7 @@ const importedKeys = (board: Board): Map<string, string> => {
 const readRequest = (data: unknown, apply: boolean) => {
   const request = (apply ? applicationImportApply : applicationImportRequest).parse(data);
   if (Buffer.byteLength(request.content) > importLimits.bytes)
-    throw new Error(`Import files can be at most ${importLimits.bytes / 1024 / 1024} MB.`);
+    throw new Error(`Import files can be at most ${importFileSizeLabel}.`);
   const digest = sha256(`${request.format}\n${request.content}`);
   if ('digest' in request && request.digest !== digest)
     throw new Error('The file changed after the preview. Preview it again.');

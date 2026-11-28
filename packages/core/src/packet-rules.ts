@@ -1,3 +1,10 @@
+import { packetDocuments, packetDocumentLabels } from './packet-documents.ts';
+import {
+  packetRuleLimits,
+  wordLimitBounds,
+  bulletLimitBounds,
+  matchCountBounds,
+} from './packet-rule-options.ts';
 import { z } from 'zod';
 
 /** Returns the length of a quantifier at `index` and whether it can repeat more than once. */
@@ -134,26 +141,6 @@ export const describePacketRules = (rules: PacketRules): string => {
   return text.length > 8000 ? `${text.slice(0, 8000)}\n…` : text;
 };
 
-/** Packet documents that house rules can check. Claims are always checked separately. */
-const packetDocuments = ['resume', 'coverLetter', 'formAnswers', 'note'] as const;
-export type PacketDocument = (typeof packetDocuments)[number];
-export const packetDocumentLabels: Record<PacketDocument, string> = {
-  resume: 'Resume',
-  coverLetter: 'Cover letter',
-  formAnswers: 'Form answers',
-  note: 'Note',
-};
-
-export const packetRuleLimits = {
-  rules: 100,
-  patterns: 50,
-  patternLength: 300,
-  values: 200,
-  valueLength: 300,
-  messageLength: 300,
-  fileBytes: 256 * 1024,
-} as const;
-
 const quantifierPattern = /^(?:[*+?]|\{(\d+)(?:(,)(\d*))?\})/;
 
 const ruleId = z
@@ -181,7 +168,7 @@ const packetRuleSchema = z.discriminatedUnion('kind', [
     .object({
       ...ruleBase,
       kind: z.literal('word_limit'),
-      max: z.number().int().min(1).max(100_000),
+      max: z.number().int().min(wordLimitBounds.min).max(wordLimitBounds.max),
       count: z.enum(['body', 'all']).default('body'),
     })
     .strict(),
@@ -189,7 +176,7 @@ const packetRuleSchema = z.discriminatedUnion('kind', [
     .object({
       ...ruleBase,
       kind: z.literal('max_bullets'),
-      max: z.number().int().min(0).max(1000),
+      max: z.number().int().min(bulletLimitBounds.min).max(bulletLimitBounds.max),
       heading: pattern.optional(),
       flags,
     })
@@ -214,7 +201,7 @@ const packetRuleSchema = z.discriminatedUnion('kind', [
       kind: z.literal('pattern'),
       pattern,
       flags,
-      maxCount: z.number().int().min(0).max(1000).optional(),
+      maxCount: z.number().int().min(matchCountBounds.min).max(matchCountBounds.max).optional(),
       equals: z.string().max(packetRuleLimits.valueLength).optional(),
     })
     .strict()
@@ -262,29 +249,6 @@ export const packetRulesSchema = z
 
 export type PacketRules = z.output<typeof packetRulesSchema>;
 export type PacketRuleSeverity = PacketRule['severity'];
-
-/** Built-in limits used when the data directory has no packet-rules.json. */
-export const defaultPacketRules: PacketRules = {
-  version: 1,
-  rules: [
-    {
-      id: 'resume-length',
-      kind: 'word_limit',
-      severity: 'error',
-      documents: ['resume'],
-      max: 650,
-      count: 'all',
-    },
-    {
-      id: 'cover-letter-length',
-      kind: 'word_limit',
-      severity: 'error',
-      documents: ['coverLetter'],
-      max: 500,
-      count: 'all',
-    },
-  ],
-};
 
 export interface PacketRuleIssue {
   path: (string | number)[];

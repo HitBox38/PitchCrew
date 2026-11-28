@@ -1,5 +1,5 @@
 import { keyedItems } from '@/lib/list-keys.ts';
-import { packetDocumentLabels } from '@/lib/packet-labels.ts';
+import { packetDocumentLabels } from '@pitchcrew/core/packet-documents';
 import { PacketDocumentView } from '@/components/CardDetails/components/PacketDocumentView.tsx';
 import { PacketDocumentPicker } from '@/components/CardDetails/components/PacketDocumentPicker.tsx';
 import type { JobPacketProps } from '@/components/CardDetails/types.ts';

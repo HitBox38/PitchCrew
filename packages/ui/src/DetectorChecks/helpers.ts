@@ -1,3 +1,4 @@
+import { packetDocumentLabels } from '@pitchcrew/core/packet-documents';
 import type {
   Card,
   DetectorAdvisory,
@@ -8,10 +9,6 @@ import type {
 
 /** A provider score at or above this reads as flagged. */
 const flagThreshold = 0.5;
-const documentLabels: Record<DetectorDocument, string> = {
-  coverLetter: 'Cover letter',
-  formAnswers: 'Form answers',
-};
 export const providerNames: Record<DetectorProvider, string> = {
   sapling: 'Sapling',
   copyleaks: 'Copyleaks',
@@ -43,7 +40,7 @@ export const detectorRows = (card: Card, digests: Digests): DocumentRow[] => {
     .filter((document) => packet[document].trim())
     .map((document) => ({
       document,
-      label: documentLabels[document],
+      label: packetDocumentLabels[document],
       text: packet[document],
       advisories: (card.detectorAdvisories ?? [])
         .filter((advisory) => advisory.document === document)

@@ -1,3 +1,4 @@
+import { importRowTextLimits } from '@pitchcrew/core/import-limits';
 import Database from 'better-sqlite3';
 import { importLimits } from '@pitchcrew/core';
 
@@ -76,16 +77,16 @@ export const convertLegacyTracker = (source: string | Buffer) => {
           stats.derivedTitles += 1;
         }
       }
-      const history = events.all(application.id, limits.history + 1) as LegacyEvent[];
+      const history = events.all(application.id, importLimits.history + 1) as LegacyEvent[];
       const names = tags.all(application.id) as { name: string }[];
       const notes = (application.notes ?? '').trim();
       const lessons = (application.lessons_learned ?? '').trim();
       if (
-        history.length > limits.history ||
+        history.length > importLimits.history ||
         names.length > 100 ||
-        notes.length > limits.notes ||
-        lessons.length > limits.lessons ||
-        history.some((event) => (event.note ?? '').trim().length > limits.historyNote)
+        notes.length > importRowTextLimits.notes ||
+        lessons.length > importRowTextLimits.lessons ||
+        history.some((event) => (event.note ?? '').trim().length > importRowTextLimits.historyNote)
       )
         stats.clipped += 1;
       return {
@@ -99,19 +100,19 @@ export const convertLegacyTracker = (source: string | Buffer) => {
           ? { statusAt: normalizeTime(application.updated_at, stats) }
           : {}),
         history: history
-          .slice(0, limits.history)
+          .slice(0, importLimits.history)
           .reverse()
           .map((event) => ({
             state: event.to_status,
             at: normalizeTime(event.created_at, stats),
             ...((event.note ?? '').trim()
-              ? { note: clip(event.note!.trim(), limits.historyNote) }
+              ? { note: clip(event.note!.trim(), importRowTextLimits.historyNote) }
               : {}),
           })),
         tags: names.slice(0, 100).map((tag) => tag.name),
-        ...(notes ? { notes: clip(notes, limits.notes) } : {}),
+        ...(notes ? { notes: clip(notes, importRowTextLimits.notes) } : {}),
         ...(application.weight ? { weight: application.weight } : {}),
-        ...(lessons ? { lessons: clip(lessons, limits.lessons) } : {}),
+        ...(lessons ? { lessons: clip(lessons, importRowTextLimits.lessons) } : {}),
       };
     });
     return { rows, stats };
@@ -144,7 +145,6 @@ interface LegacyEvent {
   note: string | null;
   created_at: string;
 }
-const limits = { notes: 4000, lessons: 2000, historyNote: 1000, history: 100 };
 const clip = (value: string, max: number) =>
   value.length > max ? `${value.slice(0, max - 1)}…` : value;
 const slug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '');

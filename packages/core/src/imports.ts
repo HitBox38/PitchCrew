@@ -1,3 +1,4 @@
+import { importLimits, importRowTextLimits } from './import-limits.ts';
 import { z } from 'zod';
 import { cardInput, type CardInput } from './cards.ts';
 import { transitions, type CardState } from './states.ts';
@@ -310,14 +311,6 @@ export const planImportRow = (row: ApplicationImportRow, now: number = Date.now(
 
 // Bulk import of applications tracked before Pitchcrew. Parsing and state
 // planning are pure; the board module checks duplicates and applies rows.
-export const importLimits = {
-  rows: 1000,
-  bytes: 2 * 1024 * 1024,
-  history: 100,
-  note: 6000,
-  tags: 10,
-  tagLength: 40,
-} as const;
 const importStates = [
   'lead',
   'shortlisted',
@@ -368,7 +361,7 @@ const importHistoryEntry = z
   .object({
     state: z.enum(importStates),
     at: importTime,
-    note: z.string().trim().max(1000).default(''),
+    note: z.string().trim().max(importRowTextLimits.historyNote).default(''),
   })
   .strict();
 export const applicationImportRow = z
@@ -393,9 +386,9 @@ export const applicationImportRow = z
     statusAt: importTime.optional(),
     history: z.array(importHistoryEntry).max(importLimits.history).default([]),
     tags: z.array(z.string().max(200)).max(100).default([]),
-    notes: z.string().trim().max(4000).default(''),
+    notes: z.string().trim().max(importRowTextLimits.notes).default(''),
     weight: z.number().int().min(-2).max(2).optional(),
-    lessons: z.string().trim().max(2000).default(''),
+    lessons: z.string().trim().max(importRowTextLimits.lessons).default(''),
   })
   .strict();
 export type ApplicationImportRow = z.infer<typeof applicationImportRow>;

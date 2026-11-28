@@ -1,3 +1,5 @@
+import { packetDocuments } from '@pitchcrew/core/packet-documents';
+
 export const ruleFields: Record<string, { detail: string; value: string }> = {
   id: { detail: 'Unique lowercase rule name', value: '""' },
   kind: { detail: 'Rule type', value: '"word_limit"' },
@@ -20,10 +22,10 @@ export const fieldsByKind: Record<string, string[]> = {
   canonical_lines: ['selector', 'flags', 'values'],
   pattern: ['pattern', 'flags', 'maxCount', 'equals'],
 };
-export const enumValues: Record<string, (string | number)[]> = {
+export const enumValues: Record<string, readonly (string | number)[]> = {
   version: [1],
   kind: ['word_limit', 'max_bullets', 'canonical_lines', 'pattern'],
   severity: ['error', 'warn'],
-  documents: ['resume', 'coverLetter', 'formAnswers', 'note'],
+  documents: packetDocuments,
   count: ['body', 'all'],
 };

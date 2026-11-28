@@ -1,7 +1,7 @@
 import { Button } from '@pitchcrew/design-system/button';
 import { FileUp } from 'lucide-react';
 import { useRef } from 'react';
-import { maxImportRows } from '../constants.ts';
+import { importLimits, importFileSizeLabel } from '@pitchcrew/core/import-limits';
 import type { ImportUpload } from '../types.ts';
 
 export const ImportFileField = ({
@@ -49,8 +49,8 @@ export const ImportFileField = ({
       </div>
       <p id="import-file-limits" className="import-hint">
         A previous tracker’s .db, .sqlite or .sqlite3 file, or a JSON or CSV export. Up to{' '}
-        {maxImportRows.toLocaleString('en-US')} applications and 2 MB. Processed locally; your
-        source file stays unchanged.
+        {importLimits.rows.toLocaleString('en-US')} applications and {importFileSizeLabel}.
+        Processed locally; your source file stays unchanged.
       </p>
       {upload?.warnings?.length ? (
         <ul className="import-hint list-disc pl-5" aria-label="Database conversion warnings">
