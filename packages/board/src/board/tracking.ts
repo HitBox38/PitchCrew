@@ -1,3 +1,4 @@
+import { cardLifecycle } from '@pitchcrew/core/lifecycles';
 import {
   approvalLifecycle,
   applicationQuery,
@@ -143,17 +144,7 @@ export const registerExistingExternalSubmission = (
     const card = board.get<Card>('card', cardId);
     if (card.owner || board.hasActiveRun(cardId))
       throw new Error('Wait for active workflow work before registering an external submission.');
-    if (
-      ![
-        'lead',
-        'shortlisted',
-        'drafting',
-        'in_review',
-        'changes_requested',
-        'agreed',
-        'awaiting_approval',
-      ].includes(card.state)
-    )
+    if (!cardLifecycle.is('preparing', card.state))
       throw new Error('This application already has a tracked submission or outcome.');
     const next: Card = {
       ...card,
