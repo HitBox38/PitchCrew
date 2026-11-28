@@ -41,4 +41,5 @@ export * from './artifacts.ts';
 export * from './rules.ts';
 export * from './verification/index.ts';
 export { matchingPacketExport, packetExportFiles } from './export-files.ts';
+export { savedPacketFolder } from './folder.ts';
 import { join } from 'node:path';

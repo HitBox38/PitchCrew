@@ -8,6 +8,10 @@ Inbox presents each frozen file as an attachment with a read-only viewer. Packet
 
 A failed export stays on the request for retry. Recovery of an already-consumed approval is limited to its unfinished export, rechecks the current reviewed packet and normal export gates, and writes to one stable directory for that approval. An already-completed matching directory can be recovered after a persistence interruption. Reusing an existing export checks the complete filenames and exact bytes. Changed files require a fresh approval; recovery never grants another application submission.
 
+## Opening saved files
+
+The job sheet offers **Open packet folder** beside the posting control when `packets/<card id>/` in the data folder contains saved files. Draft versions and approved exports live in that directory. The action opens it in the system file manager. A file manager that fails immediately is reported on the sheet; Explorer on Windows counts as opened once it starts, because it exits with an error code after a successful open. Unfinished staging directories do not count, and the request never accepts a path.
+
 ## Verification before approval
 
 Each requested PDF/DOCX is checked from its actual bytes before it reaches
