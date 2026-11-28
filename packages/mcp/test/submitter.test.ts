@@ -125,7 +125,7 @@ it('preserves approval for unchanged requirements and expires it when inspected 
   expect(board.get<{ status: string }>('approval', approval.id).status).toBe('rejected');
   expect(board.get<Card>('card', card.id).packetReview).toBeUndefined();
   expect(() => assertConfirmedContext(board.get<Card>('card', card.id))).toThrow(
-    'Review its findings',
+    'Review the latest form inspection',
   );
   board.rebuild();
   expect(board.get<{ status: string }>('approval', approval.id).status).toBe('rejected');
