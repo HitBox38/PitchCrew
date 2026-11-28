@@ -6,6 +6,9 @@ export const formConstraintsHtml = `<!doctype html><title>Fictional constraints<
 <label>Years<input type="number" min="0" max="50" step="0.5"></label>
 <label>Unspecified<input></label><label>Malformed<input minlength="invalid" step="${'x'.repeat(201)}"></label>
 <label>Nested label<textarea>Private nested draft</textarea></label>
+<label for="town"> </label><label for="town">Preferred city</label>
+<input id="town" role="combobox" name="location-id" aria-label=" " required>
+<input title="Available from" name="date-id" role="combobox">
 <label>Resume<input type="file" accept=".pdf" data-max-size="1000"></label>
 <label for="country">Country</label><select id="country">${Array.from({ length: 105 }, (_, i) => `<option>Country ${i}</option>`).join('')}</select>
 <label for="short">Short choices</label><select id="short"><option>Yes</option><option>No</option></select>
@@ -77,4 +80,6 @@ export const assertFormConstraints = (page: BrowserSnapshot) => {
   assert.ok(!JSON.stringify(page.controls).includes('Private draft'));
   assert.ok(!JSON.stringify(page.controls).includes('Private nested draft'));
   assert.equal(field('Nested label').type, 'textarea');
+  assert.equal(field('Preferred city').required, true);
+  assert.equal(field('Available from').visible, true);
 };

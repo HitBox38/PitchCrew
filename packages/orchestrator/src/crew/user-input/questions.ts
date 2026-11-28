@@ -44,7 +44,7 @@ export const askUser = (
     // Ordinary isolated continuations cannot recover unbound answers from chat history.
     else if (!run.deepReviewId)
       throw new Error(
-        'Use applicationRequirementId for a confirmed personal requirement, or use the exact unique assessed form field label as question. Put explanations in reason and retry. No question was saved.',
+        'Use applicationRequirementId for a confirmed personal requirement, or use the exact unique assessed form field label as question. If the prompt appears only on the page or in an annotation, ask the user to add it under Brief and requirements, select “Needs my personal answer” and confirm the brief. No question was saved.',
       );
   }
   if (context.board.list<UserInputRequest>('user_input').some((q) => q.runId === run.id))

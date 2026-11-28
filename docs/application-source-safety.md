@@ -138,6 +138,8 @@ An ordinary chat role with `manageWorkflow` can use `pitchcrew_update_job` to co
 
 ## Confirmed application form requirements
 
+Inspection combines the associated HTML labels and uses a control's title when it has no other accessible label, before falling back to its internal name. If a custom widget exposes its question only visually, the user can add that question under **Brief and requirements**, select **Needs my personal answer**, and confirm it. Writer and Reviewer can then ask by requirement ID.
+
 Confirmed form summaries retain optional declared length/range/step attributes, explicit group semantics and choice completeness from server inspection. Declared/absent/unavailable evidence is distinct; upload byte limits and missing historical evidence stay unknown. These fields do not carry entered values or grant interaction permissions. Changed findings use the same stale-context and approval invalidation checks. Event version 38 adds the evidence without rewriting earlier events; see [computer use](computer-use.md#form-assessments-and-submission-receipts) for bounds and semantic limitations.
 
 Event version 28 extends the adopted application context with an optional structured form summary or an explicit user manual-check choice. Linked jobs require one of these before drafting/review/export; existing unsent packets meet the requirement when next used. Saved assessments alone are not adopted requirements. The user reviews the whole form summary with the brief; only a summary matching the current inspected fields can be confirmed. Changed findings make the adopted summary stale, clear packet review/rating and reject unused export/browser approvals. Historical contexts retain their earlier revision calculation when no form summary exists.

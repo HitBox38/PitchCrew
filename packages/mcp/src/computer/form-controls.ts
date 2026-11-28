@@ -29,7 +29,7 @@ export const readFormControls = (credentials: string) => {
       .map((id) => content(document.getElementById(id)))
       .join(' ')
       .trim();
-    return labelledBy || element.getAttribute('aria-label') || '';
+    return labelledBy || element.getAttribute('aria-label')?.trim() || '';
   };
   const attribute = (
     element: Element,
@@ -83,9 +83,12 @@ export const readFormControls = (credentials: string) => {
       selector,
       label: text(
         name(element) ||
-          content(field.labels?.[0] ?? null) ||
+          Array.from(field.labels ?? [], (label) => content(label).trim())
+            .filter(Boolean)
+            .join(' ') ||
+          (element.matches(custom) ? content(element).trim() : '') ||
+          element.getAttribute('title')?.trim() ||
           field.name ||
-          (element.matches(custom) ? content(element) : '') ||
           '',
       ),
       type:
