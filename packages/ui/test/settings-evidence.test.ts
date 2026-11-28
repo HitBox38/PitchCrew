@@ -24,6 +24,38 @@ afterAll(async () => {
 });
 afterEach(() => vi.restoreAllMocks());
 
+test('packet rules accept a 256 KiB file and reject one extra byte before reading it', async () => {
+  const page = await browser.newPage();
+  try {
+    await page.goto(`${host.daemon.url}/settings?section=rules`);
+    const input = page.getByLabel('Import packet rules file');
+    await input.waitFor({ state: 'attached' });
+    const reads: string[] = [];
+    await page.exposeFunction('recordRulesFileRead', (name: string) => reads.push(name));
+    await page.evaluate(() => {
+      const record = (
+        window as Window & {
+          recordRulesFileRead?: (name: string) => Promise<void>;
+        }
+      ).recordRulesFileRead!;
+      File.prototype.text = async function () {
+        await record(this.name);
+        return '{"version":1,"rules":[]}';
+      };
+    });
+    const file = { name: 'rules.json', mimeType: 'application/json' };
+    await input.setInputFiles({ ...file, buffer: Buffer.alloc(256 * 1024) });
+    await page
+      .getByText('Loaded rules.json. Review the rules, then save.', { exact: true })
+      .waitFor();
+    await input.setInputFiles({ ...file, buffer: Buffer.alloc(256 * 1024 + 1) });
+    await page.getByText('Rules files can be at most 256 KB.', { exact: true }).waitFor();
+    expect(reads).toEqual(['rules.json']);
+  } finally {
+    await page.close();
+  }
+});
+
 test('settings sections remain named, bounded and operable on desktop and touch devices', async () => {
   const output = process.env.PITCHCREW_SETTINGS_EVIDENCE;
   if (output) await mkdir(resolve(output), { recursive: true });

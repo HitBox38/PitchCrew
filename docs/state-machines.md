@@ -65,6 +65,7 @@ Named sets:
 - `closed`: rejected, withdrawn, ghosted
 - `draftable`: shortlisted, changes_requested
 - `reviewable`: in_review, agreed, awaiting_approval
+- `deepReviewable`: shortlisted, changes_requested, in_review, agreed, awaiting_approval
 
 ## Run
 

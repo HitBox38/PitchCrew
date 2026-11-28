@@ -15,10 +15,13 @@ import {
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { CrewContext } from './types.ts';
+import { requireRole } from './role-lookup.ts';
 import { roleSetup, validateRoleSetup } from './role-setup.ts';
 import { saveRoutine } from './routines/index.ts';
 import { ensureDirectConversation } from './conversations.ts';
 import { validateReasoning } from './reasoning.ts';
+
+export { requireRole };
 
 export const writeRunInstructions = async (
   context: CrewContext,
@@ -103,11 +106,6 @@ export const configureRole = async (
   return role;
 };
 
-export const requireRole = (context: CrewContext, id: RoleId): Role => {
-  const role = context.board.get<Role>('role', roleIdSchema.parse(id));
-  if (role.retiredAt) throw new Error('This role is retired.');
-  return role;
-};
 export const createRole = async (context: CrewContext, data: unknown): Promise<Role> => {
   const { skills: selectedSkills, routine, ...input } = roleSetup.parse(data);
   const setup = { ...input, skills: selectedSkills, routine };

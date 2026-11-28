@@ -1,3 +1,4 @@
+import { cardLifecycle } from '@pitchcrew/core/lifecycles';
 import { useDirtyNotification } from '@/hooks/useDirtyNotification.ts';
 import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { ExternalSubmissionFields } from '@/ExternalSubmissionFields/index.tsx';
@@ -16,18 +17,7 @@ export const ExternalSubmissionRegistration = ({
     card.id,
   );
   useDirtyNotification(dirty, onDirtyChange);
-  if (
-    ![
-      'lead',
-      'shortlisted',
-      'drafting',
-      'in_review',
-      'changes_requested',
-      'agreed',
-      'awaiting_approval',
-    ].includes(card.state)
-  )
-    return null;
+  if (!cardLifecycle.is('preparing', card.state)) return null;
   return (
     <AccordionSection heading="Already applied outside Pitchcrew?">
       <p className="quiet my-2">

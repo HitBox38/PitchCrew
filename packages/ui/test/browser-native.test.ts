@@ -8,12 +8,12 @@ import {
 import type {
   BrowserProfilesState,
   BrowserProfilesCommand,
-} from '../../core/src/browser-profiles.ts';
+} from '@pitchcrew/core/browser-profiles';
 import type {
   DesktopBrowserView,
   NativeBrowserCommand,
   NativeBrowserState,
-} from '../../core/src/native-browser.ts';
+} from '@pitchcrew/core/native-browser';
 import { afterAll, beforeAll, expect, test, vi } from 'vitest';
 import { setup, cleanup } from './helpers/daemon.ts';
 

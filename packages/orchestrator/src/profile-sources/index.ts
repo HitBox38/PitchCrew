@@ -12,16 +12,14 @@ import { readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { z } from 'zod';
+import { profileFilenameSchema } from '../profile-notes/helpers.ts';
 import { readDriveSource } from './drive.ts';
 import { readGithubSource } from './github.ts';
 import { checkFiles, digest, localName, sourceId, sourceInput } from './helpers.ts';
 
 const storedFile = z.object({
   key: z.string(),
-  name: z
-    .string()
-    .regex(/^[\w.-]+\.md$/)
-    .refine((v) => !v.includes('..')),
+  name: profileFilenameSchema(),
   path: z.string(),
   url: z.string(),
   revision: z.string(),

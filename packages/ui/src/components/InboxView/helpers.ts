@@ -1,4 +1,6 @@
 import { browserNeedsAction, packetNeedsAction } from '../../lib/inbox.ts';
+import { cardLifecycle } from '@pitchcrew/core/lifecycles';
+import { positiveStates } from '@/lib/labels.ts';
 export { packetNeedsAction } from '../../lib/inbox.ts';
 import type { ApprovalRequest, InboxTab } from './types.ts';
 import type { Approval, PacketArtifact, Snapshot } from '@pitchcrew/core';
@@ -115,9 +117,9 @@ export const historyTone = (
         : 'teal';
   const card = data.cards.find((item) => item.id === request.approval.cardId);
   if (card?.submissionAttempts?.some((attempt) => attempt.status === 'uncertain')) return 'ochre';
-  if (card && ['screening', 'interviewing', 'offer'].includes(card.state)) return 'moss';
+  if (card && positiveStates.has(card.state)) return 'moss';
   if (request.approval.status === 'rejected') return 'quiet';
-  if (!card || ['rejected', 'ghosted', 'withdrawn'].includes(card.state)) return 'quiet';
+  if (!card || cardLifecycle.is('closed', card.state)) return 'quiet';
   return 'teal';
 };
 

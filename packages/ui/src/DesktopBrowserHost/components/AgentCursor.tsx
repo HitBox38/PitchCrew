@@ -1,4 +1,4 @@
-import type { DesktopBrowserView } from '../../../../core/src/native-browser.ts';
+import type { DesktopBrowserView } from '@pitchcrew/core/native-browser';
 import { browserPagePoint } from '../presentation.ts';
 import { useBrowserPresence } from '../presence.ts';
 import { useAgentCursorPhase } from '../hooks/useAgentCursorPhase.ts';

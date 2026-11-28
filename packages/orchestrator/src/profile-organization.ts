@@ -1,7 +1,9 @@
 import type { ProfileOrganization } from '@pitchcrew/core';
+import { maxEditedProfileFilenameLength } from '@pitchcrew/core/profile-filenames';
 import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { z } from 'zod';
+import { profileFilenameSchema } from './profile-notes/helpers.ts';
 
 const folder = z
   .string()
@@ -28,11 +30,7 @@ const folder = z
           )),
     'Use folder names without slashes, backslashes or parent-directory segments.',
   );
-const noteName = z
-  .string()
-  .max(100)
-  .regex(/^[\w.-]+\.md$/)
-  .refine((name) => !name.includes('..'));
+const noteName = profileFilenameSchema(z.string().max(maxEditedProfileFilenameLength));
 const stateSchema = z
   .object({
     version: z.literal(1),

@@ -1,68 +1,33 @@
 import type { RuntimeModel } from '@pitchcrew/core';
-import { spawn } from 'node:child_process';
-import { tmpdir } from 'node:os';
-import {
-  modelDiscoveryMaxBytes,
-  modelDiscoveryTimeout,
-  normalizeModels,
-} from '../model-discovery.ts';
+import { normalizeModels } from '../model-discovery.ts';
+import { readModelCatalog } from '../process/model-catalog.ts';
 import { modelReasoning } from '../reasoning.ts';
-import { cliEnvironment, terminateCli } from '../process.ts';
-import { runtimeCommand } from '../process/executable.ts';
 
-export const readCodexModels = async (
+export const readCodexModels = (
   command: string,
   args: string[],
   signal?: AbortSignal,
-  timeout = modelDiscoveryTimeout,
+  timeout?: number,
 ): Promise<RuntimeModel[]> => {
-  signal?.throwIfAborted();
-  return new Promise((resolve, reject) => {
-    const invocation = runtimeCommand(command, args);
-    const child = spawn(invocation.file, invocation.args, {
-      cwd: tmpdir(),
-      env: cliEnvironment(),
-      windowsHide: true,
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
-    let buffer = '',
-      bytes = 0,
-      expectedId = 1,
-      stopped = false;
-    let completed: RuntimeModel[] | undefined;
-    let failure: Error | undefined;
-    let killTimer: ReturnType<typeof setTimeout> | undefined;
-    const models: RuntimeModel[] = [];
-    const cursors = new Set<string>();
-    const send = (message: Record<string, unknown>) => {
-      if (!stopped && !child.stdin.destroyed) child.stdin.write(JSON.stringify(message) + '\n');
-    };
-    const stop = (error?: Error, result?: RuntimeModel[]) => {
-      if (stopped) return;
-      stopped = true;
-      failure = error;
-      completed = result;
-      child.stdin.end();
-      terminateCli(child);
-      killTimer = setTimeout(() => child.kill('SIGKILL'), 500);
-      killTimer.unref();
-    };
-    const abort = () => stop(new Error('Model discovery cancelled.'));
-    const timer = setTimeout(() => stop(new Error('Model discovery timed out.')), timeout);
-    signal?.addEventListener('abort', abort, { once: true });
-    const cleanup = () => {
-      clearTimeout(timer);
-      clearTimeout(killTimer);
-      signal?.removeEventListener('abort', abort);
-    };
-    const listPage = (cursor?: string) =>
-      send({
-        id: ++expectedId,
-        method: 'model/list',
-        params: { limit: 100, includeHidden: false, ...(cursor ? { cursor } : {}) },
-      });
-    const receive = (event: Record<string, unknown>) => {
-      if (stopped) return;
+  let expectedId = 1;
+  const models: RuntimeModel[] = [];
+  const cursors = new Set<string>();
+  const listPage = (cursor?: string) => ({
+    id: ++expectedId,
+    method: 'model/list',
+    params: { limit: 100, includeHidden: false, ...(cursor ? { cursor } : {}) },
+  });
+  return readModelCatalog(command, args, {
+    name: 'Codex',
+    wire: 'json-lines',
+    signal,
+    timeout,
+    initialRequest: {
+      id: 1,
+      method: 'initialize',
+      params: { clientInfo: { name: 'pitchcrew', version: '0.1.0' } },
+    },
+    receive: (event: Record<string, unknown>, send) => {
       if (typeof event.method === 'string') {
         if (event.id !== undefined)
           send({
@@ -77,7 +42,7 @@ export const readCodexModels = async (
         if (!event.result || typeof event.result !== 'object')
           throw new Error('Invalid Codex initialization.');
         send({ method: 'initialized', params: {} });
-        listPage();
+        send(listPage());
         return;
       }
       const result = event.result as { data?: unknown; nextCursor?: unknown } | undefined;
@@ -115,53 +80,9 @@ export const readCodexModels = async (
         )
           throw new Error('Invalid Codex model cursor.');
         cursors.add(result.nextCursor);
-        listPage(result.nextCursor);
-      } else stop(undefined, normalizeModels(models));
-    };
-    child.stdout.setEncoding('utf8');
-    child.stdout.on('data', (chunk: string) => {
-      bytes += Buffer.byteLength(chunk);
-      if (bytes > modelDiscoveryMaxBytes) {
-        stop(new Error('Model discovery output exceeded its limit.'));
-        return;
-      }
-      buffer += chunk;
-      let end: number;
-      while ((end = buffer.indexOf('\n')) >= 0) {
-        const line = buffer.slice(0, end);
-        buffer = buffer.slice(end + 1);
-        let event: Record<string, unknown>;
-        try {
-          event = JSON.parse(line) as Record<string, unknown>;
-        } catch {
-          continue;
-        }
-        try {
-          receive(event);
-        } catch {
-          stop(new Error('Could not read the Codex model catalog.'));
-        }
-      }
-    });
-    // Drain diagnostics without retaining credentials or other provider metadata.
-    child.stderr.resume();
-    child.stdin.on('error', () => {});
-    child.on('error', () => {
-      stopped = true;
-      cleanup();
-      reject(new Error('Could not start Codex model discovery.'));
-    });
-    child.on('close', () => {
-      cleanup();
-      if (failure) reject(failure);
-      else if (completed !== undefined) resolve(completed);
-      else reject(new Error('Codex exited before returning its models.'));
-    });
-    send({
-      id: 1,
-      method: 'initialize',
-      params: { clientInfo: { name: 'pitchcrew', version: '0.1.0' } },
-    });
+        send(listPage(result.nextCursor));
+      } else return normalizeModels(models);
+    },
   });
 };
 

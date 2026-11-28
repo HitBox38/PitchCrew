@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp } from 'lucide-react';
-import type { DesktopBrowserView } from '../../../../core/src/native-browser.ts';
+import type { DesktopBrowserView } from '@pitchcrew/core/native-browser';
 import { browserPageRect, targetEdge } from '../presentation.ts';
 import { useBrowserPresence } from '../presence.ts';
 

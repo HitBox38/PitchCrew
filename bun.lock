@@ -82,6 +82,9 @@
         "zod": "^4.6.6",
       },
       "devDependencies": {
+        "@pitchcrew/core": "workspace:*",
+        "@pitchcrew/mcp": "workspace:*",
+        "@pitchcrew/orchestrator": "workspace:*",
         "@types/ws": "8.18.1",
         "electron": "44.11.1",
         "tsdown": "0.23.0",
@@ -95,6 +98,7 @@
         "@fontsource-variable/fraunces": "^5.3.0",
         "@fontsource/source-sans-3": "^5.2.8",
         "@pitchcrew/design-system": "workspace:*",
+        "@pitchcrew/session-replay": "workspace:*",
         "lucide-react": "1.49.0",
         "next": "16.4.6",
         "posthog-js": "^1.435.8",
@@ -106,6 +110,7 @@
         "@tailwindcss/postcss": "^4.3.0",
         "@types/react": "19.3.0",
         "@types/react-dom": "^19.2.3",
+        "playwright": "^1.63.0",
       },
     },
     "packages/mcp": {
@@ -163,6 +168,16 @@
         "pdfjs-dist": "^6.3.289",
       },
     },
+    "packages/session-replay": {
+      "name": "@pitchcrew/session-replay",
+      "version": "0.25.0",
+      "dependencies": {
+        "posthog-js": "^1.435.8",
+      },
+      "devDependencies": {
+        "playwright": "^1.63.0",
+      },
+    },
     "packages/ui": {
       "name": "@pitchcrew/ui",
       "version": "0.25.0",
@@ -191,6 +206,7 @@
         "@opentelemetry/api": "1.9.0",
         "@pitchcrew/core": "workspace:*",
         "@pitchcrew/design-system": "workspace:*",
+        "@pitchcrew/session-replay": "workspace:*",
         "@tanstack/react-router": "^1.170.41",
         "@xterm/addon-fit": "0.11.0",
         "@xterm/xterm": "6.0.0",
@@ -748,6 +764,8 @@
     "@pitchcrew/orchestrator": ["@pitchcrew/orchestrator@workspace:packages/orchestrator"],
 
     "@pitchcrew/packet": ["@pitchcrew/packet@workspace:packages/packet"],
+
+    "@pitchcrew/session-replay": ["@pitchcrew/session-replay@workspace:packages/session-replay"],
 
     "@pitchcrew/ui": ["@pitchcrew/ui@workspace:packages/ui"],
 

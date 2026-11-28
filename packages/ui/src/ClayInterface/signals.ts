@@ -1,5 +1,7 @@
 import type { Card, Run, Snapshot } from '@pitchcrew/core';
-import { closedStateSet } from '../board-stages.ts';
+import { cardLifecycle } from '@pitchcrew/core/lifecycles';
+import { formChoiceIsCurrent } from '@pitchcrew/core/form-requirements';
+import { briefRevisionConfirmed } from '../lib/job-step.ts';
 import { browserNeedsAction, packetNeedsAction } from '../lib/inbox.ts';
 import { executingRuns } from '../lib/work-queue.ts';
 import {
@@ -29,12 +31,14 @@ export type Decision = {
  * it: fit and shortlisting lead there, and confirmation gates drafting once the job is shortlisted.
  */
 const needsBrief = (card: Card) => {
-  const context = card.applicationContext;
+  if (!card.applicationContext || card.state === 'lead' || cardLifecycle.is('closed', card.state))
+    return false;
+  if (!briefRevisionConfirmed(card.applicationContext)) return true;
+  // A linked job awaiting its first inspection still needs the check-form action.
   return (
-    !!context &&
-    card.state !== 'lead' &&
-    !closedStateSet.has(card.state) &&
-    (!context.confirmedAt || context.confirmedRevision !== context.revision)
+    cardLifecycle.is('preparing', card.state) &&
+    Boolean(card.applicationContext.form || card.formAssessments?.length) &&
+    !formChoiceIsCurrent(card)
   );
 };
 

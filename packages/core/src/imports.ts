@@ -1,5 +1,7 @@
+import { importLimits, importRowLimits } from './import-limits.ts';
 import { z } from 'zod';
 import { cardInput, type CardInput } from './cards.ts';
+import { cardLifecycle } from './lifecycles.ts';
 import { transitions, type CardState } from './states.ts';
 import { canonicalJobUrl } from './tracking.ts';
 import { lessonLimits } from './insights.ts';
@@ -174,9 +176,7 @@ export const planImportRow = (row: ApplicationImportRow, now: number = Date.now(
   }
   const start = reached ? 'submitted' : 'lead';
   const allowed = new Set<CardState>(
-    reached
-      ? ['submitted', 'screening', 'interviewing', 'offer', 'rejected', 'withdrawn', 'ghosted']
-      : ['lead', 'shortlisted', 'withdrawn'],
+    reached ? [...submittedStates, 'withdrawn'] : ['lead', 'shortlisted', 'withdrawn'],
   );
   const sequence: typeof history = [];
   for (const entry of history)
@@ -310,14 +310,6 @@ export const planImportRow = (row: ApplicationImportRow, now: number = Date.now(
 
 // Bulk import of applications tracked before Pitchcrew. Parsing and state
 // planning are pure; the board module checks duplicates and applies rows.
-export const importLimits = {
-  rows: 1000,
-  bytes: 2 * 1024 * 1024,
-  history: 100,
-  note: 6000,
-  tags: 10,
-  tagLength: 40,
-} as const;
 const importStates = [
   'lead',
   'shortlisted',
@@ -368,7 +360,7 @@ const importHistoryEntry = z
   .object({
     state: z.enum(importStates),
     at: importTime,
-    note: z.string().trim().max(1000).default(''),
+    note: z.string().trim().max(importRowLimits.historyNote).default(''),
   })
   .strict();
 export const applicationImportRow = z
@@ -392,10 +384,10 @@ export const applicationImportRow = z
     submittedAt: importTime.optional(),
     statusAt: importTime.optional(),
     history: z.array(importHistoryEntry).max(importLimits.history).default([]),
-    tags: z.array(z.string().max(200)).max(100).default([]),
-    notes: z.string().trim().max(4000).default(''),
+    tags: z.array(z.string().max(200)).max(importRowLimits.tags).default([]),
+    notes: z.string().trim().max(importRowLimits.notes).default(''),
     weight: z.number().int().min(-2).max(2).optional(),
-    lessons: z.string().trim().max(2000).default(''),
+    lessons: z.string().trim().max(importRowLimits.lessons).default(''),
   })
   .strict();
 export type ApplicationImportRow = z.infer<typeof applicationImportRow>;
@@ -444,11 +436,9 @@ interface RawRow {
   error?: string;
 }
 
+// Withdrawal can happen before applying. These statuses establish that submission happened.
 const submittedStates = new Set<CardState>([
-  'submitted',
-  'screening',
-  'interviewing',
-  'offer',
+  ...cardLifecycle.groups.applied,
   'rejected',
   'ghosted',
 ]);

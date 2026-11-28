@@ -1,5 +1,5 @@
 import { createElement, useLayoutEffect, useState } from 'react';
-import type { DesktopBrowserView } from '../../../../core/src/native-browser.ts';
+import type { DesktopBrowserView } from '@pitchcrew/core/native-browser';
 import { browserViewStyle, initialBrowserSize, type BrowserViewSize } from '../presentation.ts';
 import { AgentCursor } from './AgentCursor.tsx';
 import { ApprovalTargetRing } from './ApprovalTargetRing.tsx';

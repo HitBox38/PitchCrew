@@ -2,7 +2,7 @@ import { X } from 'lucide-react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { Button } from '@pitchcrew/design-system/button';
 import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
-import type { NativeBrowserState } from '../../../../core/src/native-browser.ts';
+import type { NativeBrowserState } from '@pitchcrew/core/native-browser';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
 import { browserTabLabel } from '../helpers.ts';
 import { BrowserTabIcon } from './BrowserTabIcon.tsx';

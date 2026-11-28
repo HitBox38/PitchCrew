@@ -1,6 +1,6 @@
 import type { ApprovalRequest } from '@/components/InboxView/types.ts';
 import { packetExportFileName } from '@pitchcrew/core/packet-files';
-import { readableWordCount } from '@/lib/packet-labels.ts';
+import { readableWordCount } from '@/lib/readable-word-count.ts';
 import { fileNotes } from '@/lib/document-findings.ts';
 import type { ViewerFile } from './types.ts';
 const sourceNames = {

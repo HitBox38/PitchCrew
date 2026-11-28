@@ -1,4 +1,4 @@
-import { assertPublicUrl } from '../../../mcp/src/computer/network.ts';
+import { assertPublicUrl } from '@pitchcrew/mcp/computer/network';
 
 /** Renderer chrome never loads a website's URL with the trusted app session. */
 export const browserFavicon = async (value: string, signal: AbortSignal) => {

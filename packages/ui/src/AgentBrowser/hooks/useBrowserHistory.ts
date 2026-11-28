@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
-import type { NativeBrowserState } from '../../../../core/src/native-browser.ts';
+import type { NativeBrowserState } from '@pitchcrew/core/native-browser';
 import {
   browserClosedTabsLimit,
   readBrowserHistory,

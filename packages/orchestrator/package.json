@@ -3,7 +3,10 @@
   "version": "0.25.0",
   "private": true,
   "type": "module",
-  "exports": "./src/server.ts",
+  "exports": {
+    ".": "./src/server.ts",
+    "./release-check": "./src/app-updates/github.ts"
+  },
   "dependencies": {
     "@fastify/cookie": "11.1.2",
     "@fastify/static": "10.1.5",

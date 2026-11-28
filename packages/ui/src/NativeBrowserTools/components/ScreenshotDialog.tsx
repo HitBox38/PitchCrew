@@ -6,7 +6,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@pitchcrew/design-system/dialog';
-import type { DesktopBrowserCapture } from '../../../../core/src/native-browser.ts';
+import type { DesktopBrowserCapture } from '@pitchcrew/core/native-browser';
 import { useScreenshotCanvas } from '../hooks/useScreenshotCanvas.ts';
 import { useScreenshotActions } from '../hooks/useScreenshotActions.ts';
 import { ScreenshotActions } from './ScreenshotActions.tsx';

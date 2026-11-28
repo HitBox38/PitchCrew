@@ -1,3 +1,4 @@
+import { packetRuleLimits } from '@pitchcrew/core/packet-rule-options';
 import { Textarea } from '@pitchcrew/design-system/textarea';
 import { Input } from '@pitchcrew/design-system/input';
 import { Button } from '@pitchcrew/design-system/button';
@@ -60,7 +61,7 @@ export const RuleForm = (
           rows={2}
           value={fieldText(rule.message)}
           onChange={(event) => change({ message: event.target.value || undefined })}
-          maxLength={300}
+          maxLength={packetRuleLimits.messageLength}
         />
       </label>
       <p className="packet-rule-summary">

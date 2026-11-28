@@ -2,6 +2,10 @@ import { createInterface } from 'node:readline';
 
 const mode = process.argv[2];
 if (process.env.PITCHCREW_GOOGLE_CLIENT_SECRET) process.exit(1);
+if (mode.endsWith('-stderr'))
+  await new Promise<void>((resolve) =>
+    process.stderr.write('x'.repeat(2_000_001), () => resolve()),
+  );
 if (mode === 'cursor') {
   console.log(
     '\u001b[1mAvailable models\u001b[0m\nauto - Auto (default)\nfixture-high - Fixture High\n',
@@ -20,8 +24,9 @@ if (mode === 'cursor') {
     const body = JSON.stringify({ jsonrpc: '2.0', ...value });
     const frame = `Content-Length: ${Buffer.byteLength(body)}\r\n\r\n${body}`;
     const bytes = Buffer.from(frame);
-    process.stdout.write(bytes.subarray(0, 18));
-    setTimeout(() => process.stdout.write(bytes.subarray(18)), 5);
+    const split = body.includes('·') ? bytes.indexOf('·') + 1 : 18;
+    process.stdout.write(bytes.subarray(0, split));
+    setTimeout(() => process.stdout.write(bytes.subarray(split)), 5);
   };
   process.stdin.on('data', (chunk) => {
     buffer = Buffer.concat([buffer, chunk]);

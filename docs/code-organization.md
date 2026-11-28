@@ -1,5 +1,11 @@
 # Code organization
 
+## Workspace boundaries
+
+Each workspace owns its package exports. Import a sibling through a declared dependency. Add a browser-safe core subpath when the renderer needs a domain value that the server also uses. Resolve a bounded worker's entry through the package that owns its implementation.
+
+Oxlint checks production imports and eager module cycles. The workspace tests check the declared dependency graph, including the desktop host's bundled build dependencies. Both checks discover packages from the root workspace patterns. See the [ownership map](architecture-progress.md) and [decision record](adr/0008-check-dependencies-at-the-workspace-and-module-levels.md).
+
 Pitchcrew separates reusable UI primitives in `packages/design-system` from the browser/Electron renderer in `packages/ui` and public website in `packages/landing`. Within each package, files follow the responsibility they implement so a reader can find a feature without scanning an entire application file.
 
 ## React features

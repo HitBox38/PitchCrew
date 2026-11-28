@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import type { BrowserWindow, WebPreferences } from 'electron';
-import type { DesktopBrowserView } from '../../core/src/native-browser.ts';
+import type { DesktopBrowserView } from '@pitchcrew/core/native-browser';
 import { createDomBrowserHost } from '../src/browser/dom-host.ts';
 import { domBrowserBootstrapUrl, domBrowserChannels } from '../src/browser/dom-protocol.ts';
 

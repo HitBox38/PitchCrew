@@ -2,9 +2,15 @@ import { deliveryLifecycle } from '@pitchcrew/core';
 import type { ChatRequest, AgentTask } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 import { canReadConversation } from '../conversations.ts';
-import { saveRequest } from '../conversation-queue.ts';
 import { taskAwaitsRecovery } from '../delegation-rounds.ts';
-import { ensureQueue, nextOrder, patchQueue, queueRequests, taskLane } from './state.ts';
+import {
+  ensureQueue,
+  nextOrder,
+  patchQueue,
+  queueRequests,
+  saveRequest,
+  taskLane,
+} from './state.ts';
 
 /** Retry one reviewed head request, then continue messages that have never started. */
 export const resumeHeadRequest = (context: CrewContext, request: ChatRequest) => {

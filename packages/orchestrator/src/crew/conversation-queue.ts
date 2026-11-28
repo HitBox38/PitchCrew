@@ -1,6 +1,6 @@
 import { queueMayStart } from './queue/dispatch.ts';
 import { reportDrainFailure } from './queue/drain-failure.ts';
-import { findEntity, queuedChatRequests } from './queue/queries.ts';
+import { queuedChatRequests } from './queue/queries.ts';
 import { submitChatOnce } from './chat-submissions.ts';
 import { pauseForUnfinishedHead, resumeHeadRequest } from './queue/recovery.ts';
 import { QueueBusyError, launchProblem } from './queue/admission.ts';
@@ -8,10 +8,9 @@ import {
   ensureQueue,
   patchQueue,
   nextOrder,
-  runLane,
   laneId,
   queueRequests,
-  activeQueues,
+  saveRequest,
 } from './queue/state.ts';
 import { requestProblem, requestIsHead } from './queue/requests.ts';
 import { moveQueueRequest } from './queue/commands.ts';
@@ -28,7 +27,6 @@ import {
   chatInput,
   type ChatRequest,
   type Run,
-  type AgentTask,
   type ChatMessage,
   type Conversation,
   type Role,
@@ -36,25 +34,12 @@ import {
 import { z } from 'zod';
 import { saveAttachments, removeAttachments } from './attachments/storage.ts';
 import { conversation, conversations, canReadConversation } from './conversations.ts';
-import {
-  openRoundRoots,
-  refreshOpenRounds,
-  runIsDelegate,
-  startRound,
-} from './delegation-rounds.ts';
+import { startRound } from './start-delegation-round.ts';
+import { stopConversationWork } from './queue/stop.ts';
 import { userDelegationInput } from '@pitchcrew/core';
 import type { CrewContext } from './types.ts';
-export const saveRequest = (context: CrewContext, request: ChatRequest, publish = true): void => {
-  const queue = ensureQueue(context, request.threadId, request.rootRunId);
-  if (
-    !findEntity<ChatRequest>(context, 'chat_request', request.id) &&
-    !queueRequests(context, queue.id).length &&
-    !activeQueues(context).has(queue.id)
-  )
-    patchQueue(context, queue.id, { order: nextOrder(context) });
-  context.board.record('chat_request', request, 'user', 'Updated queued message');
-  if (publish) context.publishChat(true);
-};
+export { saveRequest, stopConversationWork };
+export { finishDelivery } from './queue/deliveries.ts';
 
 const prepareInterrupt = (context: CrewContext, id: string, effects: (() => void)[]) => {
   stopConversationWork(context, id, undefined, undefined, (effect) => effects.push(effect));
@@ -447,105 +432,6 @@ export const drainConversationQueue = async (context: CrewContext): Promise<void
     }
   }
 };
-export const finishDelivery = (context: CrewContext, run: Run): void => {
-  finishQueueRun(context, run);
-  if (!run.requestId) return;
-  const request = context.board.get<ChatRequest>('chat_request', run.requestId);
-  const delivery = request.deliveries.find((entry) => entry.roleId === run.roleId);
-  const finished = context.board.get<Run>('run', run.id);
-  if (delivery?.status === 'running') {
-    delivery.status =
-      finished.status === 'waiting'
-        ? 'waiting'
-        : finished.status === 'completed'
-          ? 'completed'
-          : finished.status === 'cancelled'
-            ? 'paused'
-            : 'failed';
-    delivery.error = finished.status === 'failed' ? finished.message : '';
-    saveRequest(context, request);
-    const head = queueRequests(context, laneId(context, request.threadId, request.rootRunId))[0];
-    if (head) pauseForUnfinishedHead(context, head);
-  }
-};
-const stopConversationBranch = (
-  context: CrewContext,
-  id: string,
-  roleId?: string,
-  rootId?: string,
-): void => {
-  const runs = context.board.list<Run>('run');
-  const tasks = context.board.list<AgentTask>('task');
-  const roots = new Set(
-    rootId
-      ? [rootId]
-      : [
-          ...runs.filter((run) => run.threadId === id).map((run) => run.rootRunId ?? run.id),
-          ...openRoundRoots(context, id),
-        ],
-  );
-  const owned = runs.filter(
-    (run) => roots.has(run.rootRunId ?? run.id) && (!roleId || run.roleId === roleId),
-  );
-  const branches = new Set(owned.map((run) => run.id));
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (const task of tasks)
-      if (branches.has(task.parentRunId) && task.runId && !branches.has(task.runId)) {
-        branches.add(task.runId);
-        changed = true;
-      }
-  }
-  cancelUserQuestions(
-    context,
-    (q) =>
-      roleId
-        ? branches.has(q.runId) ||
-          ((q.threadId === id || q.sourceThreadId === id) && q.roleId === roleId)
-        : roots.has(runs.find((run) => run.id === q.runId)?.rootRunId ?? q.runId) ||
-          q.threadId === id ||
-          q.sourceThreadId === id,
-    'Question cancelled because this work was stopped.',
-  );
-  for (const run of runs)
-    if (
-      run.status === 'running' &&
-      (roleId ? branches.has(run.id) : roots.has(run.rootRunId ?? run.id))
-    ) {
-      context.controllers.get(run.id)?.abort();
-      context.streamingMessages.delete(run.id);
-    }
-  for (const task of tasks)
-    if (
-      task.status === 'queued' &&
-      (roleId
-        ? branches.has(task.parentRunId) || (roots.has(task.rootRunId) && task.roleId === roleId)
-        : roots.has(task.rootRunId))
-    )
-      context.board.record(
-        'task',
-        { ...task, status: 'cancelled', error: 'Stopped by the user.' },
-        'user',
-        'Cancelled delegated work',
-      );
-  refreshOpenRounds(context);
-  for (const request of context.board
-    .list<ChatRequest>('chat_request')
-    .filter((request) => request.threadId === id && (!rootId || request.id === rootId))) {
-    let changed = false;
-    for (const delivery of request.deliveries)
-      if (
-        (!roleId || delivery.roleId === roleId) &&
-        deliveryLifecycle.is('moving', delivery.status)
-      ) {
-        delivery.status = 'paused';
-        changed = true;
-      }
-    if (changed) saveRequest(context, request);
-  }
-  context.publishChat(true);
-};
 /** The user assigns one message to several agents; the conversation's lead collects their results. */
 export const sendDelegation = async (
   context: CrewContext,
@@ -613,88 +499,6 @@ export const sendDelegation = async (
   })();
   void context.drainTasks();
   return request;
-};
-export const stopConversationWork = (
-  context: CrewContext,
-  id: string,
-  roleId?: string,
-  rootId?: string,
-  effect: (action: () => void) => void = (action) => action(),
-): void => {
-  if (roleId) return stopConversationBranch(context, id, roleId, rootId);
-  const queue = ensureQueue(context, id);
-  patchQueue(
-    context,
-    queue.id,
-    { paused: true, pauseKind: 'user', reason: 'Paused by you.' },
-    effect,
-  );
-  const runs = context.board.list<Run>('run');
-  const owned = runs.filter(
-    (run) =>
-      (queue.cardId ? run.cardId === queue.cardId : run.threadId === id) &&
-      (!rootId || (run.rootRunId ?? run.id) === rootId),
-  );
-  const roots = new Set([
-    ...owned.map((run) => run.rootRunId ?? run.id),
-    ...(rootId ? [] : openRoundRoots(context, id)),
-  ]);
-  cancelUserQuestions(
-    context,
-    (q) => roots.has(runs.find((run) => run.id === q.runId)?.rootRunId ?? q.runId),
-    'Stopped by you.',
-    effect,
-  );
-  for (const run of runs)
-    if (roots.has(run.rootRunId ?? run.id)) {
-      effect(() => {
-        context.controllers.get(run.id)?.abort();
-        context.streamingMessages.delete(run.id);
-      });
-    }
-  for (const task of context.board.list<AgentTask>('task'))
-    if (roots.has(task.rootRunId) && task.status === 'queued')
-      context.board.record(
-        'task',
-        { ...task, status: 'cancelled', error: 'Stopped by you.' },
-        'user',
-        'Cancelled crew follow-up',
-      );
-  refreshOpenRounds(context);
-  for (const request of queueRequests(context, queue.id)) {
-    for (const entry of request.deliveries) {
-      if (entry.status === 'running') entry.status = 'paused';
-      else if (entry.status === 'queued') entry.status = 'paused';
-    }
-    saveRequest(context, request, false);
-  }
-  effect(() => context.publishChat(true));
-};
-const finishQueueRun = (context: CrewContext, run: Run): void => {
-  const finished = context.board.get<Run>('run', run.id);
-  const thread = run.threadId;
-  if (
-    !thread ||
-    !context.board
-      .list<import('@pitchcrew/core').Conversation>('conversation')
-      .some((c) => c.id === thread)
-  )
-    return;
-  const scope = runLane(context, run);
-  // A failed or stopped delegate is a result for the lead: the round keeps its admitted chain and
-  // the lane stays running so the collection turn can start once every delegate settles.
-  const delegate = runIsDelegate(context, finished);
-  if (
-    finished.status === 'waiting' ||
-    (['failed', 'cancelled'].includes(finished.status) && !delegate)
-  )
-    context.queueChains.delete(scope);
-  if (scope.startsWith('routine:')) return;
-  const queue = ensureQueue(context, thread, run.rootRunId);
-  if (finished.status === 'failed' && !delegate)
-    patchQueue(context, queue.id, { paused: true, pauseKind: 'failed', reason: finished.message });
-  else if (!activeQueues(context).has(queue.id))
-    patchQueue(context, queue.id, { order: nextOrder(context) });
 };
 export const updateRequest = (context: CrewContext, id: string, data: unknown): ChatRequest => {
   const input = z

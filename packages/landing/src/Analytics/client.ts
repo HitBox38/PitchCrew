@@ -1,5 +1,8 @@
-import { createReplay, loadLocalRecorder } from '../../../ui/src/Analytics/replay/recorder';
-import { sanitizeReplayProperties } from '../../../ui/src/Analytics/replay/privacy';
+import {
+  createReplay,
+  loadLocalRecorder,
+  sanitizeReplayProperties,
+} from '@pitchcrew/session-replay';
 import type { PostHog, PostHogConfig } from 'posthog-js';
 import type { Installer } from '../Downloads/types';
 import { analyticsConfig, analyticsConfigured } from './config';

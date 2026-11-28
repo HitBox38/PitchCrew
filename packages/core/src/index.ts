@@ -16,6 +16,7 @@ export * from './application-form.ts';
 export * from './pipeline-reviews.ts';
 export type { AppBuild, AppUpdateInfo } from './app-updates.ts';
 export type { DesktopUpdateBridge, DesktopUpdateState } from './desktop-updates.ts';
+export type { DesktopStartupBridge } from './desktop-startup.ts';
 export type { DesktopLinkBridge, DesktopLinkBlockedReason } from './desktop-links.ts';
 export * from './reasoning.ts';
 export type { OnboardingState } from './onboarding.ts';
@@ -50,7 +51,7 @@ export type { ChatMessage, ChatResult, ChatStreamState, ChatStreamUpdate } from 
 export * from './computer.ts';
 export { currentEventVersion, decodeEvent } from './events.ts';
 export type { BoardEvent } from './events.ts';
-export { packetSchema, packetTextLimits, resumeReviewPacketSchema } from './packets.ts';
+export { packetSchema, resumeReviewPacketSchema } from './packets.ts';
 export type {
   ArtifactLayout,
   Packet,
@@ -119,19 +120,23 @@ export type {
   BackgroundServiceStatus,
 } from './background-service.ts';
 export * from './imports.ts';
+export { importLimits, importFileSizeLabel } from './import-limits.ts';
 export * from './job-sources.ts';
 export * from './job-links.ts';
 export {
-  defaultPacketRules,
   describePacketRules,
-  packetDocumentLabels,
   packetRuleIssues,
-  packetRuleLimits,
   packetRulesSchema,
   patternProblem,
 } from './packet-rules.ts';
+export {
+  packetDocuments,
+  packetDocumentLabels,
+  packetTextLimits,
+  type PacketDocument,
+} from './packet-documents.ts';
+export { defaultPacketRules, packetRuleLimits } from './packet-rule-options.ts';
 export type {
-  PacketDocument,
   PacketRule,
   PacketRuleIssue,
   PacketRules,

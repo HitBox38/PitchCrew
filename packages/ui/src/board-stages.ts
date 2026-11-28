@@ -1,4 +1,5 @@
 import type { Card, CardState } from '@pitchcrew/core';
+import { cardLifecycle } from '@pitchcrew/core/lifecycles';
 
 export type BoardStage = {
   id: string;
@@ -9,7 +10,7 @@ export type BoardStage = {
   /** Former column ids whose saved sort choice this column adopts. */
   legacy?: string[];
 };
-export const closedStates: CardState[] = ['rejected', 'withdrawn', 'ghosted'];
+export const closedStates: CardState[] = [...cardLifecycle.groups.closed];
 export const closedStateSet: ReadonlySet<CardState> = new Set(closedStates);
 export const stages: BoardStage[] = [
   {
@@ -37,7 +38,7 @@ export const stages: BoardStage[] = [
   {
     id: 'applied',
     label: 'Applied',
-    states: ['submitted', 'screening', 'interviewing', 'offer'],
+    states: [...cardLifecycle.groups.applied],
     color: 'green',
     empty: 'Jobs you’ve applied to land here.',
   },

@@ -3,7 +3,7 @@ import { conversation, canReadConversation } from '../conversations.ts';
 import type { AgentCapabilities } from '@pitchcrew/core';
 import { delegationRoundInput, messagePageQuery, roleIdSchema, type Run } from '@pitchcrew/core';
 import { messagePage } from './message-page.ts';
-import { startRound } from '../delegation-rounds.ts';
+import { startRound } from '../start-delegation-round.ts';
 import { z } from 'zod';
 import type { CrewContext, RunCapability } from '../types.ts';
 

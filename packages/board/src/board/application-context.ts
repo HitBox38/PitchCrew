@@ -109,11 +109,11 @@ export const saveApplicationContext = (
       throw new Error('The job or brief changed. Review its current version.');
     const revision = applicationRevision(expectedSource, extracted);
     if (extracted.form?.status === 'inspected') {
-      // An answer retains the adopted form, including its reviewed annotations. A new
-      // inspection can update missing-answer notes without changing employer requirements.
+      // An answer retains the adopted form, including its reviewed annotations. Parse the
+      // stored form into the same key order as the submission before comparing their JSON.
       const expectedForm =
         confirmation === 'personal-answer'
-          ? assertConfirmedContext(card).form
+          ? extractedJobSchema.shape.form.parse(assertConfirmedContext(card).form)
           : inspectedApplicationForm(card);
       if (JSON.stringify(extracted.form) !== JSON.stringify(expectedForm))
         throw new Error(

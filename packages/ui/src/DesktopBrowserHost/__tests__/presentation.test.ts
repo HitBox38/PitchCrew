@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import type { DesktopBrowserView } from '../../../../core/src/native-browser.ts';
+import type { DesktopBrowserView } from '@pitchcrew/core/native-browser';
 import {
   browserPagePoint,
   browserPageRect,

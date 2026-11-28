@@ -1,12 +1,12 @@
-import {
-  defaultPacketRules,
-  packetDocumentLabels,
-  type Packet,
-  type PacketDocument,
-  type PacketRule,
-  type PacketRules,
-  type PacketRuleSeverity,
-  type ProfileFile,
+import { defaultPacketRules } from '@pitchcrew/core/packet-rule-options';
+import { packetDocumentLabels } from '@pitchcrew/core/packet-documents';
+import type {
+  Packet,
+  PacketDocument,
+  PacketRule,
+  PacketRules,
+  PacketRuleSeverity,
+  ProfileFile,
 } from '@pitchcrew/core';
 
 /**

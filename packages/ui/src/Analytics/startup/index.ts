@@ -1,4 +1,4 @@
-import type { DesktopStartupBridge } from '../../../../core/src/desktop-startup.ts';
+import type { DesktopStartupBridge } from '@pitchcrew/core';
 import { useDevicePreferences } from '../../lib/device-preferences.ts';
 import { analytics } from '../client.ts';
 import { createStartupTracker } from './tracker.ts';

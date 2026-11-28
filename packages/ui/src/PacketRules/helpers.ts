@@ -1,6 +1,9 @@
 import { numericProblem } from './numeric.ts';
-import { documentLabels, kindLabels } from './constants.ts';
+import { packetDocumentLabels } from '@pitchcrew/core/packet-documents';
+import { kindLabels } from './constants.ts';
 import type { DraftResult, RuleIssue, RuleView } from './types.ts';
+
+const documentLabels: Readonly<Record<string, string>> = packetDocumentLabels;
 
 export const formatRules = (rules: unknown): string => {
   return `${JSON.stringify(rules, null, 2)}\n`;

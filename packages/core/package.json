@@ -16,6 +16,7 @@
     "./desktop-links": "./src/desktop-links.ts",
     "./job-link-recognition": "./src/job-link-recognition.ts",
     "./public-job-links": "./src/public-job-links.ts",
+    "./profile-filenames": "./src/profile-filenames.ts",
     "./chat-references": "./src/chat-references.ts",
     "./transcript-order": "./src/transcript-order.ts",
     "./transcript-visibility": "./src/transcript-visibility.ts",
@@ -37,7 +38,12 @@
     "./browser-action-labels": "./src/browser-action-labels.ts",
     "./browser-modes": "./src/browser-modes.ts",
     "./runtime-model-preferences": "./src/runtime-model-preferences-helpers.ts",
-    "./reasoning": "./src/reasoning.ts"
+    "./reasoning": "./src/reasoning.ts",
+    "./native-browser": "./src/native-browser.ts",
+    "./browser-profiles": "./src/browser-profiles.ts",
+    "./import-limits": "./src/import-limits.ts",
+    "./packet-rule-options": "./src/packet-rule-options.ts",
+    "./packet-documents": "./src/packet-documents.ts"
   },
   "dependencies": {
     "strip-ansi": "^7.2.0",

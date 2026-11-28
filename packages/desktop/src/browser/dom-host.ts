@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { ipcMain, session, type BrowserWindow, type WebContents } from 'electron';
 import { z } from 'zod';
-import type { DesktopBrowserView } from '../../../core/src/native-browser.ts';
+import type { DesktopBrowserView } from '@pitchcrew/core/native-browser';
 import { domBrowserBootstrapUrl, domBrowserChannels } from './dom-protocol.ts';
 
 const partitionPattern = /^persist:pitchcrew-browser-[a-f0-9]{64}$/;

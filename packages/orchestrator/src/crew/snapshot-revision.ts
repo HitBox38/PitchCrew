@@ -1,3 +1,4 @@
+import { isListedProfileFilename } from '@pitchcrew/core/profile-filenames';
 import { createHash } from 'node:crypto';
 import { readdir, stat } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -10,7 +11,7 @@ const profileRevision = async (directory: string) => {
     if (error.code === 'ENOENT') return [];
     throw error;
   });
-  const names = files.filter((name) => /^[\w.-]+\.md$/.test(name)).sort();
+  const names = files.filter(isListedProfileFilename).sort();
   return Promise.all(
     names.map(async (name) => {
       const info = await stat(join(path, name));

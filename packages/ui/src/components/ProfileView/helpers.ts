@@ -1,3 +1,8 @@
+import {
+  isWritableProfileFilename,
+  maxEditedProfileFilenameLength,
+} from '@pitchcrew/core/profile-filenames';
+
 export { proseWordCount as wordCount } from '@/components/MarkdownEditor/helpers.ts';
 
 /** Profile notes are written only while no agent run is active (the daemon enforces it). */
@@ -64,10 +69,11 @@ export const proposalNotice = (proposal: {
   };
 };
 
-/** Mirrors the daemon's simple Markdown filename rule and refuses to overwrite another note. */
+/** Report the first filename problem before renaming a note. */
 export const filenameProblem = (name: string, taken: string[]) => {
-  if (name.length > 100) return 'Use a filename of at most 100 characters.';
-  if (!/^[\w.-]+\.md$/.test(name) || name.includes('..'))
+  if (name.length > maxEditedProfileFilenameLength)
+    return `Use a filename of at most ${maxEditedProfileFilenameLength} characters.`;
+  if (!isWritableProfileFilename(name))
     return 'Use letters, numbers, dots, dashes or underscores, ending in .md.';
   // Case-insensitive, as on macOS and Windows disks.
   if (taken.some((other) => other.toLowerCase() === name.toLowerCase()))

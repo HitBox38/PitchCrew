@@ -3,7 +3,7 @@ import type { WebContents } from 'electron';
 import { afterEach, expect, test, vi } from 'vitest';
 import { createNativeGroup } from '../src/browser/pages.ts';
 import { runNativeBrowserCommand } from '../src/browser/commands.ts';
-import { assertPublicUrl } from '../../mcp/src/computer/network.ts';
+import { assertPublicUrl } from '@pitchcrew/mcp/computer/network';
 
 vi.mock('electron', () => ({
   shell: {},
@@ -16,7 +16,7 @@ vi.mock('electron', () => ({
     }),
   },
 }));
-vi.mock('../../mcp/src/computer/network.ts', () => ({ assertPublicUrl: vi.fn() }));
+vi.mock('@pitchcrew/mcp/computer/network', () => ({ assertPublicUrl: vi.fn() }));
 vi.mock('../src/browser/automation.ts', () => ({
   guestAutomation: () => ({ release: vi.fn(), send: vi.fn() }),
 }));
