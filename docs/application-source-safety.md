@@ -32,6 +32,10 @@ Exact quotation checks do not resolve conflicts within Profile: drafting and
 review instructions require preserving exceptions, scope and historical title
 qualifications rather than copying a contradictory suggested bullet or header.
 
+The attached Reviewer can record blocking feedback on a packet drafted for the
+confirmed brief while a newer form inspection awaits adoption. The user must
+still confirm the latest inspection before Writer can revise the packet.
+
 ## Implementation sequence
 
 ### 1. Define and persist the boundary
