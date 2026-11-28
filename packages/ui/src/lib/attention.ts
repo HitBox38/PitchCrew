@@ -157,10 +157,11 @@ export const failedFollowUp = (queue: Pick<WorkQueueView, 'tasks'>) =>
 const briefHolds = [
   // packages/board/src/board/application-context.ts:48
   'Extract or prepare this job’s application brief first.',
-  // packages/board/src/board/application-context.ts:55
+  // packages/board/src/board/application-context.ts:59
   'Inspect the application form and confirm its requirements, or explicitly choose to check the form yourself.',
+  // packages/board/src/board/application-context.ts:56
   'A saved form inspection supersedes any earlier form check. Review its findings in the application brief and confirm the brief.',
-  // packages/board/src/board/application-context.ts:58
+  // packages/board/src/board/application-context.ts:63
   'Review and confirm this job’s application brief before drafting.',
 ];
 // packages/orchestrator/src/crew/queue/requests.ts:127
