@@ -18,6 +18,15 @@ it('keeps letters from the heading and falls back when there is no name', () => 
   expect(packetFileName('# José García\n\nWork.', 'coverLetter', 'md')).toBe(
     'José_García_Cover_Letter.md',
   );
+  expect(packetFileName('# Jose\u0301 Garci\u0301a\n\nWork.', 'resume', 'pdf')).toBe(
+    'José_García_CV.pdf',
+  );
+  expect(packetFileName('# प्रिया शर्मा\n\nWork.', 'resume', 'pdf')).toBe('प्रिया_शर्मा_CV.pdf');
+  expect(packetFileName('# محمد\u200Cرضا\n\nWork.', 'resume', 'md')).toBe('محمد\u200Cرضا_CV.md');
+  const rare = '\u{20000}';
+  expect(packetFileName(`# ${'A'.repeat(59)}${rare}\n`, 'resume', 'pdf')).toBe(
+    `${'A'.repeat(59)}${rare}_CV.pdf`,
+  );
   expect(packetFileName('---\nname: hidden\n---\n# Ada Lovelace\n', 'resume', 'md')).toBe(
     'Ada_Lovelace_CV.md',
   );

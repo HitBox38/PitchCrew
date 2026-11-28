@@ -47,13 +47,17 @@ const resumeHeading = (resume: string) => {
 
 /** "Ada Lovelace" → "Ada_Lovelace". Empty when the heading is not a usable filename. */
 export const packetNameStem = (fullName: string) => {
-  const stem = fullName
-    .replace(/\u00A0/g, ' ')
-    .replace(/[^\p{L}\p{N}\s-]/gu, '')
-    .trim()
-    .replace(/\s+/g, '_')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 60);
+  const stem = [
+    ...fullName
+      .normalize('NFC')
+      .replace(/\u00A0/g, ' ')
+      .replace(/[^\p{L}\p{N}\p{M}\u200C\u200D\s-]/gu, '')
+      .trim()
+      .replace(/\s+/g, '_')
+      .replace(/^-+|-+$/g, ''),
+  ]
+    .slice(0, 60)
+    .join('');
   return /\p{L}|\p{N}/u.test(stem) ? stem : '';
 };
 
