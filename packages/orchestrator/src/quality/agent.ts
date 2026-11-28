@@ -17,6 +17,7 @@ import {
 } from '@pitchcrew/core';
 import { readProfile } from '@pitchcrew/packet';
 import type { CrewContext, RunCapability } from '../crew/types.ts';
+import { findEntity } from '../crew/queue/queries.ts';
 import { writingGuide, saveGuide, checkGuideRevision, addPreference } from './writing.ts';
 import {
   currentPlan,
@@ -141,10 +142,12 @@ export const qualityAgentAction = async (
       return !(other.mode === 'chat' && run.requestId && other.requestId === run.requestId);
     });
     const owner = card.owner ?? blocker?.roleId;
-    if (owner)
+    if (owner) {
+      const ownerName = findEntity<Role>(context, 'role', owner)?.name ?? 'the current agent';
       throw new Error(
-        `Wait for ${owner}'s active application work to finish before requesting a correction.`,
+        `Wait for ${ownerName} to finish working on this application before requesting a correction.`,
       );
+    }
     return context.board.db.transaction(() => {
       const guide = writingGuide(context);
       const correction: WritingCorrection = {

@@ -83,6 +83,21 @@ it('queues one correction from a group delivery into an isolated draft with befo
   };
   const tokens = Array.from(daemon.service.capabilities.keys());
   try {
+    daemon.service.board.updateCard(
+      card.id,
+      { owner: writer.id },
+      writer.id,
+      'Writer claimed the application',
+    );
+    await expect(daemon.service.agentCall(tokens[0]!, 'quality', correction)).rejects.toThrow(
+      `Wait for ${writer.name} to finish working on this application`,
+    );
+    daemon.service.board.updateCard(
+      card.id,
+      { owner: null },
+      writer.id,
+      'Writer released the application',
+    );
     const queued = await daemon.service.agentCall(tokens[0]!, 'quality', correction);
     expect(queued.taskId).toBeDefined();
     daemon.service.board.updateCard(
