@@ -6,6 +6,8 @@ import { formConstraintsHtml } from '../../../mcp/test/fixtures/form-constraints
 export const nativeFixtureOrigin = 'https://8.8.8.8';
 export const nativeFixturePath = '/pitchcrew-native-fixture';
 const installed = new WeakSet<Session>();
+const pendingImages = new WeakMap<Session, () => void>();
+export const finishFixtureImage = (session: Session) => pendingImages.get(session)?.();
 const downloads = new WeakMap<
   Session,
   { blocked: boolean; name: string; state?: string; bytes?: number[] }[]
@@ -87,6 +89,16 @@ export const installNativeFixtureSite = (session: Session, directory: string) =>
     if (path === '/redirect')
       return Response.redirect(`${nativeFixtureOrigin}${nativeFixturePath}/next`);
     if (path === '/unavailable') return Response.error();
+    if (path === '/pending-image') {
+      await new Promise<void>((resolve) => pendingImages.set(session, resolve));
+      pendingImages.delete(session);
+      return new Response(null, { status: 204 });
+    }
+    if (path === '/loading-form')
+      return new Response(
+        '<!doctype html><title>Loading fixture</title><button id="apply">Apply</button><input id="secret" type="password" value="fictional-password"><img src="pending-image">',
+        { headers: { 'Content-Type': 'text/html' } },
+      );
     if (path === '/slow') await new Promise((resolve) => setTimeout(resolve, 1500));
     const body =
       path === '/constraints'

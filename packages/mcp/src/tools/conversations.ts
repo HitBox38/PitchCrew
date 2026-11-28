@@ -1,6 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { roleIdSchema } from '@pitchcrew/core';
+import { conversationReadQuery, roleIdSchema } from '@pitchcrew/core';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
 
@@ -23,12 +23,8 @@ export const registerConversationTools = (
     'pitchcrew_read_conversation',
     {
       description:
-        'Read source messages in a conversation you belong to. Page backward with beforeId; membership is rechecked.',
-      inputSchema: {
-        conversationId: z.string(),
-        beforeId: z.string().optional(),
-        limit: z.number().int().min(1).max(100).optional(),
-      },
+        'Read source messages in a conversation you belong to. Page backward with beforeId. For a truncated message, pass messageId and optional field (default content). For a long field, append text pages using nextCursor as cursor. Membership and delivery visibility are rechecked.',
+      inputSchema: conversationReadQuery.shape,
       annotations: readOnly,
     },
     (input) => call('conversation_messages', { input }),

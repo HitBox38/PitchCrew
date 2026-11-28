@@ -17,6 +17,7 @@ import {
 } from '@pitchcrew/core';
 import { readProfile } from '@pitchcrew/packet';
 import type { CrewContext, RunCapability } from '../crew/types.ts';
+import { findEntity } from '../crew/queue/queries.ts';
 import { writingGuide, saveGuide, checkGuideRevision, addPreference } from './writing.ts';
 import {
   currentPlan,
@@ -122,6 +123,10 @@ export const qualityAgentAction = async (
     const message = userMessage(context, run, input.messageId);
     if (!message.content.includes(input.quote)) throw new Error('Quote the exact user correction.');
     const card = context.board.get<Card>('card', capability.cardId);
+    const existing = context.board
+      .list<WritingCorrection>('writing_correction')
+      .find((c) => c.messageId === message.id && c.cardId === card.id);
+    if (existing) return { correctionId: existing.id, alreadyQueued: true };
     assertConfirmedContext(card);
     if (
       !card.packet ||
@@ -131,16 +136,18 @@ export const qualityAgentAction = async (
     const writer = context.board.get<Role>('role', input.writerId);
     if (workflowSeat(writer) !== 'writer')
       throw new Error('Choose an agent assigned to the Writer workflow.');
-    if (
-      runsWithStatus(context.board, ['running']).some(
-        (r) => r.cardId === card.id && r.id !== run.id,
-      )
-    )
-      throw new Error('Another run owns this application.');
-    const existing = context.board
-      .list<WritingCorrection>('writing_correction')
-      .find((c) => c.messageId === message.id && c.cardId === card.id);
-    if (existing) return { correctionId: existing.id, alreadyQueued: true };
+    const blocker = runsWithStatus(context.board, ['running']).find((other) => {
+      if (other.cardId !== card.id || other.id === run.id) return false;
+      // A group message starts parallel chat deliveries for the same user request.
+      return !(other.mode === 'chat' && run.requestId && other.requestId === run.requestId);
+    });
+    const owner = card.owner ?? blocker?.roleId;
+    if (owner) {
+      const ownerName = findEntity<Role>(context, 'role', owner)?.name ?? 'the current agent';
+      throw new Error(
+        `Wait for ${ownerName} to finish working on this application before requesting a correction.`,
+      );
+    }
     return context.board.db.transaction(() => {
       const guide = writingGuide(context);
       const correction: WritingCorrection = {

@@ -2,6 +2,9 @@ import { adapters } from '@pitchcrew/adapters';
 import type { Approval, Card, ExtractedJob, Run } from '@pitchcrew/core';
 import { promptFor } from '../../adapters/src/process.ts';
 import { packet } from '../../board/test/fixtures/packet.ts';
+import { formAssessment } from '../../board/test/fixtures/form.ts';
+import { reviewFixturePacket } from '../../board/test/fixtures/application-context.ts';
+import { assertConfirmedContext } from '@pitchcrew/board';
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, confirmFixtureApplication, finish, setup } from './helpers/daemon.ts';
 import * as documents from '../src/quality/documents.ts';
@@ -40,6 +43,43 @@ const chatTurn = (daemon: Daemon, roleId: string, cardId: string) => {
     },
   };
 };
+
+it('lets the attached Reviewer record a blocker on the packet while a newer form inspection awaits confirmation', async () => {
+  const { daemon, request } = await setup();
+  const board = daemon.service.board;
+  const card = daemon.service.createCard({
+    company: 'Fixture',
+    title: 'Engineer',
+    url: 'https://example.com/apply',
+  });
+  board.record('card', { ...card, state: 'changes_requested', packet }, 'writer', 'Fixture draft');
+  reviewFixturePacket(board, card.id);
+  board.updateCard(
+    card.id,
+    { formAssessments: [formAssessment(card.id)] },
+    'submitter',
+    'Inspected form',
+  );
+  const reviewer = chatTurn(daemon, 'reviewer', card.id);
+  const feedback = ['Confirm the newly inspected application questions.'];
+  const result = await request(
+    '/agent',
+    'POST',
+    {
+      action: 'workflow',
+      state: 'changes_requested',
+      reason: feedback[0],
+      review: { feedback },
+    },
+    { authorization: `Bearer ${reviewer.token}` },
+  );
+  expect(result.response.status).toBe(200);
+  const saved = board.get<Card>('card', card.id);
+  expect(saved.feedback).toEqual(feedback);
+  expect(saved.packetReview).toBeUndefined();
+  expect(() => assertConfirmedContext(saved)).toThrow();
+  reviewer.end();
+});
 
 it('saves chat Reviewer blocking feedback for the same-context Writer revision only', async () => {
   const { daemon, request } = await setup();

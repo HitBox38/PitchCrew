@@ -5,11 +5,11 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./form-requirements": "./src/form-requirements.ts",
     "./isolated-worker": "./src/isolated-worker.ts",
     "./deep-review-labels": "./src/deep-review-labels.ts",
     "./skill-updates": "./src/skill-updates.ts",
     "./skill-delivery": "./src/skill-delivery.ts",
-    "./application-form-requirements": "./src/application-form-requirements.ts",
     "./states": "./src/states.ts",
     "./lifecycles": "./src/lifecycles.ts",
     "./run-limits": "./src/run-limits.ts",

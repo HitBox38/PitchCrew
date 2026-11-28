@@ -3,6 +3,44 @@ import type { Card } from './cards.ts';
 import type { FormAssessment } from './submissions.ts';
 
 type InspectedForm = Extract<ApplicationForm, { status: 'inspected' }>;
+type DeclaredConstraints = NonNullable<InspectedForm['fields'][number]['constraints']>;
+const attributeKey = (attribute: DeclaredConstraints['maxLength']) =>
+  attribute.status === 'declared' ? [attribute.status, attribute.value] : attribute.status;
+
+/**
+ * Employer requirement metadata in a fixed key order, without `missingAnswer`: resolving an answer
+ * is preparation progress. The renderer and daemon use this same comparison.
+ */
+export const formRequirementKey = (form: Omit<InspectedForm, 'status'>) =>
+  JSON.stringify([
+    form.url,
+    form.fields.map((field) => [
+      field.label,
+      field.type,
+      field.required,
+      field.visible,
+      field.disabled,
+      field.accept,
+      field.options,
+      field.maxLength,
+      field.buttonType,
+      field.optionsTotal,
+      field.optionsTruncated,
+      field.constraints && [
+        attributeKey(field.constraints.minLength),
+        attributeKey(field.constraints.maxLength),
+        attributeKey(field.constraints.min),
+        attributeKey(field.constraints.max),
+        attributeKey(field.constraints.step),
+        field.constraints.uploadSizeLimit,
+      ],
+      field.group && [field.group.role, field.group.label, field.group.required],
+      field.assessed,
+      field.condition,
+    ]),
+    form.blockers,
+    form.uninspected,
+  ]);
 
 /** Select only the requirement metadata that can be saved in the brief. */
 export const inspectedFormRequirements = (assessment: FormAssessment): InspectedForm => ({
@@ -33,19 +71,6 @@ export const inspectedFormRequirements = (assessment: FormAssessment): Inspected
   ],
 });
 
-// Field and option order carry meaning. Object key order and answer progress do not.
-const requirementKey = (form: InspectedForm) =>
-  JSON.stringify(form, (key, value: unknown) => {
-    if (key === 'missingAnswer') return undefined;
-    if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
-    const record = value as Record<string, unknown>;
-    return Object.fromEntries(
-      Object.keys(record)
-        .sort()
-        .map((name) => [name, record[name]]),
-    );
-  });
-
 export const formChoiceIsCurrent = (
   card: Card,
   readRequirements: (assessment: FormAssessment) => InspectedForm = inspectedFormRequirements,
@@ -54,5 +79,5 @@ export const formChoiceIsCurrent = (
   if (!adopted) return !card.url && !card.formAssessments?.length;
   if (adopted.status === 'manual') return !card.formAssessments?.length;
   const latest = card.formAssessments?.at(-1);
-  return !!latest && requirementKey(adopted) === requirementKey(readRequirements(latest));
+  return !!latest && formRequirementKey(adopted) === formRequirementKey(readRequirements(latest));
 };

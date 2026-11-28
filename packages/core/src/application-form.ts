@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { formChoiceIsCurrent, inspectedFormRequirements } from './application-form-requirements.ts';
+import { formChoiceIsCurrent, inspectedFormRequirements } from './form-requirements.ts';
 import type { FormAssessment } from './submissions.ts';
 import type { Card } from './cards.ts';
 import { formControlEvidence } from './form-constraints.ts';

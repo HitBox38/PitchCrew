@@ -1,6 +1,6 @@
 import type { Card, Run, Snapshot } from '@pitchcrew/core';
 import { cardLifecycle } from '@pitchcrew/core/lifecycles';
-import { formChoiceIsCurrent } from '@pitchcrew/core/application-form-requirements';
+import { formChoiceIsCurrent } from '@pitchcrew/core/form-requirements';
 import { briefRevisionConfirmed } from '../lib/job-step.ts';
 import { browserNeedsAction, packetNeedsAction } from '../lib/inbox.ts';
 import { executingRuns } from '../lib/work-queue.ts';

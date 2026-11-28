@@ -50,10 +50,15 @@ export const assertExtractedContext = (card: Card): ApplicationContext => {
 };
 export const assertConfirmedContext = (card: Card): ApplicationContext => {
   const context = assertExtractedContext(card);
-  if (!applicationFormIsCurrent(card))
+  if (!applicationFormIsCurrent(card)) {
+    if (card.formAssessments?.length)
+      throw new Error(
+        'Review the latest form inspection in the application brief, then confirm the brief to use its findings.',
+      );
     throw new Error(
       'Inspect the application form and confirm its requirements, or explicitly choose to check the form yourself.',
     );
+  }
   if (!context.confirmedAt || context.confirmedRevision !== context.revision)
     throw new Error('Review and confirm this job’s application brief before drafting.');
   return context;
@@ -79,8 +84,9 @@ export const saveApplicationContext = (
   expectedSource: string,
   expectedRevision: string | null,
   data: unknown,
-  confirm: boolean,
+  confirmation: boolean | 'personal-answer',
 ): Card => {
+  const confirm = confirmation !== false;
   const extracted = extractedJobSchema.parse(data);
   return board.db.transaction(() => {
     const card = board.get<Card>('card', cardId);
@@ -102,13 +108,18 @@ export const saveApplicationContext = (
     )
       throw new Error('The job or brief changed. Review its current version.');
     const revision = applicationRevision(expectedSource, extracted);
-    if (
-      extracted.form?.status === 'inspected' &&
-      JSON.stringify(extracted.form) !== JSON.stringify(inspectedApplicationForm(card))
-    )
-      throw new Error(
-        'The inspected form changed. Reload and review its current fields and files.',
-      );
+    if (extracted.form?.status === 'inspected') {
+      // An answer retains the adopted form, including its reviewed annotations. A new
+      // inspection can update missing-answer notes without changing employer requirements.
+      const expectedForm =
+        confirmation === 'personal-answer'
+          ? assertConfirmedContext(card).form
+          : inspectedApplicationForm(card);
+      if (JSON.stringify(extracted.form) !== JSON.stringify(expectedForm))
+        throw new Error(
+          'The inspected form changed. Reload and review its current fields and files.',
+        );
+    }
     if (confirm && (card.url || card.formAssessments?.length) && !extracted.form)
       throw new Error(
         'Inspect the application form first, or explicitly choose to check the form yourself.',

@@ -1,5 +1,5 @@
 import type { Approval, Card } from '@pitchcrew/core';
-import { formChoiceIsCurrent } from '@pitchcrew/core/application-form-requirements';
+import { formChoiceIsCurrent } from '@pitchcrew/core/form-requirements';
 import { cardLifecycle } from '@pitchcrew/core/lifecycles';
 
 /**

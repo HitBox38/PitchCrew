@@ -28,6 +28,12 @@ export type {
 } from './default-instructions.ts';
 export { cardInput } from './cards.ts';
 export {
+  conversationReadQuery,
+  historyReadQuery,
+  messagePageQuery,
+  readFieldQuery,
+} from './crew-reads.ts';
+export {
   bulkDeleteJobsInput,
   bulkMoveJobsInput,
   jobDetailsChanges,

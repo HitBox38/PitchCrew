@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { Approval, Card } from '@pitchcrew/core';
 import { formAssessment } from '../../../../board/test/fixtures/form.ts';
-import { inspectedApplicationForm } from '../../../../core/src/application-form.ts';
+import {
+  applicationFormIsCurrent,
+  inspectedApplicationForm,
+} from '../../../../core/src/application-form.ts';
 import { jobStep, snapshotStepFacts, type JobStepFacts } from '../job-step.ts';
 
 const ready: JobStepFacts = {
@@ -151,7 +154,12 @@ describe('job step', () => {
           form,
         }),
       });
-    const current = (job: Card) => snapshotStepFacts(job, []).briefConfirmed;
+    const facts = (job: Card) => {
+      const snapshot = snapshotStepFacts(job, []);
+      expect(snapshot.briefConfirmed).toBe(applicationFormIsCurrent(job));
+      return snapshot;
+    };
+    const current = (job: Card) => facts(job).briefConfirmed;
     expect(current(linked([assessment([control()])]))).toBe(true);
     // A newer identical inspection stays current.
     expect(
@@ -179,18 +187,32 @@ describe('job step', () => {
       [control({ optionsTotal: 3 })],
       [control({ options: ['Hybrid', 'Remote'] })],
       [control({ optionsTruncated: true })],
-      [control({ buttonType: 'submit' })],
       [control({ group: { ...baseline.group, required: false } })],
       [control({ constraints: { ...baseline.constraints, minLength: { status: 'absent' } } })],
       [control({ maxLength: 300 })],
       [control({ required: false })],
+      [control({ buttonType: 'submit' })],
+      [control({ optionsTotal: 101, optionsTruncated: true })],
+      [control({ group: { role: 'fieldset', label: 'Work authorization', required: true } })],
+      [
+        control({
+          constraints: {
+            minLength: { status: 'absent' },
+            maxLength: { status: 'absent' },
+            min: { status: 'declared', value: '18' },
+            max: { status: 'absent' },
+            step: { status: 'absent' },
+            uploadSizeLimit: 'unknown',
+          },
+        }),
+      ],
       [control({ label: 'Why this team?' })],
       [control(), control({ label: 'Portfolio' })],
     ]) {
       const job = linked([assessment([control()]), assessment(changed)]);
-      const facts = snapshotStepFacts(job, []);
-      expect(facts.briefConfirmed).toBe(false);
-      expect(jobStep(job, facts)).toBe('confirm-brief');
+      const snapshot = facts(job);
+      expect(snapshot.briefConfirmed).toBe(false);
+      expect(jobStep(job, snapshot)).toBe('confirm-brief');
     }
     expect(current(linked([assessment([control()], ['Sign-in required'])]))).toBe(false);
     const historical = assessment([control({ optionsTruncated: undefined })]);

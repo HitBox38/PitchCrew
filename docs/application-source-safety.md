@@ -1,5 +1,7 @@
 # Application source safety
 
+`pitchcrew_get_card` returns the attached card within an 8 KiB JSON budget. A compact response lists the omitted fields and includes the brief's revision and confirmation status when the full context does not fit. Read an omitted field, a nested dotted path or an array element by passing `field`. Large values return text pages and a `nextCursor` bound to the same field value. Isolated runs and review specialists can select fields only from their existing filtered card view.
+
 Status: implemented and verified with the provider-free test suite, production builds, browser checks and a hidden Electron smoke test. Decisions were resolved on October 12–13, 2026 through a grill-with-docs session. The architectural boundary is recorded in [ADR 0001](adr/0001-separate-job-sources-from-drafting-context.md); terms live in [CONTEXT.md](../CONTEXT.md).
 
 ## Incident and previous exposure
@@ -31,6 +33,10 @@ reruns lint; feedback does not grant permissions or change accepted requirements
 Exact quotation checks do not resolve conflicts within Profile: drafting and
 review instructions require preserving exceptions, scope and historical title
 qualifications rather than copying a contradictory suggested bullet or header.
+
+The attached Reviewer can record blocking feedback on a packet drafted for the
+confirmed brief while a newer form inspection awaits adoption. The user must
+still confirm the latest inspection before Writer can revise the packet.
 
 ## Implementation sequence
 
@@ -132,6 +138,8 @@ An ordinary chat role with `manageWorkflow` can use `pitchcrew_update_job` to co
 
 ## Confirmed application form requirements
 
+Inspection combines the associated HTML labels and uses a control's title when it has no other accessible label, before falling back to its internal name. If a custom widget exposes its question only visually, the user can add that question under **Brief and requirements**, select **Needs my personal answer**, and confirm it. Writer and Reviewer can then ask by requirement ID.
+
 Confirmed form summaries retain optional declared length/range/step attributes, explicit group semantics and choice completeness from server inspection. Declared/absent/unavailable evidence is distinct; upload byte limits and missing historical evidence stay unknown. These fields do not carry entered values or grant interaction permissions. Changed findings use the same stale-context and approval invalidation checks. Event version 38 adds the evidence without rewriting earlier events; see [computer use](computer-use.md#form-assessments-and-submission-receipts) for bounds and semantic limitations.
 
 Event version 28 extends the adopted application context with an optional structured form summary or an explicit user manual-check choice. Linked jobs require one of these before drafting/review/export; existing unsent packets meet the requirement when next used. Saved assessments alone are not adopted requirements. The user reviews the whole form summary with the brief; only a summary matching the current inspected fields can be confirmed. Changed findings make the adopted summary stale, clear packet review/rating and reject unused export/browser approvals. Historical contexts retain their earlier revision calculation when no form summary exists.
@@ -140,7 +148,7 @@ The inspection conversation uses the existing scoped browser and approval tools.
 
 Ordinary isolated drafting/review rejects questions without a confirmed personal requirement ID or an exact unique assessed form label before saving or showing them. Agents put explanatory text in `reason` and retry with the valid ID or label; accepting a paraphrased label would save an answer that the next isolated run cannot recover, causing repeated questions. Managed deep-review clarifications retain their separate review-scoped answer path. Historical unbound answers remain in the transcript and are not inferred into confirmed requirements.
 
-Answering a confirmed personal requirement changes the packet context revision. In that same answer transaction, previously answered exact-label form questions bound to the preceding revision are carried forward through appended question events: the personal answer is the only changed input, so the confirmed form and employer requirements are unchanged. Actual brief/form edits retain their existing invalidation behavior.
+An isolated Writer or Reviewer receives the question and user-message reference for a personal requirement answered by either role when its ID, question and answer still match the confirmed brief. Answering a confirmed personal requirement changes the packet context revision. In that same answer transaction, previously answered exact-label form questions bound to the preceding revision are carried forward through appended question events: the personal answer is the only changed input, so the confirmed form and employer requirements are unchanged. Actual brief/form edits retain their existing invalidation behavior.
 
 ## Contributor rules
 
