@@ -19,3 +19,13 @@ export const historyReadQuery = readFieldQuery.extend({
   beforeEventId: z.number().int().positive().optional().describe('Exclusive event list cursor.'),
   limit: z.number().int().min(1).max(200).default(100).describe('Maximum events per page.'),
 });
+
+export const messagePageQuery = z.object({
+  beforeId: z.string().min(1).max(128).optional(),
+  limit: z.number().int().min(1).max(100).optional(),
+});
+export const conversationReadQuery = readFieldQuery.extend({
+  ...messagePageQuery.shape,
+  conversationId: z.string().min(1).max(128),
+  messageId: z.string().min(1).max(128).optional(),
+});

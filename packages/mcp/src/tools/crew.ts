@@ -3,6 +3,7 @@ import { registerJobTools } from './jobs.ts';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import {
   delegationRoundInput,
+  messagePageQuery,
   roleChanges,
   roleIdSchema,
   skillSuggestionInput,
@@ -86,11 +87,11 @@ export const registerCrewTools = (
     {
       title: 'Read conversations',
       description:
-        'Read recent messages from conversations you participate in. Use pitchcrew_read_conversation to page through a specific history.',
-      inputSchema: {},
+        'Read recent messages from conversations you participate in. Use the returned beforeId for older messages. For a truncated message, use pitchcrew_read_conversation with its threadId as conversationId and its id as messageId.',
+      inputSchema: messagePageQuery.shape,
       annotations: readOnly,
     },
-    () => call('messages'),
+    (input) => call('messages', { input }),
   );
   if (!options.delegate) registerDelegationTools(server, call);
   server.registerTool(

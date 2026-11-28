@@ -280,6 +280,54 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
         expect.objectContaining({ threadId: dm.id, from: 'reviewer', to: 'writer' }),
       ]),
     });
+    const prefix = 'x'.repeat(499);
+    const longText = prefix + '🌱 Fictional message '.repeat(480);
+    const large = daemon.service.addMessage(dm.id, 'writer', 'reviewer', longText, card.id, null);
+    daemon.service.board.record(
+      'message',
+      { ...large, memoryIds: ['fixture-memory'] },
+      'writer',
+      'Referenced fixture',
+    );
+    const recent = await client.callTool({
+      name: 'pitchcrew_read_messages',
+      arguments: { limit: 1 },
+    });
+    expect(recent.structuredContent).toMatchObject({
+      messages: [
+        {
+          id: large.id,
+          content: prefix,
+          truncated: true,
+          omittedFields: expect.arrayContaining(['content', 'memoryIds']),
+        },
+      ],
+      beforeId: large.id,
+    });
+    expect(Buffer.byteLength(JSON.stringify(recent.structuredContent))).toBeLessThan(8192);
+    const olderMessages = await client.callTool({
+      name: 'pitchcrew_read_messages',
+      arguments: { beforeId: large.id },
+    });
+    expect(olderMessages.structuredContent).toEqual(messages.structuredContent);
+    let messageCursor: string | null = null;
+    let restoredMessage = '';
+    do {
+      const result = await client.callTool({
+        name: 'pitchcrew_read_conversation',
+        arguments: {
+          conversationId: dm.id,
+          messageId: large.id,
+          ...(messageCursor ? { cursor: messageCursor } : {}),
+        },
+      });
+      expect(result.isError).not.toBe(true);
+      const part = result.structuredContent as { text: string; nextCursor: string | null };
+      expect(Buffer.byteLength(JSON.stringify(part))).toBeLessThan(8192);
+      restoredMessage += part.text;
+      messageCursor = part.nextCursor;
+    } while (messageCursor);
+    expect(restoredMessage).toBe(longText);
     const current = await client.callTool({ name: 'pitchcrew_get_card', arguments: {} });
     expect(current.structuredContent).toMatchObject({
       card: { id: card.id, packet, state: 'awaiting_approval' },

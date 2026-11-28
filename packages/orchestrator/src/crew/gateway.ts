@@ -362,7 +362,7 @@ const dispatchAgentCall = async (
     );
     return { run };
   }
-  if (action === 'messages') return readMessages(context, capability);
+  if (action === 'messages') return readMessages(context, capability, toolInput(data));
   if (action === 'chat_attachment') return readChatAttachment(context, capability, token, data);
   if (action === 'message' || action === 'invoke')
     return queueMessage(context, capability, permissions, action, data);

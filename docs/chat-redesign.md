@@ -202,6 +202,8 @@ Only requests with queued, paused or failed deliveries appear above the composer
 
 ## Long conversation histories
 
+Crew tools `pitchcrew_read_messages` and `pitchcrew_read_conversation` page backward with `beforeId`. Each page fits an 8 KiB JSON budget. A message too large for a page appears with a content preview and `truncated: true`. Read its full content or another field with `pitchcrew_read_conversation`, `conversationId`, `messageId` and optional `field`; continue large values with the returned `nextCursor` as `cursor`. Every list and detail read checks conversation membership and withholds queued deliveries.
+
 The transcript targets 50 message and turn-activity entries at a time, with up to one extra context row to keep a settled turn and its answer together. It opens on the latest entries and retains normal streaming and scroll-to-bottom behavior. A persistent, keyboard-accessible history bar shows the displayed range and offers Older, Newer and Latest. Older pages stay anchored by entry identity while new replies arrive. Paging never discards messages or tool activity from the conversation; browser find and text selection apply to the currently displayed page. Each page repeats the first visible entry’s day separator. Returning to Latest restores live following.
 
 ### Chat hierarchy follow-up
