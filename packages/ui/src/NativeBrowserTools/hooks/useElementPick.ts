@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import type { NativeBrowserModel } from '@/AgentBrowser/hooks/useNativeBrowser.ts';
 import type { BrowserControl } from '@/AgentBrowser/types.ts';
-import type { DesktopBrowserCapture } from '../../../../core/src/native-browser.ts';
+import type { DesktopBrowserCapture } from '@pitchcrew/core/native-browser';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { browserCancelPickEvent, setBrowserPresence } from '@/DesktopBrowserHost/presence.ts';
 

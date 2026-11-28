@@ -1,4 +1,4 @@
-import type { DesktopBrowserView } from '../../../../core/src/native-browser.ts';
+import type { DesktopBrowserView } from '@pitchcrew/core/native-browser';
 import { browserGuardPressEvent } from '../presentation.ts';
 
 /**

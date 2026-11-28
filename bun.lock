@@ -82,6 +82,9 @@
         "zod": "^4.6.6",
       },
       "devDependencies": {
+        "@pitchcrew/core": "workspace:*",
+        "@pitchcrew/mcp": "workspace:*",
+        "@pitchcrew/orchestrator": "workspace:*",
         "@types/ws": "8.18.1",
         "electron": "44.11.1",
         "tsdown": "0.23.0",

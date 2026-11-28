@@ -1,6 +1,6 @@
 import { Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@pitchcrew/design-system/button';
-import type { NativeBrowserState } from '../../../../core/src/native-browser.ts';
+import type { NativeBrowserState } from '@pitchcrew/core/native-browser';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
 
 /** A tab's mute toggle, shown while it plays sound or stays muted. */

@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { NativeBrowserModel } from '@/AgentBrowser/hooks/useNativeBrowser.ts';
 import type { BrowserControl } from '@/AgentBrowser/types.ts';
-import type { DesktopBrowserCapture } from '../../../../core/src/native-browser.ts';
+import type { DesktopBrowserCapture } from '@pitchcrew/core/native-browser';
 import { useBrowserRecording } from './useBrowserRecording.ts';
 import { useElementPick } from './useElementPick.ts';
 

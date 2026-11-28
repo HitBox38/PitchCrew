@@ -35,7 +35,9 @@
     "./browser-action-labels": "./src/browser-action-labels.ts",
     "./browser-modes": "./src/browser-modes.ts",
     "./runtime-model-preferences": "./src/runtime-model-preferences-helpers.ts",
-    "./reasoning": "./src/reasoning.ts"
+    "./reasoning": "./src/reasoning.ts",
+    "./native-browser": "./src/native-browser.ts",
+    "./browser-profiles": "./src/browser-profiles.ts"
   },
   "dependencies": {
     "strip-ansi": "^7.2.0",

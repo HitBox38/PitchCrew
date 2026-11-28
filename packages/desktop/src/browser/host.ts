@@ -8,7 +8,7 @@ import { z } from 'zod';
 import {
   nativeBrowserCommandSchema,
   type DesktopBrowserHost,
-} from '../../../core/src/native-browser.ts';
+} from '@pitchcrew/core/native-browser';
 import { createNativeGroup, type NativeGroup } from './pages.ts';
 import { connectBrowserRelay } from './cdp.ts';
 import { runNativeBrowserCommand } from './commands.ts';

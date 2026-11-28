@@ -1,8 +1,5 @@
 import { useEffect } from 'react';
-import type {
-  NativeBrowserCommand,
-  NativeBrowserState,
-} from '../../../../core/src/native-browser.ts';
+import type { NativeBrowserCommand, NativeBrowserState } from '@pitchcrew/core/native-browser';
 
 export const useNativeShortcuts = (
   id: string | undefined,

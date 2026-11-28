@@ -16,6 +16,7 @@ export * from './application-form.ts';
 export * from './pipeline-reviews.ts';
 export type { AppBuild, AppUpdateInfo } from './app-updates.ts';
 export type { DesktopUpdateBridge, DesktopUpdateState } from './desktop-updates.ts';
+export type { DesktopStartupBridge } from './desktop-startup.ts';
 export type { DesktopLinkBridge, DesktopLinkBlockedReason } from './desktop-links.ts';
 export * from './reasoning.ts';
 export type { OnboardingState } from './onboarding.ts';
