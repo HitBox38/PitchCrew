@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { Card } from './cards.ts';
+import { formRequirementKey } from './form-requirements.ts';
 import { formControlEvidence } from './form-constraints.ts';
 
 const text = z.string().max(2000);
@@ -86,14 +87,9 @@ export const inspectedApplicationForm = (
 export const applicationFormIsCurrent = (card: Card) => {
   const form = card.applicationContext?.form;
   if (!form) return !card.url && !card.formAssessments?.length;
-  return form.status === 'manual'
-    ? !card.formAssessments?.length
-    : JSON.stringify(requirementData(form)) ===
-        JSON.stringify(requirementData(inspectedApplicationForm(card)));
+  if (form.status === 'manual') return !card.formAssessments?.length;
+  const inspected = inspectedApplicationForm(card);
+  return (
+    inspected?.status === 'inspected' && formRequirementKey(form) === formRequirementKey(inspected)
+  );
 };
-
-// Resolving an answer is preparation progress, not a changed employer requirement.
-const requirementData = (form: ApplicationForm | undefined) =>
-  form?.status === 'inspected'
-    ? { ...form, fields: form.fields.map(({ missingAnswer: _missingAnswer, ...field }) => field) }
-    : form;

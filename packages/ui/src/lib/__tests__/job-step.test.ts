@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import type { Approval, Card } from '@pitchcrew/core';
-// Tests only: checks the zod-free mirror against core without bundling zod into the UI.
 import { applicationFormIsCurrent } from '../../../../core/src/application-form.ts';
 import { formIsCurrent, jobStep, snapshotStepFacts, type JobStepFacts } from '../job-step.ts';
 
@@ -150,7 +149,7 @@ describe('job step', () => {
       expect(formIsCurrent(job)).toBe(applicationFormIsCurrent(job));
       return snapshotStepFacts(job, []);
     };
-    const current = (job: Card) => formIsCurrent(job) && facts(job).briefConfirmed;
+    const current = (job: Card) => facts(job).briefConfirmed;
     expect(current(linked([assessment([control()])]))).toBe(true);
     // A newer identical inspection stays current.
     expect(
@@ -162,17 +161,31 @@ describe('job step', () => {
     for (const changed of [
       [control({ maxLength: 300 })],
       [control({ required: false })],
+      [control({ buttonType: 'submit' })],
+      [control({ optionsTotal: 101, optionsTruncated: true })],
+      [control({ group: { role: 'fieldset', label: 'Work authorization', required: true } })],
+      [
+        control({
+          constraints: {
+            minLength: { status: 'absent' },
+            maxLength: { status: 'absent' },
+            min: { status: 'declared', value: '18' },
+            max: { status: 'absent' },
+            step: { status: 'absent' },
+            uploadSizeLimit: 'unknown',
+          },
+        }),
+      ],
       [control({ label: 'Why this team?' })],
       [control(), control({ label: 'Portfolio' })],
     ]) {
       const job = linked([assessment([control()]), assessment(changed)]);
-      expect(formIsCurrent(job)).toBe(false);
       expect(facts(job).briefConfirmed).toBe(false);
       expect(jobStep(job, facts(job))).toBe('confirm-brief');
     }
     expect(current(linked([assessment([control()], ['Sign-in required'])]))).toBe(false);
     // An adopted inspection with no assessment behind it is not current.
-    expect(formIsCurrent(linked([]))).toBe(false);
+    expect(current(linked([]))).toBe(false);
   });
 
   it('counts only a consumed export of the current packet', () => {

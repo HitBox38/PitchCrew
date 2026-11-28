@@ -211,9 +211,13 @@ it('inspects before drafting and carries confirmed fields through isolated extra
       throw new Error('End second question turn');
     }
     expect(context.card.applicationContext!.requirements[0]!.answer).toBe('Two weeks');
-    if (context.role.id === 'writer')
-      expect(context.userAnswers).toContainEqual(expect.objectContaining({ answer: 'Two weeks' }));
-    expect(context.userAnswers).toHaveLength(context.role.id === 'writer' ? 2 : 1);
+    expect(context.userAnswers).toContainEqual(
+      expect.objectContaining({
+        question: 'When could you start?',
+        answer: 'Two weeks',
+      }),
+    );
+    expect(context.userAnswers).toHaveLength(2);
     return context.role.id === 'writer'
       ? {
           role: 'writer',
@@ -250,6 +254,25 @@ it('inspects before drafting and carries confirmed fields through isolated extra
         expect(question.applicationContextRevision).toBe(
           daemon.service.board.get<Card>('card', card.id).applicationContext?.revision,
         );
+        if (question.applicationRequirementId) {
+          const board = daemon.service.board;
+          const assessments = board.get<Card>('card', card.id).formAssessments!;
+          const latest = assessments.at(-1)!;
+          const refreshed = {
+            ...latest,
+            id: 'fixture-newer-inspection',
+            fields: latest.fields.map((field) => ({
+              ...field,
+              missingAnswer: 'New inspection note',
+            })),
+          };
+          board.updateCard(
+            card.id,
+            { formAssessments: [...assessments, refreshed] },
+            'submitter',
+            'Updated inspection notes',
+          );
+        }
         expect(
           (await request(`/user-input/${question.id}/answer`, 'POST', { text })).response.status,
         ).toBe(202);
