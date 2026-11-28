@@ -19,10 +19,25 @@ const snapshot = (fields: Partial<Snapshot>) =>
 describe('clay decisions', () => {
   it('asks to confirm only unconfirmed briefs past the lead stage', () => {
     const context = { revision: 'b', createdAt: '2026-10-30T08:00:00.000Z' };
+    const inspectedAfterConfirmation = {
+      applicationContext: {
+        ...context,
+        confirmedAt: 'x',
+        confirmedRevision: 'b',
+        form: { status: 'manual' },
+      } as Card['applicationContext'],
+      formAssessments: [{}] as Card['formAssessments'],
+    };
     const data = snapshot({
       cards: [
         card('open', {
           state: 'shortlisted',
+          applicationContext: context as Card['applicationContext'],
+        }),
+        card('changed', { state: 'shortlisted', ...inspectedAfterConfirmation }),
+        card('submitted', { state: 'submitted', ...inspectedAfterConfirmation }),
+        card('unconfirmed', {
+          state: 'submitted',
           applicationContext: context as Card['applicationContext'],
         }),
         // A lead's brief is confirmed before drafting, so it does not wait on the user yet.
@@ -40,7 +55,7 @@ describe('clay decisions', () => {
         }),
       ],
     });
-    expect(decisions(data).map((item) => item.cardId)).toEqual(['open']);
+    expect(decisions(data).map((item) => item.cardId)).toEqual(['open', 'changed', 'unconfirmed']);
   });
 
   it('pairs a running job with its agent and keeps the ask on top', () => {

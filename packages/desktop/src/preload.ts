@@ -1,8 +1,11 @@
-import type { DesktopBrowserBridge } from '../../core/src/native-browser.ts';
+import type { DesktopBrowserBridge } from '@pitchcrew/core/native-browser';
 import { contextBridge, ipcRenderer } from 'electron';
-import type { DesktopUpdateBridge, DesktopUpdateState } from '../../core/src/desktop-updates.ts';
+import type {
+  DesktopStartupBridge,
+  DesktopUpdateBridge,
+  DesktopUpdateState,
+} from '@pitchcrew/core';
 import { updateChannels } from './updates/ipc.ts';
-import type { DesktopStartupBridge } from '../../core/src/desktop-startup.ts';
 import { createLinkFeedbackBridge } from './link-feedback.ts';
 
 const updates: DesktopUpdateBridge = {

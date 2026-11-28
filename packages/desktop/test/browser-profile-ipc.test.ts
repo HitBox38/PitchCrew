@@ -30,7 +30,7 @@ vi.mock('electron', () => ({
     }),
   },
 }));
-vi.mock('../../mcp/src/computer/network.ts', () => ({ assertPublicUrl: vi.fn(async () => {}) }));
+vi.mock('@pitchcrew/mcp/computer/network', () => ({ assertPublicUrl: vi.fn(async () => {}) }));
 
 it('stages cookie values only in main, requires the same private controller and consumes reviewed imports once', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-profile-ipc-'));

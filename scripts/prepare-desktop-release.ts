@@ -10,8 +10,9 @@ import {
 const root = resolve('.');
 const staging = resolve('dist/installer');
 if (dirname(staging) !== join(root, 'dist')) throw new Error('Invalid installer staging path.');
-if (process.versions.bun !== '1.4.4')
-  throw new Error('Build standalone installers with Bun 1.4.4.');
+const bunVersion = (await readFile(join(root, '.bun-version'), 'utf8')).trim();
+if (process.versions.bun !== bunVersion)
+  throw new Error(`Build standalone installers with Bun ${bunVersion}.`);
 const node = JSON.parse(
   execFileSync(
     process.env.PITCHCREW_NODE_EXECUTABLE || 'node',

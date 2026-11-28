@@ -1,5 +1,5 @@
 import type { IpcRenderer } from 'electron';
-import type { DesktopLinkBridge } from '../../core/src/desktop-links.ts';
+import type { DesktopLinkBridge } from '@pitchcrew/core/desktop-links';
 
 export const linkFeedbackChannel = 'pitchcrew:link-blocked';
 

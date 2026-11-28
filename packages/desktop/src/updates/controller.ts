@@ -1,4 +1,4 @@
-import type { DesktopUpdateState } from '../../../core/src/desktop-updates.ts';
+import type { DesktopUpdateState } from '@pitchcrew/core';
 
 export interface UpdateDriver {
   autoDownload: boolean;

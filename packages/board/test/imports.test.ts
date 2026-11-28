@@ -164,10 +164,30 @@ describe('application import state mapping', () => {
       state: 'withdrawn',
       history: [{ state: 'withdrawn', at: '2025-05-01T00:00:00Z' }],
     });
-    expect(withdrawn.steps).toEqual([{ state: 'withdrawn', at: '2025-05-01T00:00:00.000Z' }]);
+    expect(withdrawn).toMatchObject({
+      start: 'lead',
+      submittedAt: null,
+      steps: [{ state: 'withdrawn', at: '2025-05-01T00:00:00.000Z' }],
+    });
     expect(() =>
       plan({ company: 'A', title: 'B', state: 'draft', submittedAt: '2025-01-01' }),
     ).toThrow('before submission');
+  });
+  it('infers submission for a withdrawal with earlier employer-stage history', () => {
+    const row = plan({
+      company: 'Sample Co',
+      state: 'withdrawn',
+      history: [{ state: 'screening', at: '2025-04-01' }],
+      statusAt: '2025-05-01',
+    });
+    expect(row).toMatchObject({
+      start: 'submitted',
+      submittedAt: '2025-04-01T00:00:00.000Z',
+      steps: [
+        { state: 'screening', at: '2025-04-01T00:00:00.000Z' },
+        { state: 'withdrawn', at: '2025-05-01T00:00:00.000Z' },
+      ],
+    });
   });
   it('follows valid history with its effective times and completes it to the final state', () => {
     const result = plan({

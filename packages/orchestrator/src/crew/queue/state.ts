@@ -134,3 +134,15 @@ export const activeQueues = (context: CrewContext): Map<string, Set<string>> => 
   }
   return active;
 };
+
+export const saveRequest = (context: CrewContext, request: ChatRequest, publish = true): void => {
+  const queue = ensureQueue(context, request.threadId, request.rootRunId);
+  if (
+    !findEntity<ChatRequest>(context, 'chat_request', request.id) &&
+    !queueRequests(context, queue.id).length &&
+    !activeQueues(context).has(queue.id)
+  )
+    patchQueue(context, queue.id, { order: nextOrder(context) });
+  context.board.record('chat_request', request, 'user', 'Updated queued message');
+  if (publish) context.publishChat(true);
+};

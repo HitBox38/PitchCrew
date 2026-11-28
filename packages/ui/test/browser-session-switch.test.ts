@@ -1,6 +1,6 @@
 import { chromium, type Browser, type Page } from 'playwright';
 import { defaultCapabilities, type Role } from '@pitchcrew/core';
-import type { NativeBrowserState } from '../../core/src/native-browser.ts';
+import type { NativeBrowserState } from '@pitchcrew/core/native-browser';
 import { afterAll, beforeAll, expect, test, vi } from 'vitest';
 import { setup, cleanup } from './helpers/daemon.ts';
 

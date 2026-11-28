@@ -1,5 +1,5 @@
 import type { Packet, PacketRules, ProfileFile } from '@pitchcrew/core';
-import { checkPacket, type PacketCheck } from '@pitchcrew/packet';
+import { checkPacket, type PacketCheck } from '@pitchcrew/packet/rules';
 import { IsolatedWorker as Worker } from '@pitchcrew/core/isolated-worker';
 
 /** Regex heuristics cannot prove bounded execution. Keep pattern checks off the daemon thread. */
@@ -16,7 +16,7 @@ export const boundedPacketCheck = (
     const worker = new Worker(new URL(`data:text/javascript,${encodeURIComponent(bootstrap)}`), {
       execArgv: [],
       workerData: {
-        module: new URL('./rules.ts', import.meta.resolve('@pitchcrew/packet')).href,
+        module: import.meta.resolve('@pitchcrew/packet/rules'),
         packet,
         profile,
         rules,

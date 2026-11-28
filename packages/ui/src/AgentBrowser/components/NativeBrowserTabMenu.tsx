@@ -17,7 +17,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@pitchcrew/design-system/context-menu';
-import type { NativeBrowserState } from '../../../../core/src/native-browser.ts';
+import type { NativeBrowserState } from '@pitchcrew/core/native-browser';
 import { copyText } from '@/lib/clipboard.ts';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
 

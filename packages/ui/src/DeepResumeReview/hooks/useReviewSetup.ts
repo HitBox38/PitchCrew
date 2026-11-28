@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ReviewPerspective } from '@pitchcrew/core/deep-review-labels';
 import { workflowSeat } from '@pitchcrew/core/states';
+import { snapshotBriefConfirmed } from '@/lib/job-step.ts';
 import { loadReviewSupport } from '../api.ts';
 import type { ReviewAlternativeRow, ReviewLaunchProps, ReviewSupport } from '../types.ts';
 export const useReviewSetup = ({
@@ -29,7 +30,7 @@ export const useReviewSetup = ({
       });
     return () => controller.abort();
   }, []);
-  const confirmed = !!card.applicationContext?.confirmedAt;
+  const confirmed = snapshotBriefConfirmed(card);
   const available = [reviewer, writer].every(
     (role) =>
       role &&

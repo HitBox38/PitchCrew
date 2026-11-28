@@ -1,3 +1,4 @@
+import { packetRuleLimits } from '@pitchcrew/core/packet-rule-options';
 import { keyedItems } from '@/lib/list-keys.ts';
 import { lazy, Suspense, useState } from 'react';
 import { useLocation } from '@tanstack/react-router';
@@ -68,8 +69,8 @@ export const RulesWorkspace = ({ controller }: { controller: PacketRulesControll
       <TabsContent value="source" keepMounted>
         {!document ? (
           <p className="settings-callout">
-            Fix the file’s JSON, version, rule types or 100-rule limit to use the Rules editor. Your
-            source is preserved below.
+            Fix the file’s JSON, version, rule types or {packetRuleLimits.rules}-rule limit to use
+            the Rules editor. Your source is preserved below.
           </p>
         ) : null}
         {sourceVisited ? (

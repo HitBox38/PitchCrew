@@ -80,7 +80,7 @@ it.each(['invalid', 'missing', 'error', 'exit'])(
   },
 );
 
-it.each(['oversized', 'stderr'])('bounds Claude %s output', async (mode) => {
+it.each(['oversized', 'stderr', 'combined'])('bounds Claude %s output', async (mode) => {
   await expect(read(mode)).rejects.toThrow('output exceeded');
 });
 

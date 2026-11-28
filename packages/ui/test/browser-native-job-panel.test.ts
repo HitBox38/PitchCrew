@@ -12,8 +12,8 @@ import type {
   DesktopBrowserView,
   NativeBrowserCommand,
   NativeBrowserState,
-} from '../../core/src/native-browser.ts';
-import type { BrowserProfilesState } from '../../core/src/browser-profiles.ts';
+} from '@pitchcrew/core/native-browser';
+import type { BrowserProfilesState } from '@pitchcrew/core/browser-profiles';
 import { afterAll, beforeAll, expect, test, vi } from 'vitest';
 import { setup, cleanup } from './helpers/daemon.ts';
 

@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import type { WebContents } from 'electron';
-import { credentialSelector } from '../../../mcp/src/computer/credentials.ts';
+import { credentialSelector } from '@pitchcrew/mcp/computer/credentials';
 
 /** Isolated-world listeners distinguish real human edits from website-prefilled answers. */
 export const nativeManualFields = () => {

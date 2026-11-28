@@ -4,7 +4,7 @@ App recordings are separately opt-in in Settings > Privacy, off by default, and 
 
 ## Implementation and privacy boundary
 
-The existing `posthog-js/no-external` client remains in place. A separately lazy-loaded `posthog-js/rrweb` module contains the recorder shipped in the pinned SDK package. No remote extension, recorder script, project configuration fetch or CSP relaxation is required. The built-in PostHog recorder remains disabled to avoid duplicate or project-triggered recording.
+The app and landing analytics clients import the recorder and snapshot sanitizer from the private `@pitchcrew/session-replay` workspace. Each client owns its consent checks, anonymous session IDs and transport. The workspace loads `posthog-js/rrweb` on demand from the same locked SDK as the clients' `posthog-js/no-external` entry point. No remote extension, recorder script, project configuration fetch or CSP relaxation is required. The built-in PostHog recorder remains disabled to avoid duplicate or project-triggered recording.
 
 This is a wireframe recording, not a pixel-perfect recording. The app's static workspace navigation and its placement, clicks, scrolls and viewport changes are useful for navigation/friction investigation. The public website records its masked layout and interactions. App main content, crew identities, conversations/recent jobs, dialogs, account editors, menus, tooltips, notifications, attachments and embedded browsers are replaced by placeholders. Inputs (including hidden/file inputs), editable content, images, canvas, media, iframe/plugin content and scripts/styles are blocked. No console or network recording plugin is installed. Source DOM nodes and application behavior are never modified.
 
@@ -22,6 +22,6 @@ Use renderer/app-version filters through the associated `$pageview` event when i
 
 Unit tests cover outbound snapshot/mutation/metadata reconstruction, discarded event classes, master consent, separate website opt-in/DNT, pending-import cancellation, buffer deletion and native `/s/` routing/session IDs. A headless Chromium test uses the **actual bundled recorder**, realistic private sentinel text and attributes, dynamic insertion/mutations and embedded/private surfaces. It checks serialized outbound bodies, preserved original DOM behavior, geometry/pointer capture and opt-out. The actual rrweb replayer consumes the sanitized event schema and renders a navigation wireframe with its measured dimensions. Tests send only to an ephemeral local server.
 
-SDK source references: [bundling options](https://posthog.com/docs/libraries/js), [replay privacy](https://posthog.com/docs/session-replay/privacy), and the installed `posthog-js/rrweb` and `SessionRecordingOptions` declarations. The tested SDK version is 1.435.8.
+SDK source references: [bundling options](https://posthog.com/docs/libraries/js), [replay privacy](https://posthog.com/docs/session-replay/privacy), and the installed `posthog-js/rrweb` and `SessionRecordingOptions` declarations. The tested SDK version is 1.447.12.
 
 The coordinator enabled and read back native project replay ingestion. Client recording remains separately opt-in and off by default. Real native session playback still awaits deployment and a consenting session; see `posthog/activation.json`.

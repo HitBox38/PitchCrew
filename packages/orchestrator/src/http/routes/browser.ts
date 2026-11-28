@@ -1,7 +1,7 @@
 import {
   desktopBrowserHostSchema,
   nativeBrowserCommandSchema,
-} from '../../../../core/src/native-browser.ts';
+} from '@pitchcrew/core/native-browser';
 import {
   browserInputSchema,
   browserViewportSchema,

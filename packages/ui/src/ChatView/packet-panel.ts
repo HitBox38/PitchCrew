@@ -1,5 +1,5 @@
 import type { Card, Packet } from '@pitchcrew/core';
-import { readableWordCount } from '@/lib/packet-labels.ts';
+import { readableWordCount } from '@/lib/readable-word-count.ts';
 
 export type PacketTab = { id: 'resume' | 'cover' | 'answers'; label: string; text: string };
 

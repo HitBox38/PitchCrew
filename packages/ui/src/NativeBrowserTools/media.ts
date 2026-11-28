@@ -1,4 +1,4 @@
-import type { DesktopBrowserCapture } from '../../../core/src/native-browser.ts';
+import type { DesktopBrowserCapture } from '@pitchcrew/core/native-browser';
 
 export const browserCaptureImage = (capture: DesktopBrowserCapture) =>
   new Promise<HTMLImageElement>((resolve, reject) => {

@@ -4,7 +4,7 @@ import type {
   NativeBrowserState,
   NativeBrowserCommand,
   DesktopBrowserBridge,
-} from '../../../../core/src/native-browser.ts';
+} from '@pitchcrew/core/native-browser';
 import type { BrowserControl } from '../types.ts';
 import { browserCommand, browserInput, browserPath } from '../api.ts';
 import { api } from '@/api.ts';

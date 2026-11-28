@@ -1,3 +1,4 @@
+import { packetRuleLimits } from '@pitchcrew/core/packet-rule-options';
 import { Button } from '@pitchcrew/design-system/button';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { Plus } from 'lucide-react';
@@ -55,7 +56,7 @@ export const RuleFormList = ({
             variant="outline"
             size="sm"
             onClick={model.addRule}
-            disabled={controller.working || document.rules.length >= 100}
+            disabled={controller.working || document.rules.length >= packetRuleLimits.rules}
           >
             <Plus size={14} aria-hidden="true" /> Add rule
           </Button>

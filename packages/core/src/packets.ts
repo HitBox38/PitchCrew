@@ -1,12 +1,5 @@
+import { packetTextLimits } from './packet-documents.ts';
 import { z } from 'zod';
-
-/** Character limits for packet text. Writer prompts state them so a returned packet fits. */
-export const packetTextLimits = {
-  resume: 20000,
-  coverLetter: 12000,
-  formAnswers: 12000,
-  note: 12000,
-} as const;
 
 export const packetSchema = z.object({
   resume: z.string().min(1).max(packetTextLimits.resume),

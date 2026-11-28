@@ -203,9 +203,18 @@ describe('direct profile editing', () => {
           stderr: 'pipe',
         }),
       );
-      const tools = (await client.listTools()).tools.map((tool) => tool.name);
-      expect(tools).toContain('pitchcrew_update_profile');
-      expect(tools).toContain('pitchcrew_list_profile_edit_sources');
+      const { tools } = await client.listTools();
+      const filenameInput = (toolName: string) =>
+        tools.find((tool) => tool.name === toolName)?.inputSchema.properties?.name;
+      expect(filenameInput('pitchcrew_update_profile')).toEqual({
+        type: 'string',
+        minLength: 1,
+        maxLength: 100,
+      });
+      expect(filenameInput('pitchcrew_propose_profile_note')).toEqual({
+        type: 'string',
+        maxLength: 200,
+      });
       expect(
         (await client.callTool({ name: 'pitchcrew_list_profile_edit_sources', arguments: {} }))
           .structuredContent,

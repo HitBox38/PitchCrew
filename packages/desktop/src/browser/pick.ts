@@ -1,6 +1,6 @@
 import { ipcMain, type BrowserWindow } from 'electron';
 import { z } from 'zod';
-import type { DesktopBrowserCapture } from '../../../core/src/native-browser.ts';
+import type { DesktopBrowserCapture } from '@pitchcrew/core/native-browser';
 import type { NativeGroup } from './pages.ts';
 
 type Box = { x: number; y: number; width: number; height: number };

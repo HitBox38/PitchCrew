@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import type { DesktopBrowserView } from '../../../core/src/native-browser.ts';
+import type { DesktopBrowserView } from '@pitchcrew/core/native-browser';
 
 /** Fired on a press over a read-only page so its panel can offer or take manual control. */
 export const browserGuardPressEvent = 'pitchcrew:browser-guard-press';

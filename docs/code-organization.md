@@ -1,5 +1,11 @@
 # Code organization
 
+## Workspace boundaries
+
+Each workspace owns its package exports. Import a sibling through a declared dependency. Add a browser-safe core subpath when the renderer needs a domain value that the server also uses. Resolve a bounded worker's entry through the package that owns its implementation.
+
+Oxlint checks production imports and eager module cycles. The workspace tests check the declared dependency graph, including the desktop host's bundled build dependencies. Both checks discover packages from the root workspace patterns. See the [ownership map](architecture-progress.md) and [decision record](adr/0008-check-dependencies-at-the-workspace-and-module-levels.md).
+
 Pitchcrew separates reusable UI primitives in `packages/design-system` from the browser/Electron renderer in `packages/ui` and public website in `packages/landing`. Within each package, files follow the responsibility they implement so a reader can find a feature without scanning an entire application file.
 
 ## React features
@@ -22,7 +28,7 @@ Files that contain JSX use `.tsx`, including helpers or constants when needed. A
 
 Production TSX files have a maximum of 100 lines after formatting. `scripts/check-components.ts` enforces this through `bun run lint`. Extract sections with meaningful names and responsibilities; keep normal formatting and readable expressions. The limit applies to components, rather than forcing hooks, schemas or transactions into arbitrary fragments.
 
-The root [Oxlint config](../.oxlintrc.json) registers `@shadcn/lint`. Each UI package discovers its own Tailwind entry. `shadcn/no-raw-colors` checks production source in the renderer, landing page and shared design system. The renderer's `text-button` and the landing page's `text-link` are stylesheet selectors and have package-specific exceptions. `shadcn/no-arbitrary-values` checks color utilities in the renderer and landing page. Shared primitives can use arbitrary color values for their clay materials.
+The root [Oxlint config](../oxlint.config.ts) registers `@shadcn/lint`. Each UI package discovers its own Tailwind entry. `shadcn/no-raw-colors` checks production source in the renderer, landing page and shared design system. The renderer's `text-button` and the landing page's `text-link` are stylesheet selectors and have package-specific exceptions. `shadcn/no-arbitrary-values` checks color utilities in the renderer and landing page. Shared primitives can use arbitrary color values for their clay materials.
 
 `shadcn/require-static-classes` checks that class names on shared components can be read in renderer and landing page source. Use complete class names in conditional expressions or data attributes with stylesheet selectors. `shadcn/no-inline-styles` applies inside the shared design system. Pass dynamic values to primitive styles through CSS custom properties. See the upstream [rule reference](https://github.com/shadcn-ui/lint/blob/main/README.md#rules).
 

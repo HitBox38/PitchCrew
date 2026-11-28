@@ -267,6 +267,20 @@ it('does not label an asynchronous snapshot with a newer state than it contains'
   expect(recovered.json().onboarding.status).toBe('completed');
 });
 
+it('polls and reads historical Markdown names with consecutive dots and long stems', async () => {
+  const initial = await get();
+  const folder = join(directory, 'profile');
+  await writeFile(join(folder, 'ignored.MD'), 'Other extension');
+  expect((await get(String(initial.headers.etag))).statusCode).toBe(304);
+
+  const name = `.work..${'a'.repeat(98)}.md`;
+  const content = 'Fictional history';
+  await writeFile(join(folder, name), content);
+  const changed = await get(String(initial.headers.etag));
+  expect(changed.statusCode).toBe(200);
+  expect(changed.json().profile).toEqual([{ name, content }]);
+});
+
 it('detects same-length external note edits even when modification time is restored', async () => {
   const path = join(directory, 'profile', 'note.md');
   await writeFile(path, 'Fictional note A');

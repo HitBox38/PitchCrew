@@ -8,6 +8,7 @@ import { assertProfileReady } from '../../profile-sources/mutation.ts';
 import {
   deepReviewOptionsSchema,
   boardActionLabels,
+  cardLifecycle,
   workflowSeat,
   type Card,
   type ChatRequest,
@@ -15,10 +16,9 @@ import {
   type Role,
 } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
-import { assertApplicationRuntime } from '../application-context/extraction.ts';
+import { assertApplicationRuntime } from '../application-context/runtime.ts';
 import { relatedConversation } from '../conversations.ts';
-import { drainConversationQueue, saveRequest } from '../conversation-queue.ts';
-import { ensureQueue, laneId, queueRequests, queueWaiting } from './state.ts';
+import { ensureQueue, laneId, queueRequests, queueWaiting, saveRequest } from './state.ts';
 export const queueBoardAction = (context: CrewContext, data: unknown): ChatRequest => {
   const input = queueBoardInput.parse(data);
   const card = context.board.get<Card>('card', input.cardId);
@@ -76,7 +76,7 @@ export const queueBoardAction = (context: CrewContext, data: unknown): ChatReque
     );
     saveRequest(context, request);
   })();
-  void drainConversationQueue(context);
+  void context.drainConversationQueue();
   return request;
 };
 export const requestProblem = async (
@@ -142,17 +142,12 @@ export const requestProblem = async (
   const action = request.boardAction;
   if (action === 'reevaluate' && !card.packet) return 'Draft a packet before reevaluating.';
   if (action === 'fit' && card.state !== 'lead') return 'Evaluate fit needs a job in Leads.';
-  if (action === 'draft' && !['shortlisted', 'changes_requested'].includes(card.state))
+  if (action === 'draft' && !cardLifecycle.is('draftable', card.state))
     return 'Shortlist this job or request changes before drafting.';
   if (action === 'review' && !card.packet) return 'Needs a draft before review.';
-  if (action === 'review' && !['in_review', 'agreed', 'awaiting_approval'].includes(card.state))
+  if (action === 'review' && !cardLifecycle.is('reviewable', card.state))
     return 'Draft this application before reviewing.';
-  if (
-    action === 'deep-review' &&
-    !['shortlisted', 'changes_requested', 'in_review', 'agreed', 'awaiting_approval'].includes(
-      card.state,
-    )
-  )
+  if (action === 'deep-review' && !cardLifecycle.is('deepReviewable', card.state))
     return 'Shortlist this job before deep review.';
   try {
     if (action === 'fit' || action === 'reevaluate') assertExtractedContext(card);

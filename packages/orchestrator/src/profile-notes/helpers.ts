@@ -1,13 +1,20 @@
+import {
+  hasNoConsecutiveDots,
+  maxEditedProfileFilenameLength,
+  profileFilenamePattern,
+} from '@pitchcrew/core/profile-filenames';
 import { createHash } from 'node:crypto';
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { z } from 'zod';
 
-export const noteNameSchema = z
-  .string()
-  .max(100)
-  .regex(/^[\w.-]+\.md$/, 'Use a simple Markdown filename.')
-  .refine((name) => !name.includes('..'), 'Use a simple Markdown filename.');
+export const profileFilenameSchema = (base = z.string(), message?: string) =>
+  base.regex(profileFilenamePattern, message).refine(hasNoConsecutiveDots, message);
+
+export const noteNameSchema = profileFilenameSchema(
+  z.string().max(maxEditedProfileFilenameLength),
+  'Use a simple Markdown filename.',
+);
 
 export const contentDigest = (content: string) =>
   createHash('sha256').update(content, 'utf8').digest('hex');

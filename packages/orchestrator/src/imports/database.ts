@@ -1,4 +1,4 @@
-import { importLimits } from '@pitchcrew/core';
+import { importFileSizeLabel, importLimits } from '@pitchcrew/core';
 import type { DatabaseImportConversion } from '@pitchcrew/core';
 import { IsolatedWorker as Worker } from '@pitchcrew/core/isolated-worker';
 import { z } from 'zod';
@@ -7,7 +7,8 @@ import { z } from 'zod';
 export const readDatabaseImport = async (data: unknown): Promise<DatabaseImportConversion> => {
   const { content } = request.parse(data);
   const bytes = Buffer.from(content, 'base64');
-  if (bytes.length > importLimits.bytes) throw new Error('Import files can be at most 2 MB.');
+  if (bytes.length > importLimits.bytes)
+    throw new Error(`Import files can be at most ${importFileSizeLabel}.`);
   if (
     bytes.toString('base64') !== content ||
     bytes.subarray(0, 16).toString() !== 'SQLite format 3\0'

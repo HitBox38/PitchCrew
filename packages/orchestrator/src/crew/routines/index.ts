@@ -1,5 +1,5 @@
 import { conversation } from '../conversations.ts';
-import { requireRole } from '../roles.ts';
+import { requireRole } from '../role-lookup.ts';
 import { type Card, type RoleId, type Routine } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
 import type { CrewContext } from '../types.ts';

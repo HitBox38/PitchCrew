@@ -128,6 +128,43 @@ it('binds reviewed requirements to actual inspected fields and rejects forged or
   );
 });
 
+it('saves a personal answer with reordered stored form keys while preserving reviewed annotations', () => {
+  const { board, card, context, save } = fixture();
+  const assessed = board.updateCard(
+    card.id,
+    { formAssessments: [formAssessment(card.id)] },
+    'submitter',
+    'Inspected fixture',
+  );
+  const form = inspectedApplicationForm(assessed);
+  if (form?.status !== 'inspected') throw new Error('Expected inspected form');
+  const requirement = { id: 'why', question: 'Why this team?', required: true, personal: true };
+  const confirmed = save({ ...context, form, requirements: [{ ...requirement, answer: '' }] });
+  const { uninspected, ...rest } = form;
+  const stored = { uninspected, ...rest };
+  board.updateCard(
+    card.id,
+    { applicationContext: { ...confirmed.applicationContext!, form: stored } },
+    'user',
+    'Saved form with different JSON key order',
+  );
+  const answer = (submitted: typeof form) =>
+    saveApplicationContext(
+      board,
+      card.id,
+      jobSourceRevision(card),
+      confirmed.applicationContext!.revision,
+      { ...context, form: submitted, requirements: [{ ...requirement, answer: 'The team.' }] },
+      'personal-answer',
+    );
+  expect(() =>
+    answer({ ...stored, fields: stored.fields.map((field) => ({ ...field, missingAnswer: '' })) }),
+  ).toThrow('inspected form changed');
+  const updated = assertConfirmedContext(answer(stored));
+  expect(updated.form).toEqual(form);
+  expect(updated.requirements[0]?.answer).toBe('The team.');
+});
+
 it('retains constraint/group/choice evidence through confirmation and replay, making changed constraints stale', () => {
   const { board, card, context, save } = fixture();
   const assessment = formAssessment(card.id);

@@ -15,7 +15,7 @@ export const releaseNotes = (body: string | null | undefined) => {
         .replace(/\s+/g, ' ')
         .trim(),
     )
-    .filter(Boolean);
+    .filter((change) => change && !/^Release v?\d+\.\d+\.\d+$/i.test(change));
   return {
     changes: changes
       .slice(0, 5)
