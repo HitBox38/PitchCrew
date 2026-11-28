@@ -84,6 +84,14 @@ test('requires form inspection or explicit manual checking, then confirms the ac
   expect(await form.getByText(/You chose to check the form yourself/).isVisible()).toBe(true);
   host.daemon.service.board.updateCard(
     card.id,
+    { formAssessments: [{ ...formAssessment(card.id), id: 'visual-inspection', fields: [] }] },
+    'submitter',
+    'Inspected a fictional page without structured fields',
+  );
+  await form.getByText(/No form fields captured/).waitFor();
+  expect(await form.getByText(/Use Add requirement in the brief editor/).isVisible()).toBe(true);
+  host.daemon.service.board.updateCard(
+    card.id,
     { formAssessments: [formAssessment(card.id)] },
     'submitter',
     'Inspected fictional form',
