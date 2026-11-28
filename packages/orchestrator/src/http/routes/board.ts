@@ -1,5 +1,6 @@
 import { registerDeepReviewRoutes } from './deep-reviews.ts';
 import { registerCardChangeRoutes } from './card-changes.ts';
+import { registerPacketFolderRoutes } from './packet-folder.ts';
 import { roleIdSchema, states } from '@pitchcrew/core';
 import { maxEditedProfileFilenameLength } from '@pitchcrew/core/profile-filenames';
 import { deleteJob, editJob, setCardStatus, runsWithStatus } from '@pitchcrew/board';
@@ -15,6 +16,7 @@ export const registerBoardRoutes = (app: FastifyInstance, service: CrewService) 
   registerApplicationContextRoutes(app, service);
   registerDeepReviewRoutes(app, service);
   registerCardChangeRoutes(app, service);
+  registerPacketFolderRoutes(app, service);
   app.get<IdRoute>('/api/cards/:id', (req) =>
     service.board.get<Card>('card', z.uuid().parse(req.params.id)),
   );

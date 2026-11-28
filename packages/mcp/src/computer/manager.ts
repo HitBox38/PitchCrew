@@ -19,6 +19,7 @@ import {
   publicText,
   userDeclinedError,
 } from '@pitchcrew/core';
+import { legacyExportFileName, packetExportFileName } from '@pitchcrew/core/packet-files';
 import { assertReviewedContext, digestPacket, digestArtifacts } from '@pitchcrew/board';
 import { digestBytes, verifiedArtifact } from '@pitchcrew/packet';
 import {
@@ -753,11 +754,25 @@ export class ComputerManager {
     if (!card.packet || digestPacket(card.id, card.packet) !== exported.digest)
       throw new Error('Exported packet is stale.');
     const root = await realpath(join(this.directory, 'packets', exported.cardId));
-    const path = await realpath(join(exported.exportDirectory, action.file));
-    const rel = relative(root, path);
-    if (rel.startsWith('..') || isAbsolute(rel))
-      throw new Error('Upload is outside the exported packet.');
-    const file = { name: action.file, buffer: await readFile(path) };
+    const publicName = packetExportFileName(exported.packet.resume, action.file);
+    const legacy = legacyExportFileName(publicName);
+    const names = legacy && legacy !== publicName ? [publicName, legacy] : [publicName];
+    let path: string | undefined;
+    for (const name of names) {
+      try {
+        const candidate = await realpath(join(exported.exportDirectory, name));
+        const rel = relative(root, candidate);
+        if (rel.startsWith('..') || isAbsolute(rel))
+          throw new Error('Upload is outside the exported packet.');
+        path = candidate;
+        break;
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') continue;
+        throw error;
+      }
+    }
+    if (!path) throw new Error('The exported file changed. Export the reviewed packet again.');
+    const file = { name: publicName, buffer: await readFile(path) };
     const latest = this.board.get<Card>('card', exported.cardId);
     if (exported.contextRevision !== assertReviewedContext(latest).revision)
       throw new Error('Exported application context changed during upload.');

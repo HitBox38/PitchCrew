@@ -186,6 +186,8 @@ it('uploads only the exact reviewed exported bytes for the attached card', async
   const { manager, driver, scope, board, signal, authorize } = await setup();
   const { writePacket } = await import('@pitchcrew/packet');
   const { packet } = await import('../../board/test/fixtures/packet.ts');
+  const { packetExportFileName } = await import('@pitchcrew/core/packet-files');
+  const resumeFile = packetExportFileName(packet.resume, 'resume.md');
   const { writeFile } = await import('node:fs/promises');
   const { cardInput } = await import('@pitchcrew/core');
   const { randomUUID } = await import('node:crypto');
@@ -220,7 +222,7 @@ it('uploads only the exact reviewed exported bytes for the attached card', async
   manager.decide(approved.id, true);
   await manager.execute(scope.runId, approved.id, signal, authorize, 0);
   expect(driver.perform).toHaveBeenCalledWith(approved.action, {
-    name: 'resume.md',
+    name: resumeFile,
     buffer: Buffer.from(packet.resume),
   });
   const changed = await manager.request(
@@ -229,7 +231,7 @@ it('uploads only the exact reviewed exported bytes for the attached card', async
     'Upload fixture again',
   );
   manager.decide(changed.id, true);
-  await writeFile(join(output, 'resume.md'), 'Unreviewed content');
+  await writeFile(join(output, resumeFile), 'Unreviewed content');
   await expect(manager.execute(scope.runId, changed.id, signal, authorize, 0)).rejects.toThrow(
     'exported file changed',
   );

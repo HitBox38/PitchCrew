@@ -170,6 +170,13 @@ export type { ChatReference, ChatReferenceInput } from './chat-references.ts';
 export type { ExternalMcpInfo } from './external-mcp.ts';
 
 export { chatFileCitations } from './chat-citations.ts';
+export {
+  legacyExportFileName,
+  packetExportFileName,
+  packetFileIds,
+  packetFileName,
+  packetNameStem,
+} from './packet-files.ts';
 
 export * from './browser-tabs.ts';
 export { publicText } from './browser-action-labels.ts';

@@ -20,7 +20,7 @@ Attachment viewing, approval placement and the submission handoff below are unch
 - Use an email-style, full-width request list. Each row shows the agent, subject, job, time and attachment indicator.
 - Opening a request replaces the list with a reading view, with a way back to the list.
 - Show the request's documents as attachment tiles instead of expanded inline documents.
-- Use one attachment tile per file, with explicit filenames and formats (for example, `resume.pdf`, `resume.docx` and `resume.md`). Each tile opens that file's own viewer rather than grouping formats into document tabs.
+- Use one attachment tile per file, with explicit filenames and formats (for example, `Ada_Lovelace_CV.pdf`, `Ada_Lovelace_CV.docx` and `Ada_Lovelace_CV.md`). Each tile opens that file's own viewer rather than grouping formats into document tabs.
 - Opening an attachment displays a large dialog with controls suited to its file type.
 - Attachment dialogs are read-only. Changes go back to Writer rather than editing the frozen documents in the viewer.
 - PDF review offers page navigation, zoom and fit controls. DOCX review offers a document preview and source text. Markdown review has a visible Rendered / Source toggle with copying in both modes.

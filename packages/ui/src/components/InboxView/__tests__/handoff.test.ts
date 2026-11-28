@@ -48,6 +48,12 @@ describe('packet handoff', () => {
       ['Portfolio', 'yours', []],
       ['Writing sample', 'yours', []],
     ]);
+    expect(
+      neededFiles(formCard([field('Resume/CV', '.pdf')]), {
+        ...approval([artifact('resume.pdf', 'resume')]),
+        packet: { resume: '# Ada Lovelace\n\nWork.' },
+      } as Approval)?.[0]?.files,
+    ).toEqual(['Ada_Lovelace_CV.pdf']);
     expect(neededFiles(formCard([field('Resume')]), approval([]))?.[0]?.status).toBe('export');
     expect(neededFiles({} as Card, approval([]))).toBeNull();
   });

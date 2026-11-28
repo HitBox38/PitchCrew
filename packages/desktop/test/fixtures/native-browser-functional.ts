@@ -6,6 +6,7 @@ import type { Board } from '../../../board/src/index.ts';
 import { reviewFixturePacket } from '../../../board/test/fixtures/application-context.ts';
 import { packet } from '../../../board/test/fixtures/packet.ts';
 import { cardInput, type BrowserAction, type SubmissionAttempt } from '../../../core/src/index.ts';
+import { packetExportFileName } from '../../../core/src/packet-files.ts';
 import type { ComputerManager } from '../../../mcp/src/computer.ts';
 import { exportApprovedPacket } from '../../../mcp/src/index.ts';
 import { renderArtifacts } from '../../../packet/src/index.ts';
@@ -856,14 +857,15 @@ const checkNativePacketUpload = async (
       id,
       expression: `(async()=>{const file=document.querySelector('#resume').files[0];return {name:file.name,type:file.type,bytes:Array.from(new Uint8Array(await file.arrayBuffer()))}})()`,
     });
-    assert.equal(received.name, file);
+    const named = packetExportFileName(packet.resume, file);
+    assert.equal(received.name, named);
     assert.equal(
       received.type,
       file.endsWith('.pdf')
         ? 'application/pdf'
         : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     );
-    assert.deepEqual(Buffer.from(received.bytes), await readFile(join(output, file)));
+    assert.deepEqual(Buffer.from(received.bytes), await readFile(join(output, named)));
   }
   const approval = await manager.request(
     scope,
@@ -871,8 +873,9 @@ const checkNativePacketUpload = async (
     'Prove changed exported bytes cannot reach native input',
   );
   manager.decide(approval.id, true);
-  const original = await readFile(join(output, 'resume.pdf'));
-  await writeFile(join(output, 'resume.pdf'), Buffer.from('tampered fictional bytes'));
+  const pdfName = packetExportFileName(packet.resume, 'resume.pdf');
+  const original = await readFile(join(output, pdfName));
+  await writeFile(join(output, pdfName), Buffer.from('tampered fictional bytes'));
   await assert.rejects(
     manager.execute(scope.runId, approval.id, signal, authorize, 0),
     /file changed/,
@@ -883,9 +886,9 @@ const checkNativePacketUpload = async (
       id,
       expression: `document.querySelector('#resume').files[0].name`,
     }),
-    'resume.docx',
+    packetExportFileName(packet.resume, 'resume.docx'),
   );
-  await writeFile(join(output, 'resume.pdf'), original);
+  await writeFile(join(output, pdfName), original);
   const fill = await manager.request(
     scope,
     { kind: 'fill', selector: '#name', value: 'Example candidate' },
@@ -930,7 +933,7 @@ const checkNativePacketUpload = async (
   assert.equal(receipts[0].name, 'Example candidate');
   assert.deepEqual(
     Buffer.from(receipts[0].file.bytes),
-    await readFile(join(output, 'resume.docx')),
+    await readFile(join(output, packetExportFileName(packet.resume, 'resume.docx'))),
   );
   const attempt = board
     .list<SubmissionAttempt>('submission_attempt')
