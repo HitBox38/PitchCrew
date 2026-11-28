@@ -65,8 +65,10 @@ const respond = () => {
         error: mode === 'error' ? 'fixture-private-error' : undefined,
       },
     }) + '\n';
-  process.stdout.write(output.slice(0, 19));
-  setTimeout(() => process.stdout.write(output.slice(19)), 5);
+  const bytes = Buffer.from(output);
+  const split = output.includes('·') ? bytes.indexOf('·') + 1 : 19;
+  process.stdout.write(bytes.subarray(0, split));
+  setTimeout(() => process.stdout.write(bytes.subarray(split)), 5);
 };
 rl.on('line', (line) => {
   const message = JSON.parse(line);
@@ -96,6 +98,10 @@ rl.on('line', (line) => {
   }
   if (mode === 'oversized' || mode === 'stderr') {
     (mode === 'stderr' ? process.stderr : process.stdout).write('x'.repeat(3_000_000));
+    return;
+  }
+  if (mode === 'combined') {
+    process.stderr.write('x'.repeat(1_100_000), () => process.stdout.write('x'.repeat(1_100_000)));
     return;
   }
   console.log('fixture startup diagnostic');

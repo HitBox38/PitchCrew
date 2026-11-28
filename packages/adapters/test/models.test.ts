@@ -241,3 +241,15 @@ it('stops Copilot discovery on malformed catalogs, timeout and cancellation', as
     readCopilotModels(process.execPath, [fixture, 'copilot-hang'], AbortSignal.timeout(100)),
   ).rejects.toThrow('cancelled');
 });
+
+it.each([
+  ['codex', readCodexModels, 'fixture-one'],
+  ['copilot', readCopilotModels, 'fixture-live'],
+] as const)(
+  'bounds %s stdout while draining diagnostics separately',
+  async (runtime, read, first) => {
+    const models = await read(process.execPath, [fixture, runtime + '-stderr']);
+    expect(models[0]?.value).toBe(first);
+    await expect(read(process.execPath, [fixture, 'oversized'])).rejects.toThrow('output exceeded');
+  },
+);
