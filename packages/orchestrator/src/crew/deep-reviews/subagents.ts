@@ -11,18 +11,10 @@ import {
 import { z } from 'zod';
 import type { CrewContext, RunCapability } from '../types.ts';
 import { assessmentFor } from './assessment.ts';
-import { assertReviewCurrent, review, updateReview } from './state.ts';
-import { requireRole } from '../roles.ts';
+import { assertReviewCurrent, review, reviewChildren, updateReview } from './state.ts';
+import { requireRole } from '../role-lookup.ts';
 import { executeReviewStage } from './stages.ts';
 
-export const reviewChildren = (context: CrewContext, id: string) => {
-  const rows = context.board.db
-    .prepare(
-      "SELECT json FROM entities WHERE kind='review_subagent' AND json_extract(json,'$.reviewId')=? ORDER BY rowid",
-    )
-    .all(id) as { json: string }[];
-  return rows.map((row) => JSON.parse(row.json) as ReviewSubagent);
-};
 export const reviewAgentAction = async (
   context: CrewContext,
   capability: RunCapability,

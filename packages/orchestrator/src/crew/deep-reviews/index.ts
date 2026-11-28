@@ -18,9 +18,9 @@ import {
 } from '@pitchcrew/core';
 import { readProfile } from '@pitchcrew/packet';
 import { assertProfileReady } from '../../profile-sources/mutation.ts';
-import { assertApplicationRuntime } from '../application-context/extraction.ts';
+import { assertApplicationRuntime } from '../application-context/runtime.ts';
 import { relatedConversation, canReadConversation } from '../conversations.ts';
-import { requireRole } from '../roles.ts';
+import { requireRole } from '../role-lookup.ts';
 import { runConfiguration, packetDigest } from '../pipeline/snapshots.ts';
 import type { CrewContext } from '../types.ts';
 import { executeDeepReview } from './lifecycle.ts';

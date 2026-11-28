@@ -1,7 +1,7 @@
 import { runsForDeepReview } from '@pitchcrew/board';
 import type { Card, Run } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
-import { drainConversationQueue, finishDelivery } from '../conversation-queue.ts';
+import { finishDelivery } from '../queue/deliveries.ts';
 import { finishUserContinuation } from '../user-input/lifecycle.ts';
 import { packetDigest } from '../pipeline/snapshots.ts';
 import { reviewFlow } from './flow.ts';
@@ -133,6 +133,6 @@ export const executeDeepReview = async (context: CrewContext, live: LiveDeepRevi
       finishDelivery(context, finished);
       context.publishChat(true);
       void context.drainTasks();
-      void drainConversationQueue(context);
+      void context.drainConversationQueue();
     });
 };

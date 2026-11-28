@@ -1,7 +1,6 @@
 import { sourceArguments } from '../../process.ts';
 import { guideForRun } from '../../quality/writing.ts';
 import { selectedChatSkills } from '../chat-references.ts';
-import { reviewChildren } from './subagents.ts';
 import { reviewClarifications } from './clarifications.ts';
 import { subagentCard } from './inputs.ts';
 import { randomUUID } from 'node:crypto';
@@ -21,11 +20,11 @@ import {
 import { runConfiguration } from '../pipeline/snapshots.ts';
 import { endQuestionTurn } from '../user-input/lifecycle.ts';
 import { applicationUserAnswers } from '../application-context/answers.ts';
-import { assertApplicationRuntime } from '../application-context/extraction.ts';
+import { assertApplicationRuntime } from '../application-context/runtime.ts';
 import { beginAiRun } from '../../telemetry/ai.ts';
 import { recordRuntimeActivity, finishChatActivity } from '../chat-activity.ts';
 import type { CrewContext } from '../types.ts';
-import { assertReviewCurrent, assertReviewEvidence, review } from './state.ts';
+import { assertReviewCurrent, assertReviewEvidence, review, reviewChildren } from './state.ts';
 import { ReviewWaiting, type LiveDeepReview } from './types.ts';
 
 const executeReviewStagePrepared = async (

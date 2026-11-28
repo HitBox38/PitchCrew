@@ -16,17 +16,12 @@ import {
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import { recordChatActivity, recordRuntimeActivity, finishChatActivity } from '../chat-activity.ts';
-import { requireRole } from '../roles.ts';
+import { requireRole } from '../role-lookup.ts';
 import type { CrewContext } from '../types.ts';
+import { assertApplicationRuntime } from './runtime.ts';
 import { applicationSource } from './source.ts';
 import { beginAiRun } from '../../telemetry/ai.ts';
 
-export const assertApplicationRuntime = (role: Role) => {
-  if (!adapters[role.runtime].applicationIsolation)
-    throw new Error(
-      'This runtime does not support isolated application runs. Choose Codex, Claude Code or OpenCode, or prepare a brief manually.',
-    );
-};
 const extractApplicationContextPrepared = async (
   context: CrewContext,
   cardId: string,

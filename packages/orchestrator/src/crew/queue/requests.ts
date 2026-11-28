@@ -16,10 +16,9 @@ import {
   type Role,
 } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
-import { assertApplicationRuntime } from '../application-context/extraction.ts';
+import { assertApplicationRuntime } from '../application-context/runtime.ts';
 import { relatedConversation } from '../conversations.ts';
-import { drainConversationQueue, saveRequest } from '../conversation-queue.ts';
-import { ensureQueue, laneId, queueRequests, queueWaiting } from './state.ts';
+import { ensureQueue, laneId, queueRequests, queueWaiting, saveRequest } from './state.ts';
 export const queueBoardAction = (context: CrewContext, data: unknown): ChatRequest => {
   const input = queueBoardInput.parse(data);
   const card = context.board.get<Card>('card', input.cardId);
@@ -77,7 +76,7 @@ export const queueBoardAction = (context: CrewContext, data: unknown): ChatReque
     );
     saveRequest(context, request);
   })();
-  void drainConversationQueue(context);
+  void context.drainConversationQueue();
   return request;
 };
 export const requestProblem = async (

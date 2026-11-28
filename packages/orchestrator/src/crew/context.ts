@@ -22,6 +22,7 @@ import { join } from 'node:path';
 import { ProfileSourceManager } from '../profile-sources/index.ts';
 import { JobSourceManager } from '../job-sources/index.ts';
 import { DetectorManager } from '../detectors/index.ts';
+import { drainConversationQueue } from './conversation-queue.ts';
 import { createCard, exportPacket, loadExamples, moveCard, saveProfile } from './cards.ts';
 import {
   addMessage,
@@ -155,6 +156,7 @@ export const createCrewContext = (
     enqueue: (...args) => enqueue(context, ...args),
     finishTask: (...args) => finishTask(context, ...args),
     taskPermissionsAllow: (...args) => taskPermissionsAllow(context, ...args),
+    drainConversationQueue: () => drainConversationQueue(context),
     drainTasks: (...args) => drainTasks(context, ...args),
     exportPacket: (...args) => exportPacket(context, ...args),
     agentCall: (...args) => agentCall(context, ...args),

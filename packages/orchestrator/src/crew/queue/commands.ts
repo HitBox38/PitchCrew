@@ -9,11 +9,16 @@ import {
   type WorkQueue,
 } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
-import { drainConversationQueue, saveRequest } from '../conversation-queue.ts';
-import { refreshRound } from '../delegation-rounds.ts';
-import { laneId, patchQueue, nextOrder, queueRequests, runLane } from './state.ts';
-import { taskLane } from './state.ts';
-import { taskAwaitsRecovery } from '../delegation-rounds.ts';
+import { refreshRound, taskAwaitsRecovery } from '../delegation-rounds.ts';
+import {
+  laneId,
+  patchQueue,
+  nextOrder,
+  queueRequests,
+  runLane,
+  saveRequest,
+  taskLane,
+} from './state.ts';
 
 export const configureQueue = (context: CrewContext, data: unknown) => {
   const { concurrency } = z.object({ concurrency: z.number().int().min(1).max(50) }).parse(data);
@@ -23,7 +28,7 @@ export const configureQueue = (context: CrewContext, data: unknown) => {
     'user',
     'Changed workspace concurrency',
   );
-  void drainConversationQueue(context);
+  void context.drainConversationQueue();
   void context.drainTasks();
   return { concurrency };
 };
@@ -119,7 +124,7 @@ export const updateQueue = (context: CrewContext, id: string, data: unknown) => 
     }
   }
   void context.drainTasks();
-  void drainConversationQueue(context);
+  void context.drainConversationQueue();
   return context.board.get<WorkQueue>('work_queue', id);
 };
 export const moveQueueRequest = (context: CrewContext, id: string, beforeId: string | null) => {
@@ -149,6 +154,6 @@ export const moveQueueRequest = (context: CrewContext, id: string, beforeId: str
   context.board.db.transaction(() =>
     reordered.forEach((r, index) => saveRequest(context, { ...r, order: base + index })),
   )();
-  void drainConversationQueue(context);
+  void context.drainConversationQueue();
   return context.board.get<ChatRequest>('chat_request', id);
 };
