@@ -7,15 +7,15 @@
   border: 1px solid color-mix(in srgb, var(--reference-ink) 28%, transparent);
   border-radius: 6px;
 }
-[data-reference-kind='agent'] {
+:where(.chat-reference, .chat-reference-token)[data-reference-kind='agent'] {
   --reference-ink: var(--primary);
   --reference-fill: var(--primary-soft);
 }
-[data-reference-kind='file'] {
+:where(.chat-reference, .chat-reference-token)[data-reference-kind='file'] {
   --reference-ink: var(--teal);
   --reference-fill: var(--teal-soft);
 }
-[data-reference-kind='skill'] {
+:where(.chat-reference, .chat-reference-token)[data-reference-kind='skill'] {
   --reference-ink: var(--plum);
   --reference-fill: var(--plum-soft);
 }

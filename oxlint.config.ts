@@ -1,20 +1,27 @@
 import { defineConfig, type OxlintOverride } from 'oxlint';
 import { workspaces } from './scripts/workspace-manifests.ts';
 
+const appShadcnRules: OxlintOverride['rules'] = {
+  'shadcn/no-arbitrary-values': ['error', { deny: ['color'] }],
+  'shadcn/require-static-classes': 'error',
+  'shadcn/no-restyle': [
+    'error',
+    { deny: [], contracts: [{ pattern: '^Button$', deny: ['bg-*'] }] },
+  ],
+};
+
 const shadcnRules: Record<string, OxlintOverride['rules']> = {
   '@pitchcrew/design-system': {
     'shadcn/no-raw-colors': 'error',
     'shadcn/no-inline-styles': 'error',
   },
   '@pitchcrew/ui': {
+    ...appShadcnRules,
     'shadcn/no-raw-colors': ['error', { allow: ['text-button'] }],
-    'shadcn/no-arbitrary-values': ['error', { deny: ['color'] }],
-    'shadcn/require-static-classes': 'error',
   },
   '@pitchcrew/landing': {
+    ...appShadcnRules,
     'shadcn/no-raw-colors': ['error', { allow: ['text-link'] }],
-    'shadcn/no-arbitrary-values': ['error', { deny: ['color'] }],
-    'shadcn/require-static-classes': 'error',
   },
 };
 
