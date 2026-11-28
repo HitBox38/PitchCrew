@@ -1,6 +1,7 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { adapters } from '@pitchcrew/adapters';
 import type { Role, Run, Snapshot, WritingCorrection, RunContext } from '@pitchcrew/core';
+import { packetExportFileName } from '@pitchcrew/core/packet-files';
 import { packet } from '../../board/test/fixtures/packet.ts';
 import {
   cleanup,
@@ -236,7 +237,14 @@ it('offers verified DOCX files for approval and export when PDF rendering fails'
   const { join } = await import('node:path');
   for (const artifact of approval.artifacts!)
     expect(
-      (await readFile(join(exported.result.directory, artifact.name))).toString('base64'),
+      (
+        await readFile(
+          join(
+            exported.result.directory,
+            packetExportFileName(approval.packet.resume, artifact.name),
+          ),
+        )
+      ).toString('base64'),
     ).toBe(artifact.bytes);
   expect(board.get<import('@pitchcrew/core').Approval>('approval', approval.id).status).toBe(
     'consumed',

@@ -31,6 +31,7 @@
     "./tool-failures": "./src/tool-failures.ts",
     "./message-notifications": "./src/message-notifications.ts",
     "./chat-citations": "./src/chat-citations.ts",
+    "./packet-files": "./src/packet-files.ts",
     "./browser-errors": "./src/browser-errors.ts",
     "./browser-action-labels": "./src/browser-action-labels.ts",
     "./browser-modes": "./src/browser-modes.ts",

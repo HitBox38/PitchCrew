@@ -1,5 +1,6 @@
 import type { Approval, ProfileFile } from './workspace.ts';
 import type { ChatMessage } from './chat.ts';
+import { packetExportFileName } from './packet-files.ts';
 
 export interface ChatFileCitation {
   name: string;
@@ -44,10 +45,17 @@ export const chatFileCitations = (
     })),
   ),
   ...profile.map((file) => ({ name: file.name, url: fileCitationUrl('profile', file.name) })),
-  ...approvals.flatMap((approval) =>
-    [
-      ...Object.values(packetSourceNames),
-      ...(approval.artifacts ?? []).map((file) => file.name),
-    ].map((name) => ({ name, url: fileCitationUrl('packet', approval.id, name) })),
-  ),
+  ...approvals.flatMap((approval) => [
+    ...Object.entries(packetSourceNames).map(([source, name]) => ({
+      name:
+        source === 'resume' || source === 'coverLetter'
+          ? packetExportFileName(approval.packet.resume, name)
+          : name,
+      url: fileCitationUrl('packet', approval.id, name),
+    })),
+    ...(approval.artifacts ?? []).map((file) => ({
+      name: packetExportFileName(approval.packet.resume, file.name),
+      url: fileCitationUrl('packet', approval.id, file.name),
+    })),
+  ]),
 ];

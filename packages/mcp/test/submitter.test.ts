@@ -18,6 +18,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterEach, expect, it, vi } from 'vitest';
+import { packetExportFileName } from '@pitchcrew/core/packet-files';
 import { packet } from '../../board/test/fixtures/packet.ts';
 import { exportApprovedPacket } from '../src/index.ts';
 import { ComputerManager, resolveSubmission } from '../src/computer.ts';
@@ -352,7 +353,10 @@ it('still asks before the marked final submission in Full access while packet up
   // Exact reviewed bytes, and no preparation write guard (the third argument).
   expect(driver.perform).toHaveBeenLastCalledWith(
     upload.action,
-    expect.objectContaining({ name: 'resume.md', buffer: Buffer.from(packet.resume) }),
+    expect.objectContaining({
+      name: packetExportFileName(packet.resume, 'resume.md'),
+      buffer: Buffer.from(packet.resume),
+    }),
   );
   // A click on an element the server cannot read might be the one that sends, so it asks.
   const unmarked = await manager.request(scope, { kind: 'click', selector: '#submit' }, 'Continue');
@@ -437,7 +441,10 @@ it('uploads exact binary bytes with binary hash/MIME and rejects changed bytes a
   expect(driver.perform.mock.calls[0]?.[1]).toMatchObject({ mimeType: 'application/pdf' });
   const next = await manager.request(scope, action, 'PDF retry');
   manager.decide(next.id, true);
-  await writeFile(join(output, 'resume.pdf'), Buffer.from([0x80, 0x81]));
+  await writeFile(
+    join(output, packetExportFileName(packet.resume, 'resume.pdf')),
+    Buffer.from([0x80, 0x81]),
+  );
   await expect(manager.execute(scope.runId, next.id, signal, () => {}, 0)).rejects.toThrow(
     'file changed',
   );
