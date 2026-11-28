@@ -348,6 +348,33 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
       sourceCursor = part.nextCursor;
     } while (sourceCursor);
     expect(restored).toBe(sourceHtml);
+    // Give both fields the same long value, so only the field name distinguishes their cursors.
+    board.updateCard(card.id, { feedback: [sourceHtml] }, 'reviewer', 'Set long feedback');
+    const feedbackField = 'feedback.0';
+    const feedbackPage = await client.callTool({
+      name: 'pitchcrew_get_card',
+      arguments: { field: feedbackField },
+    });
+    const { nextCursor: cursor } = feedbackPage.structuredContent as { nextCursor: string | null };
+    expect(cursor).toEqual(expect.any(String));
+    const continueField = (field: string) =>
+      client.callTool({
+        name: 'pitchcrew_get_card',
+        arguments: { field, cursor },
+      });
+    const stale = {
+      isError: true,
+      content: [{ type: 'text', text: expect.stringContaining('Field changed') }],
+    };
+    expect(await continueField('sourceHtml')).toMatchObject(stale);
+    board.updateCard(
+      card.id,
+      { feedback: [sourceHtml + ' updated'] },
+      'reviewer',
+      'Edited long feedback',
+    );
+    expect(await continueField(feedbackField)).toMatchObject(stale);
+    board.updateCard(card.id, { feedback: [] }, 'reviewer', 'Cleared fixture feedback');
     const sources = await client.callTool({ name: 'pitchcrew_read_profile', arguments: {} });
     expect(sources.structuredContent).toMatchObject({ profile: expect.arrayContaining(profile) });
     const reason = 'Fixture milestone\u0000with remaining text';
