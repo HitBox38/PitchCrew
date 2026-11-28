@@ -131,12 +131,16 @@ export const qualityAgentAction = async (
     const writer = context.board.get<Role>('role', input.writerId);
     if (workflowSeat(writer) !== 'writer')
       throw new Error('Choose an agent assigned to the Writer workflow.');
-    if (
-      runsWithStatus(context.board, ['running']).some(
-        (r) => r.cardId === card.id && r.id !== run.id,
-      )
-    )
-      throw new Error('Another run owns this application.');
+    const blocker = runsWithStatus(context.board, ['running']).find((other) => {
+      if (other.cardId !== card.id || other.id === run.id) return false;
+      // A group message starts parallel chat deliveries for the same user request.
+      return !(other.mode === 'chat' && run.requestId && other.requestId === run.requestId);
+    });
+    const owner = card.owner ?? blocker?.roleId;
+    if (owner)
+      throw new Error(
+        `Wait for ${owner}'s active application work to finish before requesting a correction.`,
+      );
     const existing = context.board
       .list<WritingCorrection>('writing_correction')
       .find((c) => c.messageId === message.id && c.cardId === card.id);

@@ -227,7 +227,9 @@ At most 100 preferences and 100 retained proposals are supported.
 
 `pitchcrew_application_quality` provides the ordinary-chat actions. A correction
 must quote the current user request and target an existing attached application
-draft. The gateway records its packet digest and queues an isolated Writer task;
+draft. Participants replying to the same group message can queue one correction
+between them. A current card owner or a run for a different request still blocks it.
+The gateway records its packet digest and queues an isolated Writer task;
 launch rejects a changed draft. Only the quoted correction, permitted Profile,
 structured application context and guide enter drafting, rather than the source
 conversation or raw posting. The exact before/after text remains local board
