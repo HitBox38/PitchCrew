@@ -80,9 +80,9 @@ test('keeps every toolbar control on one row from wide desktops down to small la
   for (const width of [1440, 1180, 900]) {
     await page.setViewportSize({ width, height: 800 });
     for (const [name, kind] of [
-      ['resume.pdf', 'PDF'],
-      ['resume.docx', 'DOCX'],
-      ['resume.md', 'Markdown'],
+      ['Example_Candidate_CV.pdf', 'PDF'],
+      ['Example_Candidate_CV.docx', 'DOCX'],
+      ['Example_Candidate_CV.md', 'Markdown'],
     ] as const) {
       const dialog = await open(name, kind);
       expect(await toolbarLayout(), `${name} at ${width}px`).toEqual({
@@ -105,7 +105,7 @@ const shown = async (dialog: ReturnType<Page['getByRole']>) =>
 const letter = 816;
 
 test('shows the zoom on screen, fits PDFs automatically and resets to printed size', async () => {
-  const dialog = await open('resume.pdf', 'PDF');
+  const dialog = await open('Example_Candidate_CV.pdf', 'PDF');
   await dialog.locator('.file-pdf-page canvas').waitFor();
   const sheet = () => dialog.locator('.file-pdf-page').evaluate((node) => node.clientWidth);
   // Automatic fits the width but never enlarges a portrait page past 125% of its printed size,
@@ -135,8 +135,8 @@ test('shows the zoom on screen, fits PDFs automatically and resets to printed si
 test('shows PDF and Word pages at the same printed size for the same percentage', async () => {
   const widths: number[] = [];
   for (const [name, kind, selector] of [
-    ['resume.pdf', 'PDF', '.file-pdf-page'],
-    ['resume.docx', 'DOCX', ''],
+    ['Example_Candidate_CV.pdf', 'PDF', '.file-pdf-page'],
+    ['Example_Candidate_CV.docx', 'DOCX', ''],
   ] as const) {
     const dialog = await open(name, kind);
     await dialog.getByRole('button', { name: /^Zoom, / }).click();
@@ -170,7 +170,7 @@ test('states the Word layout notice once instead of a layout note on every Word 
   ).toBe(1);
   expect(await check.getByText(/Word controls final DOCX layout/).count()).toBe(0);
   await check.locator('[data-slot="accordion-trigger"]').click();
-  const dialog = await open('resume.docx', 'DOCX');
+  const dialog = await open('Example_Candidate_CV.docx', 'DOCX');
   expect(await dialog.locator('.file-view-list .file-note-dot').count()).toBe(0);
   expect(await dialog.locator('.file-layout-notes').count()).toBe(0);
   expect(
@@ -186,7 +186,7 @@ test('states the Word layout notice once instead of a layout note on every Word 
 });
 
 test('closes a menu, then Find, then the viewer on Escape, returning focus to Find', async () => {
-  const dialog = await open('resume.md', 'Markdown');
+  const dialog = await open('Example_Candidate_CV.md', 'Markdown');
   // Viewer shortcuts belong to the dialog, so wait for it to take focus as a reader would.
   await expect
     .poll(() => dialog.evaluate((element) => element.contains(document.activeElement)))
@@ -215,7 +215,7 @@ test('closes a menu, then Find, then the viewer on Escape, returning focus to Fi
 
 test('reads a short Word letter at full page width on a short laptop screen', async () => {
   await page.setViewportSize({ width: 1180, height: 600 });
-  const dialog = await open('cover_letter.docx', 'DOCX');
+  const dialog = await open('Example_Candidate_Cover_Letter.docx', 'DOCX');
   await dialog.frameLocator('iframe').locator('section.docx').waitFor();
   // Orientation comes from the declared page, not the letter's short content.
   await expect
@@ -234,7 +234,7 @@ test('reads a short Word letter at full page width on a short laptop screen', as
 });
 
 test('keeps Find and zoom when the reader re-selects the open file or zooms mid-search', async () => {
-  const dialog = await open('resume.pdf', 'PDF');
+  const dialog = await open('Example_Candidate_CV.pdf', 'PDF');
   await dialog.locator('.file-pdf-page canvas').waitFor();
   await dialog.getByRole('button', { name: 'Find', exact: true }).click();
   await dialog.getByRole('textbox', { name: 'Find in document' }).fill('React');
@@ -244,7 +244,7 @@ test('keeps Find and zoom when the reader re-selects the open file or zooms mid-
   const zoom = await dialog.getByRole('button', { name: /^Zoom, / }).textContent();
   await dialog
     .getByRole('navigation', { name: 'Attachments' })
-    .getByRole('button', { name: 'resume.pdf', exact: true })
+    .getByRole('button', { name: 'Example_Candidate_CV.pdf', exact: true })
     .click();
   expect(await dialog.locator('.file-findbar output').textContent()).toBe('2 of 2');
   expect(await dialog.getByRole('button', { name: /^Zoom, / }).textContent()).toBe(zoom);
@@ -257,11 +257,11 @@ test('keeps Find and zoom when the reader re-selects the open file or zooms mid-
 });
 
 test('scrolls a Word preview from the keyboard as soon as it opens', async () => {
-  const dialog = await open('cover_letter.docx', 'DOCX');
+  const dialog = await open('Example_Candidate_Cover_Letter.docx', 'DOCX');
   await dialog.frameLocator('iframe').locator('section.docx').waitFor();
   await expect
     .poll(() => page.evaluate(() => document.activeElement?.getAttribute('aria-label')))
-    .toBe('cover_letter.docx contents');
+    .toBe('Example_Candidate_Cover_Letter.docx contents');
   const scrolled = () =>
     dialog
       .locator('iframe')
@@ -289,8 +289,8 @@ test('keeps every toolbar control reachable and touch-sized on tablets', async (
   for (const width of [768, 800, 820, 990, 1100]) {
     await tablet.setViewportSize({ width, height: 1000 });
     for (const [name, kind] of [
-      ['resume.pdf', 'PDF'],
-      ['resume.md', 'Markdown'],
+      ['Example_Candidate_CV.pdf', 'PDF'],
+      ['Example_Candidate_CV.md', 'Markdown'],
     ] as const) {
       await tablet
         .getByRole('button', { name: new RegExp(`^${name.replace('.', '\\.')} ${kind}`) })
@@ -325,7 +325,7 @@ test('keeps every toolbar control reachable and touch-sized on tablets', async (
           .evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().height));
         expect(Math.min(...rows), 'file column rows on touch').toBeGreaterThanOrEqual(44);
       }
-      if (name === 'resume.pdf' && width >= 800) {
+      if (name === 'Example_Candidate_CV.pdf' && width >= 800) {
         // The taller touch Find pill still clears the top of page 1 at rest.
         await dialog.locator('.file-pdf-page canvas').waitFor();
         await dialog.getByRole('button', { name: 'Find', exact: true }).click();
@@ -344,7 +344,7 @@ test('keeps every toolbar control reachable and touch-sized on tablets', async (
 });
 
 test('clears a stale copy error once a copy succeeds', async () => {
-  const dialog = await open('resume.md', 'Markdown');
+  const dialog = await open('Example_Candidate_CV.md', 'Markdown');
   const notice = dialog.locator('.file-view-notice');
   await dialog.getByRole('button', { name: 'More file controls', exact: true }).click();
   await page.getByRole('menuitem', { name: 'Copy selection' }).click();
@@ -359,9 +359,9 @@ test('clears a stale copy error once a copy succeeds', async () => {
 test('keeps every phone toolbar control inside a 320px screen', async () => {
   await page.setViewportSize({ width: 320, height: 640 });
   for (const [name, kind] of [
-    ['resume.md', 'Markdown'],
-    ['resume.docx', 'DOCX'],
-    ['resume.pdf', 'PDF'],
+    ['Example_Candidate_CV.md', 'Markdown'],
+    ['Example_Candidate_CV.docx', 'DOCX'],
+    ['Example_Candidate_CV.pdf', 'PDF'],
   ] as const) {
     const dialog = await open(name, kind);
     const outside = await dialog.evaluate((element) => {
@@ -387,7 +387,7 @@ test('keeps every phone toolbar control inside a 320px screen', async () => {
 });
 
 test('keeps Word Preview on Automatic when Source resets its text size', async () => {
-  const dialog = await open('resume.docx', 'DOCX');
+  const dialog = await open('Example_Candidate_CV.docx', 'DOCX');
   await dialog.frameLocator('iframe').locator('section.docx').waitFor();
   await expect.poll(() => shown(dialog)).toBeGreaterThan(50);
   const automatic = await shown(dialog);
@@ -407,7 +407,7 @@ test('keeps Word Preview on Automatic when Source resets its text size', async (
 
 test('keeps a Word page’s proportion on a phone', async () => {
   await page.setViewportSize({ width: 390, height: 844 });
-  const dialog = await open('cover_letter.docx', 'DOCX');
+  const dialog = await open('Example_Candidate_Cover_Letter.docx', 'DOCX');
   await dialog.frameLocator('iframe').locator('section.docx').waitFor();
   await expect
     .poll(() =>

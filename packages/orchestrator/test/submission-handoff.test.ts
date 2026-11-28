@@ -45,9 +45,9 @@ describe('user-only post-approval submission handoff', { timeout: 60000 }, () =>
     );
     expect(response.status).toBe(200);
     expect(result).toMatchObject({ status: 'consumed', submission: { method: 'manual' } });
-    expect(await readFile(join(result.exportDirectory!, 'resume.md'), 'utf8')).toContain(
-      'Built React interfaces.',
-    );
+    expect(
+      await readFile(join(result.exportDirectory!, 'Example_Candidate_CV.md'), 'utf8'),
+    ).toContain('Built React interfaces.');
     const repeat = await request<Approval>(`/approvals/${approval.id}/submit`, 'POST', {
       method: 'manual',
     });
@@ -58,7 +58,7 @@ describe('user-only post-approval submission handoff', { timeout: 60000 }, () =>
     expect(daemon.service.board.get<Approval>('approval', approval.id).submission?.method).toBe(
       'manual',
     );
-    await writeFile(join(result.exportDirectory!, 'resume.md'), 'Changed on disk');
+    await writeFile(join(result.exportDirectory!, 'Example_Candidate_CV.md'), 'Changed on disk');
     const changed = await request(`/approvals/${approval.id}/submit`, 'POST', { method: 'manual' });
     expect(changed.response.status).toBe(400);
     expect(daemon.service.board.list<ChatRequest>('chat_request')).toHaveLength(0);

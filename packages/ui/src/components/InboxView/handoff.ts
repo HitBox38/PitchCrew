@@ -1,4 +1,5 @@
 import type { Approval, Card, PacketArtifact, Snapshot } from '@pitchcrew/core';
+import { packetExportFileName } from '@pitchcrew/core/packet-files';
 
 const reviewerOf = (runId: string | undefined, data: Pick<Snapshot, 'runs' | 'roles'>) => {
   const run = runId ? data.runs.find((item) => item.id === runId) : undefined;
@@ -83,7 +84,11 @@ export const neededFiles = (card: Card | undefined, approval: Approval): NeededF
     .map((field) => {
       const source = sourceFor(field.label);
       const exported = (approval.artifacts ?? []).filter((item) => item.source === source);
-      const files = exported.filter((item) => acceptsFile(field.accept, item)).map((f) => f.name);
+      const files = exported
+        .filter((item) => acceptsFile(field.accept, item))
+        .map((item) =>
+          approval.packet ? packetExportFileName(approval.packet.resume, item.name) : item.name,
+        );
       return {
         label: field.label,
         required: field.required,

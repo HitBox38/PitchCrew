@@ -298,9 +298,9 @@ describe('local daemon workflow', () => {
     );
     expect(exported.response.status).toBe(200);
     expect(exported.result.directory.startsWith(directory)).toBe(true);
-    expect(await readFile(join(exported.result.directory, 'resume.md'), 'utf8')).toContain(
-      'Built React interfaces.',
-    );
+    expect(
+      await readFile(join(exported.result.directory, 'Example_Candidate_CV.md'), 'utf8'),
+    ).toContain('Built React interfaces.');
     expect((await request(`/approvals/${approval.id}/export`, 'POST')).response.status).toBe(400);
     await request(`/cards/${card.id}/move`, 'POST', { state: 'changes_requested' });
     await request('/profile', 'PUT', {
