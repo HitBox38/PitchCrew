@@ -33,19 +33,27 @@ The table records direct workspace dependencies found in production TypeScript a
 
 The existing [decision records](adr/) explain the distinctions between captured postings and confirmed drafting context, per-job scheduling and agent identity, native browser pages and presentation, delegation and slot ownership, assigned skills and their delivery, and Home attention and Pipeline state. These distinctions constrain changes to apparently similar implementations.
 
+## Current architecture
+
+Core owns portable business decisions and versioned data contracts. The board applies durable changes inside SQLite transactions. The daemon composes these operations with the runtime adapters, MCP tools and bounded packet workers. Host applications depend on declared package exports. Browser clients consume the small core entry points they need. The renderer and landing site share visual primitives and privacy-preserving replay code. Each client decides whether it may record and where it may send events.
+
+The final source scan covered 2,553 production files and 6,251 distinct eager import edges with zero eager cycles. The package graph now contains eleven workspaces. All baseline package edges in the table above still apply except the landing-to-UI edge. Landing and UI now both import session-replay, which has no workspace imports. The [boundary checks](adr/0008-check-dependencies-at-the-workspace-and-module-levels.md) run in CI. Subprocess entry points and preload isolation also have runtime checks.
+
 ## Optimization pool
 
-| Priority | Evidence and closure condition                                                                                                                                        |
-| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1        | Break the eager crew cycle across queue, deep review and user input. Preserve dispatch timing and verify recovery through existing integration tests.                 |
-| 1        | Replace private core and host-module imports with declared interfaces. Confirm the Electron bundle can resolve its imports in the isolated installer layout.          |
-| 1        | Remove the landing site's dependency on private app replay code. Exercise both consent paths and the shared wireframe sanitizer.                                      |
-| 2        | Inspect workflow predicates and adapter normalization for exact duplicates. Compare actual consumers, failure states and provider formats before consolidation.       |
-| 2        | Replace copied UI application-import and packet-rule limits with browser-safe values used by the server. Preserve server validation, error messages and root exports. |
-| 2        | Compare profile filename checks across editing, importing, listing and source updates. Preserve each caller's accepted names and historical read behavior.            |
-| 3        | Check release tooling against the repository Bun pin. Keep package-manager metadata usable by independent consumers.                                                  |
+| Priority | Disposition                  | Scope and evidence                                                                                                                                                                                                                                                                                                                                                                                                    |
+| -------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1        | Verified                     | The 21-file crew component is acyclic. Desktop uses public host and browser contracts. Replay has one owner with two independent clients.                                                                                                                                                                                                                                                                             |
+| 2        | Verified                     | Job eligibility, interactive model readers, input limits, packet document definitions, Markdown filename syntax and packet worker entry points have shared owners. See the migration records below.                                                                                                                                                                                                                   |
+| 2        | Pending product confirmation | The renderer's `formIsCurrent` in `packages/ui/src/lib/job-step.ts` and core's `applicationFormIsCurrent` disagree when inspected option counts or constraints change. With only `optionsTotal` changed from one to two, the UI still shows the brief as current and the server requires confirmation. Decide whether the visible job stage should follow the server for these fields before sharing this comparison. |
+| 3        | Verified                     | Installer preparation and CI use the repository Bun pin. Workspace release versions, deployment commands and package-manager metadata have a consistency test.                                                                                                                                                                                                                                                        |
 
-Custom cron evaluation and the renderer's preset preview have different input contracts. The daemon computes arbitrary cron and subsequent dispatches. The UI previews a draft, including invalid and incomplete input. Their existing parity cases remain important. Native Electron and headless browser implementations also serve distinct hosts and share the action-approval contract.
+### Deliberate implementation differences
+
+- The server evaluates arbitrary cron and subsequent dispatches. The renderer previews routine presets and can receive incomplete form input. Their existing parity cases cover the common inputs.
+- Native Electron and headless browsers implement the same action-approval contract in different hosts. The packaged daemon's MCP CLI launch also requires a physical file in the staged source tree.
+- A repeated-block scan over production source found matching blocks in Copilot/Cursor tool details and bundled starter-skill licenses. The adapters decode different provider event fields and share tool formatting and sanitization. Each distributed skill carries its licensed attribution.
+- The PDF viewer has a lazy document component and imports PDF.js from both its task loader and text-layer renderer. The build reports the redundant split point. Changes to viewer loading should be evaluated with a measured first-open cost.
 
 ## Verified migrations
 
@@ -60,3 +68,13 @@ Custom cron evaluation and the renderer's preset preview have different input co
 **Crew scheduling.** Nine existing operations moved to their owning modules. A named conversation-queue drain on the crew context closes the runtime feedback loop. This removed the baseline eager import component while preserving launch, interruption and recovery ordering. The expanded behavior run passed 210 tests in 28 suites. Independent review checked side-effect order against the parent commit. See [queue delivery](orchestrator-comparison.md).
 
 **Import and packet rules.** Core owns import bounds, raw legacy cell limits, packet document names and rule settings in browser-safe modules. The UI, SQLite converter, writer prompts, packet checker and daemon schemas use those values. The bounded rule worker now imports its default settings and labels directly. It keeps its existing two-second deadline. Tests exercise upload boundaries, clipping, formatting, rule validation and the renderer read at 256 KiB and one byte above. All 18 daemon rule tests passed after removing the worker's eager dependency on the core root.
+
+**Profile filenames.** Eight validation sites now use the shared Markdown filename pattern. Listing previously stored files, editing a new name and validating imported paths retain their respective length and consecutive-dot policies. The nine affected suites passed 92 tests, including error-message compatibility.
+
+**Packet worker entry points.** The packet package exports the attachment reader and rule evaluator. Both worker launchers resolve them through those exports. Independent review ran both under Node 24 and Bun 1.4.4 and traced installer staging to the same files. The Node helper retains its loader, heap limits and deadlines.
+
+**External submission registration.** The board and renderer use the lifecycle's existing seven-state preparation group. Across all 14 states it agrees with the previous lists. The board still checks for active work and repeat registration inside its operation.
+
+**Regression prevention.** Oxlint reads workspace manifests and checks eager module cycles, private source imports and undeclared dependencies. Node tests independently check the declared graph, including desktop build dependencies, and release metadata. Independent negative probes exercised a sibling source directory, the renderer alias and a package cycle through desktop. The workspace tests ran on both supported Node lines on Windows and at the minimum versions on Linux.
+
+**Raw tag and word limits.** SQLite reads at most one tag beyond the accepted source-row limit to report clipping. The parser uses the same bound. The normalized card retains its own ten-tag limit. The packet defaults, reset dialog, new word rule and completion suggestion now read their word limits from core.
