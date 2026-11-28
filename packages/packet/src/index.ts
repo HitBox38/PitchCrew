@@ -1,4 +1,5 @@
 import type { Packet, PacketArtifact, ProfileFile } from '@pitchcrew/core';
+import { isListedProfileFilename } from '@pitchcrew/core/profile-filenames';
 import { randomUUID, createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import { packetExportFiles, matchingPacketExport } from './export-files.ts';
@@ -9,7 +10,7 @@ export const readProfile = async (directory: string): Promise<ProfileFile[]> => 
   const files = await readdir(path);
   return Promise.all(
     files
-      .filter((name) => /^[\w.-]+\.md$/.test(name))
+      .filter(isListedProfileFilename)
       .map(async (name) => ({ name, content: await readFile(join(path, name), 'utf8') })),
   );
 };

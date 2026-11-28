@@ -15,6 +15,7 @@
     "./desktop-links": "./src/desktop-links.ts",
     "./job-link-recognition": "./src/job-link-recognition.ts",
     "./public-job-links": "./src/public-job-links.ts",
+    "./profile-filenames": "./src/profile-filenames.ts",
     "./chat-references": "./src/chat-references.ts",
     "./transcript-order": "./src/transcript-order.ts",
     "./transcript-visibility": "./src/transcript-visibility.ts",

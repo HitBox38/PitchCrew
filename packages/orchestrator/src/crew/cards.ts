@@ -15,6 +15,7 @@ import {
   type ProfileFile,
   type Role,
 } from '@pitchcrew/core';
+import { isWritableProfileFilename } from '@pitchcrew/core/profile-filenames';
 import { exportApprovedPacket } from '@pitchcrew/mcp';
 import { readProfile, writePacket } from '@pitchcrew/packet';
 import { writeFile } from 'node:fs/promises';
@@ -74,8 +75,7 @@ export const saveProfile = async (
   content: string,
   baseline?: string | null,
 ): Promise<ProfileFile[]> => {
-  if (!/^[\w.-]+\.md$/.test(name) || name.includes('..'))
-    throw new Error('Use a simple Markdown filename.');
+  if (!isWritableProfileFilename(name)) throw new Error('Use a simple Markdown filename.');
   assertProfileReady(context);
   return changeProfile(context, async () => {
     await checkBaseline(context, name, baseline);

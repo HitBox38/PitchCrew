@@ -1,6 +1,7 @@
 import { registerDeepReviewRoutes } from './deep-reviews.ts';
 import { registerCardChangeRoutes } from './card-changes.ts';
 import { roleIdSchema, states } from '@pitchcrew/core';
+import { maxEditedProfileFilenameLength } from '@pitchcrew/core/profile-filenames';
 import { deleteJob, editJob, setCardStatus, runsWithStatus } from '@pitchcrew/board';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
@@ -76,7 +77,7 @@ export const registerBoardRoutes = (app: FastifyInstance, service: CrewService) 
   app.put('/api/profile', async (req, res) => {
     const body = z
       .object({
-        name: z.string().max(100),
+        name: z.string().max(maxEditedProfileFilenameLength),
         content: z.string().max(50000),
         baseline: z
           .string()

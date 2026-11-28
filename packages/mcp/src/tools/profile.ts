@@ -1,4 +1,5 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { maxEditedProfileFilenameLength } from '@pitchcrew/core/profile-filenames';
 import { z } from 'zod';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
@@ -23,7 +24,7 @@ export const registerProfileTools = (server: McpServer, call: AgentCall) => {
         'Only carry out profile changes the user directly requested in this chat. Requires editProfile. Save creates/edits a Markdown note; delete moves it to recoverable trash. Supply the current baseline from pitchcrew_list_profile_edit_sources (null for a new note). Attached GitHub notes sync to their saved path with the connected source account; a new note can choose sourceId/path, otherwise the sole GitHub import is used. Multiple imports require a choice. Sync checks the remote blob revision. Local changes are kept if sync fails: report unsynced and inspect GitHub before any retry. Scheduled/crew turns must use proposals. Never infer personal facts from code.',
       inputSchema: {
         action: z.enum(['save', 'delete']),
-        name: z.string().min(1).max(100),
+        name: z.string().min(1).max(maxEditedProfileFilenameLength),
         baseline: z
           .string()
           .regex(/^[a-f0-9]{64}$/)

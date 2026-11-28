@@ -1,6 +1,7 @@
 import type { ProfileMaintenanceProposal, ProfileSource } from '@pitchcrew/core';
 import { readProfile } from '@pitchcrew/packet';
 import { z } from 'zod';
+import { profileFilenameSchema } from '../../profile-notes/helpers.ts';
 import { digest } from '../../profile-sources/helpers.ts';
 import type { CrewContext, RunCapability } from '../types.ts';
 
@@ -66,10 +67,7 @@ export const projectNote = async (
   const input = z
     .object({
       proposalId: z.uuid(),
-      name: z
-        .string()
-        .regex(/^[\w.-]+\.md$/)
-        .refine((name) => !name.includes('..')),
+      name: profileFilenameSchema(),
       content: z
         .string()
         .min(1)
