@@ -61,6 +61,25 @@ it('requires inspection or an explicit manual choice for linked application draf
   expect(() => assertConfirmedContext(uninspected)).toThrow('Inspect the application form');
   const manual = save({ ...context, form: { status: 'manual' } });
   expect(assertConfirmedContext(manual).form).toEqual({ status: 'manual' });
+  const inspection = { ...formAssessment(card.id), fields: [] };
+  const partial = board.updateCard(
+    card.id,
+    { formAssessments: [inspection] },
+    'submitter',
+    'Partial inspection',
+  );
+  expect(() => assertConfirmedContext(partial)).toThrow(
+    'A saved form inspection supersedes any earlier form check',
+  );
+  expect(() => save({ ...context, form: { status: 'manual' } })).toThrow(
+    'inspected form requirements',
+  );
+  const adopted = save({ ...context, form: inspectedApplicationForm(partial) });
+  expect(assertConfirmedContext(adopted).form).toMatchObject({
+    status: 'inspected',
+    fields: [],
+    uninspected: expect.arrayContaining(['No application controls were inspected.']),
+  });
 });
 
 it('binds reviewed requirements to actual inspected fields and rejects forged or changed metadata', () => {
@@ -96,8 +115,8 @@ it('binds reviewed requirements to actual inspected fields and rejects forged or
     'submitter',
     'Changed requirements',
   );
-  expect(() => assertConfirmedContext(current)).toThrow('Inspect the application form');
-  expect(() => assertReviewedContext(current)).toThrow('Inspect the application form');
+  expect(() => assertConfirmedContext(current)).toThrow('Review its findings');
+  expect(() => assertReviewedContext(current)).toThrow('Review its findings');
   const adopted = save({ ...context, form: inspectedApplicationForm(current) });
   expect(adopted.packetReview).toBeUndefined();
   expect(board.get<{ status: string }>('approval', approval.id).status).toBe('rejected');
@@ -160,7 +179,7 @@ it('retains constraint/group/choice evidence through confirmation and replay, ma
     'submitter',
     'Changed length',
   );
-  expect(() => assertConfirmedContext(changed)).toThrow('Inspect the application form');
+  expect(() => assertConfirmedContext(changed)).toThrow('Review its findings');
 });
 
 it('keeps historical absent evidence unavailable without rewriting version 37 records', () => {

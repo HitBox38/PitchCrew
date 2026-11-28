@@ -50,10 +50,15 @@ export const assertExtractedContext = (card: Card): ApplicationContext => {
 };
 export const assertConfirmedContext = (card: Card): ApplicationContext => {
   const context = assertExtractedContext(card);
-  if (!applicationFormIsCurrent(card))
+  if (!applicationFormIsCurrent(card)) {
+    if (card.formAssessments?.length)
+      throw new Error(
+        'A saved form inspection supersedes any earlier form check. Review its findings in the application brief and confirm the brief.',
+      );
     throw new Error(
       'Inspect the application form and confirm its requirements, or explicitly choose to check the form yourself.',
     );
+  }
   if (!context.confirmedAt || context.confirmedRevision !== context.revision)
     throw new Error('Review and confirm this job’s application brief before drafting.');
   return context;

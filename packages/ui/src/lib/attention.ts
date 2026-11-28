@@ -159,6 +159,7 @@ const briefHolds = [
   'Extract or prepare this job’s application brief first.',
   // packages/board/src/board/application-context.ts:55
   'Inspect the application form and confirm its requirements, or explicitly choose to check the form yourself.',
+  'A saved form inspection supersedes any earlier form check. Review its findings in the application brief and confirm the brief.',
   // packages/board/src/board/application-context.ts:58
   'Review and confirm this job’s application brief before drafting.',
 ];
