@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createAnalytics, sdkConfig } from '../client';
-import { analyticsAllowed, preferenceKey, sanitizeEvent } from '../helpers';
+import {
+  analyticsAllowed,
+  preferenceKey,
+  replayAllowed,
+  replayPreferenceKey,
+  sanitizeEvent,
+} from '../helpers';
 import { parseRelease } from '../../Downloads/helpers';
 import { analyticsContext } from '../context';
 import { publicLandingUrl } from '../heatmaps';
@@ -62,6 +68,16 @@ describe('landing analytics privacy', () => {
         null,
       ),
     ).toBe(false);
+  });
+
+  it('makes website replay separately opt-in and respects master opt-out and DNT', () => {
+    const storage = { getItem: vi.fn((_key: string) => null as string | null) };
+    expect(replayAllowed(storage, null)).toBe(false);
+    storage.getItem.mockImplementation((key) => (key === replayPreferenceKey ? 'on' : null));
+    expect(replayAllowed(storage, null)).toBe(true);
+    expect(replayAllowed(storage, '1')).toBe(false);
+    storage.getItem.mockImplementation((key) => (key === replayPreferenceKey ? 'on' : 'off'));
+    expect(replayAllowed(storage, null)).toBe(false);
   });
 
   it('does not initialize a pending SDK when the user opts out during import', async () => {

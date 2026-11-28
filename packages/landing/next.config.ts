@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  transpilePackages: ['@pitchcrew/design-system'],
+  transpilePackages: ['@pitchcrew/design-system', '@pitchcrew/session-replay'],
   images: { qualities: [85] },
   turbopack: { root },
   outputFileTracingRoot: root,

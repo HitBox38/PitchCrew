@@ -1,14 +1,27 @@
-import { readFile } from 'node:fs/promises';
-import { createRequire, stripTypeScriptTypes } from 'node:module';
+import { execFile } from 'node:child_process';
+import { createRequire } from 'node:module';
+import { promisify } from 'node:util';
 import { chromium } from 'playwright';
 import { expect, it } from 'vitest';
-import { analyticsContext } from '../../landing/src/Analytics/context.ts';
-import { installerDefinitions } from '../../landing/src/Downloads/constants.ts';
 
-const landingRequire = createRequire(new URL('../../landing/package.json', import.meta.url));
+const landingRequire = createRequire(import.meta.url);
 const publicUrl = 'https://pitch-crew.tomer-norman.dev/';
 
 it('runs actual landing heatmap, rage/dead-click and consent transport through a safe native SDK', async () => {
+  const { stdout: client } = await promisify(execFile)(
+    process.env.PITCHCREW_BUN_EXECUTABLE ?? 'bun',
+    [
+      '--no-env-file',
+      '--no-install',
+      'build',
+      landingRequire.resolve('../client.ts'),
+      '--target=browser',
+      '--external=posthog-js/*',
+      '--define=process.env.NEXT_PUBLIC_POSTHOG_TOKEN="fictional-fixture-token"',
+      '--define=process.env.NEXT_PUBLIC_POSTHOG_HOST="https://telemetry.invalid"',
+    ],
+    { windowsHide: true },
+  );
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   const captured: { event: string; properties: Record<string, unknown> }[] = [];
@@ -19,6 +32,8 @@ it('runs actual landing heatmap, rage/dead-click and consent transport through a
         const body = request.postDataJSON();
         captured.push(...(body.batch ?? [body]));
         await route.fulfill({ status: 200, body: '{}' });
+      } else if (request.url() === 'https://fixture.invalid/client.js') {
+        await route.fulfill({ contentType: 'text/javascript', body: client });
       } else if (request.url().startsWith('https://fixture.invalid/'))
         await route.fulfill({
           contentType: 'text/html',
@@ -33,35 +48,10 @@ it('runs actual landing heatmap, rage/dead-click and consent transport through a
     await page.addScriptTag({
       path: landingRequire.resolve('posthog-js/dist/dead-clicks-autocapture.js'),
     });
-    const modules = await Promise.all(
-      [
-        ['./privacy', '../../ui/src/Analytics/replay/privacy.ts'],
-        ['../../../ui/src/Analytics/replay/recorder', '../../ui/src/Analytics/replay/recorder.ts'],
-        ...['heatmaps', 'helpers', 'client'].map((name) => [
-          `./${name}`,
-          `../../landing/src/Analytics/${name}.ts`,
-        ]),
-      ].map(async ([name, path]) => {
-        const source = await readFile(new URL(path, import.meta.url), 'utf8');
-        return { name, source: stripTypeScriptTypes(source) };
-      }),
-    );
     await page.addScriptTag({
       content: `
       window.fixtureReady = (async () => {
-        const sources = [
-          { name: './config', source: "export const analyticsConfig = { token: 'fictional-fixture-token', host: 'https://telemetry.invalid' }; export const analyticsConfigured = () => true;" },
-          { name: './context', source: 'export const analyticsContext = ${JSON.stringify(analyticsContext)};' },
-          { name: '../Downloads/constants', source: 'export const installerDefinitions = ${JSON.stringify(installerDefinitions)};' },
-          ...${JSON.stringify(modules)}
-        ];
-        const urls = {};
-        for (const { name, source } of sources) {
-          const resolved = source.replace(/from '(.*?)'/g, (_match, name) => 'from ' + JSON.stringify(urls[name]));
-          urls[name] = URL.createObjectURL(new Blob([resolved], { type: 'text/javascript' }));
-          if (name === './privacy') urls['../../../ui/src/Analytics/replay/privacy'] = urls[name];
-        }
-        const client = await import(urls['./client']);
+        const client = await import('/client.js');
         client.sdkConfig.disable_compression = true;
         client.sdkConfig.opt_out_useragent_filter = true;
         window.fixtureAllowed = true;

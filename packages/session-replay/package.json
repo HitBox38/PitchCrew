@@ -1,0 +1,13 @@
+{
+  "name": "@pitchcrew/session-replay",
+  "version": "0.25.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "posthog-js": "^1.435.8"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
+  }
+}

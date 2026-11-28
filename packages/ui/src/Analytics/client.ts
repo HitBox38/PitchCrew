@@ -1,7 +1,10 @@
 import type { PostHog, PostHogConfig } from 'posthog-js';
 import { useDevicePreferences } from '../lib/device-preferences.ts';
-import { createReplay, loadLocalRecorder } from './replay/recorder.ts';
-import { sanitizeReplayProperties } from './replay/privacy.ts';
+import {
+  createReplay,
+  loadLocalRecorder,
+  sanitizeReplayProperties,
+} from '@pitchcrew/session-replay';
 import { sanitizeDiagnostic } from './diagnostics.ts';
 import { sanitizeEvent } from './helpers.ts';
 import { analyticsContext } from './context.ts';
