@@ -9,4 +9,9 @@ export const importLimits = {
 export const importFileSizeLabel = `${importLimits.bytes / 1024 / 1024} MB`;
 
 /** Accepted source cells, before import normalization combines notes and history. */
-export const importRowTextLimits = { notes: 4000, lessons: 2000, historyNote: 1000 } as const;
+export const importRowLimits = {
+  tags: 100,
+  notes: 4000,
+  lessons: 2000,
+  historyNote: 1000,
+} as const;

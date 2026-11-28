@@ -1,4 +1,5 @@
 import { packetDocuments } from '@pitchcrew/core/packet-documents';
+import { defaultPacketWordLimits } from '@pitchcrew/core/packet-rule-options';
 
 export const ruleFields: Record<string, { detail: string; value: string }> = {
   id: { detail: 'Unique lowercase rule name', value: '""' },
@@ -6,7 +7,7 @@ export const ruleFields: Record<string, { detail: string; value: string }> = {
   severity: { detail: 'Block or warn when the rule fails', value: '"warn"' },
   documents: { detail: 'Documents this rule checks', value: '["resume"]' },
   message: { detail: 'Optional explanation shown when the rule fails', value: '""' },
-  max: { detail: 'Maximum word or bullet count', value: '650' },
+  max: { detail: 'Maximum word or bullet count', value: String(defaultPacketWordLimits.resume) },
   count: { detail: 'Count all words or body words', value: '"body"' },
   heading: { detail: 'Optional section heading pattern', value: '""' },
   flags: { detail: 'Regular expression flags: i, m, s, u', value: '""' },

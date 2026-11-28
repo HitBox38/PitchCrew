@@ -14,6 +14,8 @@ export const wordLimitBounds = { min: 1, max: 100_000 } as const;
 export const bulletLimitBounds = { min: 0, max: 1000 } as const;
 export const matchCountBounds = { min: 0, max: 1000 } as const;
 
+export const defaultPacketWordLimits = { resume: 650, coverLetter: 500 } as const;
+
 /** Built-in limits used when the data directory has no packet-rules.json. */
 export const defaultPacketRules: PacketRules = {
   version: 1,
@@ -23,7 +25,7 @@ export const defaultPacketRules: PacketRules = {
       kind: 'word_limit',
       severity: 'error',
       documents: ['resume'],
-      max: 650,
+      max: defaultPacketWordLimits.resume,
       count: 'all',
     },
     {
@@ -31,7 +33,7 @@ export const defaultPacketRules: PacketRules = {
       kind: 'word_limit',
       severity: 'error',
       documents: ['coverLetter'],
-      max: 500,
+      max: defaultPacketWordLimits.coverLetter,
       count: 'all',
     },
   ],

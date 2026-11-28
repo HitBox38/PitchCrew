@@ -1,3 +1,4 @@
+import { defaultPacketWordLimits } from '@pitchcrew/core/packet-rule-options';
 import { useRef } from 'react';
 import { Button } from '@pitchcrew/design-system/button';
 import {
@@ -22,8 +23,9 @@ export const RestoreDefaults = ({
       <DialogContent initialFocus={cancel} className="modal" showCloseButton={false}>
         <DialogTitle>Restore the default rules?</DialogTitle>
         <DialogDescription>
-          This removes packet-rules.json. Only the 650-word resume and 500-word cover letter limits
-          remain. Export your rules first if you want to keep a copy.
+          This removes packet-rules.json. Only the {defaultPacketWordLimits.resume}-word resume and{' '}
+          {defaultPacketWordLimits.coverLetter}-word cover letter limits remain. Export your rules
+          first if you want to keep a copy.
         </DialogDescription>
         <div className="settings-form-actions">
           <Button ref={cancel} variant="ghost" className="ml-auto" onClick={() => setOpen(false)}>

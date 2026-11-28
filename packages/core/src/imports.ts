@@ -1,4 +1,4 @@
-import { importLimits, importRowTextLimits } from './import-limits.ts';
+import { importLimits, importRowLimits } from './import-limits.ts';
 import { z } from 'zod';
 import { cardInput, type CardInput } from './cards.ts';
 import { transitions, type CardState } from './states.ts';
@@ -361,7 +361,7 @@ const importHistoryEntry = z
   .object({
     state: z.enum(importStates),
     at: importTime,
-    note: z.string().trim().max(importRowTextLimits.historyNote).default(''),
+    note: z.string().trim().max(importRowLimits.historyNote).default(''),
   })
   .strict();
 export const applicationImportRow = z
@@ -385,10 +385,10 @@ export const applicationImportRow = z
     submittedAt: importTime.optional(),
     statusAt: importTime.optional(),
     history: z.array(importHistoryEntry).max(importLimits.history).default([]),
-    tags: z.array(z.string().max(200)).max(100).default([]),
-    notes: z.string().trim().max(importRowTextLimits.notes).default(''),
+    tags: z.array(z.string().max(200)).max(importRowLimits.tags).default([]),
+    notes: z.string().trim().max(importRowLimits.notes).default(''),
     weight: z.number().int().min(-2).max(2).optional(),
-    lessons: z.string().trim().max(importRowTextLimits.lessons).default(''),
+    lessons: z.string().trim().max(importRowLimits.lessons).default(''),
   })
   .strict();
 export type ApplicationImportRow = z.infer<typeof applicationImportRow>;

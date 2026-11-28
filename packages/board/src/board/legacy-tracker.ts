@@ -1,6 +1,5 @@
-import { importRowTextLimits } from '@pitchcrew/core/import-limits';
+import { importLimits, importRowLimits } from '@pitchcrew/core/import-limits';
 import Database from 'better-sqlite3';
-import { importLimits } from '@pitchcrew/core';
 
 const normalizeTime = (value: unknown, stats: LegacyTrackerStats) => {
   const text = String(value ?? '').trim();
@@ -64,7 +63,7 @@ export const convertLegacyTracker = (source: string | Buffer) => {
       'SELECT to_status, note, created_at FROM status_events WHERE application_id = ? ORDER BY created_at DESC, id DESC LIMIT ?',
     );
     const tags = db.prepare(
-      'SELECT t.name FROM tags t JOIN application_tags a ON a.tag_id = t.id WHERE a.application_id = ? ORDER BY t.name LIMIT 101',
+      'SELECT t.name FROM tags t JOIN application_tags a ON a.tag_id = t.id WHERE a.application_id = ? ORDER BY t.name LIMIT ?',
     );
     const rows = applications.map((application) => {
       stats.applications += 1;
@@ -78,15 +77,15 @@ export const convertLegacyTracker = (source: string | Buffer) => {
         }
       }
       const history = events.all(application.id, importLimits.history + 1) as LegacyEvent[];
-      const names = tags.all(application.id) as { name: string }[];
+      const names = tags.all(application.id, importRowLimits.tags + 1) as { name: string }[];
       const notes = (application.notes ?? '').trim();
       const lessons = (application.lessons_learned ?? '').trim();
       if (
         history.length > importLimits.history ||
-        names.length > 100 ||
-        notes.length > importRowTextLimits.notes ||
-        lessons.length > importRowTextLimits.lessons ||
-        history.some((event) => (event.note ?? '').trim().length > importRowTextLimits.historyNote)
+        names.length > importRowLimits.tags ||
+        notes.length > importRowLimits.notes ||
+        lessons.length > importRowLimits.lessons ||
+        history.some((event) => (event.note ?? '').trim().length > importRowLimits.historyNote)
       )
         stats.clipped += 1;
       return {
@@ -106,13 +105,13 @@ export const convertLegacyTracker = (source: string | Buffer) => {
             state: event.to_status,
             at: normalizeTime(event.created_at, stats),
             ...((event.note ?? '').trim()
-              ? { note: clip(event.note!.trim(), importRowTextLimits.historyNote) }
+              ? { note: clip(event.note!.trim(), importRowLimits.historyNote) }
               : {}),
           })),
-        tags: names.slice(0, 100).map((tag) => tag.name),
-        ...(notes ? { notes: clip(notes, importRowTextLimits.notes) } : {}),
+        tags: names.slice(0, importRowLimits.tags).map((tag) => tag.name),
+        ...(notes ? { notes: clip(notes, importRowLimits.notes) } : {}),
         ...(application.weight ? { weight: application.weight } : {}),
-        ...(lessons ? { lessons: clip(lessons, importRowTextLimits.lessons) } : {}),
+        ...(lessons ? { lessons: clip(lessons, importRowLimits.lessons) } : {}),
       };
     });
     return { rows, stats };

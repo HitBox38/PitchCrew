@@ -1,4 +1,4 @@
-import { packetRuleLimits } from '@pitchcrew/core/packet-rule-options';
+import { defaultPacketWordLimits, packetRuleLimits } from '@pitchcrew/core/packet-rule-options';
 import type { PacketRule } from '@pitchcrew/core';
 
 export type RuleKind = PacketRule['kind'];
@@ -50,7 +50,8 @@ export const newRule = (kind: RuleKind, rules: RuleDraft[]): RuleDraft => {
   let suffix = 1;
   while (rules.some((rule) => rule.id === `${prefix}-${suffix}`)) suffix++;
   const base = { id: `${prefix}-${suffix}`, severity: 'warn', documents: ['resume'] };
-  if (kind === 'word_limit') return { ...base, kind, max: 650, count: 'all' };
+  if (kind === 'word_limit')
+    return { ...base, kind, max: defaultPacketWordLimits.resume, count: 'all' };
   if (kind === 'max_bullets') return { ...base, kind, max: 5, flags: '' };
   if (kind === 'canonical_lines') return { ...base, kind, selector: '', flags: '', values: [''] };
   return { ...base, kind, pattern: '', flags: '', maxCount: 0 };
