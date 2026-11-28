@@ -3,6 +3,7 @@ import { subagentCard } from './deep-reviews/inputs.ts';
 import { qualityAgentAction } from '../quality/agent.ts';
 import { lintRunPacket } from './gateway/packet.ts';
 import { readCardPage } from './gateway/read-pages.ts';
+import { readCardHistory } from './gateway/card-history.ts';
 import { startDeepReview } from './deep-reviews/index.ts';
 import { reviewAgentAction } from './deep-reviews/subagents.ts';
 import { randomUUID } from 'node:crypto';
@@ -387,16 +388,8 @@ const dispatchAgentCall = async (
     );
   }
   if (action === 'profile') return { profile: await readProfile(context.directory) };
-  if (action === 'history') {
-    const query = z
-      .object({
-        beforeEventId: z.number().int().positive().optional(),
-        limit: z.number().int().min(1).max(200).default(100),
-      })
-      .parse(data);
-    const events = context.board.history(capability.cardId!, query.beforeEventId, query.limit);
-    return { events, nextCursor: events.length === query.limit ? events.at(-1)!.id : null };
-  }
+  if (action === 'history')
+    return readCardHistory(context.board, capability.cardId!, toolInput(data));
   if (action === 'lint') return lintRunPacket(context, data.packet, !!activeRun?.reviewSubagentId);
   if (action === 'packet_rules') {
     const state = context.packetRules.current();

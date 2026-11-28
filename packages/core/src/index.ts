@@ -26,7 +26,7 @@ export type {
   InstructionUpdate,
 } from './default-instructions.ts';
 export { cardInput } from './cards.ts';
-export { readFieldQuery } from './crew-reads.ts';
+export { historyReadQuery, readFieldQuery } from './crew-reads.ts';
 export {
   bulkDeleteJobsInput,
   bulkMoveJobsInput,

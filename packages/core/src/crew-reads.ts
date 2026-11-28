@@ -13,3 +13,9 @@ export const readFieldQuery = z.object({
     .optional()
     .describe('Use nextCursor with the same field to continue a long value.'),
 });
+
+export const historyReadQuery = readFieldQuery.extend({
+  eventId: z.number().int().positive().optional().describe('Read one event from this card by ID.'),
+  beforeEventId: z.number().int().positive().optional().describe('Exclusive event list cursor.'),
+  limit: z.number().int().min(1).max(200).default(100).describe('Maximum events per page.'),
+});

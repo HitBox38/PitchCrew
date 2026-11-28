@@ -302,9 +302,29 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
     expect(restored).toBe(sourceHtml);
     const sources = await client.callTool({ name: 'pitchcrew_read_profile', arguments: {} });
     expect(sources.structuredContent).toMatchObject({ profile: expect.arrayContaining(profile) });
+    const reason = 'Fixture milestone\u0000with remaining text';
+    board.updateCard(card.id, {}, 'reviewer', reason);
     const first = await client.callTool({ name: 'pitchcrew_get_history', arguments: { limit: 2 } });
     const page = first.structuredContent as { events: { id: number }[]; nextCursor: number };
     expect(page.events).toHaveLength(2);
+    expect(Buffer.byteLength(JSON.stringify(first.structuredContent))).toBeLessThan(8192);
+    expect(page.events[0]).toMatchObject({ message: reason, data: { state: 'awaiting_approval' } });
+    expect(JSON.stringify(page.events)).not.toContain('sourceHtml');
+    const historic = await client.callTool({
+      name: 'pitchcrew_get_history',
+      arguments: { eventId: page.events[0]!.id, field: 'data.packet.resume' },
+    });
+    expect(historic.structuredContent).toEqual({
+      field: 'data.packet.resume',
+      value: packet.resume,
+    });
+    const otherCard = board.createCard(cardInput.parse({ company: 'Fictional', title: 'Other' }));
+    const otherEvent = board.history(otherCard.id)[0]!;
+    const forbidden = await client.callTool({
+      name: 'pitchcrew_get_history',
+      arguments: { eventId: otherEvent.id, field: 'data.company' },
+    });
+    expect(forbidden.isError).toBe(true);
     const older = await client.callTool({
       name: 'pitchcrew_get_history',
       arguments: { beforeEventId: page.nextCursor, limit: 2 },
