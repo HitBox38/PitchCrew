@@ -43,6 +43,8 @@ it('starts the managed flow from a natural chat request on an attached job', asy
 it('asks for a job when /hiring-panel is requested without one, then runs the selected application', async () => {
   const { daemon, request, card } = await deepReviewFixture();
   mockReview();
+  const closed = daemon.service.createCard({ company: 'Fictional Closed Job', title: 'Engineer' });
+  daemon.service.moveCard(closed.id, 'withdrawn');
   const conversation = daemon.service.createConversation({
     title: 'Choose a job',
     participants: ['reviewer'],
@@ -54,7 +56,7 @@ it('asks for a job when /hiring-panel is requested without one, then runs the se
     (snapshot) => snapshot.userInputs?.some((q) => q.status === 'pending') === true,
   );
   const question = snapshot.userInputs!.find((q) => q.status === 'pending')!;
-  expect(question.options.some((option) => option.id === card.id)).toBe(true);
+  expect(question.options.map((option) => option.id)).toEqual([card.id]);
   const answer = await request(`/user-input/${question.id}/answer`, 'POST', {
     selected: [card.id],
   });

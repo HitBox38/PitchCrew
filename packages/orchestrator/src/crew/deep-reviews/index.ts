@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { RuntimeHeldError } from '../../runtime-maintenance/availability.ts';
 import { assertConfirmedContext, digestPacket, runsWithStatus } from '@pitchcrew/board';
 import {
+  cardLifecycle,
   deepReviewLifecycle,
   deepReviewOptionsSchema,
   workflowSeat,
@@ -62,11 +63,7 @@ const startDeepReviewPrepared = async (
   const reviewer = workflowRole(context, 'reviewer', options.reviewerId);
   const writer = workflowRole(context, 'writer', options.writerId);
   const card = context.board.get<Card>('card', cardId);
-  if (
-    !['shortlisted', 'changes_requested', 'in_review', 'agreed', 'awaiting_approval'].includes(
-      card.state,
-    )
-  )
+  if (!cardLifecycle.is('deepReviewable', card.state))
     throw new Error(
       'Shortlist this job before deep review; submitted and closed applications cannot be rewritten.',
     );

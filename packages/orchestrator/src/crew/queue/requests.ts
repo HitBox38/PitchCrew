@@ -8,6 +8,7 @@ import { assertProfileReady } from '../../profile-sources/mutation.ts';
 import {
   deepReviewOptionsSchema,
   boardActionLabels,
+  cardLifecycle,
   workflowSeat,
   type Card,
   type ChatRequest,
@@ -142,17 +143,12 @@ export const requestProblem = async (
   const action = request.boardAction;
   if (action === 'reevaluate' && !card.packet) return 'Draft a packet before reevaluating.';
   if (action === 'fit' && card.state !== 'lead') return 'Evaluate fit needs a job in Leads.';
-  if (action === 'draft' && !['shortlisted', 'changes_requested'].includes(card.state))
+  if (action === 'draft' && !cardLifecycle.is('draftable', card.state))
     return 'Shortlist this job or request changes before drafting.';
   if (action === 'review' && !card.packet) return 'Needs a draft before review.';
-  if (action === 'review' && !['in_review', 'agreed', 'awaiting_approval'].includes(card.state))
+  if (action === 'review' && !cardLifecycle.is('reviewable', card.state))
     return 'Draft this application before reviewing.';
-  if (
-    action === 'deep-review' &&
-    !['shortlisted', 'changes_requested', 'in_review', 'agreed', 'awaiting_approval'].includes(
-      card.state,
-    )
-  )
+  if (action === 'deep-review' && !cardLifecycle.is('deepReviewable', card.state))
     return 'Shortlist this job before deep review.';
   try {
     if (action === 'fit' || action === 'reevaluate') assertExtractedContext(card);
